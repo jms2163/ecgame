@@ -6,6 +6,7 @@
 import BootstrapUI from "./BootstrapUI.js";
 import GameStateManager from "./GameStateManager.js";
 import DataLoader from "./DataLoader.js";
+import SaveManager from "./SaveManager.js";
 // import SimulationClock from "./SimulationClock.js";
 // import ZoneManager from "./ZoneManager.js";
 
@@ -28,6 +29,9 @@ const Bootstrap = {
         GameStateManager.initialize();
         BootstrapUI.mark("Game State");
         BootstrapUI.ready();
+
+        SaveManager.initialize();
+        BootstrapUI.mark("Save System");
 
 
         // Initialize observers/events

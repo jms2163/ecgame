@@ -1,10 +1,10 @@
-const gameState = {
+const testGameState = {
     player: {
-        id: null,
-        name: "",
+        id: 6283439,
+        name: "TEST STUDENT",
 
-        level: 1,
-        xp: 0,
+        level: 12,
+        xp: 148374,
 
         currentZone: "pond",
         currentZoom: 0
@@ -73,5 +73,4 @@ const gameState = {
     saveVersion: "1.0"
 };
 
-
-export default gameState;
+export default testGameState;
