@@ -83,5 +83,3 @@ async function initializeZones() {
 async function startSimulation() {
     SimulationClock.start();
 }
-
-export default Bootstrap;
