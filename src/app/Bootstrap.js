@@ -7,6 +7,7 @@ import BootstrapUI from "./BootstrapUI.js";
 import GameStateManager from "./GameStateManager.js";
 import DataLoader from "./DataLoader.js";
 import SaveManager from "./SaveManager.js";
+import VersionManager from "./VersionManager.js";
 // import SimulationClock from "./SimulationClock.js";
 // import ZoneManager from "./ZoneManager.js";
 
