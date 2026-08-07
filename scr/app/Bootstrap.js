@@ -9,77 +9,85 @@
 //import FacilityUI from "./FacilityUI.js";
 //import ZoneManager from "./ZoneManager.js";
 //import SimulationClock from "./SimulationClock.js";
-import BootstrapUI from "./BootstrapUI.js";
+//import BootstrapUI from "./BootstrapUI.js";
 
-export async function initialize() {
-    BootstrapUI.initialize();
+const Bootstrap = {
 
-    await loadData();
-    BootstrapUI.mark("Data");
+    // --------------------------------------------------
+    // Main entry point
+    // --------------------------------------------------
+    async initialize() {
+        BootstrapUI.initialize();
 
-    await initializeGameState();
-    BootstrapUI.mark("Game State");
+        await this.loadData();
+        BootstrapUI.mark("Data");
 
-    await initializeObservers();
-    BootstrapUI.mark("Observers");
+        await this.initializeGameState();
+        BootstrapUI.mark("Game State");
 
-    await initializeUI();
-    BootstrapUI.mark("UI");
+        await this.initializeObservers();
+        BootstrapUI.mark("Observers");
 
-    await initializeZones();
-    BootstrapUI.mark("Zones");
+        await this.initializeUI();
+        BootstrapUI.mark("UI");
 
-    await startSimulation();
-    BootstrapUI.mark("Simulation");
+        await this.initializeZones();
+        BootstrapUI.mark("Zones");
 
-    BootstrapUI.ready();
-}
+        await this.startSimulation();
+        BootstrapUI.mark("Simulation");
 
-
-// --------------------------------------------------
-// Load Data
-// --------------------------------------------------
-async function loadData() {
-    await DataLoader.loadAll();
-}
+        BootstrapUI.ready();
+    },
 
 
-// --------------------------------------------------
-// Initialize Game State
-// --------------------------------------------------
-async function initializeGameState() {
-    GameStateManager.reset(); // or hydrate from save
-}
+    // --------------------------------------------------
+    // Load Data
+    // --------------------------------------------------
+    async loadData() {
+        await DataLoader.loadAll();
+    },
 
 
-// --------------------------------------------------
-// Initialize Observers
-// --------------------------------------------------
-async function initializeObservers() {
-    // Example:
-    // GameStateObserver.on("tick", () => UIManager.updateTick());
-}
+    // --------------------------------------------------
+    // Initialize Game State
+    // --------------------------------------------------
+    async initializeGameState() {
+        GameStateManager.reset(); // or hydrate from save
+    },
 
 
-// --------------------------------------------------
-// Initialize UI
-// --------------------------------------------------
-async function initializeUI() {
-    UIManager.initialize();
-}
+    // --------------------------------------------------
+    // Initialize Observers
+    // --------------------------------------------------
+    async initializeObservers() {
+        // Example:
+        // GameStateObserver.on("tick", () => UIManager.updateTick());
+    },
 
 
-// --------------------------------------------------
-// Initialize Zones
-// --------------------------------------------------
-async function initializeZones() {
-    ZoneManager.initialize();
-}
+    // --------------------------------------------------
+    // Initialize UI
+    // --------------------------------------------------
+    async initializeUI() {
+        UIManager.initialize();
+    },
 
 
-// --------------------------------------------------
-// Start Simulation Clock
-// --------------------------------------------------
-async function startSimulation() {
-    SimulationClock.start();
-}
+    // --------------------------------------------------
+    // Initialize Zones
+    // --------------------------------------------------
+    async initializeZones() {
+        ZoneManager.initialize();
+    },
+
+
+    // --------------------------------------------------
+    // Start Simulation Clock
+    // --------------------------------------------------
+    async startSimulation() {
+        SimulationClock.start();
+    }
+};
+
+export default Bootstrap;
