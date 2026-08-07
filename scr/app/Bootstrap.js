@@ -3,88 +3,83 @@
 // Responsible for initializing the entire game
 // --------------------------------------------------
 
-import CSSLoader from "./CSSLoader.js";
 import DataLoader from "./DataLoader.js";
-import GameState from "./GameState.js";
 import GameStateManager from "./GameStateManager.js";
 import GameStateObserver from "./GameStateObserver.js";
 import UIManager from "./UIManager.js";
 import ZoneManager from "./ZoneManager.js";
+import SimulationClock from "./SimulationClock.js";
+import BootstrapUI from "./BootstrapUI.js";
 
-const Bootstrap = {
+export async function initialize() {
+    BootstrapUI.initialize();
 
-    // --------------------------------------------------
-    // Main entry point
-    // --------------------------------------------------
-    async initialize() {
-        console.log("Bootstrap: Starting initialization...");
+    await loadData();
+    BootstrapUI.mark("Data");
 
-        await this.loadCSS();
-        await this.loadData();
-        await this.initializeGameState();
-        await this.initializeObservers();
-        await this.initializeUI();
-        await this.initializeZones();
-        await this.startTimer();
+    await initializeGameState();
+    BootstrapUI.mark("Game State");
 
-        console.log("Bootstrap: Initialization complete.");
-    },
+    await initializeObservers();
+    BootstrapUI.mark("Observers");
 
+    await initializeUI();
+    BootstrapUI.mark("UI");
 
-    // --------------------------------------------------
-    // Load CSS
-    // --------------------------------------------------
-    async loadCSS() {
-        // TODO: CSSLoader.load("main.css");
-    },
+    await initializeZones();
+    BootstrapUI.mark("Zones");
 
+    await startSimulation();
+    BootstrapUI.mark("Simulation");
 
-    // --------------------------------------------------
-    // Load Data
-    // --------------------------------------------------
-    async loadData() {
-        // TODO: DataLoader.loadAll();
-    },
+    BootstrapUI.ready();
+}
 
 
-    // --------------------------------------------------
-    // Initialize Game State
-    // --------------------------------------------------
-    async initializeGameState() {
-        // TODO: GameStateManager.reset() or hydrate from save
-    },
+// --------------------------------------------------
+// Load Data
+// --------------------------------------------------
+async function loadData() {
+    await DataLoader.loadAll();
+}
 
 
-    // --------------------------------------------------
-    // Initialize Observers
-    // --------------------------------------------------
-    async initializeObservers() {
-        // TODO: set up GameStateObserver subscriptions
-    },
+// --------------------------------------------------
+// Initialize Game State
+// --------------------------------------------------
+async function initializeGameState() {
+    GameStateManager.reset(); // or hydrate from save
+}
 
 
-    // --------------------------------------------------
-    // Initialize UI
-    // --------------------------------------------------
-    async initializeUI() {
-        // TODO: UIManager.initialize();
-    },
+// --------------------------------------------------
+// Initialize Observers
+// --------------------------------------------------
+async function initializeObservers() {
+    // Example:
+    // GameStateObserver.on("tick", () => UIManager.updateTick());
+}
 
 
-    // --------------------------------------------------
-    // Initialize Zones
-    // --------------------------------------------------
-    async initializeZones() {
-        // TODO: ZoneManager.initialize();
-    },
+// --------------------------------------------------
+// Initialize UI
+// --------------------------------------------------
+async function initializeUI() {
+    UIManager.initialize();
+}
 
 
-    // --------------------------------------------------
-    // Start Timer / Game Loop
-    // --------------------------------------------------
-    async startTimer() {
-        // TODO: setInterval(() => { ... }, 1000);
-    }
-};
+// --------------------------------------------------
+// Initialize Zones
+// --------------------------------------------------
+async function initializeZones() {
+    ZoneManager.initialize();
+}
 
-export default Bootstrap;
+
+// --------------------------------------------------
+// Start Simulation Clock
+// --------------------------------------------------
+async function startSimulation() {
+    SimulationClock.start();
+}
