@@ -1,3 +1,3 @@
 import { initialize } from "./Bootstrap.js";
-console.log("Bootstrap running");
+console.log("main.js running");
 Bootstrap.initialize();
