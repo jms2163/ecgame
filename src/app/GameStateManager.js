@@ -1,5 +1,6 @@
 
 import gameState from "./GameState.js";
+import testGameState from "./TestGameState.js";
 
 const GameStateManager = {
 
@@ -16,6 +17,12 @@ const GameStateManager = {
 
     console.log("Current Game State:", gameState);
 
+    },
+
+    loadTestState(testState) {
+        Object.assign(gameState, testState);
+
+        console.log("Test Game State loaded:", gameState);
     },
 
     // --------------------------------------------------
@@ -117,5 +124,7 @@ const GameStateManager = {
         // TODO: full gameState reset
     }
 };
+
+
 
 export default GameStateManager;

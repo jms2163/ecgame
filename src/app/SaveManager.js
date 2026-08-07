@@ -1,12 +1,22 @@
 import gameState from "./GameState.js";
 
+const SAVE_KEY = "ECGame_Save";
+
 const SaveManager = {
+
+    // --------------------------------------------------
+    // Initialize
+    // --------------------------------------------------
+    Initialize() {},
 
     // --------------------------------------------------
     // Save
     // --------------------------------------------------
     save() {
-        // TODO: serialize gameState and write to storage
+        localStorage.setItem(
+            SAVE_KEY,
+            JSON.stringify(gameState)
+        );
     },
 
 
@@ -14,7 +24,14 @@ const SaveManager = {
     // Load
     // --------------------------------------------------
     load() {
-        // TODO: load serialized data and hydrate gameState
+        const data = localStorage.getItem(SAVE_KEY);
+        if (!data) return; // Guard clause: stop early if no save exists
+
+        try {
+            Object.assign(gameState, JSON.parse(data));
+        } catch (error) {
+            console.error("Failed to parse game save:", error);
+        }
     },
 
 
@@ -22,7 +39,7 @@ const SaveManager = {
     // Export
     // --------------------------------------------------
     export() {
-        // TODO: return a serialized representation of gameState
+        return JSON.stringify(gameState, null, 2); // Added return (otherwise it produces JSON without returning it)
     },
 
 
@@ -31,6 +48,7 @@ const SaveManager = {
     // --------------------------------------------------
     import(data) {
         // TODO: load external save data into gameState
+        // Do I need to know what gamestate format looks like first?
     },
 
 
@@ -38,8 +56,10 @@ const SaveManager = {
     // Clear
     // --------------------------------------------------
     clear() {
-        // TODO: wipe save data from storage
+        localStorage.removeItem(SAVE_KEY);
     }
+
 };
+
 
 export default SaveManager;
