@@ -1,8 +1,13 @@
-
 const gameState = {
     player: {
         id: null,
         name: "",
+
+        level: 1,
+        xp: 0,
+
+        currentZone: "pond",
+        currentZoom: 0
     },
 
     registry: {
@@ -10,27 +15,62 @@ const gameState = {
         discoveries: [],
         certifications: [],
         quests: [],
-        journal: [],
+        journal: []
     },
 
     zones: {
-        pond: {},
-        quantum: {},
-        atomLab: {},
-        atomizer: {},
-        molecularizer: {},
-        macromolecularizer: {},
-        polymerizer: {},
-        metabolism: {},
-        genetics: {},
+        pond: {
+            unlocked: true,
+            state: {}
+        },
+
+        quantum: {
+            unlocked: false,
+            state: {}
+        },
+
+        atomLab: {
+            unlocked: false,
+            state: {}
+        },
+
+        atomizer: {
+            unlocked: false,
+            state: {}
+        },
+
+        molecularizer: {
+            unlocked: false,
+            state: {}
+        },
+
+        macromolecularizer: {
+            unlocked: false,
+            state: {}
+        },
+
+        polymerizer: {
+            unlocked: false,
+            state: {}
+        },
+
+        metabolism: {
+            unlocked: false,
+            state: {}
+        },
+
+        genetics: {
+            unlocked: false,
+            state: {}
+        }
     },
 
     settings: {
         volume: 1,
-        difficulty: "normal",
+        difficulty: "normal"
     },
 
-    saveVersion: 1,
+    saveVersion: 1
 };
 
 export default gameState;
