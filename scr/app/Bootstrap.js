@@ -3,12 +3,12 @@
 // Responsible for initializing the entire game
 // --------------------------------------------------
 
-import DataLoader from "./DataLoader.js";
-import GameStateManager from "./GameStateManager.js";
-import GameStateObserver from "./GameStateObserver.js";
-import FacilityUI from "./FacilityUI.js";
-import ZoneManager from "./ZoneManager.js";
-import SimulationClock from "./SimulationClock.js";
+//import DataLoader from "./DataLoader.js";
+//import GameStateManager from "./GameStateManager.js";
+//import GameStateObserver from "./GameStateObserver.js";
+//import FacilityUI from "./FacilityUI.js";
+//import ZoneManager from "./ZoneManager.js";
+//import SimulationClock from "./SimulationClock.js";
 import BootstrapUI from "./BootstrapUI.js";
 
 export async function initialize() {
@@ -83,3 +83,5 @@ async function initializeZones() {
 async function startSimulation() {
     SimulationClock.start();
 }
+
+export default Bootstrap;
