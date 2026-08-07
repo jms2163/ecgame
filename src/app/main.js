@@ -1,7 +1,7 @@
-console.log("MAIN.JS STARTED");
 
 import Bootstrap from "./Bootstrap.js";
+console.log("MAIN.JS STARTED");
 
-console.log("NEW VERSION AUGUST 7 TEST");
+console.log("LOCAL VS CODE TEST");
 
 Bootstrap.initialize();
