@@ -73,5 +73,4 @@ const gameState = {
     saveVersion: "1.0"
 };
 
-
 export default gameState;

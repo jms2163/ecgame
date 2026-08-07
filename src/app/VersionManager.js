@@ -1,74 +1,130 @@
+// --------------------------------------------------
+// VersionManager.js
+// Handles save-version detection and upgrades
+// --------------------------------------------------
+
 const VersionManager = {
 
     // --------------------------------------------------
-    // Version Detection
+    // Current save format
     // --------------------------------------------------
 
     getCurrentVersion() {
-        // TODO: return current game version (e.g., "1.5")
-    },
 
-    getSaveVersion(saveData) {
-        // TODO: read version from saveData (e.g., saveData.version)
-    },
+        return "1.1";
 
-    isCompatible(saveVersion, currentVersion) {
-        // TODO: return true if saveVersion matches currentVersion
     },
 
 
     // --------------------------------------------------
-    // Upgrade Pipeline
+    // Read version from save
+    // --------------------------------------------------
+
+    getSaveVersion(saveData) {
+
+        return saveData.saveVersion;
+
+    },
+
+
+    // --------------------------------------------------
+    // Check compatibility
+    // --------------------------------------------------
+
+    isCompatible(saveVersion, currentVersion) {
+
+        return saveVersion === currentVersion;
+
+    },
+
+
+    // --------------------------------------------------
+    // Upgrade save
     // --------------------------------------------------
 
     upgrade(saveData) {
-        // TODO: read version
-        const version = this.getSaveVersion(saveData);
 
-        // Example upgrade chain (blank stubs)
-        if (version === "1.0") {
-            saveData = this.upgrade_1_0_to_1_1(saveData);
+        let version =
+            this.getSaveVersion(saveData);
+
+        const currentVersion =
+            this.getCurrentVersion();
+
+
+        // --------------------------------------------------
+        // Already current
+        // --------------------------------------------------
+
+        if (version === currentVersion) {
+
+            console.log(
+                "Save version is current:",
+                currentVersion
+            );
+
+            return saveData;
         }
 
-        if (version === "1.1") {
-            saveData = this.upgrade_1_1_to_1_2(saveData);
+
+        // --------------------------------------------------
+        // Upgrade pipeline
+        // --------------------------------------------------
+
+        while (version !== currentVersion) {
+
+            if (version === "1.0") {
+
+                saveData =
+                    this.upgrade_1_0_to_1_1(
+                        saveData
+                    );
+
+            } else {
+
+                throw new Error(
+                    `No upgrade path exists for save version ${version}`
+                );
+
+            }
+
+
+            version =
+                this.getSaveVersion(saveData);
+
         }
 
-        if (version === "1.2") {
-            saveData = this.upgrade_1_2_to_1_3(saveData);
-        }
 
-        // TODO: continue chain until currentVersion
+        console.log(
+            `Save upgraded successfully to ${currentVersion}`
+        );
+
 
         return saveData;
+
     },
 
 
     // --------------------------------------------------
-    // Individual Upgrade Steps
+    // 1.0 → 1.1
     // --------------------------------------------------
 
     upgrade_1_0_to_1_1(saveData) {
-        // Example:
-        // - add Registry.Journal
-        // - convert ATP
-        // - rename fields
-        return saveData;
-    },
 
-    upgrade_1_1_to_1_2(saveData) {
-        // Example:
-        // - restructure inventory
-        // - add new settings defaults
-        return saveData;
-    },
+        saveData.player.displayName =
+            saveData.player.name;
 
-    upgrade_1_2_to_1_3(saveData) {
-        // Example:
-        // - normalize zone state
-        // - add missing fields
+        saveData.saveVersion = "1.1";
+
         return saveData;
+
     }
+
 };
+
+
+// --------------------------------------------------
+// Development testing only
+// --------------------------------------------------
+
 
 export default VersionManager;
