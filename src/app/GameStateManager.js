@@ -4,6 +4,21 @@ import gameState from "./GameState.js";
 const GameStateManager = {
 
     // --------------------------------------------------
+    // Initialize
+    // --------------------------------------------------
+
+    initialize() {
+
+        // if new game, load initial values
+        // if continuing, load current values
+
+    console.log("GameStateManager initialized");
+
+    console.log("Current Game State:", gameState);
+
+    },
+
+    // --------------------------------------------------
     // Player
     // --------------------------------------------------
 
