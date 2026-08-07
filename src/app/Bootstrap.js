@@ -5,7 +5,7 @@
 
 import BootstrapUI from "./BootstrapUI.js";
 import GameStateManager from "./GameStateManager.js";
-// import DataLoader from "./DataLoader.js";
+import DataLoader from "./DataLoader.js";
 // import SimulationClock from "./SimulationClock.js";
 // import ZoneManager from "./ZoneManager.js";
 
@@ -21,9 +21,8 @@ const Bootstrap = {
         BootstrapUI.initialize();
 
 
-        // Load game data
-        // await this.loadData();
-        // BootstrapUI.mark("Data");
+        await DataLoader.loadAll();
+        BootstrapUI.mark("Scientific Data");
 
 
         GameStateManager.initialize();
