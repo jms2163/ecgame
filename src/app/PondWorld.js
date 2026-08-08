@@ -18,6 +18,35 @@ const PondWorld = {
 
 },
 
+    // --------------------------------------------------
+// Ensure Local Region Exists
+// --------------------------------------------------
+ensureRegion(world, centerX, centerY, radius) {
+
+    for (
+        let x = centerX - radius;
+        x <= centerX + radius;
+        x++
+    ) {
+
+        for (
+            let y = centerY - radius;
+            y <= centerY + radius;
+            y++
+        ) {
+
+            this.getOrCreateTile(
+                world,
+                x,
+                y
+            );
+
+        }
+
+    }
+
+},
+
 
     // --------------------------------------------------
     // Create / Store One Tile

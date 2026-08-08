@@ -30,10 +30,8 @@ const gameState = {
         },
 
         world: {
-            width: 20,
-            height: 20,
-            tiles: []
-        }
+    tiles: {}
+}
 
     }
 },

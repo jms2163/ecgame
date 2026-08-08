@@ -7,6 +7,7 @@ import GameStateManager from "./GameStateManager.js";
 import ZoneManager from "./ZoneManager.js";
 import SaveManager from "./SaveManager.js";
 import PondWorld from "./PondWorld.js";
+import PondController from "./PondController.js";
 
 const DevConsole = {
 
@@ -17,7 +18,8 @@ const DevConsole = {
             GameStateManager,
             ZoneManager,
             SaveManager,
-            PondWorld
+            PondWorld,
+            PondController
             
 
         };
