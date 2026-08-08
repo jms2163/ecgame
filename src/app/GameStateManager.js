@@ -54,6 +54,22 @@ const GameStateManager = {
 // Pond
 // --------------------------------------------------
 
+getPondWorld() {
+
+    const pondState = gameState.zones.pond?.state;
+
+    if (!pondState?.world) {
+        console.warn(
+            "GameStateManager: Pond world state does not exist"
+        );
+
+        return null;
+    }
+
+    return pondState.world;
+
+},
+
 setPondPosition(x, y) {
 
     const pondState = gameState.zones.pond?.state;

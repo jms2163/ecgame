@@ -4,6 +4,7 @@
 // --------------------------------------------------
 
 import PondNavigation from "./PondNavigation.js";
+import PondController from "./PondController.js";
 import gameState from "./GameState.js";
 
 const Pond = {
@@ -33,6 +34,9 @@ const Pond = {
     this.active = true;
 
     console.log("Pond.activate() called");
+
+    // Ensure the local simulated environment exists
+    PondController.initializeLocalWorld();
 
     const currentZoom = gameState.player.currentZoom ?? 0;
 
