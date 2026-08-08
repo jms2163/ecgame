@@ -65,7 +65,7 @@ const ZoneManager = {
         // --------------------------------------------------
         // Activate requested zone
         // --------------------------------------------------
-        nextZone.activate();
+        `≠`≠nextZone.activate();
 
         // --------------------------------------------------
         // Record active zone
