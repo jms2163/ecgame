@@ -16,13 +16,13 @@ const OrganelleView = {
     initialize() {
 
     if (this.initialized) {
+        console.log("OrganelleView.initialize() skipped (already initialized)");
         return;
     }
 
-    console.log("OrganellView.initialize() called");
+    console.log("OrganelleView.initialize() called");
 
     this.initialized = true;
-
 },
 
     // --------------------------------------------------

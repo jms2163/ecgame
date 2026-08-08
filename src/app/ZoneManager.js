@@ -5,7 +5,6 @@
 
 import Pond from "./Pond.js";
 import GameStateManager from "./GameStateManager.js";
-import TestZone from "./TestZone.js";
 
 const ZoneManager = {
 
@@ -38,10 +37,7 @@ const ZoneManager = {
                 nextZone = Pond;
                 break;
             
-            case "test":
-
-                nextZone = TestZone;
-                 break;
+            
 
             default:
                 console.warn(`ZoneManager: unknown zone "${zoneId}"`);

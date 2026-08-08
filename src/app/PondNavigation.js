@@ -5,7 +5,6 @@
 
 
 import PondGridView from "./PondGridView.js";
-window.PondGridView = PondGridView; // DEBUG TEST CAUTION REMOVE
 import CellView from "./CellView.js";
 import OrganelleView from "./OrganelleView.js";
 import GameStateManager from "./GameStateManager.js";
@@ -20,11 +19,19 @@ const PondNavigation = {
     // --------------------------------------------------
     initialize() {
 
-        console.log("PondNavigation.initialize() called");
+    if (this.initialized) {
+        console.log("PondNavigation.initialize() skipped (already initialized)");
+        return;
+    }
 
-        this.bindButtons();
+    console.log("PondNavigation.initialize() called");
 
-    },
+    // Bind UI buttons for switching views
+    this.bindButtons();
+
+    this.initialized = true;
+},
+
 
     // --------------------------------------------------
     // Bind semantic zoom buttons
