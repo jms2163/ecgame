@@ -8,6 +8,7 @@ import ZoneManager from "./ZoneManager.js";
 import SaveManager from "./SaveManager.js";
 import PondWorld from "./PondWorld.js";
 import PondController from "./PondController.js";
+import PondPerception from "./PondPerception.js";
 
 const DevConsole = {
 
@@ -19,7 +20,8 @@ const DevConsole = {
             ZoneManager,
             SaveManager,
             PondWorld,
-            PondController
+            PondController,
+            PondPerception
             
 
         };
