@@ -8,6 +8,9 @@ import GameStateManager from "./GameStateManager.js";
 import DataLoader from "./DataLoader.js";
 import SaveManager from "./SaveManager.js";
 import VersionManager from "./VersionManager.js";
+import ZoneManager from "./ZoneManager.js";
+// Zones
+import Pond from "./Pond.js";
 // import SimulationClock from "./SimulationClock.js";
 // import ZoneManager from "./ZoneManager.js";
 
@@ -33,6 +36,12 @@ const Bootstrap = {
 
         SaveManager.initialize();
         BootstrapUI.mark("Save System");
+
+        ZoneManager.initialize();
+        BootstrapUI.mark("Zone Manager");
+
+        ZoneManager.enterZone("pond");
+        BootstrapUI.mark("Pond");
 
 
         // Initialize observers/events
