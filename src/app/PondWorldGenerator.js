@@ -4,33 +4,23 @@
 // --------------------------------------------------
 
 import MicrobiomeLibrary from "./MicrobiomeLibrary.js";
+import PondWorldConfig from "./PondWorldConfig.js";
+
+const TEST_WORLD_SEED = 12345;
+
+const initialConfig =
+    PondWorldConfig.create(TEST_WORLD_SEED);
 
 const PondWorldGenerator = {
 
     // --------------------------------------------------
     // Initial Microbiome Regions
     // --------------------------------------------------
-    substrateRegions: [
+    substrateRegions:
+    initialConfig.substrateRegions,
 
-    {
-        microbiome: "algae_patch",
-        x: 3,
-        y: 3,
-        radius: 3
-    }
-
-],
-
-overlayRegions: [
-
-    {
-        microbiome: "bacterial_bloom",
-        x: 5,
-        y: 4,
-        radius: 2
-    }
-
-],
+overlayRegions:
+    initialConfig.overlayRegions,
 
 getStrongestInfluence(regions, x, y) {
 

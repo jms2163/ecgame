@@ -10,6 +10,7 @@ import PondWorld from "./PondWorld.js";
 import PondController from "./PondController.js";
 import PondPerception from "./PondPerception.js";
 import PondWorldGenerator from "./PondWorldGenerator.js";
+import SeededRandom from "./SeededRandom.js";
 
 const DevConsole = {
 
@@ -23,7 +24,8 @@ const DevConsole = {
             PondWorld,
             PondController,
             PondPerception,
-            PondWorldGenerator
+            PondWorldGenerator,
+            SeededRandom
             
 
         };
