@@ -56,18 +56,20 @@ const GameStateManager = {
 
 setPondPosition(x, y) {
 
-    if (!gameState.zones.pond) {
+    const pondState = gameState.zones.pond?.state;
+
+    if (!pondState?.player) {
 
         console.warn(
-            "GameStateManager: Pond zone does not exist"
+            "GameStateManager: Pond player state does not exist"
         );
 
         return;
 
     }
 
-    gameState.zones.pond.state.playerX = x;
-    gameState.zones.pond.state.playerY = y;
+    pondState.player.x = x;
+    pondState.player.y = y;
 
     console.log(
         `GameStateManager: Pond position = (${x}, ${y})`
@@ -75,12 +77,43 @@ setPondPosition(x, y) {
 
 },
 
+getPondPosition() {
+
+    const pondState = gameState.zones.pond?.state;
+
+    if (!pondState?.player) {
+
+        console.warn(
+            "GameStateManager: Pond player state does not exist"
+        );
+
+        return null;
+
+    }
+
+    return {
+        x: pondState.player.x,
+        y: pondState.player.y
+    };
+
+},
+
 movePondPlayer(dx, dy) {
 
-    const pondState = gameState.zones.pond.state;
+    const pondState = gameState.zones.pond?.state;
 
-    const newX = pondState.playerX + dx;
-    const newY = pondState.playerY + dy;
+    if (!pondState?.player) {
+
+        console.warn(
+            "GameStateManager: Pond player state does not exist"
+        );
+
+        return;
+
+    }
+
+    const newX = pondState.player.x + dx;
+    const newY = pondState.player.y + dy;
 
     this.setPondPosition(newX, newY);
 

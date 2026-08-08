@@ -64,14 +64,13 @@ const PondGridView = {
 
     const pondState = gameState.zones.pond.state;
 
-    const { playerX, playerY } = pondState;
+    const { x, y } = pondState.player;
 
     console.log(
-        `PondGridView: rendering player at (${playerX}, ${playerY})`
+        `PondGridView: rendering player at (${x}, ${y})`
     );
 
-    // Actual canvas/grid rendering will go here.
-
+    // Actual canvas/grid rendering will go here later.
 }
 
 };

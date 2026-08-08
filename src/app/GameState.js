@@ -20,13 +20,23 @@ const gameState = {
 
     zones: {
         pond: {
-            unlocked: true,
+    unlocked: true,
 
-            state: {
-                playerX: 0,
-                playerY: 0
-            },
+    state: {
+
+        player: {
+            x: 0,
+            y: 0
         },
+
+        world: {
+            width: 20,
+            height: 20,
+            tiles: []
+        }
+
+    }
+},
     
 
         quantum: {
