@@ -54,6 +54,26 @@ const GameStateManager = {
 // Pond
 // --------------------------------------------------
 
+clearPondWorldTiles() {
+
+    const world =
+        gameState.zones.pond.state.world;
+
+    if (!world) {
+        console.warn(
+            "GameStateManager: Pond world does not exist"
+        );
+        return;
+    }
+
+    world.tiles = {};
+
+    console.log(
+        "GameStateManager: Pond world tiles cleared"
+    );
+
+},
+
 // --------------------------------------------------
 // Pond Anchoring
 // --------------------------------------------------
@@ -171,7 +191,24 @@ getPondWorldSeed() {
 
 setPondWorldSeed(seed) {
 
-    gameState.zones.pond.state.worldSeed = seed;
+    const pondState =
+        gameState.zones.pond.state;
+
+    const previousSeed =
+        pondState.worldSeed;
+
+    if (previousSeed === seed) {
+        return;
+    }
+
+    pondState.worldSeed = seed;
+
+    if (
+        previousSeed !== null &&
+        previousSeed !== undefined
+    ) {
+        this.clearPondWorldTiles();
+    }
 
     console.log(
         `GameStateManager: Pond world seed = ${seed}`
