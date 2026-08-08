@@ -15,7 +15,6 @@ const Pond = {
     // --------------------------------------------------
     initialize() {
 
-        //console.log("Pond.initialize() called");
 
         PondNavigation.initialize();
 

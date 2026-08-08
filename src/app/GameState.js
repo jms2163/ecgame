@@ -67,11 +67,6 @@ const gameState = {
         genetics: {
             unlocked: false,
             state: {}
-        },
-
-        test: {
-             unlocked: true,
-             state: {}
         }
     },
 

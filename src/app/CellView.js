@@ -16,13 +16,13 @@ const CellView = {
     initialize() {
 
     if (this.initialized) {
+        console.log("CellView.initialize() skipped (already initialized)");
         return;
     }
 
     console.log("CellView.initialize() called");
 
     this.initialized = true;
-
 },
 
     // --------------------------------------------------
