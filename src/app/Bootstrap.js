@@ -11,6 +11,7 @@ import VersionManager from "./VersionManager.js";
 import ZoneManager from "./ZoneManager.js";
 import DevConsole from "./DevConsole.js";
 import PondWorld from "./PondTileFactory.js";
+import SeededRandom from "./SeededRandom.js";
 // Zones
 import Pond from "./Pond.js";
 // import SimulationClock from "./SimulationClock.js";

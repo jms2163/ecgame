@@ -54,6 +54,26 @@ const GameStateManager = {
 // Pond
 // --------------------------------------------------
 
+// --------------------------------------------------
+// Pond Anchoring
+// --------------------------------------------------
+
+isPondPlayerAnchored() {
+
+    return (
+        gameState.zones.pond.state.player.anchored
+        ?? false
+    );
+
+},
+
+setPondPlayerAnchored(anchored) {
+
+    gameState.zones.pond.state.player.anchored =
+        Boolean(anchored);
+
+},
+
 getPondWorld() {
 
     const pondState = gameState.zones.pond?.state;
@@ -135,6 +155,26 @@ movePondPlayer(dx, dy) {
 
     console.log(
         `GameStateManager: Pond player moved to (${newX}, ${newY})`
+    );
+
+},
+
+// --------------------------------------------------
+// Pond World Seed
+// --------------------------------------------------
+
+getPondWorldSeed() {
+
+    return gameState.zones.pond.state.worldSeed;
+
+},
+
+setPondWorldSeed(seed) {
+
+    gameState.zones.pond.state.worldSeed = seed;
+
+    console.log(
+        `GameStateManager: Pond world seed = ${seed}`
     );
 
 },

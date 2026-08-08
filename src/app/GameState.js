@@ -1,4 +1,5 @@
 const gameState = {
+
     player: {
         id: null,
         name: "",
@@ -19,23 +20,26 @@ const gameState = {
     },
 
     zones: {
+
         pond: {
-    unlocked: true,
+            unlocked: true,
 
-    state: {
+            state: {
 
-        player: {
-            x: 0,
-            y: 0
+                player: {
+                    x: 0,
+                    y: 0,
+                    anchored: false
+                },
+
+                worldSeed: null,
+
+                world: {
+                    tiles: {}
+                }
+
+            }
         },
-
-        world: {
-    tiles: {}
-}
-
-    }
-},
-    
 
         quantum: {
             unlocked: false,
@@ -76,8 +80,8 @@ const gameState = {
             unlocked: false,
             state: {}
         }
-    },
 
+    },
 
     settings: {
         volume: 1,
@@ -85,6 +89,7 @@ const gameState = {
     },
 
     saveVersion: "1.0"
+
 };
 
 export default gameState;
