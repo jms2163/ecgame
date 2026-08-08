@@ -6,21 +6,55 @@
 import MicrobiomeLibrary from "./MicrobiomeLibrary.js";
 import PondWorldConfig from "./PondWorldConfig.js";
 
-const TEST_WORLD_SEED = 12345;
 
-const initialConfig =
-    PondWorldConfig.create(TEST_WORLD_SEED);
+
+
 
 const PondWorldGenerator = {
 
     // --------------------------------------------------
     // Initial Microbiome Regions
     // --------------------------------------------------
-    substrateRegions:
-    initialConfig.substrateRegions,
+    
+// --------------------------------------------------
+// Configure Generator From Persistent Seed
+// --------------------------------------------------
 
-overlayRegions:
-    initialConfig.overlayRegions,
+currentSeed: null,
+substrateRegions: [],
+overlayRegions: [],
+configure(seed) {
+
+    if (seed === null || seed === undefined) {
+
+        console.warn(
+            "PondWorldGenerator: no world seed provided"
+        );
+
+        return;
+    }
+
+    if (this.currentSeed === seed) {
+        return;
+    }
+
+    const config =
+        PondWorldConfig.create(seed);
+
+    this.currentSeed = seed;
+
+    this.substrateRegions =
+        config.substrateRegions;
+
+    this.overlayRegions =
+        config.overlayRegions;
+
+    console.log(
+        `PondWorldGenerator configured with seed ${seed}`
+    );
+
+},
+
 
 getStrongestInfluence(regions, x, y) {
 
