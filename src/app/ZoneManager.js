@@ -4,6 +4,8 @@
 // --------------------------------------------------
 
 import Pond from "./Pond.js";
+import GameStateManager from "./GameStateManager.js";
+import TestZone from "./TestZone.js";
 
 const ZoneManager = {
 
@@ -21,12 +23,33 @@ const ZoneManager = {
     // --------------------------------------------------
     // Enter a game zone
     // --------------------------------------------------
-    enterZone(zoneName) {
+    enterZone(zoneId) {
 
-        console.log(`ZoneManager: entering ${zoneName}`);
+        console.log(`ZoneManager: entering ${zoneId}`);
 
         // --------------------------------------------------
-        // If another zone is active, deactivate it first
+        // Identify requested zone
+        // --------------------------------------------------
+        let nextZone = null;
+
+        switch (zoneId) {
+
+            case "pond":
+                nextZone = Pond;
+                break;
+            
+            case "test":
+
+                nextZone = TestZone;
+                 break;
+
+            default:
+                console.warn(`ZoneManager: unknown zone "${zoneId}"`);
+                return;
+        }
+
+        // --------------------------------------------------
+        // Deactivate current zone
         // --------------------------------------------------
         if (this.currentZone) {
 
@@ -35,32 +58,9 @@ const ZoneManager = {
         }
 
         // --------------------------------------------------
-        // Identify requested zone
+        // Initialize requested zone
         // --------------------------------------------------
-        let nextZone = null;
-
-        switch (zoneName) {
-
-            case "pond":
-
-                nextZone = Pond;
-                break;
-
-            default:
-
-                console.warn(`ZoneManager: unknown zone "${zoneName}"`);
-                return;
-
-        }
-
-        // --------------------------------------------------
-        // Initialize zone if necessary
-        // --------------------------------------------------
-        if (!nextZone.initialized) {
-
-            nextZone.initialize();
-
-        }
+        nextZone.initialize();
 
         // --------------------------------------------------
         // Activate requested zone
@@ -72,7 +72,12 @@ const ZoneManager = {
         // --------------------------------------------------
         this.currentZone = nextZone;
 
-        console.log(`ZoneManager: ${zoneName} is now active`);
+        // --------------------------------------------------
+        // Record zone in GameState
+        // --------------------------------------------------
+        GameStateManager.setCurrentZone(zoneId);
+
+        console.log(`ZoneManager: ${zoneId} is now active`);
 
     },
 
@@ -87,7 +92,9 @@ const ZoneManager = {
         }
 
         if (typeof this.currentZone.showView !== "function") {
-            console.warn("ZoneManager: current zone does not support internal views");
+            console.warn(
+                "ZoneManager: current zone does not support internal views"
+            );
             return;
         }
 

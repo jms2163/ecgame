@@ -1,4 +1,3 @@
-
 import gameState from "./GameState.js";
 import testGameState from "./TestGameState.js";
 
@@ -10,20 +9,20 @@ const GameStateManager = {
 
     initialize() {
 
-        // if new game, load initial values
-        // if continuing, load current values
+        //console.log("GameStateManager initialized");
 
-    console.log("GameStateManager initialized");
-
-    console.log("Current Game State:", gameState);
+        console.log("Current Game State:", gameState);
 
     },
 
     loadTestState(testState) {
+
         Object.assign(gameState, testState);
 
         console.log("Test Game State loaded:", gameState);
+
     },
+
 
     // --------------------------------------------------
     // Player
@@ -37,9 +36,17 @@ const GameStateManager = {
         // TODO: set player name
     },
 
-    changeZone(zoneId) {
-        // TODO: update player.currentZone
-    },
+    setCurrentZoom(level) {
+
+    if (![0, 1, 2].includes(level)) {
+        console.warn(`GameStateManager: invalid zoom level "${level}"`);
+        return;
+    }
+
+    gameState.player.currentZoom = level;
+
+    //console.log(`GameStateManager: current zoom = ${level}`);
+},
 
 
     // --------------------------------------------------
@@ -106,10 +113,22 @@ const GameStateManager = {
     // --------------------------------------------------
     // Zones
     // --------------------------------------------------
+    setCurrentZone(zoneId) {
 
-    enterZone(zoneId) {
-        // TODO: set player.currentZone and update zone state
-    },
+    if (!gameState.zones[zoneId]) {
+        console.warn(`GameStateManager: unknown zone "${zoneId}"`);
+        return;
+    }
+
+    if (!gameState.zones[zoneId].unlocked) {
+        console.warn(`GameStateManager: zone "${zoneId}" is locked`);
+        return;
+    }
+
+    gameState.player.currentZone = zoneId;
+
+    console.log(`GameStateManager: current zone = ${zoneId}`);
+},
 
     leaveZone(zoneId) {
         // TODO: handle zone exit logic
@@ -123,8 +142,7 @@ const GameStateManager = {
     reset() {
         // TODO: full gameState reset
     }
+
 };
-
-
 
 export default GameStateManager;
