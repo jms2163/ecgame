@@ -28,12 +28,11 @@ const PondNavigation = {
     bindButtons() {
 
         const buttons = {
+            0: document.getElementById("btn-pond-grid"),
+            1: document.getElementById("btn-cell"),
+            2: document.getElementById("btn-organelle")
+    };
 
-            0: document.getElementById("btn-zoom-0"),
-            1: document.getElementById("btn-zoom-1"),
-            2: document.getElementById("btn-zoom-2")
-
-        };
 
         Object.entries(buttons).forEach(([level, button]) => {
 
@@ -135,12 +134,11 @@ const PondNavigation = {
     updateButtons(activeLevel) {
 
         const buttons = {
+        0: document.getElementById("btn-pond-grid"),
+        1: document.getElementById("btn-cell"),
+        2: document.getElementById("btn-organelle")
+    };
 
-            0: document.getElementById("btn-zoom-0"),
-            1: document.getElementById("btn-zoom-1"),
-            2: document.getElementById("btn-zoom-2")
-
-        };
 
         Object.entries(buttons).forEach(([level, button]) => {
 

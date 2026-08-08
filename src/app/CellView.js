@@ -7,6 +7,7 @@
 const CellView = {
 
     active: false,
+    initialized: false,
 
     // --------------------------------------------------
     // Initialize the view
@@ -14,9 +15,15 @@ const CellView = {
     // --------------------------------------------------
     initialize() {
 
-        console.log("CellView.initialize() called");
+    if (this.initialized) {
+        return;
+    }
 
-    },
+    console.log("CellView.initialize() called");
+
+    this.initialized = true;
+
+},
 
     // --------------------------------------------------
     // Activate the view
@@ -28,11 +35,20 @@ const CellView = {
             return;
         }
 
+        const element = document.getElementById("cell-view");
+
+        if (!element) {
+            console.warn("CellView: DOM element #cell-view not found");
+            return;
+        }
+
+        element.style.display = "block";
+
         this.active = true;
 
         console.log("CellView.activate() called");
-
     },
+
 
     // --------------------------------------------------
     // Deactivate the view
@@ -40,15 +56,21 @@ const CellView = {
     // --------------------------------------------------
     deactivate() {
 
-        if (!this.active) {
-            return;
-        }
-
-        this.active = false;
-
-        console.log("CellView.deactivate() called");
-
+    if (!this.active) {
+        return;
     }
+
+    const element = document.getElementById("cell-view");
+
+    if (element) {
+        element.style.display = "none";
+    }
+
+    this.active = false;
+
+    console.log("CellView.deactivate() called");
+}
+
 
 };
 
