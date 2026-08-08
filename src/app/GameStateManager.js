@@ -23,6 +23,8 @@ const GameStateManager = {
 
     },
 
+    
+
 
     // --------------------------------------------------
     // Player
@@ -46,6 +48,46 @@ const GameStateManager = {
     gameState.player.currentZoom = level;
 
     //console.log(`GameStateManager: current zoom = ${level}`);
+},
+
+// --------------------------------------------------
+// Pond
+// --------------------------------------------------
+
+setPondPosition(x, y) {
+
+    if (!gameState.zones.pond) {
+
+        console.warn(
+            "GameStateManager: Pond zone does not exist"
+        );
+
+        return;
+
+    }
+
+    gameState.zones.pond.state.playerX = x;
+    gameState.zones.pond.state.playerY = y;
+
+    console.log(
+        `GameStateManager: Pond position = (${x}, ${y})`
+    );
+
+},
+
+movePondPlayer(dx, dy) {
+
+    const pondState = gameState.zones.pond.state;
+
+    const newX = pondState.playerX + dx;
+    const newY = pondState.playerY + dy;
+
+    this.setPondPosition(newX, newY);
+
+    console.log(
+        `GameStateManager: Pond player moved to (${newX}, ${newY})`
+    );
+
 },
 
 

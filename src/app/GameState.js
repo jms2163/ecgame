@@ -21,8 +21,13 @@ const gameState = {
     zones: {
         pond: {
             unlocked: true,
-            state: {}
+
+            state: {
+                playerX: 0,
+                playerY: 0
+            },
         },
+    
 
         quantum: {
             unlocked: false,
@@ -67,8 +72,9 @@ const gameState = {
         test: {
              unlocked: true,
              state: {}
-}
+        }
     },
+
 
     settings: {
         volume: 1,

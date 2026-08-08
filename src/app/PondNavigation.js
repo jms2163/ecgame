@@ -5,9 +5,11 @@
 
 
 import PondGridView from "./PondGridView.js";
+window.PondGridView = PondGridView; // DEBUG TEST CAUTION REMOVE
 import CellView from "./CellView.js";
 import OrganelleView from "./OrganelleView.js";
 import GameStateManager from "./GameStateManager.js";
+
 
 const PondNavigation = {
 

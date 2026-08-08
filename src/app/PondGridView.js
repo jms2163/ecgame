@@ -1,58 +1,78 @@
+// --------------------------------------------------
+// PondGridView.js
+// Renders the Pond microbiome / grid view
+// --------------------------------------------------
+
+import gameState from "./GameState.js";
+
 const PondGridView = {
 
-    active: false,
     initialized: false,
+    active: false,
 
+    // --------------------------------------------------
+    // Initialize
+    // --------------------------------------------------
     initialize() {
 
-    if (this.initialized) {
-        return;
-    }
+        if (this.initialized) {
+            return;
+        }
 
-    console.log("PondGridView.initialize() called");
+        console.log("PondGridView.initialize() called");
 
-    this.initialized = true;
+        this.initialized = true;
 
-},
+    },
 
+    // --------------------------------------------------
+    // Activate
+    // --------------------------------------------------
     activate() {
 
         if (this.active) {
             return;
         }
 
-        const element = document.getElementById("pond-grid-view");
-
-        if (!element) {
-            console.warn("PondGridView: DOM element #pond-grid-view not found");
-            return;
-        }
-
-        element.style.display = "block";
-
         this.active = true;
 
         console.log("PondGridView.activate() called");
 
+        this.render();
+
     },
 
+    // --------------------------------------------------
+    // Deactivate
+    // --------------------------------------------------
     deactivate() {
 
         if (!this.active) {
             return;
         }
 
-        const element = document.getElementById("pond-grid-view");
-
-        if (element) {
-            element.style.display = "none";
-        }
-
         this.active = false;
 
         console.log("PondGridView.deactivate() called");
 
-    }
+    },
+
+    // --------------------------------------------------
+    // Render Pond
+    // --------------------------------------------------
+    render() {
+
+    const pondState = gameState.zones.pond.state;
+
+    const { playerX, playerY } = pondState;
+
+    console.log(
+        `PondGridView: rendering player at (${playerX}, ${playerY})`
+    );
+
+    // Actual canvas/grid rendering will go here.
+
+}
 
 };
 
