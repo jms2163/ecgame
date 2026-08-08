@@ -1,0 +1,229 @@
+I need to create code for three models:
+environmental model (micro-biomes)
+- light level
+- oxygen level
+- pH
+- nutrient density
+
+biome types:
+leaf_surface
+algae_patch
+sediment_grain
+biofilm_mat
+open_water
+detritus_cloud
+bacterial_bloom
+anaerobic_pocket
+
+resource model
+cell metrics model
+
+A lot of this is worth incorporating now—but **not all of it as active gameplay logic yet**.
+
+The most valuable architectural insight is your **three-layer model**. It gives the generator rules that prevent biologically nonsensical combinations without making the simulation complicated.
+
+I would formalize each tile conceptually as:
+
+```text
+Layer 1 — Background
+open_water
+
+Layer 2 — Substrate / Anchor
+0 or 1 of:
+sediment_grain
+leaf_surface
+algae_patch
+
+Layer 3 — Overlay
+0 or 1 of:
+biofilm_mat
+detritus_cloud
+bacterial_bloom
+anaerobic_pocket
+```
+
+That gives you a hard maximum of **three influences per tile**, including open water.
+
+The key simplification is that `open_water` should stop being a circular region entirely. It should become the **fallback environmental baseline everywhere**.
+
+So instead of generating:
+
+```js
+{
+    microbiome: "open_water",
+    x: 5,
+    y: 5,
+    radius: 10
+}
+```
+
+the generator should conceptually begin every coordinate with:
+
+```text
+Open Water = baseline
+```
+
+and then ask:
+
+```text
+Is there a substrate influence here?
+Is there an overlay influence here?
+```
+
+That is much cleaner.
+
+For example:
+
+```text
+Coordinate (5,5)
+
+Background:
+    Open Water
+
+Substrate:
+    Algae Patch influence = 0.70
+
+Overlay:
+    Bacterial Bloom influence = 0.20
+```
+
+The resulting environment could be a weighted mixture of those three profiles.
+
+But the **tile's label** should probably be the most biologically meaningful non-background layer:
+
+```text
+dominantMicrobiome = algae_patch
+```
+
+rather than Open Water winning merely because it's always present.
+
+Your radius estimates are also useful. I would store them eventually as **generation parameters**, not inside the microbiome profiles themselves. The microbiome library should say what an algae patch *is*. The world generator should decide that this particular algae patch has radius `2.7`.
+
+So:
+
+```js
+MicrobiomeLibrary.algae_patch
+```
+
+contains environmental characteristics.
+
+While:
+
+```js
+{
+    microbiome: "algae_patch",
+    layer: "substrate",
+    x: 8,
+    y: 8,
+    radius: 2.7
+}
+```
+
+describes a particular instance in this Pond.
+
+That's a strong separation.
+
+Your overlap restrictions are also worth encoding, but I would **not create a general-purpose compatibility engine yet**. The layer model already solves most of it automatically.
+
+If Layer 2 can contain only one item, this becomes impossible automatically:
+
+```text
+leaf_surface + sediment_grain
+```
+
+because they compete for the same slot.
+
+Likewise, because an algae patch is Layer 2 and anaerobic pocket is Layer 3, they *could* technically overlap—but you can add one simple exception later:
+
+```js
+if (
+    substrate === "algae_patch" &&
+    overlay === "anaerobic_pocket"
+) {
+    // reject placement
+}
+```
+
+That's much simpler than constructing a giant microbiome compatibility matrix now.
+
+I would make one small change to your categorization, though. **Biofilm is slightly unusual** because it really wants an anchor. A biofilm floating freely in open water doesn't make much sense in the same way a bacterial bloom does.
+
+So eventually:
+
+```text
+biofilm_mat requires:
+sediment_grain OR leaf_surface
+```
+
+That is a good generation constraint.
+
+Similarly:
+
+```text
+anaerobic_pocket prefers/requires:
+sediment_grain
+biofilm_mat
+possibly detritus
+```
+
+But again, these can come later.
+
+### The architecture I would lock in now
+
+```text
+MicrobiomeLibrary
+│
+│  defines environmental archetypes
+│
+└── open_water
+    algae_patch
+    sediment_grain
+    etc.
+
+PondWorldGenerator
+│
+├── starts every coordinate from Open Water
+│
+├── checks substrate regions
+│     └── max 1
+│
+├── checks overlay regions
+│     └── max 1
+│
+├── calculates Euclidean influence
+│
+└── blends max 3 profiles
+      ↓
+generated environment
+
+PondWorld
+      ↓
+persistent tile
+```
+
+That is enough architecture to support everything you've described without implementing everything now.
+
+I would also retain your approximate radius ranges as design guidance:
+
+* anaerobic pocket: `0.5–1`
+* sediment: `1–2`
+* bacterial bloom: `1.5–2.5`
+* algae patch: `2–3`
+* detritus: `2–3`
+* biofilm: `2–3.5`
+* leaf surface: `3–4`
+* open water: background/infinite
+
+But I would **not code random radius selection yet**.
+
+For the next implementation, I'd actually simplify our current generator rather than add complexity:
+
+```text
+Open Water = automatic baseline
+Algae Patch = one Layer-2 region
+Bacterial Bloom = one Layer-3 region
+```
+
+That gives us exactly three possible overlapping influences and lets us prove the layering system with only three microbiomes.
+
+If that works, the other five become mostly data and placement rules—not another architectural refactor.

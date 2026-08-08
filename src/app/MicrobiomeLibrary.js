@@ -50,7 +50,121 @@ const MicrobiomeLibrary = {
 
         }
 
+    },
+
+    leaf_surface: {
+    id: "leaf_surface",
+    name: "Leaf Surface",
+
+    environment: {
+        physics: {
+            light: 0.70,
+            oxygen: 0.95,
+            ph: 7.6
+        },
+
+        nutrients: {
+            glucose: 0.30,
+            nitrates: 0.015,
+            phosphates: 0.003
+        }
     }
+},
+
+sediment_grain: {
+    id: "sediment_grain",
+    name: "Sediment Grain",
+
+    environment: {
+        physics: {
+            light: 0.05,
+            oxygen: 0.20,
+            ph: 6.9
+        },
+
+        nutrients: {
+            glucose: 0.20,
+            nitrates: 0.05,
+            phosphates: 0.020
+        }
+    }
+},
+
+biofilm_mat: {
+    id: "biofilm_mat",
+    name: "Biofilm Mat",
+
+    environment: {
+        physics: {
+            light: 0.45,
+            oxygen: 0.55,
+            ph: 7.5
+        },
+
+        nutrients: {
+            glucose: 0.50,
+            nitrates: 0.020,
+            phosphates: 0.008
+        }
+    }
+},
+
+detritus_cloud: {
+    id: "detritus_cloud",
+    name: "Detritus Cloud",
+
+    environment: {
+        physics: {
+            light: 0.30,
+            oxygen: 0.35,
+            ph: 7.0
+        },
+
+        nutrients: {
+            glucose: 0.90,
+            nitrates: 0.040,
+            phosphates: 0.015
+        }
+    }
+},
+
+bacterial_bloom: {
+    id: "bacterial_bloom",
+    name: "Bacterial Bloom",
+
+    environment: {
+        physics: {
+            light: 0.40,
+            oxygen: 0.25,
+            ph: 7.2
+        },
+
+        nutrients: {
+            glucose: 1.20,
+            nitrates: 0.005,
+            phosphates: 0.001
+        }
+    }
+},
+
+anaerobic_pocket: {
+    id: "anaerobic_pocket",
+    name: "Anaerobic Pocket",
+
+    environment: {
+        physics: {
+            light: 0.00,
+            oxygen: 0.00,
+            ph: 6.5
+        },
+
+        nutrients: {
+            glucose: 0.60,
+            nitrates: 0.002,
+            phosphates: 0.010
+        }
+    }
+}
 
 };
 

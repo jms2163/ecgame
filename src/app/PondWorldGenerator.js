@@ -10,23 +10,66 @@ const PondWorldGenerator = {
     // --------------------------------------------------
     // Initial Microbiome Regions
     // --------------------------------------------------
-    regions: [
+    substrateRegions: [
 
-        {
-            microbiome: "open_water",
-            x: 5,
-            y: 5,
-            radius: 10
-        },
+    {
+        microbiome: "algae_patch",
+        x: 3,
+        y: 3,
+        radius: 3
+    }
 
-        {
-            microbiome: "algae_patch",
-            x: 8,
-            y: 8,
-            radius: 6
+],
+
+overlayRegions: [
+
+    {
+        microbiome: "bacterial_bloom",
+        x: 5,
+        y: 4,
+        radius: 2
+    }
+
+],
+
+getStrongestInfluence(regions, x, y) {
+
+    let strongest = null;
+
+    regions.forEach(region => {
+
+        const weight =
+            this.calculateInfluence(
+                region,
+                x,
+                y
+            );
+
+        if (weight <= 0) {
+            return;
         }
 
-    ],
+        if (
+            !strongest ||
+            weight > strongest.weight
+        ) {
+
+            strongest = {
+                region,
+                weight,
+                profile:
+                    MicrobiomeLibrary[
+                        region.microbiome
+                    ]
+            };
+
+        }
+
+    });
+
+    return strongest;
+
+},
 
 
     // --------------------------------------------------
@@ -57,60 +100,89 @@ const PondWorldGenerator = {
     // --------------------------------------------------
     generate(x, y) {
 
-        const influences = [];
+    // --------------------------------------------------
+    // Layer 1: Background Matrix
+    // --------------------------------------------------
+    const background =
+        MicrobiomeLibrary.open_water;
 
-        this.regions.forEach(region => {
 
-            const weight =
-                this.calculateInfluence(
-                    region,
-                    x,
-                    y
-                );
+    // --------------------------------------------------
+    // Layer 2: Strongest Substrate
+    // --------------------------------------------------
+    const substrate =
+        this.getStrongestInfluence(
+            this.substrateRegions,
+            x,
+            y
+        );
 
-            if (weight <= 0) {
-                return;
-            }
 
-            const profile =
-                MicrobiomeLibrary[
-                    region.microbiome
-                ];
+    // --------------------------------------------------
+    // Layer 3: Strongest Overlay
+    // --------------------------------------------------
+    const overlay =
+        this.getStrongestInfluence(
+            this.overlayRegions,
+            x,
+            y
+        );
 
-            if (!profile) {
-                console.warn(
-                    `PondWorldGenerator: unknown microbiome "${region.microbiome}"`
-                );
-                return;
-            }
 
-            influences.push({
-                profile,
-                weight
-            });
+    // --------------------------------------------------
+    // Build Local Influence Values
+    // --------------------------------------------------
+    const substrateWeight =
+        substrate?.weight ?? 0;
 
+    const overlayWeight =
+        overlay?.weight ?? 0;
+
+
+    // --------------------------------------------------
+    // Calculate Remaining Open-Water Influence
+    // --------------------------------------------------
+    const localInfluence =
+        Math.min(
+            1,
+            substrateWeight + overlayWeight
+        );
+
+    const backgroundWeight =
+        1 - localInfluence;
+
+
+    // --------------------------------------------------
+    // Build Active Influence List
+    // --------------------------------------------------
+    const influences = [];
+
+    if (backgroundWeight > 0) {
+
+        influences.push({
+            profile: background,
+            weight: backgroundWeight
         });
 
+    }
 
-        // --------------------------------------------------
-        // Fallback Environment
-        // --------------------------------------------------
-        if (influences.length === 0) {
+    if (substrateWeight > 0) {
 
-            const profile =
-                MicrobiomeLibrary.open_water;
+        influences.push({
+            profile: substrate.profile,
+            weight: substrateWeight
+        });
 
-            return {
-                dominantMicrobiome:
-                    profile.id,
+    }
 
-                environment:
-                    structuredClone(
-                        profile.environment
-                    )
-            };
+    if (overlayWeight > 0) {
 
-        }
+        influences.push({
+            profile: overlay.profile,
+            weight: overlayWeight
+        });
+
+    }
 
 
         // --------------------------------------------------
@@ -124,16 +196,34 @@ const PondWorldGenerator = {
             );
 
 
-        // --------------------------------------------------
-        // Determine Dominant Microbiome
-        // --------------------------------------------------
-        const dominant =
-            influences.reduce(
-                (strongest, item) =>
-                    item.weight > strongest.weight
-                        ? item
-                        : strongest
-            );
+        let dominantProfile =
+    background;
+
+let dominantWeight =
+    backgroundWeight;
+
+if (
+    substrate &&
+    substrateWeight >= dominantWeight
+) {
+
+    dominantProfile =
+        substrate.profile;
+
+    dominantWeight =
+        substrateWeight;
+
+}
+
+if (
+    overlay &&
+    overlayWeight > dominantWeight
+) {
+
+    dominantProfile =
+        overlay.profile;
+
+}
 
 
         // --------------------------------------------------
@@ -156,7 +246,7 @@ const PondWorldGenerator = {
         return {
 
             dominantMicrobiome:
-                dominant.profile.id,
+                dominantProfile.id,
 
             environment: {
 
