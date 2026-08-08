@@ -22,8 +22,21 @@ const PondController = {
         const position =
             GameStateManager.getPondPosition();
 
-        const seed =
+
+
+    let seed =
     GameStateManager.getPondWorldSeed();
+
+if (seed === null || seed === undefined) {
+
+    seed =
+        Math.floor(
+            Math.random() * 0xFFFFFFFF
+        );
+
+    GameStateManager.setPondWorldSeed(seed);
+
+}
 
 PondWorldGenerator.configure(seed);
 
