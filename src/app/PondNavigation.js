@@ -3,9 +3,11 @@
 // Controls navigation between Pond semantic views
 // --------------------------------------------------
 
+
 import PondGridView from "./PondGridView.js";
 import CellView from "./CellView.js";
 import OrganelleView from "./OrganelleView.js";
+import GameStateManager from "./GameStateManager.js";
 
 const PondNavigation = {
 
@@ -103,24 +105,29 @@ const PondNavigation = {
         }
 
         // ----------------------------------------------
-        // Initialize view if necessary
-        // ----------------------------------------------
-        nextView.initialize();
+// Initialize view if necessary
+// ----------------------------------------------
+nextView.initialize();
 
-        // ----------------------------------------------
-        // Activate requested view
-        // ----------------------------------------------
-        nextView.activate();
+// ----------------------------------------------
+// Activate requested view
+// ----------------------------------------------
+nextView.activate();
 
-        // ----------------------------------------------
-        // Update breadcrumb buttons
-        // ----------------------------------------------
-        this.updateButtons(level);
+// ----------------------------------------------
+// Record current zoom in GameState
+// ----------------------------------------------
+GameStateManager.setCurrentZoom(level);
 
-        // ----------------------------------------------
-        // Record current view
-        // ----------------------------------------------
-        this.currentView = nextView;
+// ----------------------------------------------
+// Update breadcrumb button state
+// ----------------------------------------------
+this.updateButtons(level);
+
+// ----------------------------------------------
+// Record current view
+// ----------------------------------------------
+this.currentView = nextView;
 
         console.log(
             `PondNavigation: view ${level} is now active`

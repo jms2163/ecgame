@@ -4,6 +4,7 @@
 // --------------------------------------------------
 
 import PondNavigation from "./PondNavigation.js";
+import gameState from "./GameState.js";
 
 const Pond = {
 
@@ -14,7 +15,7 @@ const Pond = {
     // --------------------------------------------------
     initialize() {
 
-        console.log("Pond.initialize() called");
+        //console.log("Pond.initialize() called");
 
         PondNavigation.initialize();
 
@@ -25,21 +26,20 @@ const Pond = {
     // --------------------------------------------------
     activate() {
 
-        if (this.active) {
+    if (this.active) {
+        console.log("Pond already active");
+        return;
+    }
 
-            console.log("Pond already active");
-            return;
+    this.active = true;
 
-        }
+    console.log("Pond.activate() called");
 
-        this.active = true;
+    const currentZoom = gameState.player.currentZoom ?? 0;
 
-        console.log("Pond.activate() called");
+    PondNavigation.showView(currentZoom);
 
-        // Pond always opens at its default view
-        PondNavigation.showView(0);
-
-    },
+},
 
     // --------------------------------------------------
     // Deactivate Pond
