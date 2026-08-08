@@ -65,7 +65,7 @@ const ZoneManager = {
         // --------------------------------------------------
         // Activate requested zone
         // --------------------------------------------------
-        `≠`≠nextZone.activate();
+        nextZone.activate();
 
         // --------------------------------------------------
         // Record active zone
@@ -73,6 +73,25 @@ const ZoneManager = {
         this.currentZone = nextZone;
 
         console.log(`ZoneManager: ${zoneName} is now active`);
+
+    },
+
+    // --------------------------------------------------
+    // Change the active view inside the current zone
+    // --------------------------------------------------
+    showView(level) {
+
+        if (!this.currentZone) {
+            console.warn("ZoneManager: no active zone");
+            return;
+        }
+
+        if (typeof this.currentZone.showView !== "function") {
+            console.warn("ZoneManager: current zone does not support internal views");
+            return;
+        }
+
+        this.currentZone.showView(level);
 
     }
 

@@ -1,0 +1,159 @@
+// --------------------------------------------------
+// PondNavigation.js
+// Controls navigation between Pond semantic views
+// --------------------------------------------------
+
+import PondGridView from "./PondGridView.js";
+import CellView from "./CellView.js";
+import OrganelleView from "./OrganelleView.js";
+
+const PondNavigation = {
+
+    currentView: null,
+
+    // --------------------------------------------------
+    // Initialize Pond Navigation
+    // --------------------------------------------------
+    initialize() {
+
+        console.log("PondNavigation.initialize() called");
+
+        this.bindButtons();
+
+    },
+
+    // --------------------------------------------------
+    // Bind semantic zoom buttons
+    // --------------------------------------------------
+    bindButtons() {
+
+        const buttons = {
+
+            0: document.getElementById("btn-zoom-0"),
+            1: document.getElementById("btn-zoom-1"),
+            2: document.getElementById("btn-zoom-2")
+
+        };
+
+        Object.entries(buttons).forEach(([level, button]) => {
+
+            if (!button) {
+
+                console.warn(
+                    `PondNavigation: button for view ${level} not found`
+                );
+
+                return;
+
+            }
+
+            button.addEventListener("click", () => {
+
+                this.showView(Number(level));
+
+            });
+
+        });
+
+    },
+
+    // --------------------------------------------------
+    // Show requested Pond view
+    // --------------------------------------------------
+    showView(level) {
+
+        // ----------------------------------------------
+        // Deactivate current view
+        // ----------------------------------------------
+        if (this.currentView) {
+
+            this.currentView.deactivate();
+
+        }
+
+        // ----------------------------------------------
+        // Identify requested view
+        // ----------------------------------------------
+        let nextView = null;
+
+        switch (level) {
+
+            case 0:
+
+                nextView = PondGridView;
+                break;
+
+            case 1:
+
+                nextView = CellView;
+                break;
+
+            case 2:
+
+                nextView = OrganelleView;
+                break;
+
+            default:
+
+                console.warn(
+                    `PondNavigation: unknown view level ${level}`
+                );
+
+                return;
+
+        }
+
+        // ----------------------------------------------
+        // Initialize view if necessary
+        // ----------------------------------------------
+        nextView.initialize();
+
+        // ----------------------------------------------
+        // Activate requested view
+        // ----------------------------------------------
+        nextView.activate();
+
+        // ----------------------------------------------
+        // Update breadcrumb buttons
+        // ----------------------------------------------
+        this.updateButtons(level);
+
+        // ----------------------------------------------
+        // Record current view
+        // ----------------------------------------------
+        this.currentView = nextView;
+
+        console.log(
+            `PondNavigation: view ${level} is now active`
+        );
+
+    },
+
+    // --------------------------------------------------
+    // Synchronize breadcrumb button state
+    // --------------------------------------------------
+    updateButtons(activeLevel) {
+
+        const buttons = {
+
+            0: document.getElementById("btn-zoom-0"),
+            1: document.getElementById("btn-zoom-1"),
+            2: document.getElementById("btn-zoom-2")
+
+        };
+
+        Object.entries(buttons).forEach(([level, button]) => {
+
+            if (!button) return;
+
+            const isActive = Number(level) === activeLevel;
+
+            button.classList.toggle("active", isActive);
+
+        });
+
+    }
+
+};
+
+export default PondNavigation;
