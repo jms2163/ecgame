@@ -9,6 +9,8 @@ import DataLoader from "./DataLoader.js";
 import SaveManager from "./SaveManager.js";
 import VersionManager from "./VersionManager.js";
 import ZoneManager from "./ZoneManager.js";
+window.GameStateManager = GameStateManager; // DEBUG TEST CAUTION REMOVE
+window.ZoneManager = ZoneManager; // DEBUG TEST CAUTION REMOVE
 // Zones
 import Pond from "./Pond.js";
 // import SimulationClock from "./SimulationClock.js";
