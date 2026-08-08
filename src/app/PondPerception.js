@@ -186,6 +186,50 @@ calculateFalloff(distance, maxRange) {
 
 },
 
+// --------------------------------------------------
+// Build Generic Perception Field
+// --------------------------------------------------
+buildField(radius, valueSelector) {
+
+    const entries =
+        this.getTilesWithDistance(radius);
+
+    return entries.map(({ tile, distance }) => {
+
+        const rawValue =
+            valueSelector(tile);
+
+        const falloff =
+            this.calculateFalloff(
+                distance,
+                radius
+            );
+
+        return {
+            x: tile.x,
+            y: tile.y,
+            distance,
+            rawValue,
+            intensity: rawValue * falloff
+        };
+
+    });
+
+},
+
+// --------------------------------------------------
+// Get Bacterial Peptide Perception Field
+// --------------------------------------------------
+getPeptideField() {
+
+    return this.buildField(
+        4,
+        tile =>
+            tile.chemistry?.signals?.peptides ?? 0
+    );
+
+},
+
 };
 
 export default PondPerception;

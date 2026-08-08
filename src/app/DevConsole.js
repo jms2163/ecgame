@@ -9,6 +9,7 @@ import SaveManager from "./SaveManager.js";
 import PondWorld from "./PondWorld.js";
 import PondController from "./PondController.js";
 import PondPerception from "./PondPerception.js";
+import PondWorldGenerator from "./PondWorldGenerator.js";
 
 const DevConsole = {
 
@@ -21,7 +22,8 @@ const DevConsole = {
             SaveManager,
             PondWorld,
             PondController,
-            PondPerception
+            PondPerception,
+            PondWorldGenerator
             
 
         };

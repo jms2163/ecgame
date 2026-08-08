@@ -4,6 +4,7 @@
 // --------------------------------------------------
 
 import PondTileFactory from "./PondTileFactory.js";
+import PondWorldGenerator from "./PondWorldGenerator.js";
 
 const PondWorld = {
 
@@ -53,19 +54,44 @@ ensureRegion(world, centerX, centerY, radius) {
     // --------------------------------------------------
     createTile(world, x, y) {
 
-        const key = `${x},${y}`;
+    const key = `${x},${y}`;
 
-        if (world.tiles[key]) {
-            return world.tiles[key];
-        }
+    if (world.tiles[key]) {
+        return world.tiles[key];
+    }
 
-        const tile = PondTileFactory.create(x, y);
+    const tile =
+        PondTileFactory.create(x, y);
 
-        world.tiles[key] = tile;
+    const generated =
+        PondWorldGenerator.generate(x, y);
 
-        return tile;
+    tile.biome =
+        generated.dominantMicrobiome;
 
-    },
+    tile.physics.light =
+        generated.environment.physics.light;
+
+    tile.physics.oxygen =
+        generated.environment.physics.oxygen;
+
+    tile.physics.ph =
+        generated.environment.physics.ph;
+
+    tile.chemistry.nutrients.glucose =
+        generated.environment.nutrients.glucose;
+
+    tile.chemistry.nutrients.nitrates =
+        generated.environment.nutrients.nitrates;
+
+    tile.chemistry.nutrients.phosphates =
+        generated.environment.nutrients.phosphates;
+
+    world.tiles[key] = tile;
+
+    return tile;
+
+},
 
     // --------------------------------------------------
 // Retrieve Tile or Create It If Needed
