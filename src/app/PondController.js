@@ -5,6 +5,7 @@
 
 import GameStateManager from "./GameStateManager.js";
 import PondWorld from "./PondWorld.js";
+import PondWorldGenerator from "./PondWorldGenerator.js";
 
 const SENSING_RADIUS = 4;
 
@@ -20,6 +21,11 @@ const PondController = {
 
         const position =
             GameStateManager.getPondPosition();
+
+        const seed =
+    GameStateManager.getPondWorldSeed();
+
+PondWorldGenerator.configure(seed);
 
         if (!world || !position) {
 
