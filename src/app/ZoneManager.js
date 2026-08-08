@@ -25,17 +25,46 @@ const ZoneManager = {
 
         console.log(`ZoneManager: entering ${zoneName}`);
 
+        // --------------------------------------------------
+        // If another zone is active, deactivate it first
+        // --------------------------------------------------
+        if (this.currentZone) {
+
+            this.currentZone.deactivate();
+
+        }
+
+        // --------------------------------------------------
+        // Identify requested zone
+        // --------------------------------------------------
+        let nextZone = null;
+
         switch (zoneName) {
 
             case "pond":
-                this.currentZone = "pond";
-                Pond.initialize();
+
+                nextZone = Pond;
                 break;
 
             default:
+
                 console.warn(`ZoneManager: unknown zone "${zoneName}"`);
+                return;
 
         }
+
+        if (!nextZone.initialized) {
+            nextZone.initialize();
+        }
+
+        nextZone.activate();
+
+        // --------------------------------------------------
+        // Record active zone
+        // --------------------------------------------------
+        this.currentZone = nextZone;
+
+        console.log(`ZoneManager: ${zoneName} is now active`);
 
     }
 
