@@ -1,17 +1,110 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ECGame</title>
+
+    <!-- Temporary Pond UI Styles -->
+    <style>
+        .hidden {
+            display: none;
+        }
+
+        #pond-zoom-navigation {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .zoom-tab {
+            padding: 8px 14px;
+            cursor: pointer;
+        }
+
+        .zoom-tab:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
 </head>
+
 <body>
 
-<div id="app">
-    Loading ECGame...
-</div>
+    <div id="app">
 
-<script type="module" src="./src/app/main.js"></script>
+        <nav id="pond-zoom-navigation">
+            <button
+                id="btn-zoom-0"
+                class="zoom-tab active"
+                data-level="0">
+                🌐 Microbiome
+            </button>
+
+            <button
+                id="btn-zoom-1"
+                class="zoom-tab"
+                data-level="1"
+                >
+                🦠 Cell View
+            </button>
+
+            <button
+                id="btn-zoom-2"
+                class="zoom-tab"
+                data-level="2"
+                >
+                🔬 Organelle Lab
+            </button>
+        </nav>
+
+        <main id="pond-zone">
+
+            <section
+                id="zoom-layer-0"
+                class="zoom-layer">
+
+                <h1>Microbiome View</h1>
+
+                <div id="pond-viewport-container">
+                    <p>PondGrid will render here.</p>
+                </div>
+
+            </section>
+
+
+            <section
+                id="zoom-layer-1"
+                class="zoom-layer hidden">
+
+                <h1>Cell View</h1>
+
+                <p>
+                    Cell organelles will appear here.
+                </p>
+
+            </section>
+
+
+            <section
+                id="zoom-layer-2"
+                class="zoom-layer hidden">
+
+                <h1>Organelle Lab</h1>
+
+                <p>
+                    Organelle studies and experiments will appear here.
+                </p>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <script type="module" src="./src/app/main.js"></script>
 
 </body>
+
 </html>
