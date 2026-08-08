@@ -1,32 +1,34 @@
-// --------------------------------------------------
-// PondGridView.js
-// Zoom Level 0 of the Pond zone
-// Represents the microbiome / ecosystem view
-// --------------------------------------------------
-
 const PondGridView = {
 
     active: false,
+    initialized: false,
 
-    // --------------------------------------------------
-    // Initialize the view
-    // Called once when the view is first prepared
-    // --------------------------------------------------
     initialize() {
 
-        console.log("PondGridView.initialize() called");
+    if (this.initialized) {
+        return;
+    }
 
-    },
+    console.log("PondGridView.initialize() called");
 
-    // --------------------------------------------------
-    // Activate the view
-    // Called whenever Zoom Level 0 becomes active
-    // --------------------------------------------------
+    this.initialized = true;
+
+},
+
     activate() {
 
         if (this.active) {
             return;
         }
+
+        const element = document.getElementById("pond-grid-view");
+
+        if (!element) {
+            console.warn("PondGridView: DOM element #pond-grid-view not found");
+            return;
+        }
+
+        element.style.display = "block";
 
         this.active = true;
 
@@ -34,14 +36,16 @@ const PondGridView = {
 
     },
 
-    // --------------------------------------------------
-    // Deactivate the view
-    // Called whenever another semantic view becomes active
-    // --------------------------------------------------
     deactivate() {
 
         if (!this.active) {
             return;
+        }
+
+        const element = document.getElementById("pond-grid-view");
+
+        if (element) {
+            element.style.display = "none";
         }
 
         this.active = false;

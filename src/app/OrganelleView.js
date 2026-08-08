@@ -7,6 +7,7 @@
 const OrganelleView = {
 
     active: false,
+    initialized: false,
 
     // --------------------------------------------------
     // Initialize the view
@@ -14,9 +15,15 @@ const OrganelleView = {
     // --------------------------------------------------
     initialize() {
 
-        console.log("OrganelleView.initialize() called");
+    if (this.initialized) {
+        return;
+    }
 
-    },
+    console.log("OrganellView.initialize() called");
+
+    this.initialized = true;
+
+},
 
     // --------------------------------------------------
     // Activate the view
@@ -28,11 +35,20 @@ const OrganelleView = {
             return;
         }
 
+        const element = document.getElementById("organelle-view");
+
+        if (!element) {
+            console.warn("OrganelleView: DOM element #organelle-view not found");
+            return;
+        }
+
+        element.style.display = "block";
+
         this.active = true;
 
         console.log("OrganelleView.activate() called");
-
     },
+
 
     // --------------------------------------------------
     // Deactivate the view
@@ -40,15 +56,21 @@ const OrganelleView = {
     // --------------------------------------------------
     deactivate() {
 
-        if (!this.active) {
-            return;
-        }
-
-        this.active = false;
-
-        console.log("OrganelleView.deactivate() called");
-
+    if (!this.active) {
+        return;
     }
+
+    const element = document.getElementById("organelle-view");
+
+    if (element) {
+        element.style.display = "none";
+    }
+
+    this.active = false;
+
+    console.log("OrganelleView.deactivate() called");
+}
+
 
 };
 
