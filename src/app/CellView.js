@@ -1,48 +1,42 @@
 // --------------------------------------------------
-// Pond.js
-// Entry point and lifecycle for the Pond zone
+// CellView.js
+// Zoom Level 1 of the Pond zone
+// Represents the individual cell view
 // --------------------------------------------------
 
-import PondNavigation from "./PondNavigation.js";
-
-const Pond = {
+const CellView = {
 
     active: false,
 
     // --------------------------------------------------
-    // Initialize Pond
+    // Initialize the view
+    // Called once when the view is first prepared
     // --------------------------------------------------
     initialize() {
 
-        console.log("Pond.initialize() called");
-
-        PondNavigation.initialize();
+        console.log("CellView.initialize() called");
 
     },
 
     // --------------------------------------------------
-    // Activate Pond
+    // Activate the view
+    // Called whenever Zoom Level 1 becomes active
     // --------------------------------------------------
     activate() {
 
         if (this.active) {
-
-            console.log("Pond already active");
             return;
-
         }
 
         this.active = true;
 
-        console.log("Pond.activate() called");
-
-        // Pond always opens at its default view
-        PondNavigation.showView(0);
+        console.log("CellView.activate() called");
 
     },
 
     // --------------------------------------------------
-    // Deactivate Pond
+    // Deactivate the view
+    // Called whenever another semantic view becomes active
     // --------------------------------------------------
     deactivate() {
 
@@ -52,18 +46,10 @@ const Pond = {
 
         this.active = false;
 
-        console.log("Pond.deactivate() called");
-
-        if (PondNavigation.currentView) {
-
-            PondNavigation.currentView.deactivate();
-
-            PondNavigation.currentView = null;
-
-        }
+        console.log("CellView.deactivate() called");
 
     }
 
 };
 
-export default Pond;
+export default CellView;

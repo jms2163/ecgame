@@ -1,48 +1,42 @@
 // --------------------------------------------------
-// Pond.js
-// Entry point and lifecycle for the Pond zone
+// OrganelleView.js
+// Zoom Level 2 of the Pond zone
+// Represents the organelle view and study workspace
 // --------------------------------------------------
 
-import PondNavigation from "./PondNavigation.js";
-
-const Pond = {
+const OrganelleView = {
 
     active: false,
 
     // --------------------------------------------------
-    // Initialize Pond
+    // Initialize the view
+    // Called once when the view is first prepared
     // --------------------------------------------------
     initialize() {
 
-        console.log("Pond.initialize() called");
-
-        PondNavigation.initialize();
+        console.log("OrganelleView.initialize() called");
 
     },
 
     // --------------------------------------------------
-    // Activate Pond
+    // Activate the view
+    // Called whenever Zoom Level 2 becomes active
     // --------------------------------------------------
     activate() {
 
         if (this.active) {
-
-            console.log("Pond already active");
             return;
-
         }
 
         this.active = true;
 
-        console.log("Pond.activate() called");
-
-        // Pond always opens at its default view
-        PondNavigation.showView(0);
+        console.log("OrganelleView.activate() called");
 
     },
 
     // --------------------------------------------------
-    // Deactivate Pond
+    // Deactivate the view
+    // Called whenever another semantic view becomes active
     // --------------------------------------------------
     deactivate() {
 
@@ -52,18 +46,10 @@ const Pond = {
 
         this.active = false;
 
-        console.log("Pond.deactivate() called");
-
-        if (PondNavigation.currentView) {
-
-            PondNavigation.currentView.deactivate();
-
-            PondNavigation.currentView = null;
-
-        }
+        console.log("OrganelleView.deactivate() called");
 
     }
 
 };
 
-export default Pond;
+export default OrganelleView;
