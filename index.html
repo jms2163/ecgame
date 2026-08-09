@@ -21,21 +21,27 @@
             margin-bottom: 20px;
         }
 
-        .zoom-tab {
-            padding: 8px 14px;
-            cursor: pointer;
-        }
-
-        .zoom-tab:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+        
     </style>
+    <link rel="stylesheet" href="./public/css/pond.css">
+    <link rel="stylesheet" href="./public/css/ui.css">
 </head>
 
 <body>
 
     <div id="app">
+
+        <nav
+    id="game-nav"
+    aria-label="Global game navigation">
+
+    <div class="game-nav-placeholder">
+        NAVIGATION PLACEHOLDER
+    </div>
+
+</nav>
+
+
 
         <main id="pond-zone">
 
@@ -43,21 +49,21 @@
 
                 <button
                     id="btn-pond-grid"
-                    class="zoom-tab active"
+                    class="pond-zoom-tab active"
                     data-level="0">
                     🌐 Microbiome
                 </button>
 
                 <button
                     id="btn-cell"
-                    class="zoom-tab"
+                    class="pond-zoom-tab"
                     data-level="1">
                     🦠 Cell View
                 </button>
 
                 <button
                     id="btn-organelle"
-                    class="zoom-tab"
+                    class="pond-zoom-tab"
                     data-level="2">
                     🔬 Organelle Lab
                 </button>
@@ -68,15 +74,234 @@
                 id="pond-grid-view"
                 class="zoom-layer">
 
-                <h1>Microbiome View</h1>
+                <h1 class="pond-zoom-title">Microbiome View</h1>
 
                 <div id="pond-workspace">
 
-                    <div id="pond-viewport-container">
-                        <p>PondGrid will render here.</p>
-                    </div>
+    <div id="pond-viewport-container">
+        <p>PondGrid will render here.</p>
+    </div>
 
-                </div>
+    <aside
+    id="pond-microbiome-sensor-pane"
+    aria-label="Microbiome sensor pane">
+
+    <header class="pond-sensor-pane-header">
+
+        <h2>Microbiome Sensor</h2>
+
+        <p class="pond-current-microbiome">
+            <span>Current Microbiome:</span>
+            <span id="pond-current-microbiome">
+                Undetermined
+            </span>
+        </p>
+
+    </header>
+    <section
+    class="pond-sensor-card-grid"
+    aria-label="Current environmental readings">
+
+    <article class="pond-sensor-card pond-sensor-card--centered">
+        <p class="pond-sensor-card-label">
+            Oxygen (O2)
+        </p>
+        <p class="pond-sensor-card-value">--</p>
+    </article>
+
+    <article class="pond-sensor-card">
+        <p class="pond-sensor-card-label">
+            pH Level
+        </p>
+        <p class="pond-sensor-card-value">--</p>
+    </article>
+
+    <article class="pond-sensor-card">
+        <p class="pond-sensor-card-label">
+            Light Level
+        </p>
+        <p class="pond-sensor-card-value">--</p>
+    </article>
+
+    <article class="pond-sensor-card">
+        <p class="pond-sensor-card-label">
+            Nutrients
+        </p>
+        <p class="pond-sensor-card-value">--</p>
+    </article>
+
+    <article class="pond-sensor-card">
+        <p class="pond-sensor-card-label">
+            Temperature
+        </p>
+        <p class="pond-sensor-card-value">--</p>
+    </article>
+
+</section>
+
+<section
+    class="pond-system-status"
+    aria-labelledby="pond-system-status-heading">
+
+    <h3 id="pond-system-status-heading">
+        System Status
+    </h3>
+
+    <p id="pond-system-status-message">
+        Awaiting sensor data.
+    </p>
+
+    <div
+        id="pond-composite-health-score"
+        aria-label="Composite health score">
+
+        <span>Composite Health Score:</span>
+
+        <span id="pond-composite-health-value">
+            --
+        </span>
+
+    </div>
+
+</section>
+
+<section
+    class="pond-detailed-metrics"
+    aria-label="Detailed cell metrics">
+
+    <details class="pond-status-category">
+        <summary>Genetic Integrity</summary>
+
+        <ul>
+            <li>
+                <span title="Changes in DNA that may negatively affect the cell.">
+                    Mutation Rate:
+                </span>
+                <span id="stat-mutation">--</span>
+            </li>
+
+            <li>
+                <span title="Breaks or errors in the genetic material.">
+                    DNA Damage:
+                </span>
+                <span id="stat-dna-damage">--</span>
+            </li>
+        </ul>
+    </details>
+
+    <details class="pond-status-category">
+        <summary>Metabolic Activity</summary>
+
+        <ul>
+            <li>
+                <span title="The cell’s energy output level.">
+                    ATP Production:
+                </span>
+                <span id="stat-atp-prod">--</span>
+            </li>
+
+            <li>
+                <span title="Ability to use and convert nutrients for energy.">
+                    Nutrient Processing:
+                </span>
+                <span id="stat-nutrient-proc">--</span>
+            </li>
+
+            <li>
+                <span title="Self-cleaning process that removes damaged components.">
+                    Autophagy:
+                </span>
+                <span id="stat-autophagy">--</span>
+            </li>
+        </ul>
+    </details>
+
+    <details class="pond-status-category">
+        <summary>Structural Integrity</summary>
+
+        <ul>
+            <li>
+                <span title="Indicates whether the membrane is intact and not leaking.">
+                    Cell Membrane Health:
+                </span>
+                <span id="stat-membrane">--</span>
+            </li>
+
+            <li>
+                <span title="Internal scaffolding that supports movement and structure.">
+                    Cytoskeleton:
+                </span>
+                <span id="stat-cytoskeleton">--</span>
+            </li>
+        </ul>
+    </details>
+
+    <details class="pond-status-category">
+        <summary>Functional Activity</summary>
+
+        <ul>
+            <li>
+                <span title="Ability to move using pseudopods.">
+                    Motility:
+                </span>
+                <span id="stat-motility">--</span>
+            </li>
+
+            <li>
+                <span title="Ability to engulf and digest food particles.">
+                    Phagocytosis:
+                </span>
+                <span id="stat-phagocytosis">--</span>
+            </li>
+
+            <li>
+                <span title="Ability to divide normally through binary fission.">
+                    Reproduction:
+                </span>
+                <span id="stat-reproduction">--</span>
+            </li>
+        </ul>
+    </details>
+
+    <details class="pond-status-category">
+        <summary>Environmental Response</summary>
+
+        <ul>
+            <li>
+                <span title="Extension and retraction behavior used for movement and feeding.">
+                    Pseudopod Formation:
+                </span>
+                <span id="stat-pseudopod">--</span>
+            </li>
+
+            <li>
+                <span title="Regulates water balance within the cell.">
+                    Contractile Vacuole Function:
+                </span>
+                <span id="stat-vacuole">--</span>
+            </li>
+
+            <li>
+                <span title="Ability to form a protective cyst when conditions require it.">
+                    Encystment Ability:
+                </span>
+                <span id="stat-encystment">--</span>
+            </li>
+        </ul>
+    </details>
+
+</section>
+
+
+
+
+
+
+
+
+</aside>
+
+</div>
 
             </section>
 
@@ -84,7 +309,7 @@
                 id="cell-view"
                 class="zoom-layer hidden">
 
-                <h1>Cell View</h1>
+                <h1 class="pond-zoom-title">Cell View</h1>
 
                 <p>
                     Cell organelles will appear here.
@@ -96,7 +321,7 @@
                 id="organelle-view"
                 class="zoom-layer hidden">
 
-                <h1>Organelle Lab</h1>
+                <h1 class="pond-zoom-title">Organelle Lab</h1>
 
                 <p>
                     Organelle studies and experiments will appear here.

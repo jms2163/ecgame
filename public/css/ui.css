@@ -1,0 +1,22 @@
+/* --------------------------------------------------
+   Global game-navigation frame
+   -------------------------------------------------- */
+
+#game-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 64px;
+    box-sizing: border-box;
+    padding: 12px 16px;
+    background: #0f041c;
+    border: 3px solid #310d54;
+}
+
+.game-nav-placeholder {
+    color: #f7efff;
+    font-family: monospace;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}

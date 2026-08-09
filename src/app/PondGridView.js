@@ -25,11 +25,16 @@ const PondGridView = {
     initialized: false,
     active: false,
 
-    viewportElement: null,
-    microscopeStageElement: null,
-    microscopeMaskElement: null,
-    surfaceElement: null,
-    controlsElement: null,
+    viewportElement: null,         // Pond viewport positioning
+    microscopeStageElement: null,  // Frame positioning for grid, D-pad, and HUD
+    microscopeMaskElement: null,   // Circular microscope viewport
+    surfaceElement: null,          // Rendered Pond world grid
+    controlsElement: null,         // D-pad container
+    instructionsElement: null,     // D-pad instruction label
+
+    statusElement: null,           // Status/HUD box
+    coordinatesElement: null, // Coordinate readout
+    atpElement: null,         // ATP readout
 
     // --------------------------------------------------
     // Initialize
@@ -72,17 +77,7 @@ const PondGridView = {
         this.microscopeMaskElement.id =
             "pond-microscope-mask";
 
-        this.microscopeMaskElement.style.position =
-            "relative";
-
-        this.microscopeMaskElement.style.border =
-            "4px solid #111";
-
-        this.microscopeMaskElement.style.borderRadius =
-            "50%";
-
-        this.microscopeMaskElement.style.overflow =
-            "hidden";
+        
 
         this.surfaceElement =
             document.createElement("div");
@@ -106,44 +101,24 @@ const PondGridView = {
             "Pond movement controls"
         );
 
-        this.controlsElement.style.position =
-            "absolute";
+        // --------------------------------------------------
+// Pond movement instruction
+// --------------------------------------------------
 
-        this.controlsElement.style.left =
-            "-16px";
+this.instructionsElement =
+    document.createElement("div");
 
-        this.controlsElement.style.top =
-            "50%";
+this.instructionsElement.id =
+    "pond-movement-instructions";
 
-        this.controlsElement.style.transform =
-            "translateY(-50%)";
+this.instructionsElement.textContent =
+    "SPEND 10 ATP TO\nMOVE ONE SPACE";
 
-        this.controlsElement.style.width =
-            "105px";
+this.controlsElement.appendChild(
+    this.instructionsElement
+);
 
-        this.controlsElement.style.height =
-            "105px";
-
-        this.controlsElement.style.outline =
-            "1px dashed #555";
-
-        this.controlsElement.style.display =
-            "grid";
-
-        this.controlsElement.style.gridTemplateColumns =
-            "repeat(3, 1fr)";
-
-        this.controlsElement.style.gridTemplateRows =
-            "repeat(3, 1fr)";
-
-        this.controlsElement.style.gap =
-            "3px";
-
-        this.controlsElement.style.padding =
-            "4px";
-
-        this.controlsElement.style.boxSizing =
-            "border-box";
+       
 
         const movementButtons = [
             {
@@ -179,6 +154,9 @@ const PondGridView = {
 
             button.type = "button";
 
+            button.className =
+                "pond-movement-button";
+
             button.dataset.direction =
                 buttonData.direction;
 
@@ -196,23 +174,7 @@ const PondGridView = {
             button.style.gridRow =
                 buttonData.row;
 
-            button.style.fontSize =
-                "14px";
-
-            button.style.border =
-                "1px solid #222";
-
-            button.style.borderRadius =
-                "4px";
-
-            button.style.background =
-                "#f5f5f5";
-
-            button.style.cursor =
-                "pointer";
-
-            button.style.padding =
-                "0";
+            
 
             this.controlsElement.appendChild(
                 button
@@ -245,14 +207,68 @@ const PondGridView = {
 
         });
 
-        this.microscopeMaskElement.appendChild(
-            this.surfaceElement
-        );
 
-        this.microscopeStageElement.append(
-            this.microscopeMaskElement,
-            this.controlsElement
-        );
+
+        // --------------------------------------------------
+// Coordinate and ATP status box
+// --------------------------------------------------
+
+this.statusElement =
+    document.createElement("div");
+
+this.statusElement.id =
+    "pond-status-hud";
+
+this.statusElement.setAttribute(
+    "aria-label",
+    "Pond status display"
+);
+
+this.coordinatesElement =
+    document.createElement("span");
+
+this.coordinatesElement.id =
+    "pond-coordinate-readout";
+
+const separatorElement =
+    document.createElement("span");
+
+separatorElement.id =
+    "pond-status-separator";
+
+separatorElement.textContent =
+    "|";
+
+this.atpElement =
+    document.createElement("span");
+
+this.atpElement.id =
+    "pond-atp-readout";
+
+this.atpElement.textContent =
+    "ATP: --/--";
+
+this.statusElement.append(
+    this.coordinatesElement,
+    separatorElement,
+    this.atpElement
+);
+
+
+
+this.microscopeMaskElement.appendChild(
+    this.surfaceElement
+);
+
+// --------------------------------------------------
+// Mount microscope, controls, and status HUD
+// --------------------------------------------------
+
+this.microscopeStageElement.append(
+    this.microscopeMaskElement,
+    this.controlsElement,
+    this.statusElement
+);
 
         this.viewportElement.replaceChildren(
             this.microscopeStageElement
@@ -313,6 +329,13 @@ const PondGridView = {
             return;
         }
 
+        // --------------------------------------------------
+// Update coordinate display
+// --------------------------------------------------
+
+this.coordinatesElement.textContent =
+    `COORD: ${position.x}, ${position.y}`;
+
         this.surfaceElement.replaceChildren();
 
         this.surfaceElement.style.display =
@@ -321,8 +344,7 @@ const PondGridView = {
         this.surfaceElement.style.gridTemplateColumns =
             `repeat(${GRID_SIZE}, 48px)`;
 
-        this.surfaceElement.style.gap =
-            "0px";
+       
 
         this.surfaceElement.style.width =
             "max-content";
@@ -392,8 +414,7 @@ if (isSensingExtreme) {
                 tileElement.style.placeItems =
                     "center";
 
-                tileElement.style.border =
-                    "1px solid #777";
+                
 
                 tileElement.style.fontSize =
                     "11px";

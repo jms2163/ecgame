@@ -1,0 +1,372 @@
+/* --------------------------------------------------
+   Pond semantic-view titles
+   -------------------------------------------------- */
+
+.pond-zoom-title {
+    color: #f7efff;
+    text-align: center;
+}
+
+
+/* --------------------------------------------------
+   Coordinate and ATP status box
+   -------------------------------------------------- */
+
+#pond-status-hud {
+    position: absolute;
+    left: -16px;
+    top: 0;
+    width: max-content;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-sizing: border-box;
+    padding: 8px 12px;
+    white-space: nowrap;
+    background: rgba(15, 4, 28, 0.92);
+    border: 1px solid #df80ff;
+    border-radius: 8px;
+    color: #f7efff;
+    font-family: monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    box-shadow: 0 0 12px rgba(160, 32, 240, 0.65);
+}
+
+/* --------------------------------------------------
+   Pond movement instruction
+   -------------------------------------------------- */
+
+#pond-movement-instructions {
+    position: absolute;
+    top: 6px;
+    left: 8px;
+    right: 8px;
+    color: #df80ff;
+    font-family: monospace;
+    font-size: 11px;
+    line-height: 1.2;
+    white-space: pre;    
+    letter-spacing: 0.5px;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+/* --------------------------------------------------
+   Pond movement controller
+   -------------------------------------------------- */
+
+#pond-movement-controls {
+    position: absolute;
+    left: -64px;
+    top: 50%;
+    width: 160px;
+    height: 160px;
+    display: grid;
+    grid-template-columns: repeat(3, 33px);
+    grid-template-rows: repeat(3, 33px);
+    justify-content: center;
+    align-content: start;
+    gap: 3px;
+    box-sizing: border-box;
+    padding: 38px 4px 4px;
+    background: rgba(15, 4, 28, 0.9);
+    border: 1px solid #310d54;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);    
+    transform: translateY(-50%);
+}
+/* --------------------------------------------------
+   Pond movement buttons
+   -------------------------------------------------- */
+
+/* --------------------------------------------------
+   Pond movement buttons
+   -------------------------------------------------- */
+
+.pond-movement-button {
+    background: #1c0a3a;
+    border: 1px solid #724da6;
+    border-radius: 4px;
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0;
+    transition: all 0.15s ease;
+}
+
+.pond-movement-button:hover {
+    background: #45137d;
+    border-color: #df80ff;
+    box-shadow: 0 0 8px rgba(223, 128, 255, 0.5);
+}
+
+.pond-movement-button:active {
+    background: #df80ff;
+    color: #040108;
+}
+
+/* --------------------------------------------------
+   Circular microscope frame
+   -------------------------------------------------- */
+
+#pond-microscope-mask {
+    position: relative;
+    overflow: hidden;
+    border: 3px solid #310d54;
+    border-radius: 50%;
+}
+
+/* --------------------------------------------------
+   Pond grid line surface
+   -------------------------------------------------- */
+
+#pond-grid-surface {
+    gap: 1px;
+    padding: 1px;
+    background: #df80ff;
+}
+
+/* --------------------------------------------------
+   Temporary neutral Pond tiles
+   -------------------------------------------------- */
+
+.pond-grid-tile {
+    border: 0;
+    background: #020004;
+}
+
+/* --------------------------------------------------
+   Pond semantic zoom buttons
+   -------------------------------------------------- */
+
+.pond-zoom-tab {
+    background: #1c0a3a;
+    border: 1px solid #724da6;
+    border-radius: 4px;
+    color: #c9b3e6;
+    cursor: pointer;
+    font-family: monospace;
+    font-size: 12px;
+    padding: 4px 10px;
+    transition: all 0.2s ease;
+}
+
+.pond-zoom-tab:hover:not(:disabled) {
+    background: #45137d;
+    border-color: #df80ff;
+    color: #ffffff;
+    box-shadow: 0 0 8px rgba(223, 128, 255, 0.5);
+}
+
+.pond-zoom-tab.active {
+    background: #45137d;
+    border-color: #df80ff;
+    color: #ffffff;
+    font-weight: bold;
+    box-shadow: 0 0 8px rgba(223, 128, 255, 0.4);
+}
+
+.pond-zoom-tab:disabled {
+    cursor: not-allowed;
+    opacity: 0.35;
+    border-color: #310d54;
+}
+
+/* --------------------------------------------------
+   Microbiome workspace layout
+   -------------------------------------------------- */
+
+#pond-workspace {
+    display: flex;
+    align-items: stretch;
+    gap: 20px;
+}
+
+#pond-viewport-container {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+/* --------------------------------------------------
+   Microbiome sensor-pane shell
+   -------------------------------------------------- */
+
+#pond-microbiome-sensor-pane {
+    flex: 0 0 25%;
+    min-width: 0;
+    box-sizing: border-box;
+    background: #0f041c;
+    border: 3px solid #310d54;
+}
+
+/* --------------------------------------------------
+   Microbiome sensor-pane header
+   -------------------------------------------------- */
+
+#pond-microbiome-sensor-pane {
+    padding: 16px;
+    color: #f7efff;
+    font-family: monospace;
+}
+
+.pond-sensor-pane-header {
+    border-bottom: 1px solid #310d54;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+}
+
+.pond-sensor-pane-header h2 {
+    color: #df80ff;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    margin: 0 0 10px;
+    text-transform: uppercase;
+}
+
+.pond-current-microbiome {
+    color: #c9b3e6;
+    font-size: 11px;
+    line-height: 1.4;
+    margin: 0;
+    text-transform: uppercase;
+}
+
+#pond-current-microbiome {
+    color: #f7efff;
+    font-weight: bold;
+}
+
+/* --------------------------------------------------
+   Microbiome quick-view sensor cards
+   -------------------------------------------------- */
+
+.pond-sensor-card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.pond-sensor-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #040108;
+    border: 1px solid #45137d;
+    border-radius: 6px;
+    padding: 10px;
+    transition: background 0.15s ease, border-color 0.15s ease,
+    box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.pond-sensor-card:hover {
+    background: #1c0a3a;
+    border-color: #df80ff;
+    box-shadow: 0 0 8px rgba(223, 128, 255, 0.5);
+    transform: translateY(-1px);
+}
+
+.pond-sensor-card--centered {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: calc((100% - 12px) / 2);
+    box-sizing: border-box;
+}
+
+.pond-sensor-card-label {
+    color: #724da6;
+    font-size: 9px;
+    font-weight: bold;
+    margin: 0 0 6px;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.pond-sensor-card-value {
+    color: #ffffff;
+    font-family: monospace;
+    font-size: 13px;
+    font-weight: bold;
+    margin: 0;
+}
+
+/* --------------------------------------------------
+   Microbiome system-status display
+   -------------------------------------------------- */
+
+.pond-system-status {
+    border-top: 1px solid #310d54;
+    margin-top: 16px;
+    padding-top: 12px;
+}
+
+.pond-system-status h3 {
+    color: #df80ff;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    margin: 0 0 8px;
+    text-transform: uppercase;
+}
+
+#pond-system-status-message {
+    color: #c9b3e6;
+    font-size: 11px;
+    line-height: 1.5;
+    margin: 0;
+}
+
+#pond-composite-health-score {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 10px;
+    background: rgba(13, 19, 29, 0.9);
+    border: 1px solid #3a4b6e;
+    border-radius: 4px;
+    color: #eaf5ff;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+#pond-composite-health-value {
+    color: #ffffff;
+}
+
+/* --------------------------------------------------
+   Detailed microbiome metrics
+   -------------------------------------------------- */
+
+.pond-detailed-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.85em;
+}
+
+.pond-status-category summary {
+    color: #3498db;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.pond-status-category ul {
+    margin: 4px 0 8px 16px;
+    padding: 0;
+    list-style-type: square;
+}
+
+/* --------------------------------------------------
+   Pond semantic-view canvas
+   -------------------------------------------------- */
+
+#pond-zone {
+    background: #040108;
+}
+
+#pond-zone .zoom-layer {
+    background: #040108;
+}
+
