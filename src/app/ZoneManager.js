@@ -5,6 +5,7 @@
 
 import Pond from "./Pond.js";
 import GameStateManager from "./GameStateManager.js";
+import TestZone from "./TestZone.js";
 
 const ZoneManager = {
 
@@ -18,6 +19,40 @@ const ZoneManager = {
         console.log("ZoneManager initialized");
 
     },
+
+    // --------------------------------------------------
+// Show active zone and hide inactive zones
+// --------------------------------------------------
+updateZoneVisibility(zoneId) {
+
+    const zoneElements = {
+        pond: document.getElementById("pond-zone"),
+        test: document.getElementById("test-zone")
+    };
+
+    Object.entries(zoneElements).forEach(
+        ([id, element]) => {
+
+            if (!element) {
+                console.warn(
+                    `ZoneManager: DOM root for "${id}" not found`
+                );
+
+                return;
+            }
+
+            const isActive =
+                id === zoneId;
+
+            element.classList.toggle(
+                "hidden",
+                !isActive
+            );
+
+        }
+    );
+
+},
 
     // --------------------------------------------------
     // Enter a game zone
@@ -35,6 +70,10 @@ const ZoneManager = {
 
             case "pond":
                 nextZone = Pond;
+                break;
+
+            case "test":
+                nextZone = TestZone;
                 break;
             
             
@@ -57,7 +96,10 @@ const ZoneManager = {
         // Initialize requested zone
         // --------------------------------------------------
         nextZone.initialize();
-
+        // --------------------------------------------------
+// Make requested zone visible
+// --------------------------------------------------
+this.updateZoneVisibility(zoneId);
         // --------------------------------------------------
         // Activate requested zone
         // --------------------------------------------------
