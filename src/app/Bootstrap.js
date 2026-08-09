@@ -3,7 +3,6 @@
 // Responsible for initializing the entire game
 // --------------------------------------------------
 
-import BootstrapUI from "./BootstrapUI.js";
 import GameStateManager from "./GameStateManager.js";
 import DataLoader from "./DataLoader.js";
 import SaveManager from "./SaveManager.js";
@@ -27,28 +26,22 @@ const Bootstrap = {
     // --------------------------------------------------
     async initialize(){
 
-        BootstrapUI.initialize();
+        //BootstrapUI.initialize();
         DevConsole.initialize();
 
 
         await DataLoader.loadAll();
-        BootstrapUI.mark("Scientific Data");
 
 
         GameStateManager.initialize();
-        BootstrapUI.mark("Game State");
-        BootstrapUI.ready();
 
         SaveManager.initialize();
-        BootstrapUI.mark("Save System");
 
         SaveManager.load();
 
         ZoneManager.initialize();
-        BootstrapUI.mark("Zone Manager");
 
         ZoneManager.enterZone("pond");
-        BootstrapUI.mark("Pond");
 
 
 
@@ -72,9 +65,7 @@ const Bootstrap = {
         // BootstrapUI.mark("Simulation");
 
 
-        BootstrapUI.mark("Bootstrap loaded");
 
-        BootstrapUI.ready();
 
     },
 

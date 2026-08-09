@@ -114,6 +114,11 @@ const PondNavigation = {
         }
 
         // ----------------------------------------------
+// Show requested DOM layer
+// ----------------------------------------------
+this.updateVisibleLayer(level);
+
+        // ----------------------------------------------
 // Initialize view if necessary
 // ----------------------------------------------
 nextView.initialize();
@@ -166,7 +171,43 @@ this.currentView = nextView;
 
         });
 
-    }
+    },
+
+    // --------------------------------------------------
+// Show one Pond semantic-view layer
+// --------------------------------------------------
+updateVisibleLayer(activeLevel) {
+
+    const viewLayers = {
+        0: "pond-grid-view",
+        1: "cell-view",
+        2: "organelle-view"
+    };
+
+    Object.entries(viewLayers).forEach(
+        ([level, layerId]) => {
+
+            const layer =
+                document.getElementById(layerId);
+
+            if (!layer) {
+                console.warn(
+                    `PondNavigation: layer "${layerId}" not found`
+                );
+
+                return;
+            }
+
+            const isActive =
+                Number(level) === activeLevel;
+
+            layer.classList.toggle(
+                "hidden",
+                !isActive
+            );
+        }
+    );
+},
 
 };
 
