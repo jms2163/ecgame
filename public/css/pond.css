@@ -108,6 +108,16 @@
 }
 
 /* --------------------------------------------------
+   Microscope stage
+   -------------------------------------------------- */
+
+#pond-microscope-stage {
+    position: relative;
+    margin: 0 auto;
+}
+
+
+/* --------------------------------------------------
    Circular microscope frame
    -------------------------------------------------- */
 
@@ -123,18 +133,27 @@
    -------------------------------------------------- */
 
 #pond-grid-surface {
+    display: grid;
+    width: max-content;
     gap: 1px;
     padding: 1px;
     background: #df80ff;
 }
 
 /* --------------------------------------------------
-   Temporary neutral Pond tiles
+   Pond grid tiles
    -------------------------------------------------- */
 
 .pond-grid-tile {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    box-sizing: border-box;
     border: 0;
     background: #020004;
+    font-family: monospace;
+    font-size: 11px;
 }
 
 /* --------------------------------------------------
