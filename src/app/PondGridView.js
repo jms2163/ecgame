@@ -6,6 +6,7 @@
 import GameStateManager from "./GameStateManager.js";
 import PondWorld from "./PondWorld.js";
 import PondController from "./PondController.js";
+import PondAmoebaView from "./PondAmoebaView.js";
 
 const MICROSCOPE_VIEWPORT_RADIUS = 6;
 
@@ -378,10 +379,15 @@ this.coordinatesElement.textContent =
                 tileElement.className =
                     "pond-grid-tile";
 
+                    tileElement.classList.add(
+    `pond-biome-${tile.biome ?? "unknown"}`
+);
+
                 tileElement.dataset.x = x;
                 tileElement.dataset.y = y;
 
-                const isSensingExtreme =
+
+const isSensingExtreme =
     (x === -4 && y === 0) ||
     (x === 4 && y === 0) ||
     (x === 0 && y === 4) ||
@@ -396,6 +402,17 @@ if (isSensingExtreme) {
 
     tileElement.textContent =
         "";
+
+}
+
+if (
+    x === position.x &&
+    y === position.y
+) {
+
+    tileElement.appendChild(
+        PondAmoebaView.create()
+    );
 
 }
 

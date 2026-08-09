@@ -138,6 +138,42 @@
 }
 
 /* --------------------------------------------------
+   Dominant microbiome tile colors
+   -------------------------------------------------- */
+
+.pond-biome-open_water {
+    background: #245A85;
+}
+
+.pond-biome-sediment_grain {
+    background: #73523C;
+}
+
+.pond-biome-leaf_surface {
+    background: #4D7A47;
+}
+
+.pond-biome-algae_patch {
+    background: #76A84B;
+}
+
+.pond-biome-biofilm_mat {
+    background: #2C8B83;
+}
+
+.pond-biome-detritus_cloud {
+    background: #B47A3C;
+}
+
+.pond-biome-bacterial_bloom {
+    background: #B84E72;
+}
+
+.pond-biome-anaerobic_pocket {
+    background: #3D2A57;
+}
+
+/* --------------------------------------------------
    Pond semantic zoom buttons
    -------------------------------------------------- */
 
@@ -370,3 +406,14 @@
     background: #040108;
 }
 
+/* --------------------------------------------------
+   Amoeba visual placeholder
+   -------------------------------------------------- */
+
+.pond-amoeba-view {
+    color: #f7efff;
+    font-family: monospace;
+    font-size: 20px;
+    line-height: 1;
+    text-shadow: 0 0 6px rgba(223, 128, 255, 0.7);
+}
