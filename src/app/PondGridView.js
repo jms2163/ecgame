@@ -5,11 +5,20 @@
 
 import GameStateManager from "./GameStateManager.js";
 import PondWorld from "./PondWorld.js";
+import PondController from "./PondController.js";
 
 const MICROSCOPE_VIEWPORT_RADIUS = 6;
 
 const GRID_SIZE =
     (MICROSCOPE_VIEWPORT_RADIUS * 2) + 1;
+
+const MOVEMENT_VECTORS = {
+    north: { dx: 0, dy: -1 },
+    south: { dx: 0, dy: 1 },
+    west: { dx: -1, dy: 0 },
+    east: { dx: 1, dy: 0 }
+};
+    
 
 const PondGridView = {
 
@@ -104,7 +113,7 @@ const PondGridView = {
             "-16px";
 
         this.controlsElement.style.top =
-            "58%";
+            "50%";
 
         this.controlsElement.style.transform =
             "translateY(-50%)";
@@ -207,7 +216,32 @@ const PondGridView = {
 
             this.controlsElement.appendChild(
                 button
+            
             );
+            
+            button.addEventListener("click", () => {
+
+    const movement =
+        MOVEMENT_VECTORS[
+            buttonData.direction
+        ];
+
+    if (!movement) {
+        console.warn(
+            `PondGridView: unknown direction "${buttonData.direction}"`
+        );
+
+        return;
+    }
+
+    PondController.movePlayer(
+        movement.dx,
+        movement.dy
+    );
+
+    this.render();
+
+});
 
         });
 
@@ -288,7 +322,7 @@ const PondGridView = {
             `repeat(${GRID_SIZE}, 48px)`;
 
         this.surfaceElement.style.gap =
-            "2px";
+            "0px";
 
         this.surfaceElement.style.width =
             "max-content";
@@ -325,14 +359,32 @@ const PondGridView = {
                 tileElement.dataset.x = x;
                 tileElement.dataset.y = y;
 
-                tileElement.textContent =
-                    `${x}, ${y}`;
+                const isSensingExtreme =
+    (x === -4 && y === 0) ||
+    (x === 4 && y === 0) ||
+    (x === 0 && y === 4) ||
+    (x === 0 && y === -4);
+
+if (isSensingExtreme) {
+
+    tileElement.textContent =
+        `${x}, ${y}`;
+
+} else {
+
+    tileElement.textContent =
+        "";
+
+}
 
                 tileElement.style.width =
                     "48px";
 
                 tileElement.style.height =
                     "48px";
+
+                tileElement.style.boxSizing =
+                    "border-box";
 
                 tileElement.style.display =
                     "grid";
