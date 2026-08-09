@@ -156,17 +156,25 @@ const PondWorldConfig = {
 
 
         // --------------------------------------------------
-        // Layer 3: Overlay Regions
-        // --------------------------------------------------
-        const overlayRegions = [
+// Layer 3: Overlay Regions
+// --------------------------------------------------
+const overlayRegions = [
 
-            createRegion({
-                microbiome: "bacterial_bloom",
-                minRadius: 1.5,
-                maxRadius: 2.5
-            })
+    createRegion({
+        microbiome: "bacterial_bloom",
+        minRadius: 1.5,
+        maxRadius: 2.5
+    }),
 
-        ].filter(Boolean);
+    createRegion({
+        microbiome: "anaerobic_pocket",
+        minRadius: 0.5,
+        maxRadius: 1.0,
+        requireSpawnSafe: true,
+        safeMargin: 3
+    })
+
+].filter(Boolean);
 
 
         // --------------------------------------------------
@@ -187,24 +195,10 @@ const PondWorldConfig = {
                 bloom.y
             );
 
-        console.log(
-            `PondWorldConfig: algae/bloom distance = ${regionDistance}`
-        );
+        
 
 
-        console.log({
-
-            algaeSafe:
-                isRegionSafeFromSpawn(
-                    algae
-                ),
-
-            bloomSafe:
-                isRegionSafeFromSpawn(
-                    bloom
-                )
-
-        });
+        
 
 
         // --------------------------------------------------
