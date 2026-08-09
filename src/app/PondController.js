@@ -7,7 +7,7 @@ import GameStateManager from "./GameStateManager.js";
 import PondWorld from "./PondWorld.js";
 import PondWorldGenerator from "./PondWorldGenerator.js";
 
-const SENSING_RADIUS = 4;
+const MICROSCOPE_VIEWPORT_RADIUS = 6;
 
 const PondController = {
 
@@ -54,7 +54,7 @@ PondWorldGenerator.configure(seed);
             world,
             position.x,
             position.y,
-            SENSING_RADIUS
+            MICROSCOPE_VIEWPORT_RADIUS
         );
 
     },
