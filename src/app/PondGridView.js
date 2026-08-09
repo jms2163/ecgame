@@ -7,6 +7,7 @@ import GameStateManager from "./GameStateManager.js";
 import PondWorld from "./PondWorld.js";
 import PondController from "./PondController.js";
 import PondAmoebaView from "./PondAmoebaView.js";
+import PondMicrobiomeSensorPane from "./PondMicrobiomeSensorPane.js";
 
 const MICROSCOPE_VIEWPORT_RADIUS = 6;
 
@@ -328,7 +329,18 @@ this.microscopeStageElement.append(
             );
 
             return;
-        }
+        } 
+
+        const currentTile =
+    PondWorld.getTile(
+        world,
+        position.x,
+        position.y
+    );
+
+PondMicrobiomeSensorPane.render(
+    currentTile
+);
 
         // --------------------------------------------------
 // Update coordinate display
@@ -431,8 +443,6 @@ if (
                 tileElement.style.placeItems =
                     "center";
 
-                
-
                 tileElement.style.fontSize =
                     "11px";
 
@@ -464,9 +474,6 @@ if (
         this.microscopeStageElement.style.height =
             `${gridWidth}px`;
 
-        console.log(
-            "PondGridView: rendered 9×9 generated world"
-        );
 
     }
 
