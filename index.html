@@ -3,7 +3,10 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
     <title>ECGame</title>
 
     <!-- Temporary Pond UI Styles -->
@@ -34,32 +37,32 @@
 
     <div id="app">
 
-        <nav id="pond-zoom-navigation">
-            <button
-                id="btn-pond-grid"
-                class="zoom-tab active"
-                data-level="0">
-                🌐 Microbiome
-            </button>
-
-            <button
-                id="btn-cell"
-                class="zoom-tab"
-                data-level="1"
-                >
-                🦠 Cell View
-            </button>
-
-            <button
-                id="btn-organelle"
-                class="zoom-tab"
-                data-level="2"
-                >
-                🔬 Organelle Lab
-            </button>
-        </nav>
-
         <main id="pond-zone">
+
+            <nav id="pond-zoom-navigation">
+
+                <button
+                    id="btn-pond-grid"
+                    class="zoom-tab active"
+                    data-level="0">
+                    🌐 Microbiome
+                </button>
+
+                <button
+                    id="btn-cell"
+                    class="zoom-tab"
+                    data-level="1">
+                    🦠 Cell View
+                </button>
+
+                <button
+                    id="btn-organelle"
+                    class="zoom-tab"
+                    data-level="2">
+                    🔬 Organelle Lab
+                </button>
+
+            </nav>
 
             <section
                 id="pond-grid-view"
@@ -67,12 +70,15 @@
 
                 <h1>Microbiome View</h1>
 
-                <div id="pond-viewport-container">
-                    <p>PondGrid will render here.</p>
+                <div id="pond-workspace">
+
+                    <div id="pond-viewport-container">
+                        <p>PondGrid will render here.</p>
+                    </div>
+
                 </div>
 
             </section>
-
 
             <section
                 id="cell-view"
@@ -85,7 +91,6 @@
                 </p>
 
             </section>
-
 
             <section
                 id="organelle-view"
@@ -101,9 +106,25 @@
 
         </main>
 
+        <section
+            id="test-zone"
+            class="hidden">
+
+            <h1>Test Zone</h1>
+
+            <p>
+                Temporary zone used to verify
+                ZoneManager transitions.
+            </p>
+
+        </section>
+
     </div>
 
-    <script type="module" src="./src/app/main.js"></script>
+    <script
+        type="module"
+        src="./src/app/main.js">
+    </script>
 
 </body>
 
