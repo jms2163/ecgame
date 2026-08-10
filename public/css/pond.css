@@ -492,3 +492,46 @@
     outline: 2px solid #5ee38d;
     outline-offset: 2px;
 }
+
+/* --------------------------------------------------
+   Chemical Signals probe mode
+   -------------------------------------------------- */
+
+#pond-grid-surface.pond-grid-surface--signal-probe-active {
+    cursor: zoom-in;
+}
+
+.pond-sensor-card--probe-active {
+    background: #2b103d;
+    border-color: #f4a0ff;
+    box-shadow: 0 0 12px rgba(244, 160, 255, 0.65);
+}
+
+@keyframes pond-signal-probe-pulse {
+    0%,
+    100% {
+        box-shadow:
+            0 0 8px
+            rgba(244, 160, 255, 0.45);
+    }
+
+    50% {
+        box-shadow:
+            0 0 20px
+            rgba(244, 160, 255, 0.95);
+    }
+}
+
+.pond-sensor-card--probe-active {
+    animation:
+        pond-signal-probe-pulse
+        1.4s
+        ease-in-out
+        infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pond-sensor-card--probe-active {
+        animation: none;
+    }
+}

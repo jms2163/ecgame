@@ -11,6 +11,7 @@ import PondAmoebaView from "./PondAmoebaView.js";
 import PondMicrobiomeSensorPane from "./PondMicrobiomeSensorPane.js";
 import PondStatusHud from "./PondStatusHud.js";
 import ResourceManager from "./ResourceManager.js";
+import PondSignalProbe from "./PondSignalProbe.js";
 
 const MICROSCOPE_VIEWPORT_RADIUS = 6;
 
@@ -76,6 +77,20 @@ const PondGridView = {
             "aria-label",
             "Pond microbiome grid"
         );
+
+        // --------------------------------------------------
+// Chemical Signals probe-mode grid appearance
+// --------------------------------------------------
+
+PondSignalProbe.onChange(
+    probeActive => {
+        this.updateSignalProbeSurfaceState(
+            probeActive
+        );
+    }
+);
+
+this.updateSignalProbeSurfaceState();
 
         // --------------------------------------------------
 // Pond movement controls
@@ -160,9 +175,32 @@ const movementControlsElement =
     },
 
     // --------------------------------------------------
+// Update Chemical Signals probe-mode grid appearance
+// --------------------------------------------------
+updateSignalProbeSurfaceState(probeActive) {
+
+    if (!this.surfaceElement) {
+        return;
+    }
+
+    const active =
+        typeof probeActive === "boolean"
+            ? probeActive
+            : PondSignalProbe.isActive();
+
+    this.surfaceElement.classList.toggle(
+        "pond-grid-surface--signal-probe-active",
+        active
+    );
+
+},
+
+    // --------------------------------------------------
     // Deactivate
     // --------------------------------------------------
     deactivate() {
+
+        PondSignalProbe.deactivate();
 
         if (!this.active) {
             return;

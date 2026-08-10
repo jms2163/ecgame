@@ -270,6 +270,142 @@ const PondPerception = {
     },
 
     // --------------------------------------------------
+// Describe a position relative to the amoeba
+// --------------------------------------------------
+getRelativeLocationLabel(dx, dy) {
+
+    if (dx === 0 && dy === 0) {
+        return "Here";
+    }
+
+    const parts = [];
+
+    if (dx < 0) {
+        parts.push(
+            `${Math.abs(dx)} left`
+        );
+    }
+
+    if (dx > 0) {
+        parts.push(
+            `${dx} right`
+        );
+    }
+
+    if (dy < 0) {
+        parts.push(
+            `${Math.abs(dy)} up`
+        );
+    }
+
+    if (dy > 0) {
+        parts.push(
+            `${dy} down`
+        );
+    }
+
+    return parts.join(", ");
+
+},
+
+// --------------------------------------------------
+// Read one tile inside the Chemical Signals range
+// --------------------------------------------------
+getProbeReadingAt(x, y, radius = 4) {
+
+    const world =
+        GameStateManager.getPondWorld();
+
+    const position =
+        GameStateManager.getPondPosition();
+
+    if (!world || !position) {
+        console.warn(
+            "PondPerception: Pond world or player position unavailable"
+        );
+
+        return null;
+    }
+
+    const dx =
+        x - position.x;
+
+    const dy =
+        y - position.y;
+
+    const distance =
+        Math.sqrt(
+            (dx * dx) +
+            (dy * dy)
+        );
+
+    if (distance > radius) {
+        return null;
+    }
+
+    const tile =
+        PondWorld.getTile(
+            world,
+            x,
+            y
+        );
+
+    if (!tile) {
+        return null;
+    }
+
+    return {
+        x,
+        y,
+        dx,
+        dy,
+        distance,
+
+        relativeLocation:
+            this.getRelativeLocationLabel(
+                dx,
+                dy
+            ),
+
+        microbiome:
+            tile.biome,
+
+        classification:
+            this.classifyTile(
+                tile
+            ),
+
+        signals: {
+            folate:
+                tile.chemistry
+                    ?.signals?.folate ?? 0,
+
+            nFormylPeptides:
+                tile.chemistry
+                    ?.signals
+                    ?.n_formyl_peptides ?? 0,
+
+            scfa:
+                tile.chemistry
+                    ?.signals?.scfa ?? 0,
+
+            camp:
+                tile.chemistry
+                    ?.signals?.camp ?? 0,
+
+            cyanotoxins:
+                tile.chemistry
+                    ?.signals?.cyanotoxins ?? 0,
+
+            ammonia:
+                tile.chemistry
+                    ?.signals?.ammonia ?? 0
+        }
+    };
+
+},
+
+    // --------------------------------------------------
     // Classify one tile's local chemical environment
     // --------------------------------------------------
     classifyTile(tile) {
