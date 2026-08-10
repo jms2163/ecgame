@@ -10,6 +10,7 @@ import PondMovementControls from "./PondMovementControls.js";
 import PondAmoebaView from "./PondAmoebaView.js";
 import PondMicrobiomeSensorPane from "./PondMicrobiomeSensorPane.js";
 import PondStatusHud from "./PondStatusHud.js";
+import ResourceManager from "./ResourceManager.js";
 
 const MICROSCOPE_VIEWPORT_RADIUS = 6;
 
@@ -77,24 +78,27 @@ const PondGridView = {
         );
 
         // --------------------------------------------------
-        // Pond movement controls
-        // --------------------------------------------------
+// Pond movement controls
+// --------------------------------------------------
 
-        const movementControlsElement =
-            PondMovementControls.create({
+const movementControlsElement =
+    PondMovementControls.create({
 
-                onMove: (dx, dy) => {
+        onMove: (dx, dy) => {
 
-                    PondController.movePlayer(
-                        dx,
-                        dy
-                    );
+            const moved =
+                PondController.movePlayer(
+                    dx,
+                    dy
+                );
 
-                    this.render();
+            if (moved) {
+                this.render();
+            }
 
-                }
+        }
 
-            });
+    });
 
         // --------------------------------------------------
         // Pond status HUD
@@ -161,6 +165,7 @@ const PondGridView = {
     // Render Pond
     // --------------------------------------------------
     render() {
+        
 
         const world =
             GameStateManager.getPondWorld();
@@ -176,6 +181,8 @@ const PondGridView = {
             return;
         }
 
+        
+
         const currentTile =
             PondWorld.getTile(
                 world,
@@ -187,9 +194,13 @@ const PondGridView = {
             currentTile
         );
 
-        PondStatusHud.render(
-            position
-        );
+        const atpStatus =
+    ResourceManager.getATPStatus();
+
+PondStatusHud.render(
+    position,
+    atpStatus
+);
 
         this.surfaceElement.replaceChildren();
 
