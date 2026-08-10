@@ -6,10 +6,80 @@
 import GameStateManager from "./GameStateManager.js";
 import PondWorld from "./PondWorld.js";
 
+const CHEMICAL_SIGNAL_THRESHOLDS = {
+
+    abioticOxygenMaximum: 0.05,
+    abioticPhMinimum: 6.4,
+
+    bacterialFolateMinimum: 0.05,
+    bacterialPeptideMinimum: 0.05,
+
+    fermentationScfaMinimum: 0.07,
+
+    bloomLightMinimum: 0.75,
+    bloomOxygenMinimum: 1.20,
+
+    mixedRiskCyanotoxinMinimum: 0.01,
+    hazardCyanotoxinMinimum: 0.02
+
+};
+
 const PondPerception = {
 
     // --------------------------------------------------
-    // Get nearby tiles with Euclidean distance
+    // Get tiles in a square sensing range
+    // --------------------------------------------------
+    getTilesInRange(radius) {
+
+        const world =
+            GameStateManager.getPondWorld();
+
+        const position =
+            GameStateManager.getPondPosition();
+
+        if (!world || !position) {
+            console.warn(
+                "PondPerception: Pond world or player position unavailable"
+            );
+
+            return [];
+        }
+
+        const tiles = [];
+
+        for (
+            let x = position.x - radius;
+            x <= position.x + radius;
+            x++
+        ) {
+
+            for (
+                let y = position.y - radius;
+                y <= position.y + radius;
+                y++
+            ) {
+
+                const tile =
+                    PondWorld.getTile(
+                        world,
+                        x,
+                        y
+                    );
+
+                if (tile) {
+                    tiles.push(tile);
+                }
+
+            }
+
+        }
+
+        return tiles;
+
+    },
+
+    // --------------------------------------------------
+    // Get nearby tiles inside a circular sensing range
     // --------------------------------------------------
     getTilesWithDistance(radius) {
 
@@ -20,13 +90,11 @@ const PondPerception = {
             GameStateManager.getPondPosition();
 
         if (!world || !position) {
-
             console.warn(
                 "PondPerception: Pond world or player position unavailable"
             );
 
             return [];
-
         }
 
         const results = [];
@@ -84,7 +152,7 @@ const PondPerception = {
     },
 
     // --------------------------------------------------
-    // Calculate signal falloff across sensing radius
+    // Calculate signal strength lost with distance
     // --------------------------------------------------
     calculateFalloff(distance, maxRange) {
 
@@ -103,58 +171,62 @@ const PondPerception = {
     },
 
     // --------------------------------------------------
-    // Build a perception field from a tile-value selector
+    // Build a perception field for any tile value
     // --------------------------------------------------
     buildField(radius, valueSelector) {
 
         const entries =
-            this.getTilesWithDistance(radius);
+            this.getTilesWithDistance(
+                radius
+            );
 
-        return entries.map(({ tile, distance }) => {
+        return entries.map(
+            ({ tile, distance }) => {
 
-            const selectedValue =
-                valueSelector(tile);
+                const selectedValue =
+                    valueSelector(tile);
 
-            const rawValue =
-                Number.isFinite(selectedValue)
-                    ? selectedValue
-                    : 0;
+                const rawValue =
+                    Number.isFinite(selectedValue)
+                        ? selectedValue
+                        : 0;
 
-            const falloff =
-                this.calculateFalloff(
+                const falloff =
+                    this.calculateFalloff(
+                        distance,
+                        radius
+                    );
+
+                return {
+                    x: tile.x,
+                    y: tile.y,
                     distance,
-                    radius
-                );
+                    rawValue,
+                    intensity:
+                        rawValue * falloff
+                };
 
-            return {
-                x: tile.x,
-                y: tile.y,
-                distance,
-                rawValue,
-                intensity: rawValue * falloff
-            };
-
-        });
+            }
+        );
 
     },
 
     // --------------------------------------------------
-    // Build a field for one named chemical signal
+    // Get a field for one named chemical signal
     // --------------------------------------------------
     getSignalField(signalKey, radius = 4) {
 
         return this.buildField(
             radius,
             tile =>
-                tile.chemistry?.signals?.[
-                    signalKey
-                ] ?? 0
+                tile.chemistry
+                    ?.signals?.[signalKey] ?? 0
         );
 
     },
 
     // --------------------------------------------------
-    // Find the strongest detected instance of one signal
+    // Find the strongest detected named signal
     // --------------------------------------------------
     getStrongestDetectedSignal(
         signalKey,
@@ -167,32 +239,150 @@ const PondPerception = {
                 radius
             );
 
-        let strongestEntry =
-            null;
+        let strongestEntry = null;
 
         field.forEach(entry => {
 
             if (
-                !strongestEntry ||
-                entry.intensity >
-                    strongestEntry.intensity
+                entry.intensity <= 0 ||
+                (
+                    strongestEntry &&
+                    entry.intensity <=
+                        strongestEntry.intensity
+                )
             ) {
-                strongestEntry =
-                    entry;
+                return;
             }
+
+            strongestEntry = entry;
 
         });
 
-        if (
-            !strongestEntry ||
-            strongestEntry.intensity <= 0
-        ) {
+        if (!strongestEntry) {
             return null;
         }
 
         return {
             signalKey,
             ...strongestEntry
+        };
+
+    },
+
+    // --------------------------------------------------
+    // Classify one tile's local chemical environment
+    // --------------------------------------------------
+    classifyTile(tile) {
+
+        const physics =
+            tile?.physics ?? {};
+
+        const signals =
+            tile?.chemistry?.signals ?? {};
+
+        const oxygen =
+            Number(physics.oxygen) || 0;
+
+        const ph =
+            Number(physics.ph) || 0;
+
+        const light =
+            Number(physics.light) || 0;
+
+        const folate =
+            Number(signals.folate) || 0;
+
+        const peptides =
+            Number(signals.n_formyl_peptides) || 0;
+
+        const scfa =
+            Number(signals.scfa) || 0;
+
+        const cyanotoxins =
+            Number(signals.cyanotoxins) || 0;
+
+        const bacterialActivity =
+            folate >=
+                CHEMICAL_SIGNAL_THRESHOLDS
+                    .bacterialFolateMinimum ||
+            peptides >=
+                CHEMICAL_SIGNAL_THRESHOLDS
+                    .bacterialPeptideMinimum;
+
+        const severeHazard =
+            cyanotoxins >=
+            CHEMICAL_SIGNAL_THRESHOLDS
+                .hazardCyanotoxinMinimum;
+
+        const mixedRisk =
+            bacterialActivity &&
+            cyanotoxins >=
+            CHEMICAL_SIGNAL_THRESHOLDS
+                .mixedRiskCyanotoxinMinimum;
+
+        if (
+            oxygen <=
+                CHEMICAL_SIGNAL_THRESHOLDS
+                    .abioticOxygenMaximum ||
+            ph <=
+                CHEMICAL_SIGNAL_THRESHOLDS
+                    .abioticPhMinimum
+        ) {
+            return {
+                code: "ABIOTIC_HAZARD",
+                label: "Abiotic Hazard"
+            };
+        }
+
+        if (severeHazard) {
+            return {
+                code: "HAZARD_SIGNAL",
+                label: "Hazard Signal"
+            };
+        }
+
+        if (mixedRisk) {
+            return {
+                code: "MIXED_RISK",
+                label: "Mixed Risk"
+            };
+        }
+
+        if (
+            light >=
+                CHEMICAL_SIGNAL_THRESHOLDS
+                    .bloomLightMinimum &&
+            oxygen >=
+                CHEMICAL_SIGNAL_THRESHOLDS
+                    .bloomOxygenMinimum
+        ) {
+            return {
+                code: "PHOTOSYNTHETIC_BLOOM",
+                label: "Photosynthetic Bloom"
+            };
+        }
+
+        if (
+            scfa >=
+            CHEMICAL_SIGNAL_THRESHOLDS
+                .fermentationScfaMinimum
+        ) {
+            return {
+                code: "FERMENTATION_SIGNALS",
+                label: "Fermentation Signals"
+            };
+        }
+
+        if (bacterialActivity) {
+            return {
+                code: "BACTERIAL_ACTIVITY",
+                label: "Bacterial Activity"
+            };
+        }
+
+        return {
+            code: "QUIET",
+            label: "Quiet"
         };
 
     }
