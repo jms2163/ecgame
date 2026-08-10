@@ -436,3 +436,59 @@
     line-height: 1;
     text-shadow: 0 0 6px rgba(223, 128, 255, 0.7);
 }
+
+/* --------------------------------------------------
+   Pond sensor information overlay
+   -------------------------------------------------- */
+
+#pond-grid-view {
+    position: relative;
+}
+
+#pond-sensor-information-panel {
+    position: absolute;
+    z-index: 20;
+    top: 50%;
+    left: 50%;
+    width: min(24rem, calc(100% - 2rem));
+    box-sizing: border-box;
+    padding: 1.25rem;
+    transform: translate(-50%, -50%);
+    background: rgba(15, 4, 28, 0.97);
+    border: 2px solid #df80ff;
+    border-radius: 10px;
+    color: #f7efff;
+    box-shadow: 0 0 18px rgba(160, 32, 240, 0.65);
+}
+
+#pond-sensor-information-title {
+    margin: 0 0 0.75rem;
+    color: #f7efff;
+    font-size: 1rem;
+}
+
+#pond-sensor-information-message {
+    margin: 0 0 1rem;
+    color: #e5d4ef;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+#btn-close-pond-sensor-information {
+    padding: 0.45rem 1rem;
+    background: #2b103d;
+    border: 1px solid #df80ff;
+    border-radius: 4px;
+    color: #f7efff;
+    font: inherit;
+    cursor: pointer;
+}
+
+#btn-close-pond-sensor-information:hover {
+    background: #4a1d67;
+}
+
+#btn-close-pond-sensor-information:focus-visible {
+    outline: 2px solid #5ee38d;
+    outline-offset: 2px;
+}

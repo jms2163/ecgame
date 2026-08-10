@@ -150,15 +150,22 @@
 </p>
     </article>
 
-    <article class="pond-sensor-card">
-        <p class="pond-sensor-card-label">
-            Temperature
-        </p>
-        <p
-    id="pond-sensor-temperature"
-    class="pond-sensor-card-value">
-    --
-</p>
+    <button
+    id="btn-pond-sensor-temperature"
+    class="pond-sensor-card pond-sensor-card--interactive"
+    type="button">
+
+    <span class="pond-sensor-card-label">
+        Temperature
+    </span>
+
+    <span
+        id="pond-sensor-temperature"
+        class="pond-sensor-card-value">
+        --
+    </span>
+
+</button>
     </article>
 
 </section>
@@ -330,6 +337,33 @@
 </aside>
 
 </div>
+
+<!-- --------------------------------------------------
+     Sensor information panel
+     -------------------------------------------------- -->
+
+<section
+    id="pond-sensor-information-panel"
+    class="hidden"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="pond-sensor-information-title">
+
+    <h2 id="pond-sensor-information-title">
+        Sensor Information
+    </h2>
+
+    <p id="pond-sensor-information-message">
+        Sensor information will appear here.
+    </p>
+
+    <button
+        id="btn-close-pond-sensor-information"
+        type="button">
+        OK
+    </button>
+
+</section>
 
             </section>
 

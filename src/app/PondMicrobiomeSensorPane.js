@@ -6,6 +6,7 @@
 import GameStateManager from "./GameStateManager.js";
 import MicrobiomeLibrary from "./MicrobiomeLibrary.js";
 import PondPerception from "./PondPerception.js";
+import PondSensorInfoPanel from "./PondSensorInfoPanel.js";
 
 const PondMicrobiomeSensorPane = {
 
@@ -16,6 +17,7 @@ const PondMicrobiomeSensorPane = {
     lightElement: null,
     chemicalSignalsElement: null,
     temperatureElement: null,
+    temperatureCardElement: null,
 
     pseudopodElement: null,
     adhesionElement: null,
@@ -34,6 +36,7 @@ const PondMicrobiomeSensorPane = {
             this.lightElement &&
             this.chemicalSignalsElement &&
             this.temperatureElement &&
+            this.temperatureCardElement &&
             this.pseudopodElement &&
             this.adhesionElement &&
             this.anchoringElement &&
@@ -78,6 +81,11 @@ const PondMicrobiomeSensorPane = {
         this.temperatureElement =
             document.getElementById(
                 "pond-sensor-temperature"
+            );
+
+        this.temperatureCardElement =
+            document.getElementById(
+                "btn-pond-sensor-temperature"
             );
 
         // --------------------------------------------------
@@ -144,6 +152,12 @@ const PondMicrobiomeSensorPane = {
             );
         }
 
+        if (!this.temperatureCardElement) {
+            console.warn(
+                "PondMicrobiomeSensorPane: temperature card not found"
+            );
+        }
+
         if (!this.pseudopodElement) {
             console.warn(
                 "PondMicrobiomeSensorPane: pseudopod display not found"
@@ -165,6 +179,24 @@ const PondMicrobiomeSensorPane = {
         if (!this.systemAnchoringElement) {
             console.warn(
                 "PondMicrobiomeSensorPane: system anchoring display not found"
+            );
+        }
+
+        // --------------------------------------------------
+        // Temperature learning panel
+        // --------------------------------------------------
+
+        if (this.temperatureCardElement) {
+            this.temperatureCardElement.addEventListener(
+                "click",
+                () => {
+                    PondSensorInfoPanel.open({
+                        title: "Temperature",
+
+                        message:
+                            "Temperature affects the speed of diffusion, membrane transport, and enzyme-controlled reactions."
+                    });
+                }
             );
         }
 
