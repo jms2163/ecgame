@@ -9,9 +9,9 @@ import PondWorld from "./PondWorld.js";
 const PondPerception = {
 
     // --------------------------------------------------
-    // Get Tiles Within Sensing Radius
+    // Get nearby tiles with Euclidean distance
     // --------------------------------------------------
-    getTilesInRange(radius) {
+    getTilesWithDistance(radius) {
 
         const world =
             GameStateManager.getPondWorld();
@@ -29,7 +29,7 @@ const PondPerception = {
 
         }
 
-        const tiles = [];
+        const results = [];
 
         for (
             let x = position.x - radius;
@@ -43,192 +43,159 @@ const PondPerception = {
                 y++
             ) {
 
-                const tile =
-                    PondWorld.getTile(world, x, y);
+                const dx =
+                    x - position.x;
 
-                if (tile) {
-                    tiles.push(tile);
+                const dy =
+                    y - position.y;
+
+                const distance =
+                    Math.sqrt(
+                        (dx * dx) +
+                        (dy * dy)
+                    );
+
+                if (distance > radius) {
+                    continue;
                 }
 
+                const tile =
+                    PondWorld.getTile(
+                        world,
+                        x,
+                        y
+                    );
+
+                if (!tile) {
+                    continue;
+                }
+
+                results.push({
+                    tile,
+                    distance
+                });
+
             }
 
         }
 
-        return tiles;
+        return results;
 
     },
+
     // --------------------------------------------------
-// Find Strongest Bacterial Peptide Signal
-// --------------------------------------------------
-getStrongestPeptideSignal(radius = 4) {
+    // Calculate signal falloff across sensing radius
+    // --------------------------------------------------
+    calculateFalloff(distance, maxRange) {
 
-    const tiles = this.getTilesInRange(radius);
-
-    if (tiles.length === 0) {
-        return null;
-    }
-
-    let strongestTile = null;
-    let strongestSignal = 0;
-
-    tiles.forEach(tile => {
-
-        const signal =
-            tile.chemistry?.signals?.peptides ?? 0;
-
-        if (signal > strongestSignal) {
-
-            strongestSignal = signal;
-            strongestTile = tile;
-
+        if (maxRange <= 0) {
+            return distance === 0 ? 1 : 0;
         }
 
-    });
+        if (distance > maxRange) {
+            return 0;
+        }
 
-    if (!strongestTile) {
-        return null;
-    }
-
-    return {
-        x: strongestTile.x,
-        y: strongestTile.y,
-        strength: strongestSignal
-    };
-
-},
-
-// --------------------------------------------------
-// Get Nearby Tiles With Euclidean Distance
-// --------------------------------------------------
-getTilesWithDistance(radius) {
-
-    const world =
-        GameStateManager.getPondWorld();
-
-    const position =
-        GameStateManager.getPondPosition();
-
-    if (!world || !position) {
-
-        console.warn(
-            "PondPerception: Pond world or player position unavailable"
+        return 1 - (
+            distance / (maxRange + 1)
         );
 
-        return [];
+    },
 
-    }
+    // --------------------------------------------------
+    // Build a perception field from a tile-value selector
+    // --------------------------------------------------
+    buildField(radius, valueSelector) {
 
-    const results = [];
+        const entries =
+            this.getTilesWithDistance(radius);
 
-    for (
-        let x = position.x - radius;
-        x <= position.x + radius;
-        x++
+        return entries.map(({ tile, distance }) => {
+
+            const selectedValue =
+                valueSelector(tile);
+
+            const rawValue =
+                Number.isFinite(selectedValue)
+                    ? selectedValue
+                    : 0;
+
+            const falloff =
+                this.calculateFalloff(
+                    distance,
+                    radius
+                );
+
+            return {
+                x: tile.x,
+                y: tile.y,
+                distance,
+                rawValue,
+                intensity: rawValue * falloff
+            };
+
+        });
+
+    },
+
+    // --------------------------------------------------
+    // Build a field for one named chemical signal
+    // --------------------------------------------------
+    getSignalField(signalKey, radius = 4) {
+
+        return this.buildField(
+            radius,
+            tile =>
+                tile.chemistry?.signals?.[
+                    signalKey
+                ] ?? 0
+        );
+
+    },
+
+    // --------------------------------------------------
+    // Find the strongest detected instance of one signal
+    // --------------------------------------------------
+    getStrongestDetectedSignal(
+        signalKey,
+        radius = 4
     ) {
 
-        for (
-            let y = position.y - radius;
-            y <= position.y + radius;
-            y++
-        ) {
-
-            const dx = x - position.x;
-            const dy = y - position.y;
-
-            const distance =
-                Math.sqrt(
-                    (dx * dx) +
-                    (dy * dy)
-                );
-
-            if (distance > radius) {
-                continue;
-            }
-
-            const tile =
-                PondWorld.getTile(
-                    world,
-                    x,
-                    y
-                );
-
-            if (!tile) {
-                continue;
-            }
-
-            results.push({
-                tile,
-                distance
-            });
-
-        }
-
-    }
-
-    return results;
-
-},
-// --------------------------------------------------
-// Calculate Perception Falloff
-// Returns 1.0 at the source and 0.0 at max range
-// --------------------------------------------------
-calculateFalloff(distance, maxRange) {
-
-    if (maxRange <= 0) {
-        return distance === 0 ? 1 : 0;
-    }
-
-    if (distance >= maxRange) {
-        return 0;
-    }
-
-    return 1 - (distance / maxRange);
-
-},
-
-// --------------------------------------------------
-// Build Generic Perception Field
-// --------------------------------------------------
-buildField(radius, valueSelector) {
-
-    const entries =
-        this.getTilesWithDistance(radius);
-
-    return entries.map(({ tile, distance }) => {
-
-        const rawValue =
-            valueSelector(tile);
-
-        const falloff =
-            this.calculateFalloff(
-                distance,
+        const field =
+            this.getSignalField(
+                signalKey,
                 radius
             );
 
+        let strongestEntry =
+            null;
+
+        field.forEach(entry => {
+
+            if (
+                !strongestEntry ||
+                entry.intensity >
+                    strongestEntry.intensity
+            ) {
+                strongestEntry =
+                    entry;
+            }
+
+        });
+
+        if (
+            !strongestEntry ||
+            strongestEntry.intensity <= 0
+        ) {
+            return null;
+        }
+
         return {
-            x: tile.x,
-            y: tile.y,
-            distance,
-            rawValue,
-            intensity: rawValue * falloff
+            signalKey,
+            ...strongestEntry
         };
 
-    });
-
-},
-
-// --------------------------------------------------
-// Get Bacterial Peptide Perception Field
-// --------------------------------------------------
-getPeptideField() {
-
-    return this.buildField(
-        4,
-        tile =>
-            tile.chemistry?.signals?.peptides ?? 0
-    );
-
-},
+    }
 
 };
 
