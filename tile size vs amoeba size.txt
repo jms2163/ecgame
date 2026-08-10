@@ -1,0 +1,12 @@
+Tile size                     ≈ 200 µm
+Player organism               ≈ 100 µm
+
+World storage                 coordinate-keyed, lazy
+Hard 20×20 boundary           NO, not yet
+Maximum initial sensing range 4 tiles
+Direct environmental sampling current tile only
+
+Tile                          stores environmental reality
+Perception                    interprets nearby tiles
+Knowledge/fog                 records what player knows
+View                          renders that information

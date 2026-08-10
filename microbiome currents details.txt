@@ -1,0 +1,158 @@
+GLOBAL GAME
+│
+├── ZoneManager
+│     │
+│     └── Pond
+│           │
+│           ├── PondNavigation
+│           │      ├── PondGridView
+│           │      ├── CellView
+│           │      └── OrganelleView
+│           │
+│           └── future gameplay systems
+│
+└── GameStateManager
+       │
+       ├── currentZone
+       ├── currentZoom
+       ├── Pond position
+       ├── inventory
+       ├── discoveries
+       ├── quests
+       └── save/load state
+Tile
+│
+├── coordinates
+│
+├── biome
+│
+│
+├── environmental state
+│     ├── physics
+│     └── chemistry
+│
+└── dynamic occupants/events
+      ├── hazards
+      ├── entities
+      └── discovered
+
+migration: {
+
+    // 1. Micro‑currents from wind, convection, or temperature shifts
+    microCurrents: {
+        cause: "Small water movements push amoeba between nearby tiles",
+        frequency: "continuous, low-level",
+        magnitude: "1–3 tiles"
+    },
+
+    // 2. Rain impact and surface mixing
+    rainMixing: {
+        cause: "Raindrops create downward jets and turbulence",
+        frequency: "weather-dependent",
+        magnitude: "2–6 tiles"
+    },
+
+    // 3. Sediment disturbance
+    sedimentDisturbance: {
+        cause: "Fish, insects, or falling debris stir the bottom",
+        frequency: "occasional",
+        magnitude: "3–10 tiles"
+    },
+
+    // 4. Biofilm detachment
+    biofilmBreakup: {
+        cause: "Biofilm sheets tear or detach, carrying amoebas",
+        frequency: "rare",
+        magnitude: "variable, drifting"
+    },
+
+    // 5. Algal mat movement
+    algalMatShift: {
+        cause: "Dense algae mats move with currents or detach",
+        frequency: "occasional",
+        magnitude: "2–8 tiles"
+    },
+
+    // 6. Stagnant pocket collapse
+    stagnantPocketMixing: {
+        cause: "Localized stagnant zones suddenly mix with surrounding water",
+        frequency: "rare",
+        magnitude: "1–4 tiles"
+    },
+
+    // 7. Thermocline / stratification shifts
+    thermoclineShift: {
+        cause: "Temperature layers move or mix seasonally",
+        frequency: "seasonal",
+        magnitude: "vertical movement, 5–20 tiles"
+    }
+}
+
+
+macrobiome: {
+
+    underSubmergedLeaves: {
+        description: "Best spot for amoebas; underside of submerged leaves.",
+        traits: [
+            "stable micro-environment",
+            "high bacterial density",
+            "UV protection",
+            "mild oxygen gradients",
+            "biofilms form easily"
+        ]
+    },
+
+    pondEdgeSediment: {
+        description: "Very common habitat; soft mud at pond edges.",
+        traits: [
+            "organic-rich sediment",
+            "decaying plant matter",
+            "stable moisture",
+            "lower oxygen → more bacteria",
+            "gentle micro-currents"
+        ]
+    },
+
+    topOfSubmergedLeaves: {
+        description: "Common but less dense; top surfaces of submerged leaves.",
+        traits: [
+            "more light",
+            "higher oxygen",
+            "thinner biofilms",
+            "moderate amoeba density"
+        ]
+    },
+
+    nearSurfaceWater: {
+        description: "Less common; amoebas occasionally found near surface.",
+        traits: [
+            "high oxygen",
+            "more UV exposure",
+            "fewer stable surfaces",
+            "more turbulence",
+            "attached to floating debris"
+        ]
+    },
+
+    denseAlgalMats: {
+        description: "Specialized niche; some species thrive here.",
+        traits: [
+            "high oxygen during day",
+            "low oxygen at night",
+            "lots of bacteria",
+            "stable microstructure"
+        ]
+    },
+
+    stagnantPockets: {
+        description: "Rare but interesting; stagnant or isolated water pockets.",
+        traits: [
+            "anaerobic zones",
+            "unusual protists",
+            "specialized amoebas",
+            "low mixing"
+        ]
+    }
+}
+
+
