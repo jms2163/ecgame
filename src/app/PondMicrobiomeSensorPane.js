@@ -17,6 +17,10 @@ const PondMicrobiomeSensorPane = {
     lightElement: null,
     chemicalSignalsElement: null,
     temperatureElement: null,
+
+    oxygenCardElement: null,
+    phCardElement: null,
+    lightCardElement: null,
     temperatureCardElement: null,
 
     pseudopodElement: null,
@@ -36,6 +40,9 @@ const PondMicrobiomeSensorPane = {
             this.lightElement &&
             this.chemicalSignalsElement &&
             this.temperatureElement &&
+            this.oxygenCardElement &&
+            this.phCardElement &&
+            this.lightCardElement &&
             this.temperatureCardElement &&
             this.pseudopodElement &&
             this.adhesionElement &&
@@ -55,7 +62,7 @@ const PondMicrobiomeSensorPane = {
             );
 
         // --------------------------------------------------
-        // Quick environmental sensor cards
+        // Quick environmental sensor values
         // --------------------------------------------------
 
         this.oxygenElement =
@@ -81,6 +88,25 @@ const PondMicrobiomeSensorPane = {
         this.temperatureElement =
             document.getElementById(
                 "pond-sensor-temperature"
+            );
+
+        // --------------------------------------------------
+        // Clickable sensor cards
+        // --------------------------------------------------
+
+        this.oxygenCardElement =
+            document.getElementById(
+                "btn-pond-sensor-oxygen"
+            );
+
+        this.phCardElement =
+            document.getElementById(
+                "btn-pond-sensor-ph"
+            );
+
+        this.lightCardElement =
+            document.getElementById(
+                "btn-pond-sensor-light"
             );
 
         this.temperatureCardElement =
@@ -152,6 +178,24 @@ const PondMicrobiomeSensorPane = {
             );
         }
 
+        if (!this.oxygenCardElement) {
+            console.warn(
+                "PondMicrobiomeSensorPane: oxygen card not found"
+            );
+        }
+
+        if (!this.phCardElement) {
+            console.warn(
+                "PondMicrobiomeSensorPane: pH card not found"
+            );
+        }
+
+        if (!this.lightCardElement) {
+            console.warn(
+                "PondMicrobiomeSensorPane: light card not found"
+            );
+        }
+
         if (!this.temperatureCardElement) {
             console.warn(
                 "PondMicrobiomeSensorPane: temperature card not found"
@@ -183,22 +227,57 @@ const PondMicrobiomeSensorPane = {
         }
 
         // --------------------------------------------------
-        // Temperature learning panel
+        // Sensor learning panels
         // --------------------------------------------------
 
-        if (this.temperatureCardElement) {
-            this.temperatureCardElement.addEventListener(
-                "click",
-                () => {
-                    PondSensorInfoPanel.open({
-                        title: "Temperature",
+        this.attachInfoPanelListener(
+            this.oxygenCardElement,
+            "Oxygen",
+            "Dissolved oxygen supports aerobic cellular respiration. Low oxygen can reduce ATP production and limit other cell functions."
+        );
 
-                        message:
-                            "Temperature affects the speed of diffusion, membrane transport, and enzyme-controlled reactions."
-                    });
-                }
-            );
+        this.attachInfoPanelListener(
+            this.phCardElement,
+            "pH Level",
+            "pH affects protein shape and enzyme activity. Strongly acidic or alkaline water can stress the cell and interfere with normal reactions."
+        );
+
+        this.attachInfoPanelListener(
+            this.lightCardElement,
+            "Light Level",
+            "Light supports photosynthetic organisms in the microbiome. It can also influence ultraviolet exposure and local oxygen conditions."
+        );
+
+        this.attachInfoPanelListener(
+            this.temperatureCardElement,
+            "Temperature",
+            "Temperature affects the speed of diffusion, membrane transport, and enzyme-controlled reactions."
+        );
+
+    },
+
+    // --------------------------------------------------
+    // Connect one sensor card to the information panel
+    // --------------------------------------------------
+    attachInfoPanelListener(
+        cardElement,
+        title,
+        message
+    ) {
+
+        if (!cardElement) {
+            return;
         }
+
+        cardElement.addEventListener(
+            "click",
+            () => {
+                PondSensorInfoPanel.open({
+                    title,
+                    message
+                });
+            }
+        );
 
     },
 
