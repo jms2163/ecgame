@@ -1,0 +1,197 @@
+Stage‑1: Barely Alive Amoeba (ACS‑only metabolism)
+This is your “emergency mode.” The cell has:
+
+ACS (ADP‑forming)
+
+CoA pool
+
+ADP pool
+
+Leaky membrane pumps
+
+Minimal cytoskeleton
+
+No glycolysis
+
+No mitochondria
+
+No biosynthesis except the simplest dehydration reactions
+
+Energy trickle:
+
+Acetic acid → acetate → ACS → ATP
+
+This ATP is just enough to:
+
+keep ion pumps barely running
+
+prevent osmotic lysis
+
+allow minimal movement (you can hand‑wave the ATP cost for gameplay)
+
+allow the player to perform very slow dehydration synthesis
+
+allow the cell to repair one or two broken proteins
+
+This is the perfect “survival floor.”
+
+🧭 Movement toward acetate gradients
+This is a great mechanic.
+
+Even though real amoebae need ATP for cytoskeleton movement, you can treat movement as “free” for gameplay. Students will intuitively learn:
+
+energy comes from the environment
+
+cells seek out resources
+
+resource gradients matter
+
+This is a simple, powerful teaching tool.
+
+🔧 What players can build with this tiny ATP trickle
+You’ve got the right idea: dehydration synthesis is the first “crafting” mechanic.
+
+Players can assemble:
+
+1. Disaccharides
+glucose + glucose → maltose
+
+costs ATP
+
+teaches “building molecules requires energy”
+
+2. Fatty acid motifs
+acetyl units → short fatty acids
+
+costs ATP
+
+teaches membrane building
+
+3. Amino acid motifs
+simple amino acids → dipeptides → tripeptides
+
+costs ATP
+
+teaches protein assembly
+
+These motifs become the “currency” for building enzymes.
+
+🔬 Stage‑2: Rebuilding Glycolysis
+This is the first major upgrade.
+
+Players invest motifs to build:
+
+hexokinase
+
+isomerase
+
+aldolase
+
+GAPDH
+
+phosphoglycerate kinase
+
+pyruvate kinase
+
+glucose transporter
+
+Once they assemble these:
+
+Glucose → pyruvate → more ATP
+This is the moment students realize:
+
+“Oh… glucose is WAY better than acetate.”
+
+And they feel the difference because ATP production jumps from a trickle to a steady stream.
+
+⚙️ Stage‑3: Organelle Unlocks
+This is where your game becomes a puzzle.
+
+Players unlock:
+
+1. Vesicle delivery system
+Golgi
+
+ER
+
+membrane trafficking
+
+teaches compartmentalization
+
+2. Peroxisomes
+detoxification
+
+fatty acid oxidation
+
+teaches organelle specialization
+
+3. Nucleus repair
+transcription
+
+translation
+
+gene regulation
+
+teaches information flow
+
+Each unlock increases ATP demand, forcing players to improve metabolism.
+
+🔥 Stage‑4: Mitochondria (Endgame)
+This is the big payoff.
+
+Players assemble:
+
+pyruvate dehydrogenase
+
+TCA cycle enzymes
+
+electron transport chain
+
+ATP synthase
+
+mitochondrial membrane
+
+import/export carriers
+
+Once mitochondria come online:
+
+Respiration → massive ATP
+Students feel the evolutionary leap:
+
+“Fermentation was crumbs. Respiration is a feast.”
+
+This is the moment the game teaches the deepest biological truth:
+energy availability shapes complexity.
+
+🌍 Stage‑5: Reproduction and Colonization
+With abundant ATP, players can:
+
+duplicate DNA
+
+build full membranes
+
+assemble cytoskeleton
+
+divide
+
+colonize new environments
+
+compete for resources
+
+evolve specialization
+
+
+
+ENERGY:
+Acetyl‑CoA
++
+ADP
++
+𝑃
+𝑖
+→
+Acetate
++
+CoA
++
+ATP

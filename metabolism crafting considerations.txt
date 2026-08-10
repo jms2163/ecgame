@@ -1,0 +1,189 @@
+nutrient biome alterations:
+Light levels
+High light → algae → oxygen → low acetate
+
+Low light → decomposition → low oxygen → high acetate
+
+2. Oxygen gradients
+Aerobic zones → low acetate, high glucose (from algae)
+
+Anaerobic pockets → high acetate, high fatty acids
+
+3. Micro‑currents
+Slow water → nutrients accumulate
+
+Fast water → nutrients disperse
+
+4. Microbial density
+High bacteria → high amino acids, fatty acids, acetate
+
+Low bacteria → mostly inorganic nutrients
+
+5. Substrate type
+Leaf → cellulose breakdown → glucose, acetate
+
+Sediment → phosphate, fatty acids
+
+Algae → sugars, amino acids
+
+Biofilm → everything
+
+These are perfect for your zone system.
+
+🧬 Your zone resource table (expanded realistically)
+You already have:
+
+acetate density
+
+phosphate density
+
+glucose chance
+
+amino acid chance
+
+fatty acid chance
+
+Here are realistic additional materials that matter for early metabolism and crafting:
+
+⭐ 1. Inorganic ions
+These are essential for enzyme function and membrane stability.
+
+Mg²⁺ (ATP binding, ribosome function)
+
+Ca²⁺ (signaling, membrane repair)
+
+K⁺ / Na⁺ (ion gradients, pumps)
+
+Cl⁻ (osmotic balance)
+
+These can be simple “ion packets” drifting by.
+
+⭐ 2. Simple nitrogen sources
+Needed for amino acids and nucleotides.
+
+NH₄⁺ (ammonium)
+
+NO₃⁻ (nitrate)
+
+These appear near decomposing organic matter.
+
+⭐ 3. Simple carbon skeletons
+Useful for crafting more complex molecules.
+
+pyruvate
+
+lactate
+
+succinate
+
+acetaldehyde
+
+These appear near bacterial hotspots.
+
+⭐ 4. Nucleotide fragments
+Needed for building ATP, ADP, AMP, NAD⁺, etc.
+
+ribose
+
+adenine
+
+phosphate clusters
+
+These appear near decaying cells.
+
+⭐ 5. Lipid fragments
+Useful for membrane repair.
+
+phospholipid heads
+
+fatty acid tails
+
+sterol fragments
+
+These appear near algae and biofilms.
+
+⭐ 6. Protein fragments
+Useful for crafting enzymes.
+
+dipeptides
+
+tripeptides
+
+small polypeptides
+
+These appear near bacterial lysis zones.
+
+⭐ 7. Reactive cofactors
+Needed for advanced metabolism later.
+
+NAD⁺ / NADH fragments
+
+FAD fragments
+
+CoA fragments
+
+lipoate fragments
+
+These appear rarely — perfect for mid‑game unlocks.
+
+🎮 How to use these in your game
+Each zone can have a profile like:
+
+Leaf Surface Zone
+high glucose
+
+medium acetate
+
+medium amino acids
+
+low phosphate
+
+high lipid fragments
+
+medium nitrogen
+
+high microbial density
+
+low oxygen at night
+
+Sediment Zone
+high phosphate
+
+high acetate
+
+low glucose
+
+high fatty acids
+
+medium amino acids
+
+low oxygen
+
+high ions (Mg²⁺, Ca²⁺)
+
+Algae Zone
+high glucose
+
+high amino acids
+
+high oxygen
+
+low acetate
+
+medium lipids
+
+Biofilm Zone
+high everything
+
+rare cofactors
+
+best crafting zone
+
+Open Water Zone
+low nutrients
+
+occasional random packets
+
+high oxygen
+
+low microbial density
