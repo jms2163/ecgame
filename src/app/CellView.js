@@ -3,6 +3,7 @@
 // Zoom Level 1 of the Pond zone
 // Represents the individual cell view
 // --------------------------------------------------
+
 import CellMapView from "./CellMapView.js";
 
 const CellView = {
@@ -35,8 +36,6 @@ const CellView = {
     // Activate Cell View
     // --------------------------------------------------
     activate() {
-        this.active = true;
-        CellMapView.render();
 
         if (this.active) {
             return;
@@ -56,6 +55,8 @@ const CellView = {
         }
 
         this.active = true;
+
+        CellMapView.render();
 
         console.log(
             "CellView.activate() called"
