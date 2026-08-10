@@ -681,6 +681,37 @@
     pointer-events: none;
 }
 /* --------------------------------------------------
+   Discovered Cell Map Labels
+-------------------------------------------------- */
+
+.cell-map-feature-label-line {
+    stroke: #df80ff;
+    stroke-width: 2;
+    opacity: 0.8;
+    pointer-events: none;
+}
+
+.cell-map-feature-label {
+    fill: #f7efff;
+    font-family: monospace;
+    font-size: 18px;
+    font-weight: bold;
+    pointer-events: none;
+}
+
+.cell-map-feature--discovered
+.cell-map-feature-node {
+    fill: #3a1b50;
+    stroke: #f4a0ff;
+}
+
+.cell-map-feature--undiscovered
+.cell-map-feature-node {
+    fill: #2b103d;
+    stroke: #df80ff;
+}
+
+/* --------------------------------------------------
    Amoeba cell-outline asset
 -------------------------------------------------- */
 

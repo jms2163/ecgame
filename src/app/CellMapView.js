@@ -3,6 +3,7 @@
 // Renders the static amoeba cell map
 // --------------------------------------------------
 
+import GameStateManager from "./GameStateManager.js";
 import CellMapLayout from "./CellMapLayout.js";
 
 const SVG_NAMESPACE =
@@ -75,35 +76,40 @@ const CellMapView = {
         // --------------------------------------------------
 
         const cellOutline =
-    this.createSvgElement(
-        "image",
-        {
-            class:
-                "cell-map-amoeba-outline",
+            this.createSvgElement(
+                "image",
+                {
+                    class:
+                        "cell-map-amoeba-outline",
 
-            href:
-                "./public/assets/cell/amoeba-outline.svg",
+                    href:
+                        "./public/assets/cell/amoeba-outline.svg",
 
-            x: "180",
-            y: "40",
-            width: "820",
-            height: "700",
+                    x: "180",
+                    y: "40",
+                    width: "820",
+                    height: "700",
 
-            preserveAspectRatio:
-                "xMidYMid meet"
-        }
-    );
+                    preserveAspectRatio:
+                        "xMidYMid meet"
+                }
+            );
 
         svg.appendChild(
             cellOutline
         );
 
         // --------------------------------------------------
-        // Neutral organelle placeholders
+        // Discovered labels and unknown placeholders
         // --------------------------------------------------
 
         CellMapLayout.features.forEach(
             feature => {
+
+                const discovered =
+                    GameStateManager.hasDiscovery(
+                        feature.discoveryId
+                    );
 
                 const featureGroup =
                     this.createSvgElement(
@@ -111,9 +117,18 @@ const CellMapView = {
                         {
                             class:
                                 `cell-map-feature ` +
-                                `cell-map-feature--${feature.type}`,
+                                `cell-map-feature--${feature.type} ` +
+                                `cell-map-feature--${
+                                    discovered
+                                        ? "discovered"
+                                        : "undiscovered"
+                                }`,
+
                             "data-feature-id":
-                                feature.id
+                                feature.id,
+
+                            "data-discovery-id":
+                                feature.discoveryId
                         }
                     );
 
@@ -128,39 +143,105 @@ const CellMapView = {
                         {
                             class:
                                 "cell-map-feature-node",
+
                             cx:
                                 feature.node.x,
+
                             cy:
                                 feature.node.y,
+
                             r:
                                 nodeRadius
                         }
                     );
 
-                const placeholder =
-                    this.createSvgElement(
-                        "text",
-                        {
-                            class:
-                                "cell-map-feature-placeholder",
-                            x:
-                                feature.node.x,
-                            y:
-                                feature.node.y,
-                            "text-anchor":
-                                "middle",
-                            "dominant-baseline":
-                                "central"
-                        }
+                featureGroup.appendChild(
+                    node
+                );
+
+                if (discovered) {
+
+                    const labelLine =
+                        this.createSvgElement(
+                            "line",
+                            {
+                                class:
+                                    "cell-map-feature-label-line",
+
+                                x1:
+                                    feature.node.x,
+
+                                y1:
+                                    feature.node.y,
+
+                                x2:
+                                    feature.labelPosition.x,
+
+                                y2:
+                                    feature.labelPosition.y
+                            }
+                        );
+
+                    const label =
+                        this.createSvgElement(
+                            "text",
+                            {
+                                class:
+                                    "cell-map-feature-label",
+
+                                x:
+                                    feature.labelPosition.x,
+
+                                y:
+                                    feature.labelPosition.y,
+
+                                "text-anchor":
+                                    feature.labelPosition.anchor,
+
+                                "dominant-baseline":
+                                    "middle"
+                            }
+                        );
+
+                    label.textContent =
+                        feature.label;
+
+                    featureGroup.append(
+                        labelLine,
+                        label
                     );
 
-                placeholder.textContent =
-                    "?";
+                } else {
 
-                featureGroup.append(
-                    node,
-                    placeholder
-                );
+                    const placeholder =
+                        this.createSvgElement(
+                            "text",
+                            {
+                                class:
+                                    "cell-map-feature-placeholder",
+
+                                x:
+                                    feature.node.x,
+
+                                y:
+                                    feature.node.y,
+
+                                "text-anchor":
+                                    "middle",
+
+                                "dominant-baseline":
+                                    "central"
+                            }
+                        );
+
+                    placeholder.textContent =
+                        "?";
+
+                    featureGroup.appendChild(
+                        placeholder
+                    );
+
+                }
 
                 svg.appendChild(
                     featureGroup
