@@ -3,8 +3,14 @@
 // Creates the visual display for the Pond amoeba
 // --------------------------------------------------
 
+const TROPHOZOITE_STATIONARY_SPRITE_PATH =
+    "./public/assets/pond/amoeba/amoeba-trophozoite-stationary.png";
+
 const PondAmoebaView = {
 
+    // --------------------------------------------------
+    // Create stationary amoeba display
+    // --------------------------------------------------
     create() {
 
         const amoebaElement =
@@ -13,18 +19,21 @@ const PondAmoebaView = {
         amoebaElement.className =
             "pond-amoeba-view";
 
-        amoebaElement.setAttribute(
-            "aria-label",
-            "Amoeba position"
-        );
+        const spriteElement =
+            document.createElement("img");
 
-        amoebaElement.setAttribute(
-            "role",
-            "img"
-        );
+        spriteElement.className =
+            "pond-amoeba-sprite";
 
-        amoebaElement.textContent =
-            "●";
+        spriteElement.src =
+            TROPHOZOITE_STATIONARY_SPRITE_PATH;
+
+        spriteElement.alt =
+            "Stationary amoeba";
+
+        amoebaElement.appendChild(
+            spriteElement
+        );
 
         return amoebaElement;
 

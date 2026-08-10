@@ -577,3 +577,25 @@
 .pond-signal-probe-tooltip-value {
     color: #f7efff;
 }
+
+/* --------------------------------------------------
+   Pond amoeba sprite
+   -------------------------------------------------- */
+
+.pond-amoeba-view {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    place-items: center;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    line-height: 0;
+}
+
+.pond-amoeba-sprite {
+    display: block;
+    width: 78%;
+    height: 78%;
+    object-fit: contain;
+}
