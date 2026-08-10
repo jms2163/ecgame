@@ -51,6 +51,33 @@ const GameStateManager = {
 },
 
 // --------------------------------------------------
+// Global discoveries and cell systems
+// --------------------------------------------------
+
+hasDiscovery(discoveryId) {
+
+    return gameState.registry.discoveries.includes(
+        discoveryId
+    );
+
+},
+
+getCellSystem(systemId) {
+
+    const cellSystem =
+        gameState.registry.cellSystems?.[systemId];
+
+    if (!cellSystem) {
+        return null;
+    }
+
+    return {
+        ...cellSystem
+    };
+
+},
+
+// --------------------------------------------------
 // Pond
 // --------------------------------------------------
 
@@ -266,8 +293,12 @@ setPondWorldSeed(seed) {
     },
 
     hasDiscovery(discoveryId) {
-        // TODO: return boolean
-    },
+
+    return gameState.registry.discoveries.includes(
+        discoveryId
+    );
+
+},
 
 
     // --------------------------------------------------

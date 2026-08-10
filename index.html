@@ -25,6 +25,7 @@
     </style>
     <link rel="stylesheet" href="./public/css/pond.css">
     <link rel="stylesheet" href="./public/css/ui.css">
+    <link rel="stylesheet" href="./public/css/variables.css">
 </head>
 
 <body>
@@ -103,29 +104,44 @@
     aria-label="Current environmental readings">
 
     <article class="pond-sensor-card pond-sensor-card--centered">
-        <p class="pond-sensor-card-label">
-            Oxygen (O2)
-        </p>
-        <p class="pond-sensor-card-value">--</p>
-    </article>
+    <p class="pond-sensor-card-label">
+        Oxygen (O2)
+    </p>
+
+    <p
+        id="pond-sensor-oxygen"
+        class="pond-sensor-card-value">
+        --
+    </p>
+</article>
+
+<article class="pond-sensor-card">
+    <p class="pond-sensor-card-label">
+        pH Level
+    </p>
+
+    <p
+        id="pond-sensor-ph"
+        class="pond-sensor-card-value">
+        --
+    </p>
+</article>
+
+<article class="pond-sensor-card">
+    <p class="pond-sensor-card-label">
+        Light Level
+    </p>
+
+    <p
+        id="pond-sensor-light"
+        class="pond-sensor-card-value">
+        --
+    </p>
+</article>
 
     <article class="pond-sensor-card">
         <p class="pond-sensor-card-label">
-            pH Level
-        </p>
-        <p class="pond-sensor-card-value">--</p>
-    </article>
-
-    <article class="pond-sensor-card">
-        <p class="pond-sensor-card-label">
-            Light Level
-        </p>
-        <p class="pond-sensor-card-value">--</p>
-    </article>
-
-    <article class="pond-sensor-card">
-        <p class="pond-sensor-card-label">
-            Nutrients
+            Chemical Signals
         </p>
         <p class="pond-sensor-card-value">--</p>
     </article>
@@ -134,7 +150,11 @@
         <p class="pond-sensor-card-label">
             Temperature
         </p>
-        <p class="pond-sensor-card-value">--</p>
+        <p
+    id="pond-sensor-temperature"
+    class="pond-sensor-card-value">
+    --
+</p>
     </article>
 
 </section>
@@ -146,6 +166,9 @@
     <h3 id="pond-system-status-heading">
         System Status
     </h3>
+    <div id="pond-system-anchoring-status">
+    Drifting
+</div>
 
     <p id="pond-system-status-message">
         Awaiting sensor data.
@@ -273,7 +296,8 @@
                 </span>
                 <span id="stat-pseudopod">--</span>
             </li>
-
+            <li><span title="Ability to attach to a suitable surface or food particle through cell-surface glycoproteins.">Cell Adhesion:</span> <span id="stat-cell-adhesion">--</span></li>
+            <li><span title="Whether the amoeba is currently attached to an anchorable environmental substrate.">Anchoring:</span> <span id="stat-anchoring">--</span></li>
             <li>
                 <span title="Regulates water balance within the cell.">
                     Contractile Vacuole Function:

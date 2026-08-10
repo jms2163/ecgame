@@ -38,10 +38,13 @@ const PondTileFactory = {
                 },
 
                 signals: {
-                    peptides: 0.1,
-                    shortChainFattyAcids: 0.0,
-                    alcohols: 0.0
-                },
+    folate: 0.0,
+    n_formyl_peptides: 0.0,
+    scfa: 0.0,
+    camp: 0.0,
+    cyanotoxins: 0.0,
+    ammonia: 0.0
+},
 
                 toxins: {
                     h2o2: 0.0,

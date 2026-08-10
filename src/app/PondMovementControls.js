@@ -2,9 +2,6 @@
 // PondMovementControls.js
 // Creates Pond movement-control user interface
 // --------------------------------------------------
-import {
-    POND_MOVE_ATP_COST
-} from "./PondMovementRules.js";
 
 const MOVEMENT_VECTORS = {
 
@@ -49,7 +46,11 @@ const PondMovementControls = {
     // --------------------------------------------------
     // Create Pond D-pad
     // --------------------------------------------------
-    create({ onMove }) {
+    create({
+        onMove,
+        onToggleAnchor,
+        atpCost
+    }) {
 
         const controlsElement =
             document.createElement("div");
@@ -73,7 +74,7 @@ const PondMovementControls = {
             "pond-movement-instructions";
 
         instructionsElement.textContent =
-    `SPEND ${POND_MOVE_ATP_COST} ATP TO\nMOVE ONE SPACE`;
+            `SPEND ${atpCost} ATP TO\nMOVE ONE SPACE`;
 
         controlsElement.appendChild(
             instructionsElement
@@ -145,6 +146,53 @@ const PondMovementControls = {
             );
 
         });
+            // --------------------------------------------------
+    // D-pad anchor button
+    // --------------------------------------------------
+
+    const anchorButton =
+        document.createElement("button");
+
+    anchorButton.type =
+        "button";
+
+    anchorButton.className =
+        "pond-movement-button";
+
+    anchorButton.dataset.action =
+        "toggle-anchor";
+
+    anchorButton.textContent =
+        "⚓";
+
+    anchorButton.setAttribute(
+        "aria-label",
+        "Toggle anchoring"
+    );
+
+    anchorButton.style.gridColumn =
+        "2";
+
+    anchorButton.style.gridRow =
+        "2";
+
+    anchorButton.addEventListener("click", () => {
+
+        if (typeof onToggleAnchor !== "function") {
+            console.warn(
+                "PondMovementControls: onToggleAnchor callback unavailable"
+            );
+
+            return;
+        }
+
+        onToggleAnchor();
+
+    });
+
+    controlsElement.appendChild(
+        anchorButton
+    );
 
         return controlsElement;
 

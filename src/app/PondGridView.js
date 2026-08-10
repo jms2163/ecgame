@@ -83,6 +83,19 @@ const PondGridView = {
 
 const movementControlsElement =
     PondMovementControls.create({
+        atpCost:
+            GameStateManager.getPondMovementATPCost(),
+
+                    onToggleAnchor: () => {
+
+    const anchorToggled =
+        PondController.toggleAnchor();
+
+    if (anchorToggled) {
+        this.render();
+    }
+
+},
 
         onMove: (dx, dy) => {
 

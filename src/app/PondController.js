@@ -7,6 +7,7 @@ import GameStateManager from "./GameStateManager.js";
 import PondWorld from "./PondWorld.js";
 import PondWorldGenerator from "./PondWorldGenerator.js";
 import ResourceManager from "./ResourceManager.js";
+import MicrobiomeLibrary from "./MicrobiomeLibrary.js";
 
 
 
@@ -137,47 +138,197 @@ getCurrentEnvironment() {
 
 },
 
+// --------------------------------------------------
+// Check whether anchoring can be toggled
+// --------------------------------------------------
+canToggleAnchor() {
+
+    if (
+        GameStateManager.isPondPlayerAnchored()
+    ) {
+        return {
+            allowed: true,
+            action: "unanchor"
+        };
+    }
+
+    if (
+        !GameStateManager.hasDiscovery(
+            "glycoproteins"
+        )
+    ) {
+        return {
+            allowed: false,
+            reason: "glycoproteins-locked"
+        };
+    }
+
+    const tile =
+        this.getCurrentTile();
+
+    if (!tile) {
+        return {
+            allowed: false,
+            reason: "current-tile-unavailable"
+        };
+    }
+
+    const substrateId =
+        tile.microbiomes?.substrate;
+
+    if (!substrateId) {
+        return {
+            allowed: false,
+            reason: "no-anchorable-substrate"
+        };
+    }
+
+    const substrate =
+        MicrobiomeLibrary[substrateId];
+
+    if (!substrate?.anchorable) {
+        return {
+            allowed: false,
+            reason: "substrate-not-anchorable"
+        };
+    }
+
+    return {
+        allowed: true,
+        action: "anchor",
+        substrateId
+    };
+
+},
+
+// --------------------------------------------------
+// Anchor or unanchor the Pond player
+// --------------------------------------------------
+toggleAnchor() {
+
+    const anchorCheck =
+        this.canToggleAnchor();
+
+    if (!anchorCheck.allowed) {
+
+        console.warn(
+            `PondController: cannot anchor (${anchorCheck.reason})`
+        );
+
+        return false;
+    }
+
+    const willAnchor =
+        anchorCheck.action === "anchor";
+
+    GameStateManager.setPondPlayerAnchored(
+        willAnchor
+    );
+
+    console.log(
+        willAnchor
+            ? `PondController: anchored to ${anchorCheck.substrateId}`
+            : "PondController: unanchored"
+    );
+
+    return true;
+
+},
+
+    // --------------------------------------------------
+// Check whether manual movement is currently allowed
+// --------------------------------------------------
+canMove() {
+
+    if (
+        !GameStateManager.hasDiscovery(
+            "cytoskeleton"
+        )
+    ) {
+        return {
+            allowed: false,
+            reason: "cytoskeleton-locked"
+        };
+    }
+
+    if (
+        GameStateManager.isPondPlayerAnchored()
+    ) {
+        return {
+            allowed: false,
+            reason: "anchored"
+        };
+    }
+
+    const atpCost =
+        GameStateManager.getPondMovementATPCost();
+
+    if (atpCost === null) {
+        return {
+            allowed: false,
+            reason: "atp-cost-unavailable"
+        };
+    }
+
+    if (
+        !ResourceManager.canSpendATP(
+            atpCost
+        )
+    ) {
+        return {
+            allowed: false,
+            reason: "insufficient-atp"
+        };
+    }
+
+    return {
+        allowed: true,
+        atpCost
+    };
+
+},
+
         // --------------------------------------------------
     // Move Pond player
     // --------------------------------------------------
     movePlayer(dx, dy) {
 
-        const atpCost =
-    GameStateManager.getPondMovementATPCost();
+    const movementCheck =
+        this.canMove();
 
-if (atpCost === null) {
+    if (!movementCheck.allowed) {
 
-    console.warn(
-        "PondController: movement ATP cost is unavailable"
-    );
-
-    return false;
-
-}
-
-const spentATP =
-    ResourceManager.spendATP(
-        atpCost
-    );
-
-        if (!spentATP) {
-            console.warn(
-                "PondController: insufficient ATP to move"
-            );
-
-            return false;
-        }
-
-        GameStateManager.movePondPlayer(
-            dx,
-            dy
+        console.warn(
+            `PondController: cannot move (${movementCheck.reason})`
         );
 
-        this.initializeLocalWorld();
-
-        return true;
-
+        return false;
     }
+
+    const spentATP =
+        ResourceManager.spendATP(
+            movementCheck.atpCost
+        );
+
+    if (!spentATP) {
+
+        console.warn(
+            "PondController: ATP spending failed"
+        );
+
+        return false;
+    }
+
+    GameStateManager.movePondPlayer(
+        dx,
+        dy
+    );
+
+    this.initializeLocalWorld();
+
+    return true;
+
+}
 
 };
 

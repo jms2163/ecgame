@@ -240,7 +240,7 @@ sediment_grain: {
 biofilm_mat: {
     id: "biofilm_mat",
     name: "Biofilm Mat (Extracellular Slime Matrix)",
-    anchorable: true, // Amoebas easily crawl across and through the sticky EPS matrix
+    anchorable: false, // Amoebas easily crawl across and through the sticky EPS matrix
 
     environment: {
         // --- 1. ABIOTIC PHYSICS ---
@@ -411,8 +411,7 @@ bacterial_bloom: {
 anaerobic_pocket: {
     id: "anaerobic_pocket",
     name: "Anaerobic Pocket (Anoxic Fermentation Zone)",
-    anchorable: true, // Amoebas can anchor to internal crevice walls or dense debris
-
+    anchorable: false, // Amoebas will not anchor to this in our model.
     environment: {
         // --- 1. ABIOTIC PHYSICS ---
         physics: {
