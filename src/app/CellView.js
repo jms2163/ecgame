@@ -1,7 +1,7 @@
 // --------------------------------------------------
 // CellView.js
 // Zoom Level 1 of the Pond zone
-// Represents the individual cell view
+// Represents the clickable amoeba cell map
 // --------------------------------------------------
 
 import CellMapView from "./CellMapView.js";
@@ -35,7 +35,9 @@ const CellView = {
     // --------------------------------------------------
     // Activate Cell View
     // --------------------------------------------------
-    activate() {
+    activate({
+        onFeatureSelected = null
+    } = {}) {
 
         if (this.active) {
             return;
@@ -56,7 +58,9 @@ const CellView = {
 
         this.active = true;
 
-        CellMapView.render();
+        CellMapView.render({
+            onFeatureSelected
+        });
 
         console.log(
             "CellView.activate() called"

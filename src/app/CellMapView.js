@@ -43,7 +43,9 @@ const CellMapView = {
     // --------------------------------------------------
     // Render static cell outline and organelle nodes
     // --------------------------------------------------
-    render() {
+    render({
+        onFeatureSelected = null
+    } = {}) {
 
         const container =
             document.getElementById(
@@ -209,6 +211,66 @@ const CellMapView = {
                     featureGroup.append(
                         labelLine,
                         label
+                    );
+
+                    // --------------------------------------------------
+                    // Select discovered feature
+                    // --------------------------------------------------
+
+                    featureGroup.setAttribute(
+                        "role",
+                        "button"
+                    );
+
+                    featureGroup.setAttribute(
+                        "tabindex",
+                        "0"
+                    );
+
+                    featureGroup.setAttribute(
+                        "aria-label",
+                        `Open ${feature.label} lab`
+                    );
+
+                    featureGroup.addEventListener(
+                        "click",
+                        () => {
+
+                            if (
+                                typeof onFeatureSelected !==
+                                "function"
+                            ) {
+                                console.warn(
+                                    "CellMapView: feature selection callback unavailable"
+                                );
+
+                                return;
+                            }
+
+                            onFeatureSelected(
+                                feature
+                            );
+
+                        }
+                    );
+
+                    featureGroup.addEventListener(
+                        "keydown",
+                        event => {
+
+                            const activatesFeature =
+                                event.key === "Enter" ||
+                                event.key === " ";
+
+                            if (!activatesFeature) {
+                                return;
+                            }
+
+                            event.preventDefault();
+
+                            featureGroup.click();
+
+                        }
                     );
 
                 } else {
