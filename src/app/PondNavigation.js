@@ -3,15 +3,14 @@
 // Controls navigation between Pond semantic views
 // --------------------------------------------------
 
-
 import PondGridView from "./PondGridView.js";
 import CellView from "./CellView.js";
 import OrganelleView from "./OrganelleView.js";
 import GameStateManager from "./GameStateManager.js";
 
-
 const PondNavigation = {
 
+    initialized: false,
     currentView: null,
 
     // --------------------------------------------------
@@ -19,19 +18,23 @@ const PondNavigation = {
     // --------------------------------------------------
     initialize() {
 
-    if (this.initialized) {
-        console.log("PondNavigation.initialize() skipped (already initialized)");
-        return;
-    }
+        if (this.initialized) {
+            console.log(
+                "PondNavigation.initialize() skipped (already initialized)"
+            );
 
-    console.log("PondNavigation.initialize() called");
+            return;
+        }
 
-    // Bind UI buttons for switching views
-    this.bindButtons();
+        console.log(
+            "PondNavigation.initialize() called"
+        );
 
-    this.initialized = true;
-},
+        this.bindButtons();
 
+        this.initialized = true;
+
+    },
 
     // --------------------------------------------------
     // Bind semantic zoom buttons
@@ -39,51 +42,79 @@ const PondNavigation = {
     bindButtons() {
 
         const buttons = {
-            0: document.getElementById("btn-pond-grid"),
-            1: document.getElementById("btn-cell"),
-            2: document.getElementById("btn-organelle")
-    };
+            0: document.getElementById(
+                "btn-pond-grid"
+            ),
 
+            1: document.getElementById(
+                "btn-cell"
+            ),
 
-        Object.entries(buttons).forEach(([level, button]) => {
+            2: document.getElementById(
+                "btn-organelle"
+            )
+        };
 
-            if (!button) {
+        Object.entries(buttons).forEach(
+            ([level, button]) => {
 
-                console.warn(
-                    `PondNavigation: button for view ${level} not found`
+                if (!button) {
+                    console.warn(
+                        `PondNavigation: button for view ${level} not found`
+                    );
+
+                    return;
+                }
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        this.showView(
+                            Number(level)
+                        );
+
+                    }
                 );
 
-                return;
-
             }
+        );
 
-            button.addEventListener("click", () => {
+    },
 
-                this.showView(Number(level));
+    // --------------------------------------------------
+    // Open Organelle Lab focused on one feature
+    // --------------------------------------------------
+    showOrganelle(focusId) {
 
-            });
+        if (
+            typeof focusId !== "string" ||
+            focusId.length === 0
+        ) {
+            console.warn(
+                "PondNavigation: organelle focus ID is unavailable"
+            );
 
-        });
+            return;
+        }
+
+        this.showView(
+            2,
+            {
+                focusId
+            }
+        );
 
     },
 
     // --------------------------------------------------
     // Show requested Pond view
     // --------------------------------------------------
-    showView(level) {
+    showView(
+        level,
+        options = {}
+    ) {
 
-        // ----------------------------------------------
-        // Deactivate current view
-        // ----------------------------------------------
-        if (this.currentView) {
-
-            this.currentView.deactivate();
-
-        }
-
-        // ----------------------------------------------
-        // Identify requested view
-        // ----------------------------------------------
         let nextView = null;
 
         switch (level) {
@@ -95,8 +126,31 @@ const PondNavigation = {
 
             case 1:
 
-                nextView = CellView;
-                break;
+                case 1:
+
+    nextView = CellView;
+
+    options = {
+        ...options,
+
+        onFeatureSelected: feature => {
+
+            if (!feature?.labFocusId) {
+                console.warn(
+                    "PondNavigation: selected Cell Map feature has no lab focus ID"
+                );
+
+                return;
+            }
+
+            this.showOrganelle(
+                feature.labFocusId
+            );
+
+        }
+    };
+
+    break;
 
             case 2:
 
@@ -113,35 +167,45 @@ const PondNavigation = {
 
         }
 
-        // ----------------------------------------------
-// Show requested DOM layer
-// ----------------------------------------------
-this.updateVisibleLayer(level);
+        // --------------------------------------------------
+        // Deactivate current semantic view
+        // --------------------------------------------------
 
-        // ----------------------------------------------
-// Initialize view if necessary
-// ----------------------------------------------
-nextView.initialize();
+        if (this.currentView) {
+            this.currentView.deactivate();
+        }
 
-// ----------------------------------------------
-// Activate requested view
-// ----------------------------------------------
-nextView.activate();
+        // --------------------------------------------------
+        // Show requested DOM layer
+        // --------------------------------------------------
 
-// ----------------------------------------------
-// Record current zoom in GameState
-// ----------------------------------------------
-GameStateManager.setCurrentZoom(level);
+        this.updateVisibleLayer(
+            level
+        );
 
-// ----------------------------------------------
-// Update breadcrumb button state
-// ----------------------------------------------
-this.updateButtons(level);
+        // --------------------------------------------------
+        // Prepare and activate requested view
+        // --------------------------------------------------
 
-// ----------------------------------------------
-// Record current view
-// ----------------------------------------------
-this.currentView = nextView;
+        nextView.initialize();
+
+        nextView.activate(
+            options
+        );
+
+        // --------------------------------------------------
+        // Record active zoom level
+        // --------------------------------------------------
+
+        GameStateManager.setCurrentZoom(
+            level
+        );
+
+        this.updateButtons(
+            level
+        );
+
+        this.currentView = nextView;
 
         console.log(
             `PondNavigation: view ${level} is now active`
@@ -155,59 +219,78 @@ this.currentView = nextView;
     updateButtons(activeLevel) {
 
         const buttons = {
-        0: document.getElementById("btn-pond-grid"),
-        1: document.getElementById("btn-cell"),
-        2: document.getElementById("btn-organelle")
-    };
+            0: document.getElementById(
+                "btn-pond-grid"
+            ),
 
+            1: document.getElementById(
+                "btn-cell"
+            ),
 
-        Object.entries(buttons).forEach(([level, button]) => {
+            2: document.getElementById(
+                "btn-organelle"
+            )
+        };
 
-            if (!button) return;
+        Object.entries(buttons).forEach(
+            ([level, button]) => {
 
-            const isActive = Number(level) === activeLevel;
+                if (!button) {
+                    return;
+                }
 
-            button.classList.toggle("active", isActive);
+                const isActive =
+                    Number(level) === activeLevel;
 
-        });
+                button.classList.toggle(
+                    "active",
+                    isActive
+                );
+
+            }
+        );
 
     },
 
     // --------------------------------------------------
-// Show one Pond semantic-view layer
-// --------------------------------------------------
-updateVisibleLayer(activeLevel) {
+    // Show one Pond semantic-view layer
+    // --------------------------------------------------
+    updateVisibleLayer(activeLevel) {
 
-    const viewLayers = {
-        0: "pond-grid-view",
-        1: "cell-view",
-        2: "organelle-view"
-    };
+        const viewLayers = {
+            0: "pond-grid-view",
+            1: "cell-view",
+            2: "organelle-view"
+        };
 
-    Object.entries(viewLayers).forEach(
-        ([level, layerId]) => {
+        Object.entries(viewLayers).forEach(
+            ([level, layerId]) => {
 
-            const layer =
-                document.getElementById(layerId);
+                const layer =
+                    document.getElementById(
+                        layerId
+                    );
 
-            if (!layer) {
-                console.warn(
-                    `PondNavigation: layer "${layerId}" not found`
+                if (!layer) {
+                    console.warn(
+                        `PondNavigation: layer "${layerId}" not found`
+                    );
+
+                    return;
+                }
+
+                const isActive =
+                    Number(level) === activeLevel;
+
+                layer.classList.toggle(
+                    "hidden",
+                    !isActive
                 );
 
-                return;
             }
+        );
 
-            const isActive =
-                Number(level) === activeLevel;
-
-            layer.classList.toggle(
-                "hidden",
-                !isActive
-            );
-        }
-    );
-},
+    }
 
 };
 

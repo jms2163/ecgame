@@ -8,69 +8,107 @@ const OrganelleView = {
 
     active: false,
     initialized: false,
+    focusedOrganelleId: null,
 
     // --------------------------------------------------
-    // Initialize the view
-    // Called once when the view is first prepared
+    // Initialize Organelle Lab
     // --------------------------------------------------
     initialize() {
 
-    if (this.initialized) {
-        console.log("OrganelleView.initialize() skipped (already initialized)");
-        return;
-    }
+        if (this.initialized) {
+            console.log(
+                "OrganelleView.initialize() skipped (already initialized)"
+            );
 
-    console.log("OrganelleView.initialize() called");
-
-    this.initialized = true;
-},
-
-    // --------------------------------------------------
-    // Activate the view
-    // Called whenever Zoom Level 2 becomes active
-    // --------------------------------------------------
-    activate() {
-
-        if (this.active) {
             return;
         }
 
-        const element = document.getElementById("organelle-view");
+        const element =
+            document.getElementById(
+                "organelle-view"
+            );
 
         if (!element) {
-            console.warn("OrganelleView: DOM element #organelle-view not found");
+            console.warn(
+                "OrganelleView: DOM element #organelle-view not found"
+            );
+
             return;
         }
 
-        element.style.display = "block";
+        // PondNavigation owns layer visibility.
+        element.style.removeProperty(
+            "display"
+        );
+
+        console.log(
+            "OrganelleView.initialize() called"
+        );
+
+        this.initialized = true;
+
+    },
+
+    // --------------------------------------------------
+    // Activate Organelle Lab
+    // --------------------------------------------------
+    activate({
+        focusId = null
+    } = {}) {
+
+        const element =
+            document.getElementById(
+                "organelle-view"
+            );
+
+        if (!element) {
+            console.warn(
+                "OrganelleView: DOM element #organelle-view not found"
+            );
+
+            return;
+        }
+
+        this.focusedOrganelleId =
+            focusId;
+
+        // Temporary DOM reflection for inspection.
+        element.dataset.focusId =
+            focusId ?? "";
 
         this.active = true;
 
-        console.log("OrganelleView.activate() called");
+        console.log(
+            "OrganelleView.activate() called"
+        );
+
     },
 
+    // --------------------------------------------------
+    // Read current Organelle Lab focus
+    // --------------------------------------------------
+    getFocusedOrganelleId() {
+
+        return this.focusedOrganelleId;
+
+    },
 
     // --------------------------------------------------
-    // Deactivate the view
-    // Called whenever another semantic view becomes active
+    // Deactivate Organelle Lab
     // --------------------------------------------------
     deactivate() {
 
-    if (!this.active) {
-        return;
+        if (!this.active) {
+            return;
+        }
+
+        this.active = false;
+
+        console.log(
+            "OrganelleView.deactivate() called"
+        );
+
     }
-
-    const element = document.getElementById("organelle-view");
-
-    if (element) {
-        element.style.display = "none";
-    }
-
-    this.active = false;
-
-    console.log("OrganelleView.deactivate() called");
-}
-
 
 };
 
