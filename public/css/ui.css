@@ -20,3 +20,15 @@
     font-weight: bold;
     letter-spacing: 1px;
 }
+
+/* --------------------------------------------------
+   Shared status text
+-------------------------------------------------- */
+
+.ec-status--available {
+    color: var(--color-status-available);
+}
+
+.ec-status--locked {
+    color: var(--color-status-locked);
+}

@@ -1,0 +1,8 @@
+/* --------------------------------------------------
+   Global ECGame color variables
+-------------------------------------------------- */
+
+:root {
+    --color-status-available: #5ee38d;
+    --color-status-locked: #ff6f7d;
+}

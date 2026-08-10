@@ -20,7 +20,16 @@ const gameState = {
     },
 
     inventory: [],
-    discoveries: [],
+    discoveries: [
+    "cytoskeleton",
+    "glycoproteins"
+],
+
+cellSystems: {
+    cytoskeleton: {
+        pseudopodEfficiency: 0.20
+    }
+},
     certifications: [],
     quests: [],
     journal: []

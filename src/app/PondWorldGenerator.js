@@ -302,7 +302,18 @@ if (
                         blend(
                             profile =>
                                 profile.environment.physics.ph
-                        )
+                        ),
+                        ph:
+    blend(
+        profile =>
+            profile.environment.physics.ph
+    ),
+
+temperature:
+    blend(
+        profile =>
+            profile.environment.physics.temperature
+    )
 
                 },
 
@@ -326,7 +337,46 @@ if (
                                 profile.environment.nutrients.phosphates
                         )
 
-                }
+                },
+                signals: {
+
+    folate:
+        blend(
+            profile =>
+                profile.environment.signals.folate
+        ),
+
+    n_formyl_peptides:
+        blend(
+            profile =>
+                profile.environment.signals.n_formyl_peptides
+        ),
+
+    scfa:
+        blend(
+            profile =>
+                profile.environment.signals.scfa
+        ),
+
+    camp:
+        blend(
+            profile =>
+                profile.environment.signals.camp
+        ),
+
+    cyanotoxins:
+        blend(
+            profile =>
+                profile.environment.signals.cyanotoxins
+        ),
+
+    ammonia:
+        blend(
+            profile =>
+                profile.environment.signals.ammonia
+        )
+
+}
 
             }
 
