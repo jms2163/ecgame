@@ -8,9 +8,7 @@ import PondWorld from "./PondWorld.js";
 import PondWorldGenerator from "./PondWorldGenerator.js";
 import ResourceManager from "./ResourceManager.js";
 
-import {
-    POND_MOVE_ATP_COST
-} from "./PondMovementRules.js";
+
 
 const MICROSCOPE_VIEWPORT_RADIUS = 6;
 
@@ -144,10 +142,23 @@ getCurrentEnvironment() {
     // --------------------------------------------------
     movePlayer(dx, dy) {
 
-        const spentATP =
-            ResourceManager.spendATP(
-                POND_MOVE_ATP_COST
-            );
+        const atpCost =
+    GameStateManager.getPondMovementATPCost();
+
+if (atpCost === null) {
+
+    console.warn(
+        "PondController: movement ATP cost is unavailable"
+    );
+
+    return false;
+
+}
+
+const spentATP =
+    ResourceManager.spendATP(
+        atpCost
+    );
 
         if (!spentATP) {
             console.warn(

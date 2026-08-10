@@ -271,6 +271,16 @@ if (
 
             dominantMicrobiome:
                 dominantProfile.id,
+                microbiomes: {
+    background:
+        background.id,
+
+    substrate:
+        substrate?.profile.id ?? null,
+
+    overlay:
+        overlay?.profile.id ?? null
+},
 
             environment: {
 

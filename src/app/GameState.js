@@ -38,6 +38,9 @@ const gameState = {
                     y: 0,
                     anchored: false
                 },
+                movement: {
+    atpCost: 10
+},
 
                 worldSeed: null,
 
