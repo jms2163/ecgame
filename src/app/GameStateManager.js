@@ -94,6 +94,29 @@ setPondPlayerAnchored(anchored) {
 
 },
 
+// --------------------------------------------------
+// Pond movement configuration
+// --------------------------------------------------
+
+getPondMovementATPCost() {
+
+    const movement =
+        gameState.zones.pond?.state?.movement;
+
+    if (!movement) {
+
+        console.warn(
+            "GameStateManager: Pond movement configuration does not exist"
+        );
+
+        return null;
+
+    }
+
+    return movement.atpCost;
+
+},
+
 getPondWorld() {
 
     const pondState = gameState.zones.pond?.state;

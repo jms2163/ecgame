@@ -13,6 +13,12 @@ const PondTileFactory = {
             y,
 
             biome: "open_water",
+            
+            microbiomes: {
+                background: "open_water",
+                substrate: null,
+                overlay: null
+            },
 
             physics: {
                 temperature: 25.0,

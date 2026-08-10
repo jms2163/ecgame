@@ -69,6 +69,9 @@ ensureRegion(world, centerX, centerY, radius) {
     tile.biome =
         generated.dominantMicrobiome;
 
+    tile.microbiomes =
+    generated.microbiomes;
+
     tile.physics.light =
         generated.environment.physics.light;
 
