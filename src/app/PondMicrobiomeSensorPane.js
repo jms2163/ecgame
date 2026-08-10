@@ -5,14 +5,18 @@
 
 import GameStateManager from "./GameStateManager.js";
 import MicrobiomeLibrary from "./MicrobiomeLibrary.js";
+import PondPerception from "./PondPerception.js";
 
 const PondMicrobiomeSensorPane = {
 
     microbiomeElement: null,
+
     oxygenElement: null,
     phElement: null,
     lightElement: null,
+    chemicalSignalsElement: null,
     temperatureElement: null,
+
     pseudopodElement: null,
     adhesionElement: null,
     anchoringElement: null,
@@ -28,6 +32,7 @@ const PondMicrobiomeSensorPane = {
             this.oxygenElement &&
             this.phElement &&
             this.lightElement &&
+            this.chemicalSignalsElement &&
             this.temperatureElement &&
             this.pseudopodElement &&
             this.adhesionElement &&
@@ -37,10 +42,18 @@ const PondMicrobiomeSensorPane = {
             return;
         }
 
+        // --------------------------------------------------
+        // Current microbiome display
+        // --------------------------------------------------
+
         this.microbiomeElement =
             document.getElementById(
                 "pond-current-microbiome"
             );
+
+        // --------------------------------------------------
+        // Quick environmental sensor cards
+        // --------------------------------------------------
 
         this.oxygenElement =
             document.getElementById(
@@ -57,10 +70,19 @@ const PondMicrobiomeSensorPane = {
                 "pond-sensor-light"
             );
 
+        this.chemicalSignalsElement =
+            document.getElementById(
+                "pond-sensor-chemical-signals"
+            );
+
         this.temperatureElement =
             document.getElementById(
                 "pond-sensor-temperature"
             );
+
+        // --------------------------------------------------
+        // Cell capability and anchoring readouts
+        // --------------------------------------------------
 
         this.pseudopodElement =
             document.getElementById(
@@ -81,6 +103,10 @@ const PondMicrobiomeSensorPane = {
             document.getElementById(
                 "pond-system-anchoring-status"
             );
+
+        // --------------------------------------------------
+        // Missing-display warnings
+        // --------------------------------------------------
 
         if (!this.microbiomeElement) {
             console.warn(
@@ -103,6 +129,12 @@ const PondMicrobiomeSensorPane = {
         if (!this.lightElement) {
             console.warn(
                 "PondMicrobiomeSensorPane: light display not found"
+            );
+        }
+
+        if (!this.chemicalSignalsElement) {
+            console.warn(
+                "PondMicrobiomeSensorPane: chemical signals display not found"
             );
         }
 
@@ -139,13 +171,39 @@ const PondMicrobiomeSensorPane = {
     },
 
     // --------------------------------------------------
-    // Format a numeric environmental reading
+    // Format one numeric sensor value
     // --------------------------------------------------
     formatDecimal(value) {
 
         return Number.isFinite(value)
             ? value.toFixed(2)
             : "--";
+
+    },
+
+    // --------------------------------------------------
+    // Update an available or locked cell capability
+    // --------------------------------------------------
+    updateCapability(element, available) {
+
+        if (!element) {
+            return;
+        }
+
+        element.textContent =
+            available
+                ? "AVAIL"
+                : "LOCKED";
+
+        element.classList.toggle(
+            "ec-status--available",
+            available
+        );
+
+        element.classList.toggle(
+            "ec-status--locked",
+            !available
+        );
 
     },
 
@@ -161,8 +219,9 @@ const PondMicrobiomeSensorPane = {
                 ? MicrobiomeLibrary[tile.biome]
                 : null;
 
-        const anchored =
-            GameStateManager.isPondPlayerAnchored();
+        // --------------------------------------------------
+        // Current microbiome name
+        // --------------------------------------------------
 
         if (this.microbiomeElement) {
             this.microbiomeElement.textContent =
@@ -202,54 +261,51 @@ const PondMicrobiomeSensorPane = {
         }
 
         // --------------------------------------------------
-        // Cell capability and anchoring readouts
+        // Chemical signals quick readout
         // --------------------------------------------------
 
-        if (this.pseudopodElement) {
+        if (this.chemicalSignalsElement) {
 
-            const pseudopodsAvailable =
-                GameStateManager.hasDiscovery(
-                    "cytoskeleton"
+            const classification =
+                PondPerception.classifyTile(
+                    tile
                 );
 
-            this.pseudopodElement.textContent =
-                pseudopodsAvailable
-                    ? "AVAIL"
-                    : "LOCKED";
+            this.chemicalSignalsElement.textContent =
+                classification.label;
 
-            this.pseudopodElement.classList.toggle(
-                "ec-status--available",
-                pseudopodsAvailable
-            );
-
-            this.pseudopodElement.classList.toggle(
-                "ec-status--locked",
-                !pseudopodsAvailable
-            );
         }
 
-        if (this.adhesionElement) {
+        // --------------------------------------------------
+        // Cell capability readouts
+        // --------------------------------------------------
 
-            const adhesionAvailable =
-                GameStateManager.hasDiscovery(
-                    "glycoproteins"
-                );
-
-            this.adhesionElement.textContent =
-                adhesionAvailable
-                    ? "AVAIL"
-                    : "LOCKED";
-
-            this.adhesionElement.classList.toggle(
-                "ec-status--available",
-                adhesionAvailable
+        const pseudopodsAvailable =
+            GameStateManager.hasDiscovery(
+                "cytoskeleton"
             );
 
-            this.adhesionElement.classList.toggle(
-                "ec-status--locked",
-                !adhesionAvailable
+        this.updateCapability(
+            this.pseudopodElement,
+            pseudopodsAvailable
+        );
+
+        const adhesionAvailable =
+            GameStateManager.hasDiscovery(
+                "glycoproteins"
             );
-        }
+
+        this.updateCapability(
+            this.adhesionElement,
+            adhesionAvailable
+        );
+
+        // --------------------------------------------------
+        // Current anchoring state
+        // --------------------------------------------------
+
+        const anchored =
+            GameStateManager.isPondPlayerAnchored();
 
         if (this.anchoringElement) {
             this.anchoringElement.textContent =
