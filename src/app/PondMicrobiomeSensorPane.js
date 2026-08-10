@@ -7,6 +7,7 @@ import GameStateManager from "./GameStateManager.js";
 import MicrobiomeLibrary from "./MicrobiomeLibrary.js";
 import PondPerception from "./PondPerception.js";
 import PondSensorInfoPanel from "./PondSensorInfoPanel.js";
+import PondSignalProbe from "./PondSignalProbe.js";
 
 const PondMicrobiomeSensorPane = {
 
@@ -21,6 +22,7 @@ const PondMicrobiomeSensorPane = {
     oxygenCardElement: null,
     phCardElement: null,
     lightCardElement: null,
+    chemicalSignalsCardElement: null,
     temperatureCardElement: null,
 
     pseudopodElement: null,
@@ -43,6 +45,7 @@ const PondMicrobiomeSensorPane = {
             this.oxygenCardElement &&
             this.phCardElement &&
             this.lightCardElement &&
+            this.chemicalSignalsCardElement &&
             this.temperatureCardElement &&
             this.pseudopodElement &&
             this.adhesionElement &&
@@ -107,6 +110,11 @@ const PondMicrobiomeSensorPane = {
         this.lightCardElement =
             document.getElementById(
                 "btn-pond-sensor-light"
+            );
+
+        this.chemicalSignalsCardElement =
+            document.getElementById(
+                "btn-pond-sensor-chemical-signals"
             );
 
         this.temperatureCardElement =
@@ -196,6 +204,12 @@ const PondMicrobiomeSensorPane = {
             );
         }
 
+        if (!this.chemicalSignalsCardElement) {
+            console.warn(
+                "PondMicrobiomeSensorPane: chemical signals card not found"
+            );
+        }
+
         if (!this.temperatureCardElement) {
             console.warn(
                 "PondMicrobiomeSensorPane: temperature card not found"
@@ -254,29 +268,78 @@ const PondMicrobiomeSensorPane = {
             "Temperature affects the speed of diffusion, membrane transport, and enzyme-controlled reactions."
         );
 
+        // --------------------------------------------------
+        // Chemical Signals probe-control button
+        // --------------------------------------------------
+
+        if (this.chemicalSignalsCardElement) {
+            this.chemicalSignalsCardElement.addEventListener(
+                "click",
+                () => {
+                    PondSignalProbe.toggle();
+
+                    this.updateChemicalSignalsCardState();
+                }
+            );
+        }
+
     },
 
     // --------------------------------------------------
-    // Connect one sensor card to the information panel
-    // --------------------------------------------------
-    attachInfoPanelListener(
-        cardElement,
-        title,
-        message
-    ) {
+// Connect one sensor card to the information panel
+// --------------------------------------------------
+attachInfoPanelListener(
+    cardElement,
+    title,
+    message
+) {
 
-        if (!cardElement) {
+    if (!cardElement) {
+        return;
+    }
+
+    cardElement.addEventListener(
+        "click",
+        () => {
+
+            if (PondSignalProbe.isActive()) {
+                PondSignalProbe.deactivate();
+
+                this.updateChemicalSignalsCardState();
+
+                return;
+            }
+
+            PondSensorInfoPanel.open({
+                title,
+                message
+            });
+
+        }
+    );
+
+},
+
+    // --------------------------------------------------
+    // Update Chemical Signals probe-control appearance
+    // --------------------------------------------------
+    updateChemicalSignalsCardState() {
+
+        if (!this.chemicalSignalsCardElement) {
             return;
         }
 
-        cardElement.addEventListener(
-            "click",
-            () => {
-                PondSensorInfoPanel.open({
-                    title,
-                    message
-                });
-            }
+        const probeActive =
+            PondSignalProbe.isActive();
+
+        this.chemicalSignalsCardElement.setAttribute(
+            "aria-pressed",
+            String(probeActive)
+        );
+
+        this.chemicalSignalsCardElement.classList.toggle(
+            "pond-sensor-card--probe-active",
+            probeActive
         );
 
     },
@@ -324,6 +387,8 @@ const PondMicrobiomeSensorPane = {
     render(tile) {
 
         this.initialize();
+
+        this.updateChemicalSignalsCardState();
 
         const profile =
             tile?.biome

@@ -11,6 +11,7 @@ const PondSensorInfoPanel = {
     titleElement: null,
     messageElement: null,
     closeButtonElement: null,
+    workspaceElement: null,
     openerElement: null,
 
     // --------------------------------------------------
@@ -42,11 +43,17 @@ const PondSensorInfoPanel = {
                 "btn-close-pond-sensor-information"
             );
 
+        this.workspaceElement =
+            document.getElementById(
+                "pond-workspace"
+            );
+
         if (
             !this.panelElement ||
             !this.titleElement ||
             !this.messageElement ||
-            !this.closeButtonElement
+            !this.closeButtonElement ||
+            !this.workspaceElement
         ) {
             console.warn(
                 "PondSensorInfoPanel: panel display elements not found"
@@ -65,6 +72,20 @@ const PondSensorInfoPanel = {
         this.close();
 
         this.initialized = true;
+
+    },
+
+    // --------------------------------------------------
+    // Disable or restore Pond workspace interaction
+    // --------------------------------------------------
+    setWorkspaceInteractive(interactive) {
+
+        if (!this.workspaceElement) {
+            return;
+        }
+
+        this.workspaceElement.inert =
+            !interactive;
 
     },
 
@@ -91,6 +112,10 @@ const PondSensorInfoPanel = {
                 ? document.activeElement
                 : null;
 
+        this.setWorkspaceInteractive(
+            false
+        );
+
         this.titleElement.textContent =
             title;
 
@@ -113,53 +138,57 @@ const PondSensorInfoPanel = {
     },
 
     // --------------------------------------------------
-// Hide sensor information panel
-// --------------------------------------------------
-close() {
+    // Hide sensor information panel
+    // --------------------------------------------------
+    close() {
 
-    if (!this.panelElement) {
-        return;
-    }
+        if (!this.panelElement) {
+            return;
+        }
 
-    const focusIsInsidePanel =
-        this.panelElement.contains(
-            document.activeElement
+        this.setWorkspaceInteractive(
+            true
         );
 
-    if (focusIsInsidePanel) {
-
-        const canRestoreFocus =
-            this.openerElement &&
-            this.openerElement.isConnected &&
-            typeof this.openerElement.focus ===
-                "function";
-
-        if (canRestoreFocus) {
-            this.openerElement.focus();
-        }
-
-        if (
+        const focusIsInsidePanel =
             this.panelElement.contains(
                 document.activeElement
-            )
-        ) {
-            document.activeElement.blur();
+            );
+
+        if (focusIsInsidePanel) {
+
+            const canRestoreFocus =
+                this.openerElement &&
+                this.openerElement.isConnected &&
+                typeof this.openerElement.focus ===
+                    "function";
+
+            if (canRestoreFocus) {
+                this.openerElement.focus();
+            }
+
+            if (
+                this.panelElement.contains(
+                    document.activeElement
+                )
+            ) {
+                document.activeElement.blur();
+            }
+
         }
 
+        this.panelElement.classList.add(
+            "hidden"
+        );
+
+        this.panelElement.setAttribute(
+            "aria-hidden",
+            "true"
+        );
+
+        this.openerElement = null;
+
     }
-
-    this.panelElement.classList.add(
-        "hidden"
-    );
-
-    this.panelElement.setAttribute(
-        "aria-hidden",
-        "true"
-    );
-
-    this.openerElement = null;
-
-}
 
 };
 
