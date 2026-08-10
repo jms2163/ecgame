@@ -11,13 +11,20 @@ const gameState = {
         currentZoom: 0
     },
 
-    registry: {
-        inventory: [],
-        discoveries: [],
-        certifications: [],
-        quests: [],
-        journal: []
+  registry: {
+    resources: {
+        atp: {
+            current: 50,
+            maximum: 50
+        }
     },
+
+    inventory: [],
+    discoveries: [],
+    certifications: [],
+    quests: [],
+    journal: []
+},
 
     zones: {
 

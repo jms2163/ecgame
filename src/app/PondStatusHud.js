@@ -58,17 +58,33 @@ const PondStatusHud = {
 
     },
 
+        // --------------------------------------------------
+    // Update coordinate and ATP display
     // --------------------------------------------------
-    // Update coordinate display
-    // --------------------------------------------------
-    render(position) {
+    render(
+        position,
+        atpStatus
+    ) {
 
-        if (!this.coordinatesElement || !position) {
-            return;
+        if (
+            this.coordinatesElement &&
+            position
+        ) {
+
+            this.coordinatesElement.textContent =
+                `COORD: ${position.x}, ${position.y}`;
+
         }
 
-        this.coordinatesElement.textContent =
-            `COORD: ${position.x}, ${position.y}`;
+        if (
+            this.atpElement &&
+            atpStatus
+        ) {
+
+            this.atpElement.textContent =
+                `ATP: ${atpStatus.current}/${atpStatus.maximum}`;
+
+        }
 
     }
 

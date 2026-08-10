@@ -2,6 +2,9 @@
 // PondMovementControls.js
 // Creates Pond movement-control user interface
 // --------------------------------------------------
+import {
+    POND_MOVE_ATP_COST
+} from "./PondMovementRules.js";
 
 const MOVEMENT_VECTORS = {
 
@@ -70,7 +73,7 @@ const PondMovementControls = {
             "pond-movement-instructions";
 
         instructionsElement.textContent =
-            "SPEND 10 ATP TO\nMOVE ONE SPACE";
+    `SPEND ${POND_MOVE_ATP_COST} ATP TO\nMOVE ONE SPACE`;
 
         controlsElement.appendChild(
             instructionsElement

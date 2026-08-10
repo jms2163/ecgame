@@ -6,6 +6,11 @@
 import GameStateManager from "./GameStateManager.js";
 import PondWorld from "./PondWorld.js";
 import PondWorldGenerator from "./PondWorldGenerator.js";
+import ResourceManager from "./ResourceManager.js";
+
+import {
+    POND_MOVE_ATP_COST
+} from "./PondMovementRules.js";
 
 const MICROSCOPE_VIEWPORT_RADIUS = 6;
 
@@ -134,10 +139,23 @@ getCurrentEnvironment() {
 
 },
 
-    // --------------------------------------------------
+        // --------------------------------------------------
     // Move Pond player
     // --------------------------------------------------
     movePlayer(dx, dy) {
+
+        const spentATP =
+            ResourceManager.spendATP(
+                POND_MOVE_ATP_COST
+            );
+
+        if (!spentATP) {
+            console.warn(
+                "PondController: insufficient ATP to move"
+            );
+
+            return false;
+        }
 
         GameStateManager.movePondPlayer(
             dx,
@@ -145,6 +163,8 @@ getCurrentEnvironment() {
         );
 
         this.initializeLocalWorld();
+
+        return true;
 
     }
 

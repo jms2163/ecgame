@@ -11,6 +11,7 @@ import ZoneManager from "./ZoneManager.js";
 import DevConsole from "./DevConsole.js";
 import PondWorld from "./PondTileFactory.js";
 import SeededRandom from "./SeededRandom.js";
+import ResourceManager from "./ResourceManager.js";
 // Zones
 import Pond from "./Pond.js";
 // import SimulationClock from "./SimulationClock.js";
@@ -38,6 +39,7 @@ const Bootstrap = {
         SaveManager.initialize();
 
         SaveManager.load();
+        ResourceManager.initialize();
 
         ZoneManager.initialize();
 
