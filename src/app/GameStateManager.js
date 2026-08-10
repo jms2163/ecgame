@@ -62,6 +62,60 @@ hasDiscovery(discoveryId) {
 
 },
 
+// --------------------------------------------------
+// Add one global discovery
+// --------------------------------------------------
+addDiscovery(discoveryId) {
+
+    if (
+        typeof discoveryId !== "string" ||
+        discoveryId.trim() === ""
+    ) {
+        console.warn(
+            "GameStateManager: discovery ID must be a non-empty string"
+        );
+
+        return false;
+    }
+
+    const discoveries =
+        gameState.registry?.discoveries;
+
+    if (!Array.isArray(discoveries)) {
+        console.warn(
+            "GameStateManager: discovery registry is unavailable"
+        );
+
+        return false;
+    }
+
+    const normalizedId =
+        discoveryId.trim();
+
+    if (
+        discoveries.includes(
+            normalizedId
+        )
+    ) {
+        console.log(
+            `GameStateManager: discovery "${normalizedId}" already exists`
+        );
+
+        return false;
+    }
+
+    discoveries.push(
+        normalizedId
+    );
+
+    console.log(
+        `GameStateManager: discovery added "${normalizedId}"`
+    );
+
+    return true;
+
+},
+
 getCellSystem(systemId) {
 
     const cellSystem =

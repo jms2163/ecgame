@@ -3,6 +3,7 @@
 // Zoom Level 1 of the Pond zone
 // Represents the individual cell view
 // --------------------------------------------------
+import CellMapView from "./CellMapView.js";
 
 const CellView = {
 
@@ -10,67 +11,74 @@ const CellView = {
     initialized: false,
 
     // --------------------------------------------------
-    // Initialize the view
-    // Called once when the view is first prepared
+    // Initialize Cell View
     // --------------------------------------------------
     initialize() {
 
-    if (this.initialized) {
-        console.log("CellView.initialize() skipped (already initialized)");
-        return;
-    }
+        if (this.initialized) {
+            console.log(
+                "CellView.initialize() skipped (already initialized)"
+            );
 
-    console.log("CellView.initialize() called");
+            return;
+        }
 
-    this.initialized = true;
-},
+        console.log(
+            "CellView.initialize() called"
+        );
+
+        this.initialized = true;
+
+    },
 
     // --------------------------------------------------
-    // Activate the view
-    // Called whenever Zoom Level 1 becomes active
+    // Activate Cell View
     // --------------------------------------------------
     activate() {
+        this.active = true;
+        CellMapView.render();
 
         if (this.active) {
             return;
         }
 
-        const element = document.getElementById("cell-view");
+        const element =
+            document.getElementById(
+                "cell-view"
+            );
 
         if (!element) {
-            console.warn("CellView: DOM element #cell-view not found");
+            console.warn(
+                "CellView: DOM element #cell-view not found"
+            );
+
             return;
         }
 
-        element.style.display = "block";
-
         this.active = true;
 
-        console.log("CellView.activate() called");
+        console.log(
+            "CellView.activate() called"
+        );
+
     },
 
-
     // --------------------------------------------------
-    // Deactivate the view
-    // Called whenever another semantic view becomes active
+    // Deactivate Cell View
     // --------------------------------------------------
     deactivate() {
 
-    if (!this.active) {
-        return;
+        if (!this.active) {
+            return;
+        }
+
+        this.active = false;
+
+        console.log(
+            "CellView.deactivate() called"
+        );
+
     }
-
-    const element = document.getElementById("cell-view");
-
-    if (element) {
-        element.style.display = "none";
-    }
-
-    this.active = false;
-
-    console.log("CellView.deactivate() called");
-}
-
 
 };
 
