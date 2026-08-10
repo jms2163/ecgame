@@ -12,6 +12,8 @@ import PondMicrobiomeSensorPane from "./PondMicrobiomeSensorPane.js";
 import PondStatusHud from "./PondStatusHud.js";
 import ResourceManager from "./ResourceManager.js";
 import PondSignalProbe from "./PondSignalProbe.js";
+import PondPerception from "./PondPerception.js";
+import PondSignalProbeTooltip from "./PondSignalProbeTooltip.js";
 
 const MICROSCOPE_VIEWPORT_RADIUS = 6;
 
@@ -82,11 +84,41 @@ const PondGridView = {
 // Chemical Signals probe-mode grid appearance
 // --------------------------------------------------
 
+// --------------------------------------------------
+// Chemical Signals probe-mode grid appearance
+// --------------------------------------------------
+
+PondSignalProbeTooltip.initialize(
+    this.microscopeStageElement
+);
+
 PondSignalProbe.onChange(
     probeActive => {
         this.updateSignalProbeSurfaceState(
             probeActive
         );
+
+        if (!probeActive) {
+            PondSignalProbeTooltip.hide();
+        }
+    }
+);
+
+this.updateSignalProbeSurfaceState();
+
+this.surfaceElement.addEventListener(
+    "pointermove",
+    event => {
+        this.handleSignalProbePointerMove(
+            event
+        );
+    }
+);
+
+this.surfaceElement.addEventListener(
+    "pointerleave",
+    () => {
+        PondSignalProbeTooltip.hide();
     }
 );
 
@@ -191,6 +223,112 @@ updateSignalProbeSurfaceState(probeActive) {
     this.surfaceElement.classList.toggle(
         "pond-grid-surface--signal-probe-active",
         active
+    );
+
+},
+
+// --------------------------------------------------
+// Update Chemical Signals probe-mode grid appearance
+// --------------------------------------------------
+updateSignalProbeSurfaceState(probeActive) {
+
+    if (!this.surfaceElement) {
+        return;
+    }
+
+    const active =
+        typeof probeActive === "boolean"
+            ? probeActive
+            : PondSignalProbe.isActive();
+
+    this.surfaceElement.classList.toggle(
+        "pond-grid-surface--signal-probe-active",
+        active
+    );
+
+},
+
+// --------------------------------------------------
+// Show probe tooltip for the tile under the pointer
+// --------------------------------------------------
+handleSignalProbePointerMove(event) {
+
+    if (!PondSignalProbe.isActive()) {
+        PondSignalProbeTooltip.hide();
+
+        return;
+    }
+
+    if (!(event.target instanceof Element)) {
+        PondSignalProbeTooltip.hide();
+
+        return;
+    }
+
+    const tileElement =
+        event.target.closest(
+            ".pond-grid-tile"
+        );
+
+    if (
+        !tileElement ||
+        !this.surfaceElement.contains(
+            tileElement
+        )
+    ) {
+        PondSignalProbeTooltip.hide();
+
+        return;
+    }
+
+    const x =
+        Number(tileElement.dataset.x);
+
+    const y =
+        Number(tileElement.dataset.y);
+
+    if (
+        !Number.isFinite(x) ||
+        !Number.isFinite(y)
+    ) {
+        PondSignalProbeTooltip.hide();
+
+        return;
+    }
+
+    const reading =
+        PondPerception.getProbeReadingAt(
+            x,
+            y
+        );
+
+    if (!reading) {
+        PondSignalProbeTooltip.hide();
+
+        return;
+    }
+
+    const stageBox =
+        this.microscopeStageElement
+            .getBoundingClientRect();
+
+    const tileBox =
+        tileElement.getBoundingClientRect();
+
+    const tooltipLeft =
+        tileBox.left -
+        stageBox.left +
+        tileBox.width;
+
+    const tooltipTop =
+        tileBox.top -
+        stageBox.top +
+        tileBox.height;
+
+    PondSignalProbeTooltip.show(
+        reading,
+        tooltipLeft,
+        tooltipTop
     );
 
 },
