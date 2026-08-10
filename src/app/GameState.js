@@ -21,6 +21,7 @@ const gameState = {
 
     inventory: [],
     discoveries: [
+    "plasma_membrane",
     "cytoskeleton",
     "glycoproteins"
 ],
