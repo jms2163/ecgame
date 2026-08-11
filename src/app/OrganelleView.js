@@ -122,6 +122,16 @@ const OrganelleView = {
     },
 
     // --------------------------------------------------
+// Read temporary open-experiment placement data
+// --------------------------------------------------
+getExperimentPlacementSnapshot() {
+
+    return OrganelleExperimentStage
+        .getPlacementSnapshot();
+
+},
+
+    // --------------------------------------------------
     // Read current Organelle Lab focus
     // --------------------------------------------------
     getFocusedOrganelleId() {
