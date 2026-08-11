@@ -8,6 +8,8 @@ import PondWorld from "./PondWorld.js";
 import PondWorldGenerator from "./PondWorldGenerator.js";
 import ResourceManager from "./ResourceManager.js";
 import MicrobiomeLibrary from "./MicrobiomeLibrary.js";
+import CellCapabilityEvaluator
+    from "./CellCapabilityEvaluator.js";
 
 
 
@@ -152,16 +154,15 @@ canToggleAnchor() {
         };
     }
 
-    if (
-        !GameStateManager.hasDiscovery(
-            "glycoproteins"
-        )
-    ) {
-        return {
-            allowed: false,
-            reason: "glycoproteins-locked"
-        };
-    }
+    const capabilities =
+    CellCapabilityEvaluator.evaluate();
+
+if (!capabilities.anchoring.available) {
+    return {
+        allowed: false,
+        reason: "glycoproteins-locked"
+    };
+}
 
     const tile =
         this.getCurrentTile();
@@ -240,16 +241,15 @@ toggleAnchor() {
 // --------------------------------------------------
 canMove() {
 
-    if (
-        !GameStateManager.hasDiscovery(
-            "cytoskeleton"
-        )
-    ) {
-        return {
-            allowed: false,
-            reason: "cytoskeleton-locked"
-        };
-    }
+    const capabilities =
+    CellCapabilityEvaluator.evaluate();
+
+if (!capabilities.manualMovement.available) {
+    return {
+        allowed: false,
+        reason: "cytoskeleton-locked"
+    };
+}
 
     if (
         GameStateManager.isPondPlayerAnchored()
