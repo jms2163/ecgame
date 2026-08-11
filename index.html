@@ -26,6 +26,7 @@
     <link rel="stylesheet" href="./public/css/pond.css">
     <link rel="stylesheet" href="./public/css/ui.css">
     <link rel="stylesheet" href="./public/css/variables.css">
+    <link rel="stylesheet" href="./public/css/organelle-lab.css">
 </head>
 
 <body>
@@ -520,13 +521,23 @@
             <header
                 id="organelle-experiment-stage-header">
 
-                <p>
-                    Experiment Stage
-                </p>
+                <div
+                    id="organelle-experiment-stage-heading">
 
-                <h2 id="organelle-experiment-stage-title">
-                    No Experiment Open
-                </h2>
+                    <p>
+                        Experiment Stage
+                    </p>
+
+                    <h2 id="organelle-experiment-stage-title">
+                        No Experiment Open
+                    </h2>
+
+                </div>
+
+                <div
+                    id="organelle-experiment-stage-controls"
+                    aria-label="Experiment controls">
+                </div>
 
             </header>
 
@@ -570,41 +581,41 @@
             </header>
 
             <section
-    id="organelle-experiment-list"
-    aria-label="Organelle experiments"
-    aria-live="polite">
+                id="organelle-experiment-list"
+                aria-label="Organelle experiments"
+                aria-live="polite">
 
-    <section
-        class="organelle-experiment-group"
-        aria-labelledby="organelle-unlocked-experiments-heading">
+                <section
+                    class="organelle-experiment-group"
+                    aria-labelledby="organelle-unlocked-experiments-heading">
 
-        <h3
-            id="organelle-unlocked-experiments-heading"
-            class="organelle-experiment-section-heading">
-            Unlocked Experiments
-        </h3>
+                    <h3
+                        id="organelle-unlocked-experiments-heading"
+                        class="organelle-experiment-section-heading">
+                        Unlocked Experiments
+                    </h3>
 
-        <div id="organelle-unlocked-experiment-list">
-        </div>
+                    <div id="organelle-unlocked-experiment-list">
+                    </div>
 
-    </section>
+                </section>
 
-    <section
-        class="organelle-experiment-group"
-        aria-labelledby="organelle-locked-experiments-heading">
+                <section
+                    class="organelle-experiment-group"
+                    aria-labelledby="organelle-locked-experiments-heading">
 
-        <h3
-            id="organelle-locked-experiments-heading"
-            class="organelle-experiment-section-heading">
-            Locked Experiments
-        </h3>
+                    <h3
+                        id="organelle-locked-experiments-heading"
+                        class="organelle-experiment-section-heading">
+                        Locked Experiments
+                    </h3>
 
-        <div id="organelle-locked-experiment-list">
-        </div>
+                    <div id="organelle-locked-experiment-list">
+                    </div>
 
-    </section>
+                </section>
 
-</section>
+            </section>
 
         </aside>
 

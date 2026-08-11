@@ -3,8 +3,29 @@
 // Static definitions for organelle research experiments
 // --------------------------------------------------
 
+const MEMBRANE_TRANSPORT_LABELS = [
+
+    "sodium_ion",
+
+    "chloride_ion",
+
+    "hypertonic",
+
+    "hypotonic",
+
+    "plasma_membrane",
+
+    "extracellular_solution",
+
+    "cytosol"
+
+];
+
 const OrganelleExperimentLibrary = {
 
+    // --------------------------------------------------
+    // Plasma membrane: passive diffusion
+    // --------------------------------------------------
     water_passive_diffusion: {
 
         id:
@@ -23,7 +44,7 @@ const OrganelleExperimentLibrary = {
             "+100 XP",
 
         objective:
-            "Use water and electrolyte to determine how a solute gradient changes net water movement across a plasma membrane.",
+            "An amoeba needs water. Position the components so that water flows into the cell.",
 
         stage: {
 
@@ -32,33 +53,26 @@ const OrganelleExperimentLibrary = {
 
             materials: [
 
-                {
-                    id:
-                        "water",
+                "water",
 
-                    label:
-                        "Water",
+                "sodium_ion",
 
-                    symbol:
-                        "H₂O",
+                "chloride_ion"
 
-                    description:
-                        "Water molecules can move passively across a plasma membrane."
-                },
+            ],
 
-                {
-                    id:
-                        "electrolyte",
+            labels:
+                MEMBRANE_TRANSPORT_LABELS,
 
-                    label:
-                        "Salt (Electrolyte)",
+            controls: [
 
-                    symbol:
-                        "Na⁺ + Cl⁻",
+                "simulate",
 
-                    description:
-                        "Dissolved ions create an osmotic gradient that influences net water movement."
-                }
+                "labels",
+
+                "reflection",
+
+                "submit"
 
             ]
 
@@ -76,7 +90,8 @@ const OrganelleExperimentLibrary = {
 
         grants: {
 
-            xp: 100,
+            xp:
+                100,
 
             discoveries: [],
 
@@ -101,6 +116,9 @@ const OrganelleExperimentLibrary = {
 
     },
 
+    // --------------------------------------------------
+    // Plasma membrane: facilitated diffusion
+    // --------------------------------------------------
     aquaporin_facilitated_diffusion: {
 
         id:
@@ -128,47 +146,35 @@ const OrganelleExperimentLibrary = {
 
             materials: [
 
-                {
-                    id:
-                        "water",
+                "water",
 
-                    label:
-                        "Water",
+                "sodium_ion",
 
-                    symbol:
-                        "H₂O",
+                "chloride_ion",
 
-                    description:
-                        "Water molecules move in response to an osmotic gradient."
-                },
+                "aquaporin"
 
-                {
-                    id:
-                        "electrolyte",
+            ],
 
-                    label:
-                        "Salt (Electrolyte)",
+            labels: [
 
-                    symbol:
-                        "Na⁺ + Cl⁻",
+                ...MEMBRANE_TRANSPORT_LABELS,
 
-                    description:
-                        "Dissolved ions establish the osmotic gradient."
-                },
+                "aquaporin_channel"
 
-                {
-                    id:
-                        "aquaporin",
+            ],
 
-                    label:
-                        "Aquaporin",
+            controls: [
 
-                    symbol:
-                        "AQP",
+                "flip",
 
-                    description:
-                        "A selective membrane channel that increases the rate of passive water transport."
-                }
+                "simulate",
+
+                "labels",
+
+                "reflection",
+
+                "submit"
 
             ]
 
@@ -188,7 +194,8 @@ const OrganelleExperimentLibrary = {
 
         grants: {
 
-            xp: 500,
+            xp:
+                500,
 
             discoveries: [
                 "facilitated_diffusion_level_1"

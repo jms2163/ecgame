@@ -3,9 +3,16 @@
 // Renders the currently open organelle experiment
 // --------------------------------------------------
 
+import OrganelleExperimentPlacementController
+    from "./OrganelleExperimentPlacementController.js";
+
+import ExperimentStageDefinitionResolver
+    from "./ExperimentStageDefinitionResolver.js";
+
 const OrganelleExperimentStage = {
 
     titleElement: null,
+    controlsElement: null,
     contentElement: null,
 
     // --------------------------------------------------
@@ -15,6 +22,7 @@ const OrganelleExperimentStage = {
 
         if (
             this.titleElement &&
+            this.controlsElement &&
             this.contentElement
         ) {
             return true;
@@ -25,6 +33,11 @@ const OrganelleExperimentStage = {
                 "organelle-experiment-stage-title"
             );
 
+        this.controlsElement =
+            document.getElementById(
+                "organelle-experiment-stage-controls"
+            );
+
         this.contentElement =
             document.getElementById(
                 "organelle-experiment-stage-content"
@@ -32,6 +45,7 @@ const OrganelleExperimentStage = {
 
         if (
             !this.titleElement ||
+            !this.controlsElement ||
             !this.contentElement
         ) {
             console.warn(
@@ -46,6 +60,50 @@ const OrganelleExperimentStage = {
     },
 
     // --------------------------------------------------
+    // Render inactive experiment controls
+    // --------------------------------------------------
+    renderControls(experiment) {
+
+        this.controlsElement.replaceChildren();
+
+        const controls =
+            experiment.stage?.controls ?? [];
+
+        controls.forEach(control => {
+
+            const controlId =
+                typeof control === "string"
+                    ? control
+                    : control.id;
+
+            const button =
+                document.createElement("button");
+
+            button.type =
+                "button";
+
+            button.className =
+                "organelle-experiment-control";
+
+            button.dataset.action =
+                controlId;
+
+            button.textContent =
+                control.label ??
+                controlId;
+
+            // Enabled in later experiment milestones.
+            button.disabled = true;
+
+            this.controlsElement.appendChild(
+                button
+            );
+
+        });
+
+    },
+
+    // --------------------------------------------------
     // Clear the active experiment stage
     // --------------------------------------------------
     clear() {
@@ -54,8 +112,12 @@ const OrganelleExperimentStage = {
             return;
         }
 
+        OrganelleExperimentPlacementController.reset();
+
         this.titleElement.textContent =
             "No Experiment Open";
+
+        this.controlsElement.replaceChildren();
 
         this.contentElement.replaceChildren();
 
@@ -74,7 +136,7 @@ const OrganelleExperimentStage = {
     // --------------------------------------------------
     // Render one membrane-transport experiment stage
     // --------------------------------------------------
-    renderMembraneTransportStage(experiment) {
+    renderMembraneTransportStage() {
 
         const stage =
             document.createElement("section");
@@ -91,18 +153,16 @@ const OrganelleExperimentStage = {
         extracellular.className =
             "membrane-transport-compartment";
 
-        extracellular.dataset.compartment =
-            "extracellular";
-
-        const extracellularHeading =
-            document.createElement("h3");
-
-        extracellularHeading.textContent =
-            "Extracellular Solution";
-
-        extracellular.appendChild(
-            extracellularHeading
+        extracellular.setAttribute(
+            "aria-label",
+            "Extracellular placement area"
         );
+
+        OrganelleExperimentPlacementController
+            .registerDropZone(
+                extracellular,
+                "extracellular"
+            );
 
         const membrane =
             document.createElement("div");
@@ -112,8 +172,14 @@ const OrganelleExperimentStage = {
 
         membrane.setAttribute(
             "aria-label",
-            "Plasma membrane lipid bilayer"
+            "Plasma membrane placement area"
         );
+
+        OrganelleExperimentPlacementController
+            .registerDropZone(
+                membrane,
+                "membrane"
+            );
 
         for (
             let lipidIndex = 0;
@@ -127,36 +193,22 @@ const OrganelleExperimentStage = {
             lipid.className =
                 "membrane-transport-lipid";
 
-            const outerHead =
-                document.createElement("span");
+            [
+                "membrane-lipid-head",
+                "membrane-lipid-tail",
+                "membrane-lipid-tail",
+                "membrane-lipid-head"
+            ].forEach(className => {
 
-            outerHead.className =
-                "membrane-lipid-head";
+                const part =
+                    document.createElement("span");
 
-            const outerTail =
-                document.createElement("span");
+                part.className =
+                    className;
 
-            outerTail.className =
-                "membrane-lipid-tail";
+                lipid.appendChild(part);
 
-            const innerTail =
-                document.createElement("span");
-
-            innerTail.className =
-                "membrane-lipid-tail";
-
-            const innerHead =
-                document.createElement("span");
-
-            innerHead.className =
-                "membrane-lipid-head";
-
-            lipid.append(
-                outerHead,
-                outerTail,
-                innerTail,
-                innerHead
-            );
+            });
 
             membrane.appendChild(
                 lipid
@@ -164,29 +216,27 @@ const OrganelleExperimentStage = {
 
         }
 
-        const cytoplasm =
+        const cytosol =
             document.createElement("section");
 
-        cytoplasm.className =
+        cytosol.className =
             "membrane-transport-compartment";
 
-        cytoplasm.dataset.compartment =
-            "cytoplasm";
-
-        const cytoplasmHeading =
-            document.createElement("h3");
-
-        cytoplasmHeading.textContent =
-            "Cytoplasm";
-
-        cytoplasm.appendChild(
-            cytoplasmHeading
+        cytosol.setAttribute(
+            "aria-label",
+            "Cytosol placement area"
         );
+
+        OrganelleExperimentPlacementController
+            .registerDropZone(
+                cytosol,
+                "cytosol"
+            );
 
         stage.append(
             extracellular,
             membrane,
-            cytoplasm
+            cytosol
         );
 
         return stage;
@@ -194,7 +244,7 @@ const OrganelleExperimentStage = {
     },
 
     // --------------------------------------------------
-    // Render the experiment material tray
+    // Render the draggable materials tray
     // --------------------------------------------------
     renderMaterialTray(experiment) {
 
@@ -216,52 +266,15 @@ const OrganelleExperimentStage = {
         materials.className =
             "organelle-experiment-material-list";
 
-        const stageMaterials =
-            experiment.stage?.materials ?? [];
-
-        stageMaterials.forEach(material => {
-
-            const materialCard =
-                document.createElement("article");
-
-            materialCard.className =
-                "organelle-experiment-material";
-
-            materialCard.dataset.materialId =
-                material.id;
-
-            const symbol =
-                document.createElement("span");
-
-            symbol.className =
-                "organelle-experiment-material-symbol";
-
-            symbol.textContent =
-                material.symbol;
-
-            const name =
-                document.createElement("strong");
-
-            name.textContent =
-                material.label;
-
-            const description =
-                document.createElement("span");
-
-            description.className =
-                "organelle-experiment-material-description";
-
-            description.textContent =
-                material.description;
-
-            materialCard.append(
-                symbol,
-                name,
-                description
-            );
+        (
+            experiment.stage?.materials ?? []
+        ).forEach(material => {
 
             materials.appendChild(
-                materialCard
+                OrganelleExperimentPlacementController
+                    .createMaterialSource(
+                        material
+                    )
             );
 
         });
@@ -269,6 +282,51 @@ const OrganelleExperimentStage = {
         tray.append(
             heading,
             materials
+        );
+
+        return tray;
+
+    },
+
+    // --------------------------------------------------
+    // Render the draggable labels tray
+    // --------------------------------------------------
+    renderLabelTray(experiment) {
+
+        const tray =
+            document.createElement("aside");
+
+        tray.className =
+            "organelle-experiment-label-tray";
+
+        const heading =
+            document.createElement("h3");
+
+        heading.textContent =
+            "Labels";
+
+        const labels =
+            document.createElement("div");
+
+        labels.className =
+            "organelle-experiment-label-list";
+
+        (
+            experiment.stage?.labels ?? []
+        ).forEach(labelData => {
+
+            labels.appendChild(
+                OrganelleExperimentPlacementController
+                    .createLabelSource(
+                        labelData
+                    )
+            );
+
+        });
+
+        tray.append(
+            heading,
+            labels
         );
 
         return tray;
@@ -290,8 +348,28 @@ const OrganelleExperimentStage = {
             return;
         }
 
+        const resolvedExperiment = {
+
+            ...experiment,
+
+            stage:
+                ExperimentStageDefinitionResolver
+                    .resolveStage(
+                        experiment.stage
+                    )
+
+        };
+
+        OrganelleExperimentPlacementController.start(
+            resolvedExperiment
+        );
+
         this.titleElement.textContent =
-            experiment.title;
+            resolvedExperiment.title;
+
+        this.renderControls(
+            resolvedExperiment
+        );
 
         this.contentElement.replaceChildren();
 
@@ -311,7 +389,7 @@ const OrganelleExperimentStage = {
             "organelle-experiment-objective";
 
         objective.textContent =
-            experiment.objective ??
+            resolvedExperiment.objective ??
             "Complete the experiment objective.";
 
         this.contentElement.append(
@@ -320,34 +398,51 @@ const OrganelleExperimentStage = {
         );
 
         if (
-            experiment.stage?.template ===
+            resolvedExperiment.stage?.template !==
             "membrane_transport"
         ) {
-            this.contentElement.append(
-                this.renderMembraneTransportStage(
-                    experiment
-                ),
-
-                this.renderMaterialTray(
-                    experiment
-                )
-            );
-
             return;
         }
 
-        const message =
-            document.createElement("p");
+        const activityLayout =
+            document.createElement("div");
 
-        message.className =
-            "organelle-experiment-stage-message";
+        activityLayout.className =
+            "organelle-experiment-activity-layout";
 
-        message.textContent =
-            "No stage template is defined for this experiment.";
+        const workspace =
+            document.createElement("div");
+
+        workspace.className =
+            "organelle-experiment-workspace";
+
+        workspace.append(
+            this.renderMembraneTransportStage(),
+            this.renderMaterialTray(
+                resolvedExperiment
+            )
+        );
+
+        activityLayout.append(
+            this.renderLabelTray(
+                resolvedExperiment
+            ),
+            workspace
+        );
 
         this.contentElement.appendChild(
-            message
+            activityLayout
         );
+
+    },
+
+    // --------------------------------------------------
+    // Read temporary placement data for future grading
+    // --------------------------------------------------
+    getPlacementSnapshot() {
+
+        return OrganelleExperimentPlacementController
+            .getPlacementSnapshot();
 
     }
 
