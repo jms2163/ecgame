@@ -84,6 +84,45 @@ const CellSystemManager = {
 
         return true;
 
+    },
+
+    // --------------------------------------------------
+    // Adjust a metric by a relative amount
+    // --------------------------------------------------
+    adjustMetric(
+        systemId,
+        metricId,
+        amount
+    ) {
+
+        if (!Number.isFinite(amount)) {
+            console.warn(
+                "CellSystemManager: metric adjustment must be finite"
+            );
+
+            return false;
+        }
+
+        const system =
+            this.getSystem(systemId);
+
+        const currentValue =
+            system?.[metricId];
+
+        if (!Number.isFinite(currentValue)) {
+            console.warn(
+                `CellSystemManager: unknown metric "${metricId}" for "${systemId}"`
+            );
+
+            return false;
+        }
+
+        return this.setMetric(
+            systemId,
+            metricId,
+            currentValue + amount
+        );
+
     }
 
 };
