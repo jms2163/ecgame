@@ -17,6 +17,7 @@ import XPManager from "./XPManager.js";
 import ResearchManager from "./ResearchManager.js";
 import CellSystemManager
     from "./CellSystemManager.js";
+    import OrganelleView from "./OrganelleView.js";
 
 const DevConsole = {
 
@@ -36,7 +37,8 @@ const DevConsole = {
             ResourceManager,
             XPManager,
             ResearchManager,
-            CellSystemManager
+            CellSystemManager,
+            OrganelleView
             
 
         };

@@ -24,9 +24,9 @@ const CellMapLayout = {
             hotspotDiameter: 50,
 
             labelPosition: {
-                x: 141,
-                y: 41,
-                anchor: "start"
+                x: 1080,
+                y: 100,
+                anchor: "end"
             }
         },
 
@@ -45,8 +45,8 @@ const CellMapLayout = {
             hotspotDiameter: 50,
 
             labelPosition: {
-                x: 397,
-                y: 8,
+                x: 120,
+                y: 100,
                 anchor: "start"
             }
         },
@@ -66,8 +66,8 @@ const CellMapLayout = {
             hotspotDiameter: 50,
 
             labelPosition: {
-                x: 69,
-                y: 98,
+                x: 120,
+                y: 210,
                 anchor: "start"
             }
         },
@@ -87,8 +87,8 @@ const CellMapLayout = {
             hotspotDiameter: 50,
 
             labelPosition: {
-                x: 71,
-                y: 385,
+                x: 120,
+                y: 320,
                 anchor: "start"
             }
         },
@@ -108,9 +108,9 @@ const CellMapLayout = {
             hotspotDiameter: 140,
 
             labelPosition: {
-                x: 581,
-                y: -21,
-                anchor: "start"
+                x: 1080,
+                y: 200,
+                anchor: "end"
             }
         },
 
@@ -129,9 +129,9 @@ const CellMapLayout = {
             hotspotDiameter: 120,
 
             labelPosition: {
-                x: 221,
-                y: 682,
-                anchor: "start"
+                x: 1080,
+                y: 300,
+                anchor: "end"
             }
         },
 
@@ -150,9 +150,9 @@ const CellMapLayout = {
             hotspotDiameter: 70,
 
             labelPosition: {
-                x: 834,
-                y: 68,
-                anchor: "start"
+                x: 1080,
+                y: 410,
+                anchor: "end"
             }
         },
 
@@ -171,8 +171,8 @@ const CellMapLayout = {
             hotspotDiameter: 30,
 
             labelPosition: {
-                x: 858,
-                y: 784,
+                x: 120,
+                y: 560,
                 anchor: "start"
             }
         },
@@ -192,8 +192,8 @@ const CellMapLayout = {
             hotspotDiameter: 70,
 
             labelPosition: {
-                x: 746,
-                y: 29,
+                x: 420,
+                y: 760,
                 anchor: "start"
             }
         },
@@ -213,9 +213,9 @@ const CellMapLayout = {
             hotspotDiameter: 90,
 
             labelPosition: {
-                x: 678,
-                y: -47,
-                anchor: "start"
+                x: 1080,
+                y: 510,
+                anchor: "end"
             }
         },
 
@@ -234,8 +234,8 @@ const CellMapLayout = {
             hotspotDiameter: 90,
 
             labelPosition: {
-                x: 434,
-                y: 653,
+                x: 120,
+                y: 430,
                 anchor: "start"
             }
         },
@@ -255,8 +255,8 @@ const CellMapLayout = {
             hotspotDiameter: 90,
 
             labelPosition: {
-                x: 562,
-                y: 697,
+                x: 120,
+                y: 500,
                 anchor: "start"
             }
         },
@@ -276,8 +276,8 @@ const CellMapLayout = {
             hotspotDiameter: 50,
 
             labelPosition: {
-                x: 511,
-                y: 728,
+                x: 470,
+                y: 50,
                 anchor: "start"
             }
         },
@@ -297,8 +297,8 @@ const CellMapLayout = {
             hotspotDiameter: 50,
 
             labelPosition: {
-                x: 269,
-                y: 80,
+                x: 120,
+                y: 630,
                 anchor: "start"
             }
         },
@@ -318,9 +318,9 @@ const CellMapLayout = {
             hotspotDiameter: 40,
 
             labelPosition: {
-                x: 919,
-                y: 169,
-                anchor: "start"
+                x: 1080,
+                y: 610,
+                anchor: "end"
             }
         },
 
@@ -339,9 +339,9 @@ const CellMapLayout = {
             hotspotDiameter: 40,
 
             labelPosition: {
-                x: 1123,
-                y: 566,
-                anchor: "end"
+                x: 700,
+                y: 760,
+                anchor: "start"
             }
         },
 
@@ -360,9 +360,9 @@ const CellMapLayout = {
             hotspotDiameter: 50,
 
             labelPosition: {
-                x: 1108,
-                y: 411,
-                anchor: "end"
+                x: 120,
+                y: 700,
+                anchor: "start"
             }
         },
 
@@ -381,9 +381,9 @@ const CellMapLayout = {
             hotspotDiameter: 50,
 
             labelPosition: {
-                x: 50,
-                y: 346,
-                anchor: "start"
+                x: 1080,
+                y: 710,
+                anchor: "end"
             }
         }
 
