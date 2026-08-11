@@ -65,6 +65,7 @@ const PondMicrobiomeSensorPane = {
     chemicalSignalsElement: null,
     temperatureElement: null,
     compositeHealthElement: null,
+    compositeHealthCardElement: null,
 
     oxygenCardElement: null,
     phCardElement: null,
@@ -97,6 +98,7 @@ Object.values(
             this.chemicalSignalsElement &&
             this.temperatureElement &&
             this.compositeHealthElement &&
+            this.compositeHealthCardElement &&
             this.oxygenCardElement &&
             this.phCardElement &&
             this.lightCardElement &&
@@ -152,6 +154,10 @@ Object.values(
             this.compositeHealthElement =
     document.getElementById(
         "pond-composite-health-value"
+    );
+    this.compositeHealthCardElement =
+    document.getElementById(
+        "pond-composite-health-score"
     );
 
         // --------------------------------------------------
@@ -336,6 +342,12 @@ this.statusMetricElements =
     );
 }
 
+if (!this.compositeHealthCardElement) {
+    console.warn(
+        "PondMicrobiomeSensorPane: composite health card not found"
+    );
+}
+
         Object.entries(
     this.statusMetricElements
 ).forEach(
@@ -377,6 +389,12 @@ this.statusMetricElements =
             "Temperature",
             "Temperature affects the speed of diffusion, membrane transport, and enzyme-controlled reactions."
         );
+
+        this.attachInfoPanelListener(
+    this.compositeHealthCardElement,
+    "Composite Health Score",
+    "Composite Health combines your cell's intrinsic organelle efficiency with the temporary conditions of the current microbiome. Moving to a new tile can change this score without permanently changing your cell."
+);
 
         // --------------------------------------------------
         // Chemical Signals probe-control button
