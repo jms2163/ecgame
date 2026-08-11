@@ -4,9 +4,13 @@
 // Represents the organelle view and study workspace
 // --------------------------------------------------
 
-import ResearchManager from "./ResearchManager.js";
 import OrganelleExperimentPanel
     from "./OrganelleExperimentPanel.js";
+import OrganelleExperimentStage
+    from "./OrganelleExperimentStage.js";
+
+const DEFAULT_ORGANELLE_ID =
+    "plasma_membrane";
 
 const OrganelleView = {
 
@@ -47,6 +51,8 @@ const OrganelleView = {
 
         OrganelleExperimentPanel.initialize();
 
+        OrganelleExperimentStage.initialize();
+
         console.log(
             "OrganelleView.initialize() called"
         );
@@ -56,12 +62,12 @@ const OrganelleView = {
     },
 
     // --------------------------------------------------
-    // Run one selected-organelle experiment
+    // Open one experiment on the stage
     // --------------------------------------------------
-    runExperiment(experimentId) {
+    openExperiment(experiment) {
 
-        return ResearchManager.completeExperiment(
-            experimentId
+        OrganelleExperimentStage.open(
+            experiment
         );
 
     },
@@ -87,19 +93,22 @@ const OrganelleView = {
         }
 
         this.focusedOrganelleId =
-            focusId;
+            focusId ??
+            DEFAULT_ORGANELLE_ID;
 
         // Temporary DOM reflection for inspection.
         element.dataset.focusId =
-            focusId ?? "";
+            this.focusedOrganelleId;
+
+        OrganelleExperimentStage.clear();
 
         OrganelleExperimentPanel.render(
             this.focusedOrganelleId,
             {
-                onRunExperiment:
-                    experimentId =>
-                        this.runExperiment(
-                            experimentId
+                onOpenExperiment:
+                    experiment =>
+                        this.openExperiment(
+                            experiment
                         )
             }
         );

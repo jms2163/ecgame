@@ -19,6 +19,51 @@ const OrganelleExperimentLibrary = {
         summary:
             "Observe water moving slowly across the plasma membrane without ATP or a transport protein.",
 
+        catalogReward:
+            "+100 XP",
+
+        objective:
+            "Use water and electrolyte to determine how a solute gradient changes net water movement across a plasma membrane.",
+
+        stage: {
+
+            template:
+                "membrane_transport",
+
+            materials: [
+
+                {
+                    id:
+                        "water",
+
+                    label:
+                        "Water",
+
+                    symbol:
+                        "H₂O",
+
+                    description:
+                        "Water molecules can move passively across a plasma membrane."
+                },
+
+                {
+                    id:
+                        "electrolyte",
+
+                    label:
+                        "Salt (Electrolyte)",
+
+                    symbol:
+                        "Na⁺ + Cl⁻",
+
+                    description:
+                        "Dissolved ions create an osmotic gradient that influences net water movement."
+                }
+
+            ]
+
+        },
+
         requirements: {
 
             discoveries: [
@@ -39,6 +84,19 @@ const OrganelleExperimentLibrary = {
 
             metricEffects: []
 
+        },
+
+        observation: {
+
+            title:
+                "Observation",
+
+            description:
+                "Water molecules move in both directions across the plasma membrane. A small amount can pass directly through the lipid bilayer without ATP or a transport protein.",
+
+            takeaway:
+                "Water can move passively across a membrane, but direct diffusion is comparatively slow."
+
         }
 
     },
@@ -56,6 +114,65 @@ const OrganelleExperimentLibrary = {
 
         summary:
             "Compare slow passive water movement with rapid water movement through an aquaporin channel.",
+
+        catalogReward:
+            "+500 XP • +5% membrane transport • +3% vacuole osmoregulation",
+
+        objective:
+            "Place aquaporin correctly in the plasma membrane and compare direct water diffusion with channel-facilitated water transport.",
+
+        stage: {
+
+            template:
+                "membrane_transport",
+
+            materials: [
+
+                {
+                    id:
+                        "water",
+
+                    label:
+                        "Water",
+
+                    symbol:
+                        "H₂O",
+
+                    description:
+                        "Water molecules move in response to an osmotic gradient."
+                },
+
+                {
+                    id:
+                        "electrolyte",
+
+                    label:
+                        "Salt (Electrolyte)",
+
+                    symbol:
+                        "Na⁺ + Cl⁻",
+
+                    description:
+                        "Dissolved ions establish the osmotic gradient."
+                },
+
+                {
+                    id:
+                        "aquaporin",
+
+                    label:
+                        "Aquaporin",
+
+                    symbol:
+                        "AQP",
+
+                    description:
+                        "A selective membrane channel that increases the rate of passive water transport."
+                }
+
+            ]
+
+        },
 
         requirements: {
 
@@ -112,6 +229,19 @@ const OrganelleExperimentLibrary = {
                 }
 
             ]
+
+        },
+
+        observation: {
+
+            title:
+                "Observation",
+
+            description:
+                "Aquaporin forms a selective channel that allows water to cross the membrane much faster than direct diffusion through lipids. This transport remains passive and does not consume ATP.",
+
+            takeaway:
+                "A membrane protein can increase transport rate without changing passive diffusion into active transport."
 
         }
 

@@ -477,6 +477,11 @@
                     Cell View
                 </h1>
 
+                <p id="cell-view-instructions">
+    Click on a discovered organelle to experiment on it
+    in the Organelle Lab.
+</p>
+
                 <div id="cell-workspace">
 
                     <section
@@ -498,7 +503,7 @@
 
             </section>
 
-            <section
+           <section
     id="organelle-view"
     class="zoom-layer hidden">
 
@@ -506,41 +511,102 @@
         Organelle Lab
     </h1>
 
-    <div id="organelle-lab-workspace">
-
-        <header
-    id="organelle-lab-header">
-
-    <p>
-        Selected Organelle
-    </p>
-
-    <h2 id="organelle-lab-focus-name">
-        No organelle selected
-    </h2>
-
-    <p id="organelle-lab-focus-summary">
-        Select a discovered organelle in Cell View
-        to study its available experiments.
-    </p>
-
-    <p
-        id="organelle-lab-action-message"
-        aria-live="polite">
-    </p>
-
-</header>
+    <div id="organelle-workspace">
 
         <section
-            id="organelle-experiment-list"
-            aria-label="Organelle experiments"
-            aria-live="polite">
+            id="organelle-experiment-stage"
+            aria-labelledby="organelle-experiment-stage-title">
 
-            <p>
-                No experiments selected.
-            </p>
+            <header
+                id="organelle-experiment-stage-header">
+
+                <p>
+                    Experiment Stage
+                </p>
+
+                <h2 id="organelle-experiment-stage-title">
+                    No Experiment Open
+                </h2>
+
+            </header>
+
+            <div
+                id="organelle-experiment-stage-content">
+
+                <p>
+                    Select an available experiment from the
+                    organelle panel to begin.
+                </p>
+
+            </div>
 
         </section>
+
+        <aside
+            id="organelle-experiment-pane"
+            aria-label="Selected organelle experiments">
+
+            <header
+                id="organelle-lab-header">
+
+                <p>
+                    Selected Organelle
+                </p>
+
+                <h2 id="organelle-lab-focus-name">
+                    No organelle selected
+                </h2>
+
+                <p id="organelle-lab-focus-summary">
+                    Select a discovered organelle in Cell View
+                    to study its available experiments.
+                </p>
+
+                <p
+                    id="organelle-lab-action-message"
+                    aria-live="polite">
+                </p>
+
+            </header>
+
+            <section
+    id="organelle-experiment-list"
+    aria-label="Organelle experiments"
+    aria-live="polite">
+
+    <section
+        class="organelle-experiment-group"
+        aria-labelledby="organelle-unlocked-experiments-heading">
+
+        <h3
+            id="organelle-unlocked-experiments-heading"
+            class="organelle-experiment-section-heading">
+            Unlocked Experiments
+        </h3>
+
+        <div id="organelle-unlocked-experiment-list">
+        </div>
+
+    </section>
+
+    <section
+        class="organelle-experiment-group"
+        aria-labelledby="organelle-locked-experiments-heading">
+
+        <h3
+            id="organelle-locked-experiments-heading"
+            class="organelle-experiment-section-heading">
+            Locked Experiments
+        </h3>
+
+        <div id="organelle-locked-experiment-list">
+        </div>
+
+    </section>
+
+</section>
+
+        </aside>
 
     </div>
 
