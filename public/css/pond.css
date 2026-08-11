@@ -685,36 +685,214 @@
 -------------------------------------------------- */
 
 .cell-map-feature-label-line {
-    stroke: #df80ff;
+    stroke: #2b103d;
     stroke-width: 2;
     opacity: 0.8;
     pointer-events: none;
 }
 
 .cell-map-feature-label {
-    fill: #f7efff;
+    fill: #2b103d;
     font-family: monospace;
     font-size: 18px;
     font-weight: bold;
     pointer-events: none;
 }
 
+/* Discovered: dark-purple hollow ring. */
 .cell-map-feature--discovered
 .cell-map-feature-node {
-    fill: #3a1b50;
-    stroke: #f4a0ff;
+    fill: transparent;
+    stroke: #2b103d;
+    stroke-width: 4;
 }
 
+/* Undiscovered: dark-purple filled circle behind the ? marker. */
 .cell-map-feature--undiscovered
 .cell-map-feature-node {
     fill: #2b103d;
     stroke: #df80ff;
+    stroke-width: 3;
+}
+
+/* Discovered: light-purple hollow ring on hover or keyboard focus. */
+.cell-map-feature--discovered:hover
+.cell-map-feature-node,
+
+.cell-map-feature--discovered:focus
+.cell-map-feature-node {
+    fill: transparent;
+    stroke: #df80ff;
+    stroke-width: 5;
 }
 
 /* --------------------------------------------------
-   Amoeba cell-outline asset
+   Cell Map Scientific Illustration
 -------------------------------------------------- */
 
-.cell-map-amoeba-outline {
+#cell-map-container {
+    overflow: hidden;
+    background: #f7efff;
+    border: 3px solid #df80ff;
+    border-radius: 12px;
+    box-shadow:
+        0 0 16px
+        rgba(160, 32, 240, 0.45);
+}
+
+.cell-map-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 40rem;
+    background: #f7efff;
+}
+
+.cell-map-illustration {
     pointer-events: none;
+}
+
+.cell-map-feature-hit-area {
+    fill: transparent;
+    stroke: transparent;
+    pointer-events: all;
+}
+
+/* --------------------------------------------------
+   Temporary Cell Map Hotspot Calibrator
+-------------------------------------------------- */
+
+.cell-map-hotspot-calibrator-hit-area {
+    fill: transparent;
+    stroke: transparent;
+    cursor: grab;
+    pointer-events: all;
+}
+
+.cell-map-hotspot-calibrator-hit-area:active {
+    cursor: grabbing;
+}
+
+.cell-map-hotspot-calibrator-handle {
+    fill: rgba(94, 227, 141, 0.28);
+    stroke: #5ee38d;
+    stroke-width: 4;
+    pointer-events: none;
+}
+
+/* --------------------------------------------------
+   Temporary Cell Map Label Calibrator
+-------------------------------------------------- */
+
+.cell-map-label-calibrator-guide-line {
+    stroke: rgba(43, 16, 61, 0.45);
+    stroke-width: 2;
+    stroke-dasharray: 7 5;
+    pointer-events: none;
+}
+
+.cell-map-label-calibrator-guide-label {
+    fill: rgba(43, 16, 61, 0.7);
+    font-family: monospace;
+    font-size: 16px;
+    font-weight: bold;
+    pointer-events: none;
+}
+
+.cell-map-label-calibrator-active-line {
+    stroke: #5ee38d;
+    stroke-width: 3;
+    stroke-dasharray: 8 5;
+    pointer-events: none;
+}
+
+.cell-map-label-calibrator-active-label {
+    fill: #267344;
+    font-family: monospace;
+    font-size: 18px;
+    font-weight: bold;
+    pointer-events: none;
+}
+
+.cell-map-label-calibrator-hit-area {
+    fill: transparent;
+    stroke: transparent;
+    cursor: grab;
+    pointer-events: all;
+}
+
+.cell-map-label-calibrator-hit-area:active {
+    cursor: grabbing;
+}
+
+.cell-map-label-calibrator-handle {
+    fill: rgba(94, 227, 141, 0.3);
+    stroke: #267344;
+    stroke-width: 3;
+    pointer-events: none;
+}
+
+/* --------------------------------------------------
+   Cell Metrics Panel
+-------------------------------------------------- */
+
+#cell-metrics-panel {
+    box-sizing: border-box;
+    padding: 16px;
+    background: #0f041c;
+    border: 3px solid #df80ff;
+    border-radius: 12px;
+    color: #f7efff;
+    font-family: monospace;
+}
+
+.cell-metrics-title {
+    margin: 0 0 16px;
+    color: #f7efff;
+    font-size: 20px;
+}
+
+.cell-metrics-heading {
+    margin: 0 0 8px;
+    color: #df80ff;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.cell-efficiency-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.cell-efficiency-entry {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(223, 128, 255, 0.25);
+}
+
+.cell-efficiency-label {
+    color: #f7efff;
+}
+
+.cell-efficiency-value {
+    color: #df80ff;
+    font-weight: bold;
+}
+
+.cell-metrics-empty-message {
+    margin: 0;
+    color: #df80ff;
+}
+
+.cell-undiscovered-count {
+    margin: 18px 0 0;
+    color: #df80ff;
+    font-size: 12px;
 }
