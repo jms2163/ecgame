@@ -5,6 +5,11 @@
 
 import GameStateManager from "./GameStateManager.js";
 import CellMapLayout from "./CellMapLayout.js";
+import CellSystemManager
+    from "./CellSystemManager.js";
+
+import CellHealthCalculator
+    from "./CellHealthCalculator.js";
 
 const METRIC_FEATURE_IDS = new Set([
     "plasma_membrane",
@@ -100,6 +105,9 @@ const CellMetricsPanel = {
         const metricFeatures =
             this.getMetricFeatures();
 
+            const cellSystems =
+    CellSystemManager.getAllSystems();
+
         const discoveredFeatures =
             metricFeatures.filter(
                 feature =>
@@ -187,9 +195,18 @@ const CellMetricsPanel = {
                             "cell-efficiency-value"
                         );
 
-                    // Placeholder until efficiency calculations exist.
-                    value.textContent =
-                        "--";
+                    const efficiency =
+    CellHealthCalculator.getSystemEfficiency(
+        cellSystems,
+        feature.id
+    );
+
+value.textContent =
+    Number.isFinite(efficiency)
+        ? `${Math.round(
+            efficiency * 100
+        )}%`
+        : "--";
 
                     listItem.append(
                         label,
