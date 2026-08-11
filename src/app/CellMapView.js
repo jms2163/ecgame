@@ -77,29 +77,29 @@ const CellMapView = {
         // Static amoeba outline
         // --------------------------------------------------
 
-        const cellOutline =
-            this.createSvgElement(
-                "image",
-                {
-                    class:
-                        "cell-map-amoeba-outline",
+        const cellIllustration =
+    this.createSvgElement(
+        "image",
+        {
+            class:
+                "cell-map-illustration",
 
-                    href:
-                        "./public/assets/cell/amoeba-outline.svg",
+            href:
+                "./public/assets/cell/amoeba-cell-map.png",
 
-                    x: "180",
-                    y: "40",
-                    width: "820",
-                    height: "700",
+            x: "0",
+            y: "0",
+            width: "1200",
+            height: "800",
 
-                    preserveAspectRatio:
-                        "xMidYMid meet"
-                }
-            );
+            preserveAspectRatio:
+                "xMidYMid meet"
+        }
+    );
 
-        svg.appendChild(
-            cellOutline
-        );
+svg.appendChild(
+    cellIllustration
+);
 
         // --------------------------------------------------
         // Discovered labels and unknown placeholders
@@ -109,59 +109,91 @@ const CellMapView = {
             feature => {
 
                 const discovered =
-                    GameStateManager.hasDiscovery(
-                        feature.discoveryId
-                    );
+    GameStateManager.hasDiscovery(
+        feature.discoveryId
+    );
 
-                const featureGroup =
-                    this.createSvgElement(
-                        "g",
-                        {
-                            class:
-                                `cell-map-feature ` +
-                                `cell-map-feature--${feature.type} ` +
-                                `cell-map-feature--${
-                                    discovered
-                                        ? "discovered"
-                                        : "undiscovered"
-                                }`,
+const defaultHotspotDiameter =
+    feature.type === "boundary"
+        ? 36
+        : 52;
 
-                            "data-feature-id":
-                                feature.id,
+const hotspotDiameter =
+    feature.hotspotDiameter ??
+    defaultHotspotDiameter;
 
-                            "data-discovery-id":
-                                feature.discoveryId
-                        }
-                    );
+const nodeRadius =
+    hotspotDiameter / 2;
 
-                const nodeRadius =
-                    feature.type === "boundary"
-                        ? 18
-                        : 26;
+const featureGroup =
+    this.createSvgElement(
+        "g",
+        {
+            class:
+                `cell-map-feature ` +
+                `cell-map-feature--${feature.type} ` +
+                `cell-map-feature--${
+                    discovered
+                        ? "discovered"
+                        : "undiscovered"
+                }`,
 
-                const node =
-                    this.createSvgElement(
-                        "circle",
-                        {
-                            class:
-                                "cell-map-feature-node",
+            "data-feature-id":
+                feature.id,
 
-                            cx:
-                                feature.node.x,
+            "data-discovery-id":
+                feature.discoveryId,
 
-                            cy:
-                                feature.node.y,
+            "data-hotspot-diameter":
+                hotspotDiameter
+        }
+    );
 
-                            r:
-                                nodeRadius
-                        }
-                    );
+const node =
+    this.createSvgElement(
+        "circle",
+        {
+            class:
+                "cell-map-feature-node",
 
-                featureGroup.appendChild(
-                    node
-                );
+            cx:
+                feature.node.x,
+
+            cy:
+                feature.node.y,
+
+            r:
+                nodeRadius
+        }
+    );
+
+featureGroup.appendChild(
+    node
+);
 
                 if (discovered) {
+
+                    const hitArea =
+    this.createSvgElement(
+        "circle",
+        {
+            class:
+                "cell-map-feature-hit-area",
+
+            cx:
+                feature.node.x,
+
+            cy:
+                feature.node.y,
+
+            r:
+                hotspotDiameter / 2
+        }
+    );
+
+featureGroup.prepend(
+    hitArea
+);
 
                     const labelLine =
                         this.createSvgElement(

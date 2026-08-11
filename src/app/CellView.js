@@ -5,6 +5,7 @@
 // --------------------------------------------------
 
 import CellMapView from "./CellMapView.js";
+import CellMetricsPanel from "./CellMetricsPanel.js";
 
 const CellView = {
 
@@ -27,6 +28,8 @@ const CellView = {
         console.log(
             "CellView.initialize() called"
         );
+
+        CellMetricsPanel.initialize();
 
         this.initialized = true;
 
@@ -61,6 +64,8 @@ const CellView = {
         CellMapView.render({
             onFeatureSelected
         });
+
+        CellMetricsPanel.render();
 
         console.log(
             "CellView.activate() called"

@@ -17,14 +17,16 @@ const CellMapLayout = {
             labFocusId: "plasma_membrane",
 
             node: {
-                x: 850,
-                y: 300
+                x: 309,
+                y: 269
             },
 
+            hotspotDiameter: 50,
+
             labelPosition: {
-                x: 1080,
-                y: 100,
-                anchor: "end"
+                x: 141,
+                y: 41,
+                anchor: "start"
             }
         },
 
@@ -36,13 +38,15 @@ const CellMapLayout = {
             labFocusId: "cytoplasm",
 
             node: {
-                x: 430,
-                y: 330
+                x: 478,
+                y: 407
             },
 
+            hotspotDiameter: 50,
+
             labelPosition: {
-                x: 120,
-                y: 100,
+                x: 397,
+                y: 8,
                 anchor: "start"
             }
         },
@@ -55,13 +59,15 @@ const CellMapLayout = {
             labFocusId: "cytoplasm",
 
             node: {
-                x: 270,
-                y: 350
+                x: 155,
+                y: 265
             },
 
+            hotspotDiameter: 50,
+
             labelPosition: {
-                x: 120,
-                y: 210,
+                x: 69,
+                y: 98,
                 anchor: "start"
             }
         },
@@ -74,13 +80,15 @@ const CellMapLayout = {
             labFocusId: "cytoplasm",
 
             node: {
-                x: 430,
-                y: 500
+                x: 343,
+                y: 360
             },
 
+            hotspotDiameter: 50,
+
             labelPosition: {
-                x: 120,
-                y: 320,
+                x: 71,
+                y: 385,
                 anchor: "start"
             }
         },
@@ -93,14 +101,16 @@ const CellMapLayout = {
             labFocusId: "nucleus",
 
             node: {
-                x: 580,
-                y: 380
+                x: 623,
+                y: 384
             },
 
+            hotspotDiameter: 140,
+
             labelPosition: {
-                x: 1080,
-                y: 200,
-                anchor: "end"
+                x: 581,
+                y: -21,
+                anchor: "start"
             }
         },
 
@@ -112,14 +122,16 @@ const CellMapLayout = {
             labFocusId: "contractile_vacuole",
 
             node: {
-                x: 720,
-                y: 220
+                x: 430,
+                y: 347
             },
 
+            hotspotDiameter: 120,
+
             labelPosition: {
-                x: 1080,
-                y: 300,
-                anchor: "end"
+                x: 221,
+                y: 682,
+                anchor: "start"
             }
         },
 
@@ -131,14 +143,16 @@ const CellMapLayout = {
             labFocusId: "food_vacuole",
 
             node: {
-                x: 690,
-                y: 500
+                x: 844,
+                y: 387
             },
 
+            hotspotDiameter: 70,
+
             labelPosition: {
-                x: 1080,
-                y: 410,
-                anchor: "end"
+                x: 834,
+                y: 68,
+                anchor: "start"
             }
         },
 
@@ -150,13 +164,15 @@ const CellMapLayout = {
             labFocusId: "cytoskeleton",
 
             node: {
-                x: 250,
-                y: 600
+                x: 876,
+                y: 630
             },
 
+            hotspotDiameter: 30,
+
             labelPosition: {
-                x: 120,
-                y: 560,
+                x: 858,
+                y: 784,
                 anchor: "start"
             }
         },
@@ -169,13 +185,15 @@ const CellMapLayout = {
             labFocusId: "mitochondria",
 
             node: {
-                x: 480,
-                y: 550
+                x: 795,
+                y: 285
             },
 
+            hotspotDiameter: 70,
+
             labelPosition: {
-                x: 420,
-                y: 760,
+                x: 746,
+                y: 29,
                 anchor: "start"
             }
         },
@@ -188,14 +206,16 @@ const CellMapLayout = {
             labFocusId: "golgi_apparatus",
 
             node: {
-                x: 690,
-                y: 380
+                x: 680,
+                y: 279
             },
 
+            hotspotDiameter: 90,
+
             labelPosition: {
-                x: 1080,
-                y: 510,
-                anchor: "end"
+                x: 678,
+                y: -47,
+                anchor: "start"
             }
         },
 
@@ -207,13 +227,15 @@ const CellMapLayout = {
             labFocusId: "rough_endoplasmic_reticulum",
 
             node: {
-                x: 490,
-                y: 300
+                x: 522,
+                y: 321
             },
 
+            hotspotDiameter: 90,
+
             labelPosition: {
-                x: 120,
-                y: 430,
+                x: 434,
+                y: 653,
                 anchor: "start"
             }
         },
@@ -226,13 +248,15 @@ const CellMapLayout = {
             labFocusId: "smooth_endoplasmic_reticulum",
 
             node: {
-                x: 420,
-                y: 430
+                x: 706,
+                y: 464
             },
 
+            hotspotDiameter: 90,
+
             labelPosition: {
-                x: 120,
-                y: 500,
+                x: 562,
+                y: 697,
                 anchor: "start"
             }
         },
@@ -245,13 +269,15 @@ const CellMapLayout = {
             labFocusId: "ribosomes",
 
             node: {
-                x: 570,
-                y: 270
+                x: 585,
+                y: 525
             },
 
+            hotspotDiameter: 50,
+
             labelPosition: {
-                x: 470,
-                y: 50,
+                x: 511,
+                y: 728,
                 anchor: "start"
             }
         },
@@ -264,13 +290,15 @@ const CellMapLayout = {
             labFocusId: "cytoskeleton",
 
             node: {
-                x: 350,
-                y: 470
+                x: 402,
+                y: 266
             },
 
+            hotspotDiameter: 50,
+
             labelPosition: {
-                x: 120,
-                y: 630,
+                x: 269,
+                y: 80,
                 anchor: "start"
             }
         },
@@ -283,14 +311,16 @@ const CellMapLayout = {
             labFocusId: "lysosomes",
 
             node: {
-                x: 750,
-                y: 440
+                x: 926,
+                y: 309
             },
 
+            hotspotDiameter: 40,
+
             labelPosition: {
-                x: 1080,
-                y: 610,
-                anchor: "end"
+                x: 919,
+                y: 169,
+                anchor: "start"
             }
         },
 
@@ -302,14 +332,16 @@ const CellMapLayout = {
             labFocusId: "symbiosomes",
 
             node: {
-                x: 570,
-                y: 610
+                x: 944,
+                y: 465
             },
 
+            hotspotDiameter: 40,
+
             labelPosition: {
-                x: 700,
-                y: 760,
-                anchor: "start"
+                x: 1123,
+                y: 566,
+                anchor: "end"
             }
         },
 
@@ -321,14 +353,16 @@ const CellMapLayout = {
             labFocusId: "endosome",
 
             node: {
-                x: 310,
-                y: 510
+                x: 781,
+                y: 358
             },
 
+            hotspotDiameter: 50,
+
             labelPosition: {
-                x: 120,
-                y: 700,
-                anchor: "start"
+                x: 1108,
+                y: 411,
+                anchor: "end"
             }
         },
 
@@ -340,14 +374,16 @@ const CellMapLayout = {
             labFocusId: "autophagosome",
 
             node: {
-                x: 790,
-                y: 570
+                x: 244,
+                y: 299
             },
 
+            hotspotDiameter: 50,
+
             labelPosition: {
-                x: 1080,
-                y: 710,
-                anchor: "end"
+                x: 50,
+                y: 346,
+                anchor: "start"
             }
         }
 
