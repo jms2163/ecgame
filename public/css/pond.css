@@ -896,3 +896,29 @@
     color: #df80ff;
     font-size: 12px;
 }
+
+/* --------------------------------------------------
+   Composite Health Score information button
+-------------------------------------------------- */
+
+#pond-composite-health-score {
+    cursor: pointer;
+    font-family: inherit;
+    text-align: left;
+}
+
+#pond-composite-health-score:hover,
+#pond-composite-health-score:focus-visible {
+    border-color: #f4a0ff;
+    box-shadow:
+        0 0 12px
+        rgba(244, 160, 255, 0.65);
+}
+
+#pond-composite-health-score:focus-visible {
+    outline:
+        2px solid
+        rgba(247, 239, 255, 0.85);
+
+    outline-offset: 2px;
+}
