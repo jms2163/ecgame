@@ -33,8 +33,7 @@ cellSystems:
     discoveries: [
     "plasma_membrane",
     "cytoskeleton",
-    "glycoproteins",
-    "H2O" // DEBUG ONLY
+    "glycoproteins"
 ],
 
     // --------------------------------------------------

@@ -225,10 +225,11 @@
 }
 
 .organelle-experiment-material-list {
-    display: flex;
-    justify-content: center;
-    gap: 14px;
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
 }
+
+
 
 .organelle-experiment-material {
     display: grid;
@@ -602,4 +603,69 @@
     background: #2b103d;
     font-size: 0.75rem;
     text-align: center;
+}
+
+.organelle-experiment-material-name {
+    color: #f7efff;
+    font-size: 0.72rem;
+    white-space: nowrap;
+}
+
+/* --------------------------------------------------
+   Horizontal experiment-material palette
+-------------------------------------------------- */
+
+.organelle-experiment-material-list {
+    display: grid;
+    grid-template-columns:
+        repeat(3, minmax(7rem, 1fr));
+    gap: 10px;
+    overflow-x: auto;
+}
+
+.organelle-experiment-material {
+    min-width: 7rem;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: grab;
+}
+
+.organelle-experiment-material:active {
+    cursor: grabbing;
+}
+
+.organelle-experiment-label,
+.organelle-experiment-placement {
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* --------------------------------------------------
+   Visible dropped experiment materials
+-------------------------------------------------- */
+
+.membrane-transport-compartment,
+.membrane-transport-bilayer {
+    position: relative;
+}
+
+.organelle-experiment-placement {
+    position: absolute;
+    z-index: 5;
+    transform: translate(-50%, -50%);
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: grab;
+}
+
+.organelle-experiment-placement:active {
+    cursor: grabbing;
+}
+
+.organelle-experiment-placement
+.organelle-experiment-particle {
+    display: block;
 }
