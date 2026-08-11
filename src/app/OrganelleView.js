@@ -4,6 +4,10 @@
 // Represents the organelle view and study workspace
 // --------------------------------------------------
 
+import ResearchManager from "./ResearchManager.js";
+import OrganelleExperimentPanel
+    from "./OrganelleExperimentPanel.js";
+
 const OrganelleView = {
 
     active: false,
@@ -41,11 +45,24 @@ const OrganelleView = {
             "display"
         );
 
+        OrganelleExperimentPanel.initialize();
+
         console.log(
             "OrganelleView.initialize() called"
         );
 
         this.initialized = true;
+
+    },
+
+    // --------------------------------------------------
+    // Run one selected-organelle experiment
+    // --------------------------------------------------
+    runExperiment(experimentId) {
+
+        return ResearchManager.completeExperiment(
+            experimentId
+        );
 
     },
 
@@ -75,6 +92,17 @@ const OrganelleView = {
         // Temporary DOM reflection for inspection.
         element.dataset.focusId =
             focusId ?? "";
+
+        OrganelleExperimentPanel.render(
+            this.focusedOrganelleId,
+            {
+                onRunExperiment:
+                    experimentId =>
+                        this.runExperiment(
+                            experimentId
+                        )
+            }
+        );
 
         this.active = true;
 
