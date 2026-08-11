@@ -2,6 +2,8 @@
 // OrganelleExperimentPlacementController.js
 // Handles temporary pointer-based experiment placements
 // --------------------------------------------------
+import ExperimentMaterialVisualLibrary
+    from "./ExperimentMaterialVisualLibrary.js";
 
 const OrganelleExperimentPlacementController = {
 
@@ -96,54 +98,94 @@ const OrganelleExperimentPlacementController = {
     },
 
     // --------------------------------------------------
-    // Create a palette material source
+// Create one material visual from its shared visual ID
+// --------------------------------------------------
+createMaterialVisual(material) {
+
+    const visual =
+        ExperimentMaterialVisualLibrary.create(
+            material?.visualId
+        );
+
+    if (visual) {
+        return visual;
+    }
+
+    const fallback =
+        document.createElement("span");
+
+    fallback.className =
+        "organelle-experiment-particle " +
+        "organelle-experiment-particle--unknown";
+
+    fallback.textContent =
+        "?";
+
+    fallback.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+
+    return fallback;
+
+},
+
     // --------------------------------------------------
-    createMaterialSource(material) {
+// Create a palette material source
+// --------------------------------------------------
+createMaterialSource(material) {
 
-        const source =
-            document.createElement("div");
+    const source =
+        document.createElement("div");
 
-        source.className =
-            "organelle-experiment-material";
+    source.className =
+        "organelle-experiment-material";
 
-        source.dataset.materialId =
-            material.id;
+    source.dataset.materialId =
+        material.id;
 
-        source.setAttribute(
-            "aria-label",
-            material.ariaLabel
+    source.setAttribute(
+        "aria-label",
+        material.ariaLabel
+    );
+
+    const visual =
+        this.createMaterialVisual(
+            material
         );
 
-        const particle =
-            document.createElement("span");
+    const name =
+        document.createElement("span");
 
-        particle.className =
-            `organelle-experiment-particle ` +
-            `organelle-experiment-particle--${material.visual}`;
+    name.className =
+        "organelle-experiment-material-name";
 
-        particle.setAttribute(
-            "aria-hidden",
-            "true"
-        );
+    name.textContent =
+        material.displayName ??
+        material.ariaLabel ??
+        material.id;
 
-        source.appendChild(particle);
+    source.append(
+        visual,
+        name
+    );
 
-        source.addEventListener(
-            "pointerdown",
-            event => {
+    source.addEventListener(
+        "pointerdown",
+        event => {
 
-                this.beginPaletteDrag(
-                    "material",
-                    material.id,
-                    event
-                );
+            this.beginPaletteDrag(
+                "material",
+                material.id,
+                event
+            );
 
-            }
-        );
+        }
+    );
 
-        return source;
+    return source;
 
-    },
+},
 
     // --------------------------------------------------
     // Create a palette label source
@@ -265,55 +307,52 @@ const OrganelleExperimentPlacementController = {
     },
 
     // --------------------------------------------------
-    // Create a visual drag ghost
-    // --------------------------------------------------
-    createDragGhost(payload) {
+// Create a visual drag ghost under the pointer
+// --------------------------------------------------
+createDragGhost(payload) {
 
-        const ghost =
-            document.createElement("div");
+    const ghost =
+        document.createElement("div");
 
-        ghost.className =
-            "organelle-experiment-drag-ghost";
+    ghost.className =
+        "organelle-experiment-drag-ghost";
 
-        if (payload.kind === "material") {
+    if (payload.kind === "material") {
 
-            const material =
-                this.materials.get(
-                    payload.definitionId
-                );
-
-            const particle =
-                document.createElement("span");
-
-            particle.className =
-                `organelle-experiment-particle ` +
-                `organelle-experiment-particle--${material?.visual}`;
-
-            ghost.appendChild(particle);
-
-        } else {
-
-            const label =
-                this.labels.get(
-                    payload.definitionId
-                );
-
-            ghost.classList.add(
-                "organelle-experiment-drag-ghost--label"
+        const material =
+            this.materials.get(
+                payload.definitionId
             );
 
-            ghost.textContent =
-                label?.text ?? "";
-
-        }
-
-        document.body.appendChild(
-            ghost
+        ghost.appendChild(
+            this.createMaterialVisual(
+                material
+            )
         );
 
-        return ghost;
+    } else {
 
-    },
+        const label =
+            this.labels.get(
+                payload.definitionId
+            );
+
+        ghost.classList.add(
+            "organelle-experiment-drag-ghost--label"
+        );
+
+        ghost.textContent =
+            label?.text ?? "";
+
+    }
+
+    document.body.appendChild(
+        ghost
+    );
+
+    return ghost;
+
+},
 
     // --------------------------------------------------
     // Begin one pointer drag
@@ -599,21 +638,18 @@ const OrganelleExperimentPlacementController = {
 
         if (placement.kind === "material") {
 
-            const material =
-                this.materials.get(
-                    placement.definitionId
-                );
+    const material =
+        this.materials.get(
+            placement.definitionId
+        );
 
-            const particle =
-                document.createElement("span");
+    element.appendChild(
+        this.createMaterialVisual(
+            material
+        )
+    );
 
-            particle.className =
-                `organelle-experiment-particle ` +
-                `organelle-experiment-particle--${material?.visual}`;
-
-            element.appendChild(particle);
-
-        } else {
+} else {
 
             const label =
                 this.labels.get(
