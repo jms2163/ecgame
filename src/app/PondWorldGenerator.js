@@ -6,7 +6,20 @@
 import MicrobiomeLibrary from "./MicrobiomeLibrary.js";
 import PondWorldConfig from "./PondWorldConfig.js";
 
+const POPULATION_KEYS = [
 
+    "green_algae",
+    "heterotrophic_bacteria",
+    "toxic_bacteria",
+    "capsular_bacteria",
+    "filamentous_bacteria",
+    "amoeba_cysts",
+    "giant_viruses",
+    "predatory_bacteria",
+    "rotifers",
+    "daphnia"
+
+];
 
 
 
@@ -250,18 +263,32 @@ if (
 }
 
 
-        // --------------------------------------------------
-        // Blend Helper
-        // --------------------------------------------------
-        const blend = selector =>
+       // --------------------------------------------------
+// Blend active microbiome influences
+// --------------------------------------------------
+const blend = selector =>
 
-            influences.reduce(
-                (sum, item) =>
-                    sum +
-                    selector(item.profile) *
-                    item.weight,
-                0
-            ) / totalWeight;
+    influences.reduce(
+        (sum, item) =>
+            sum +
+            selector(item.profile) *
+            item.weight,
+        0
+    ) / totalWeight;
+
+// --------------------------------------------------
+// Blend a population count
+// Missing population types mean zero for that biome.
+// --------------------------------------------------
+const blendPopulation =
+    populationKey =>
+
+        blend(
+            profile =>
+                profile.environment.populations?.[
+                    populationKey
+                ] ?? 0
+        );
 
 
         // --------------------------------------------------
@@ -284,101 +311,128 @@ if (
 
             environment: {
 
-                physics: {
+    physics: {
 
-                    light:
-                        blend(
-                            profile =>
-                                profile.environment.physics.light
-                        ),
+        light:
+            blend(
+                profile =>
+                    profile.environment.physics.light
+            ),
 
-                    oxygen:
-                        blend(
-                            profile =>
-                                profile.environment.physics.oxygen
-                        ),
+        oxygen:
+            blend(
+                profile =>
+                    profile.environment.physics.oxygen
+            ),
 
-                    ph:
-                        blend(
-                            profile =>
-                                profile.environment.physics.ph
-                        ),
-                        ph:
-    blend(
-        profile =>
-            profile.environment.physics.ph
-    ),
+        ph:
+            blend(
+                profile =>
+                    profile.environment.physics.ph
+            ),
 
-temperature:
-    blend(
-        profile =>
-            profile.environment.physics.temperature
-    )
+        temperature:
+            blend(
+                profile =>
+                    profile.environment.physics.temperature
+            ),
 
-                },
+        flow_rate:
+            blend(
+                profile =>
+                    profile.environment.physics.flow_rate
+            ),
 
-                nutrients: {
+        salinity:
+            blend(
+                profile =>
+                    profile.environment.physics.salinity
+            )
 
-                    glucose:
-                        blend(
-                            profile =>
-                                profile.environment.nutrients.glucose
-                        ),
+    },
 
-                    nitrates:
-                        blend(
-                            profile =>
-                                profile.environment.nutrients.nitrates
-                        ),
+    nutrients: {
 
-                    phosphates:
-                        blend(
-                            profile =>
-                                profile.environment.nutrients.phosphates
-                        )
+        glucose:
+            blend(
+                profile =>
+                    profile.environment.nutrients.glucose
+            ),
 
-                },
-                signals: {
+        nitrates:
+            blend(
+                profile =>
+                    profile.environment.nutrients.nitrates
+            ),
 
-    folate:
-        blend(
-            profile =>
-                profile.environment.signals.folate
-        ),
+        phosphates:
+            blend(
+                profile =>
+                    profile.environment.nutrients.phosphates
+            ),
 
-    n_formyl_peptides:
-        blend(
-            profile =>
-                profile.environment.signals.n_formyl_peptides
-        ),
+        doc:
+            blend(
+                profile =>
+                    profile.environment.nutrients.doc
+            )
 
-    scfa:
-        blend(
-            profile =>
-                profile.environment.signals.scfa
-        ),
+    },
 
-    camp:
-        blend(
-            profile =>
-                profile.environment.signals.camp
-        ),
+    signals: {
 
-    cyanotoxins:
-        blend(
-            profile =>
-                profile.environment.signals.cyanotoxins
-        ),
+        folate:
+            blend(
+                profile =>
+                    profile.environment.signals.folate
+            ),
 
-    ammonia:
-        blend(
-            profile =>
-                profile.environment.signals.ammonia
+        n_formyl_peptides:
+            blend(
+                profile =>
+                    profile.environment.signals
+                        .n_formyl_peptides
+            ),
+
+        scfa:
+            blend(
+                profile =>
+                    profile.environment.signals.scfa
+            ),
+
+        camp:
+            blend(
+                profile =>
+                    profile.environment.signals.camp
+            ),
+
+        cyanotoxins:
+            blend(
+                profile =>
+                    profile.environment.signals.cyanotoxins
+            ),
+
+        ammonia:
+            blend(
+                profile =>
+                    profile.environment.signals.ammonia
+            )
+
+    },
+
+    populations:
+        Object.fromEntries(
+            POPULATION_KEYS.map(
+                populationKey => [
+                    populationKey,
+                    blendPopulation(
+                        populationKey
+                    )
+                ]
+            )
         )
 
 }
-
-            }
 
         };
 
