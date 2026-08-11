@@ -8,6 +8,8 @@ import MicrobiomeLibrary from "./MicrobiomeLibrary.js";
 import PondPerception from "./PondPerception.js";
 import PondSensorInfoPanel from "./PondSensorInfoPanel.js";
 import PondSignalProbe from "./PondSignalProbe.js";
+import CellSystemManager from "./CellSystemManager.js";
+import CellHealthCalculator from "./CellHealthCalculator.js";
 
 const PondMicrobiomeSensorPane = {
 
@@ -18,6 +20,7 @@ const PondMicrobiomeSensorPane = {
     lightElement: null,
     chemicalSignalsElement: null,
     temperatureElement: null,
+    compositeHealthElement: null,
 
     oxygenCardElement: null,
     phCardElement: null,
@@ -42,6 +45,7 @@ const PondMicrobiomeSensorPane = {
             this.lightElement &&
             this.chemicalSignalsElement &&
             this.temperatureElement &&
+            this.compositeHealthElement &&
             this.oxygenCardElement &&
             this.phCardElement &&
             this.lightCardElement &&
@@ -92,6 +96,11 @@ const PondMicrobiomeSensorPane = {
             document.getElementById(
                 "pond-sensor-temperature"
             );
+
+            this.compositeHealthElement =
+    document.getElementById(
+        "pond-composite-health-value"
+    );
 
         // --------------------------------------------------
         // Clickable sensor cards
@@ -185,6 +194,12 @@ const PondMicrobiomeSensorPane = {
                 "PondMicrobiomeSensorPane: temperature display not found"
             );
         }
+
+        if (!this.compositeHealthElement) {
+    console.warn(
+        "PondMicrobiomeSensorPane: composite health display not found"
+    );
+}
 
         if (!this.oxygenCardElement) {
             console.warn(
@@ -345,15 +360,18 @@ attachInfoPanelListener(
     },
 
     // --------------------------------------------------
-    // Format one numeric sensor value
-    // --------------------------------------------------
-    formatDecimal(value) {
+// Format one numeric sensor value
+// --------------------------------------------------
+formatDecimal(
+    value,
+    decimalPlaces = 2
+) {
 
-        return Number.isFinite(value)
-            ? value.toFixed(2)
-            : "--";
+    return Number.isFinite(value)
+        ? value.toFixed(decimalPlaces)
+        : "--";
 
-    },
+},
 
     // --------------------------------------------------
     // Update an available or locked cell capability
@@ -430,11 +448,37 @@ attachInfoPanelListener(
         }
 
         if (this.temperatureElement) {
-            this.temperatureElement.textContent =
-                this.formatDecimal(
-                    tile?.physics?.temperature
-                );
-        }
+
+    const temperature =
+        this.formatDecimal(
+            tile?.physics?.temperature,
+            1
+        );
+
+    this.temperatureElement.textContent =
+        temperature === "--"
+            ? "--"
+            : `${temperature} °C`;
+
+}
+
+// --------------------------------------------------
+// Composite cell health score
+// --------------------------------------------------
+
+if (this.compositeHealthElement) {
+
+    const healthReport =
+        CellHealthCalculator.calculate(
+            CellSystemManager.getAllSystems()
+        );
+
+    this.compositeHealthElement.textContent =
+        `${Math.round(
+            healthReport.compositeHealth * 100
+        )}%`;
+
+}
 
         // --------------------------------------------------
         // Chemical signals quick readout
