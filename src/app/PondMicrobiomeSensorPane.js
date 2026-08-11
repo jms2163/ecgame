@@ -14,6 +14,8 @@ import CellEnvironmentEngine from "./CellEnvironmentEngine.js";
 import CellConditionCalculator from "./CellConditionCalculator.js";
 import CellStatusEvaluator
     from "./CellStatusEvaluator.js";
+    import CellCapabilityEvaluator
+    from "./CellCapabilityEvaluator.js";
 
 const NUMERIC_STATUS_METRIC_IDS = {
 
@@ -771,25 +773,20 @@ if (effectiveCellReport) {
         // Cell capability readouts
         // --------------------------------------------------
 
-        const pseudopodsAvailable =
-            GameStateManager.hasDiscovery(
-                "cytoskeleton"
-            );
+        const capabilities =
+    CellCapabilityEvaluator.evaluate();
 
-        this.updateCapability(
-            this.pseudopodElement,
-            pseudopodsAvailable
-        );
+this.updateCapability(
+    this.pseudopodElement,
+    capabilities.pseudopodFormation
+        .available
+);
 
-        const adhesionAvailable =
-            GameStateManager.hasDiscovery(
-                "glycoproteins"
-            );
-
-        this.updateCapability(
-            this.adhesionElement,
-            adhesionAvailable
-        );
+this.updateCapability(
+    this.adhesionElement,
+    capabilities.cellAdhesion
+        .available
+);
 
         // --------------------------------------------------
         // Current anchoring state
