@@ -20,6 +20,7 @@ cellSystems:
     CellSystemDefinitions.createStartingCellSystems(),
 
   registry: {
+
     resources: {
         atp: {
             current: 50,
@@ -28,20 +29,33 @@ cellSystems:
     },
 
     inventory: [],
+
     discoveries: [
     "plasma_membrane",
     "cytoskeleton",
-    "glycoproteins"
+    "glycoproteins",
+    "H2O" // DEBUG ONLY
 ],
 
-cellSystems: {
-    cytoskeleton: {
-        pseudopodEfficiency: 0.20
-    }
-},
+    // --------------------------------------------------
+    // One-time research outcomes
+    // --------------------------------------------------
+    achievements: {},
+
+    research: {
+
+        // Example future record:
+        // water_passive_diffusion: {
+        //     completedAtMs: 1780000000000
+        // }
+        completedExperiments: {}
+
+    },
+
     certifications: [],
     quests: [],
     journal: []
+
 },
 
     zones: {

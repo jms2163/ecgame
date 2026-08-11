@@ -13,6 +13,10 @@ import PondWorldGenerator from "./PondWorldGenerator.js";
 import SeededRandom from "./SeededRandom.js";
 import PondWorldConfig from "./PondWorldConfig.js";
 import ResourceManager from "./ResourceManager.js";
+import XPManager from "./XPManager.js";
+import ResearchManager from "./ResearchManager.js";
+import CellSystemManager
+    from "./CellSystemManager.js";
 
 const DevConsole = {
 
@@ -29,7 +33,10 @@ const DevConsole = {
             PondWorldGenerator,
             SeededRandom,
             PondWorldConfig,
-            ResourceManager
+            ResourceManager,
+            XPManager,
+            ResearchManager,
+            CellSystemManager
             
 
         };
