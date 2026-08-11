@@ -13,10 +13,12 @@ const OrganelleExperimentPanel = {
     focusNameElement: null,
     summaryElement: null,
     actionMessageElement: null,
-    listElement: null,
+
+    unlockedListElement: null,
+    lockedListElement: null,
 
     currentOrganelleId: null,
-    onRunExperiment: null,
+    onOpenExperiment: null,
 
     // --------------------------------------------------
     // Find Organelle Lab display elements
@@ -27,7 +29,8 @@ const OrganelleExperimentPanel = {
             this.focusNameElement &&
             this.summaryElement &&
             this.actionMessageElement &&
-            this.listElement
+            this.unlockedListElement &&
+            this.lockedListElement
         ) {
             return true;
         }
@@ -47,16 +50,22 @@ const OrganelleExperimentPanel = {
                 "organelle-lab-action-message"
             );
 
-        this.listElement =
+        this.unlockedListElement =
             document.getElementById(
-                "organelle-experiment-list"
+                "organelle-unlocked-experiment-list"
+            );
+
+        this.lockedListElement =
+            document.getElementById(
+                "organelle-locked-experiment-list"
             );
 
         if (
             !this.focusNameElement ||
             !this.summaryElement ||
             !this.actionMessageElement ||
-            !this.listElement
+            !this.unlockedListElement ||
+            !this.lockedListElement
         ) {
             console.warn(
                 "OrganelleExperimentPanel: Organelle Lab display elements not found"
@@ -103,12 +112,10 @@ const OrganelleExperimentPanel = {
     // --------------------------------------------------
     // Create one experiment card
     // --------------------------------------------------
-    createExperimentCard(experiment) {
-
-        const status =
-            ResearchManager.getExperimentStatus(
-                experiment.id
-            );
+    createExperimentCard(
+        experiment,
+        status
+    ) {
 
         const state =
             status.completed
@@ -131,10 +138,20 @@ const OrganelleExperimentPanel = {
             state;
 
         const title =
-            document.createElement("h3");
+            document.createElement("h4");
 
         title.textContent =
             experiment.title;
+
+        const reward =
+            document.createElement("p");
+
+        reward.className =
+            "organelle-experiment-reward";
+
+        reward.textContent =
+            experiment.catalogReward ??
+            "No listed reward";
 
         const summary =
             document.createElement("p");
@@ -157,79 +174,96 @@ const OrganelleExperimentPanel = {
 
         card.append(
             title,
+            reward,
             summary,
             statusElement
         );
 
-        if (state === "available") {
+        if (
+            state === "completed" &&
+            experiment.observation
+        ) {
 
-            const runButton =
-                document.createElement("button");
+            const observation =
+                document.createElement("section");
 
-            runButton.type =
-                "button";
+            observation.className =
+                "organelle-experiment-observation";
 
-            runButton.className =
-                "organelle-experiment-run-button";
+            const observationTitle =
+                document.createElement("h5");
 
-            runButton.textContent =
-                "Run Experiment";
+            observationTitle.textContent =
+                experiment.observation.title;
 
-            runButton.addEventListener(
-                "click",
-                () => {
+            const description =
+                document.createElement("p");
 
-                    if (
-                        typeof this.onRunExperiment !==
-                        "function"
-                    ) {
-                        console.warn(
-                            "OrganelleExperimentPanel: experiment callback unavailable"
-                        );
+            description.textContent =
+                experiment.observation.description;
 
-                        return;
-                    }
+            const takeaway =
+                document.createElement("p");
 
-                    const result =
-                        this.onRunExperiment(
-                            experiment.id
-                        );
+            takeaway.className =
+                "organelle-experiment-takeaway";
 
-                    if (!result?.completed) {
+            takeaway.textContent =
+                experiment.observation.takeaway;
 
-                        this.render(
-                            this.currentOrganelleId,
-                            {
-                                onRunExperiment:
-                                    this.onRunExperiment,
-
-                                actionMessage:
-                                    "Experiment could not be completed."
-                            }
-                        );
-
-                        return;
-                    }
-
-                    this.render(
-                        this.currentOrganelleId,
-                        {
-                            onRunExperiment:
-                                this.onRunExperiment,
-
-                            actionMessage:
-                                `Experiment completed. +${result.xpAwarded} XP awarded.`
-                        }
-                    );
-
-                }
+            observation.append(
+                observationTitle,
+                description,
+                takeaway
             );
 
             card.appendChild(
-                runButton
+                observation
             );
 
         }
+
+        if (state === "available") {
+
+    const openButton =
+        document.createElement("button");
+
+    openButton.type =
+        "button";
+
+    openButton.className =
+        "organelle-experiment-run-button";
+
+    openButton.textContent =
+        "Open Experiment";
+
+    openButton.addEventListener(
+        "click",
+        () => {
+
+            if (
+                typeof this.onOpenExperiment !==
+                "function"
+            ) {
+                console.warn(
+                    "OrganelleExperimentPanel: experiment open callback unavailable"
+                );
+
+                return;
+            }
+
+            this.onOpenExperiment(
+                experiment
+            );
+
+        }
+    );
+
+    card.appendChild(
+        openButton
+    );
+
+}
 
         if (state === "locked") {
 
@@ -280,12 +314,35 @@ const OrganelleExperimentPanel = {
     },
 
     // --------------------------------------------------
+    // Add a catalog empty-state message
+    // --------------------------------------------------
+    appendEmptyMessage(
+        container,
+        message
+    ) {
+
+        const emptyMessage =
+            document.createElement("p");
+
+        emptyMessage.className =
+            "organelle-experiment-empty-message";
+
+        emptyMessage.textContent =
+            message;
+
+        container.appendChild(
+            emptyMessage
+        );
+
+    },
+
+    // --------------------------------------------------
     // Render experiments for the selected organelle
     // --------------------------------------------------
     render(
         organelleId,
         {
-            onRunExperiment = null,
+            onOpenExperiment = null,
             actionMessage = ""
         } = {}
     ) {
@@ -297,10 +354,12 @@ const OrganelleExperimentPanel = {
         this.currentOrganelleId =
             organelleId;
 
-        this.onRunExperiment =
-            onRunExperiment;
+        this.onOpenExperiment =
+            onOpenExperiment;
 
-        this.listElement.replaceChildren();
+        this.unlockedListElement.replaceChildren();
+
+        this.lockedListElement.replaceChildren();
 
         this.actionMessageElement.textContent =
             actionMessage;
@@ -313,14 +372,14 @@ const OrganelleExperimentPanel = {
             this.summaryElement.textContent =
                 "Select a discovered organelle in Cell View to study its available experiments.";
 
-            const message =
-                document.createElement("p");
+            this.appendEmptyMessage(
+                this.unlockedListElement,
+                "No experiments selected."
+            );
 
-            message.textContent =
-                "No experiments selected.";
-
-            this.listElement.appendChild(
-                message
+            this.appendEmptyMessage(
+                this.lockedListElement,
+                "No experiments selected."
             );
 
             return;
@@ -342,30 +401,83 @@ const OrganelleExperimentPanel = {
         this.summaryElement.textContent =
             "Experiments reveal how molecular structure affects cell function.";
 
-        if (experiments.length === 0) {
+        const experimentStatuses =
+            experiments.map(experiment => ({
+                experiment,
 
-            const message =
-                document.createElement("p");
+                status:
+                    ResearchManager.getExperimentStatus(
+                        experiment.id
+                    )
+            }));
 
-            message.textContent =
-                "No experiments are defined for this organelle yet.";
-
-            this.listElement.appendChild(
-                message
+        const unlockedExperiments =
+            experimentStatuses.filter(
+                ({ status }) =>
+                    status.available ||
+                    status.completed
             );
 
-            return;
+        const lockedExperiments =
+            experimentStatuses.filter(
+                ({ status }) =>
+                    !status.available &&
+                    !status.completed
+            );
+
+        if (
+            unlockedExperiments.length === 0
+        ) {
+            this.appendEmptyMessage(
+                this.unlockedListElement,
+                "No experiments have been unlocked for this organelle."
+            );
+        } else {
+
+            unlockedExperiments.forEach(
+                ({
+                    experiment,
+                    status
+                }) => {
+
+                    this.unlockedListElement.appendChild(
+                        this.createExperimentCard(
+                            experiment,
+                            status
+                        )
+                    );
+
+                }
+            );
+
         }
 
-        experiments.forEach(experiment => {
+        if (
+            lockedExperiments.length === 0
+        ) {
+            this.appendEmptyMessage(
+                this.lockedListElement,
+                "No additional experiments are currently locked."
+            );
+        } else {
 
-            this.listElement.appendChild(
-                this.createExperimentCard(
-                    experiment
-                )
+            lockedExperiments.forEach(
+                ({
+                    experiment,
+                    status
+                }) => {
+
+                    this.lockedListElement.appendChild(
+                        this.createExperimentCard(
+                            experiment,
+                            status
+                        )
+                    );
+
+                }
             );
 
-        });
+        }
 
     }
 
