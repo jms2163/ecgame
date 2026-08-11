@@ -1,3 +1,5 @@
+import CellSystemDefinitions from "./CellSystemDefinitions.js";
+
 const gameState = {
 
     player: {
@@ -10,6 +12,12 @@ const gameState = {
         currentZone: "pond",
         currentZoom: 0
     },
+
+    // --------------------------------------------------
+// Player cell biological systems
+// --------------------------------------------------
+cellSystems:
+    CellSystemDefinitions.createStartingCellSystems(),
 
   registry: {
     resources: {
