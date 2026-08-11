@@ -17,6 +17,7 @@ const METRIC_FEATURE_IDS = new Set([
     "smooth_endoplasmic_reticulum",
     "ribosomes",
     "cytoskeleton",
+    "pseudopodia",
     "lysosomes",
     "symbiosomes",
     "endosome",
