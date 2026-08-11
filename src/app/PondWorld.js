@@ -84,6 +84,12 @@ ensureRegion(world, centerX, centerY, radius) {
     tile.physics.temperature =
         generated.environment.physics.temperature;
 
+        tile.physics.flow_rate =
+    generated.environment.physics.flow_rate;
+
+tile.physics.salinity =
+    generated.environment.physics.salinity;
+
     tile.chemistry.nutrients.glucose =
         generated.environment.nutrients.glucose;
 
@@ -92,6 +98,10 @@ ensureRegion(world, centerX, centerY, radius) {
 
     tile.chemistry.nutrients.phosphates =
         generated.environment.nutrients.phosphates;
+
+        tile.chemistry.nutrients.doc =
+    generated.environment.nutrients.doc;
+
     tile.chemistry.signals.folate =
     generated.environment.signals.folate;
 
@@ -109,6 +119,10 @@ tile.chemistry.signals.cyanotoxins =
 
 tile.chemistry.signals.ammonia =
     generated.environment.signals.ammonia;
+
+    tile.populations = {
+    ...generated.environment.populations
+};
 
     world.tiles[key] = tile;
 

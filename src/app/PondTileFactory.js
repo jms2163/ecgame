@@ -22,6 +22,8 @@ const PondTileFactory = {
 
             physics: {
                 temperature: 25.0,
+                flow_rate: 0.0,
+                salinity: 0.0,
                 light: 0.8,
                 oxygen: 0.8,
                 ph: 7.0,
@@ -34,7 +36,8 @@ const PondTileFactory = {
                 nutrients: {
                     glucose: 10,
                     nitrates: 5,
-                    phosphates: 2
+                    phosphates: 2,
+                    doc: 0.0
                 },
 
                 signals: {

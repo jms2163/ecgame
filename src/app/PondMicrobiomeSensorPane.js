@@ -10,6 +10,50 @@ import PondSensorInfoPanel from "./PondSensorInfoPanel.js";
 import PondSignalProbe from "./PondSignalProbe.js";
 import CellSystemManager from "./CellSystemManager.js";
 import CellHealthCalculator from "./CellHealthCalculator.js";
+import CellEnvironmentEngine from "./CellEnvironmentEngine.js";
+import CellConditionCalculator from "./CellConditionCalculator.js";
+import CellStatusEvaluator
+    from "./CellStatusEvaluator.js";
+
+const NUMERIC_STATUS_METRIC_IDS = {
+
+    mutationRate:
+        "stat-mutation",
+
+    dnaDamage:
+        "stat-dna-damage",
+
+    atpProduction:
+        "stat-atp-prod",
+
+    nutrientProcessing:
+        "stat-nutrient-proc",
+
+    autophagy:
+        "stat-autophagy",
+
+    cellMembraneHealth:
+        "stat-membrane",
+
+    cytoskeleton:
+        "stat-cytoskeleton",
+
+    motility:
+        "stat-motility",
+
+    phagocytosis:
+        "stat-phagocytosis",
+
+    reproduction:
+        "stat-reproduction",
+
+    contractileVacuoleFunction:
+        "stat-vacuole",
+
+    encystmentAbility:
+        "stat-encystment"
+
+};
 
 const PondMicrobiomeSensorPane = {
 
@@ -32,6 +76,8 @@ const PondMicrobiomeSensorPane = {
     adhesionElement: null,
     anchoringElement: null,
     systemAnchoringElement: null,
+    systemStatusMessageElement: null,
+    statusMetricElements: null,
 
     // --------------------------------------------------
     // Find sensor-pane display elements
@@ -39,6 +85,11 @@ const PondMicrobiomeSensorPane = {
     initialize() {
 
         if (
+            this.statusMetricElements &&
+Object.values(
+    this.statusMetricElements
+).every(Boolean) &&
+            this.systemStatusMessageElement &&
             this.microbiomeElement &&
             this.oxygenElement &&
             this.phElement &&
@@ -55,6 +106,7 @@ const PondMicrobiomeSensorPane = {
             this.adhesionElement &&
             this.anchoringElement &&
             this.systemAnchoringElement
+            
         ) {
             return;
         }
@@ -155,6 +207,29 @@ const PondMicrobiomeSensorPane = {
                 "pond-system-anchoring-status"
             );
 
+            this.systemStatusMessageElement =
+    document.getElementById(
+        "pond-system-status-message"
+    );
+
+            // --------------------------------------------------
+// Detailed numerical cell-health metrics
+// --------------------------------------------------
+
+this.statusMetricElements =
+    Object.fromEntries(
+        Object.entries(
+            NUMERIC_STATUS_METRIC_IDS
+        ).map(
+            ([metricName, elementId]) => [
+                metricName,
+                document.getElementById(
+                    elementId
+                )
+            ]
+        )
+    );
+
         // --------------------------------------------------
         // Missing-display warnings
         // --------------------------------------------------
@@ -254,6 +329,26 @@ const PondMicrobiomeSensorPane = {
                 "PondMicrobiomeSensorPane: system anchoring display not found"
             );
         }
+
+        if (!this.systemStatusMessageElement) {
+    console.warn(
+        "PondMicrobiomeSensorPane: system status message display not found"
+    );
+}
+
+        Object.entries(
+    this.statusMetricElements
+).forEach(
+    ([metricName, element]) => {
+
+        if (!element) {
+            console.warn(
+                `PondMicrobiomeSensorPane: "${metricName}" display not found`
+            );
+        }
+
+    }
+);
 
         // --------------------------------------------------
         // Sensor learning panels
@@ -373,6 +468,58 @@ formatDecimal(
 
 },
 
+// --------------------------------------------------
+// Update one detailed cell-health percentage
+// --------------------------------------------------
+updatePercentMetric(
+    metricName,
+    value
+) {
+
+    const element =
+        this.statusMetricElements?.[
+            metricName
+        ];
+
+    if (!element) {
+        return;
+    }
+
+    element.textContent =
+        Number.isFinite(value)
+            ? `${Math.round(value * 100)}%`
+            : "--";
+
+},
+
+// --------------------------------------------------
+// Calculate current cell condition on this tile
+// --------------------------------------------------
+calculateCurrentCellCondition(tile) {
+
+    const baseReport =
+        CellHealthCalculator.calculate(
+            CellSystemManager.getAllSystems()
+        );
+
+    const environmentReport =
+        CellEnvironmentEngine.calculate(
+            tile
+        );
+
+    const effectiveCellReport =
+        CellConditionCalculator.calculate(
+            baseReport,
+            environmentReport
+        );
+
+    return {
+        environmentReport,
+        effectiveCellReport
+    };
+
+},
+
     // --------------------------------------------------
     // Update an available or locked cell capability
     // --------------------------------------------------
@@ -407,6 +554,21 @@ formatDecimal(
         this.initialize();
 
         this.updateChemicalSignalsCardState();
+
+        const currentCellCondition =
+    tile
+        ? this.calculateCurrentCellCondition(
+            tile
+        )
+        : null;
+
+const environmentReport =
+    currentCellCondition
+        ?.environmentReport ?? null;
+
+const effectiveCellReport =
+    currentCellCondition
+        ?.effectiveCellReport ?? null;
 
         const profile =
             tile?.biome
@@ -463,20 +625,111 @@ formatDecimal(
 }
 
 // --------------------------------------------------
-// Composite cell health score
+// Effective composite cell health score
 // --------------------------------------------------
 
 if (this.compositeHealthElement) {
 
-    const healthReport =
-        CellHealthCalculator.calculate(
-            CellSystemManager.getAllSystems()
-        );
-
     this.compositeHealthElement.textContent =
-        `${Math.round(
-            healthReport.compositeHealth * 100
-        )}%`;
+        effectiveCellReport
+            ? `${Math.round(
+                effectiveCellReport
+                    .compositeHealth *
+                100
+            )}%`
+            : "--";
+
+}
+
+// --------------------------------------------------
+// Effective detailed cell-health metrics
+// --------------------------------------------------
+
+if (effectiveCellReport) {
+
+    this.updatePercentMetric(
+        "mutationRate",
+        effectiveCellReport
+            .geneticIntegrity
+            .mutationRate
+    );
+
+    this.updatePercentMetric(
+        "dnaDamage",
+        effectiveCellReport
+            .geneticIntegrity
+            .dnaDamage
+    );
+
+    this.updatePercentMetric(
+        "atpProduction",
+        effectiveCellReport
+            .metabolicActivity
+            .atpProduction
+    );
+
+    this.updatePercentMetric(
+        "nutrientProcessing",
+        effectiveCellReport
+            .metabolicActivity
+            .nutrientProcessing
+    );
+
+    this.updatePercentMetric(
+        "autophagy",
+        effectiveCellReport
+            .metabolicActivity
+            .autophagy
+    );
+
+    this.updatePercentMetric(
+        "cellMembraneHealth",
+        effectiveCellReport
+            .structuralIntegrity
+            .cellMembraneHealth
+    );
+
+    this.updatePercentMetric(
+        "cytoskeleton",
+        effectiveCellReport
+            .structuralIntegrity
+            .cytoskeleton
+    );
+
+    this.updatePercentMetric(
+        "motility",
+        effectiveCellReport
+            .functionalActivity
+            .motility
+    );
+
+    this.updatePercentMetric(
+        "phagocytosis",
+        effectiveCellReport
+            .functionalActivity
+            .phagocytosis
+    );
+
+    this.updatePercentMetric(
+        "reproduction",
+        effectiveCellReport
+            .functionalActivity
+            .reproduction
+    );
+
+    this.updatePercentMetric(
+        "contractileVacuoleFunction",
+        effectiveCellReport
+            .environmentalResponse
+            .contractileVacuoleFunction
+    );
+
+    this.updatePercentMetric(
+        "encystmentAbility",
+        effectiveCellReport
+            .environmentalResponse
+            .encystmentAbility
+    );
 
 }
 
@@ -540,6 +793,23 @@ if (this.compositeHealthElement) {
                     ? "Anchored"
                     : "Drifting";
         }
+
+        // --------------------------------------------------
+// Prioritized current system-status message
+// --------------------------------------------------
+
+if (this.systemStatusMessageElement) {
+
+    const status =
+        CellStatusEvaluator.evaluate(
+            effectiveCellReport,
+            environmentReport
+        );
+
+    this.systemStatusMessageElement.textContent =
+        status.message;
+
+}
 
     }
 
