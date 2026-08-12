@@ -4,17 +4,11 @@
 // It does not advance physics or score experiments.
 // --------------------------------------------------
 
-const DEFAULT_WIDTH =
-    720;
+const DEFAULT_WIDTH = 720;
+const DEFAULT_HEIGHT = 320;
 
-const DEFAULT_HEIGHT =
-    320;
-
-const MEMBRANE_START =
-    0.45;
-
-const MEMBRANE_END =
-    0.55;
+const MEMBRANE_START = 0.45;
+const MEMBRANE_END = 0.55;
 
 const PARTICLE_COLORS = {
 
@@ -34,9 +28,6 @@ const PARTICLE_COLORS = {
 
 const ParticleSimulationRenderer = {
 
-    // --------------------------------------------------
-    // Create a reusable simulation canvas
-    // --------------------------------------------------
     createCanvas() {
 
         const canvas =
@@ -59,9 +50,6 @@ const ParticleSimulationRenderer = {
 
     },
 
-    // --------------------------------------------------
-    // Configure canvas dimensions for crisp rendering
-    // --------------------------------------------------
     prepareCanvas(
         canvas,
         width = DEFAULT_WIDTH,
@@ -113,95 +101,32 @@ const ParticleSimulationRenderer = {
 
     },
 
-    // --------------------------------------------------
-    // Return the render rectangle for one simulation zone
-    // --------------------------------------------------
-    getZoneRectangle(
-        zoneId,
-        width,
-        height
-    ) {
-
-        const padding =
-            10;
-
-        if (zoneId === "side_a") {
-            return {
-                x: padding,
-                y: padding,
-                width:
-                    width *
-                    MEMBRANE_START -
-                    padding * 2,
-                height:
-                    height -
-                    padding * 2
-            };
-        }
-
-        if (zoneId === "side_b") {
-            return {
-                x:
-                    width *
-                    MEMBRANE_END +
-                    padding,
-
-                y: padding,
-
-                width:
-                    width *
-                    (1 - MEMBRANE_END) -
-                    padding * 2,
-
-                height:
-                    height -
-                    padding * 2
-            };
-        }
-
-        return null;
-
-    },
-
-    // --------------------------------------------------
-    // Convert normalized zone position into canvas space
-    // --------------------------------------------------
     getParticleCanvasPosition(
         particle,
         width,
         height
     ) {
 
-        const zone =
-            this.getZoneRectangle(
-                particle.zoneId,
-                width,
-                height
-            );
-
-        if (!zone) {
-            return null;
-        }
+        const padding = 10;
 
         return {
-
             x:
-                zone.x +
-                zone.width *
+                width *
                 particle.position.x,
 
             y:
-                zone.y +
-                zone.height *
-                particle.position.y
-
+                padding +
+                (
+                    (
+                        height -
+                        padding * 2
+                    ) *
+                    particle.position.y
+                )
         };
 
     },
 
-    // --------------------------------------------------
-    // Draw the fixed membrane barrier
-    // --------------------------------------------------
     drawMembrane(
         context,
         width,
@@ -227,8 +152,7 @@ const ParticleSimulationRenderer = {
         context.strokeStyle =
             "#df80ff";
 
-        context.lineWidth =
-            2;
+        context.lineWidth = 2;
 
         context.strokeRect(
             startX,
@@ -237,13 +161,10 @@ const ParticleSimulationRenderer = {
             height
         );
 
-        const lipidSpacing =
-            20;
-
         for (
             let y = 10;
             y < height;
-            y += lipidSpacing
+            y += 20
         ) {
 
             context.fillStyle =
@@ -277,9 +198,6 @@ const ParticleSimulationRenderer = {
 
     },
 
-    // --------------------------------------------------
-    // Draw one simulation particle
-    // --------------------------------------------------
     drawParticle(
         context,
         particle,
@@ -294,10 +212,6 @@ const ParticleSimulationRenderer = {
                 height
             );
 
-        if (!point) {
-            return;
-        }
-
         const color =
             PARTICLE_COLORS[
                 particle.visualId
@@ -309,8 +223,7 @@ const ParticleSimulationRenderer = {
         context.strokeStyle =
             "#ffffff";
 
-        context.lineWidth =
-            1;
+        context.lineWidth = 1;
 
         context.beginPath();
 
@@ -328,9 +241,6 @@ const ParticleSimulationRenderer = {
 
     },
 
-    // --------------------------------------------------
-    // Draw one complete static simulation frame
-    // --------------------------------------------------
     render(
         canvas,
         state,
@@ -372,35 +282,51 @@ const ParticleSimulationRenderer = {
             height
         );
 
-        const sideA =
-            this.getZoneRectangle(
-                "side_a",
-                width,
-                height
-            );
-
-        const sideB =
-            this.getZoneRectangle(
-                "side_b",
-                width,
-                height
-            );
-
         context.fillStyle =
             "rgba(88, 184, 255, 0.08)";
 
         context.fillRect(
-            sideA.x,
-            sideA.y,
-            sideA.width,
-            sideA.height
+            10,
+            10,
+            (
+                width *
+                MEMBRANE_START
+            ) - 20,
+            height - 20
         );
 
         context.fillRect(
-            sideB.x,
-            sideB.y,
-            sideB.width,
-            sideB.height
+            (
+                width *
+                MEMBRANE_END
+            ) + 10,
+            10,
+            (
+                width *
+                (
+                    1 -
+                    MEMBRANE_END
+                )
+            ) - 20,
+            height - 20
+        );
+
+        // Draw particles first. A crossing water molecule
+        // disappears behind the membrane when it enters
+        // the barrier region.
+        (
+            state.particles ?? []
+        ).forEach(
+            particle => {
+
+                this.drawParticle(
+                    context,
+                    particle,
+                    width,
+                    height
+                );
+
+            }
         );
 
         this.drawMembrane(
@@ -408,19 +334,6 @@ const ParticleSimulationRenderer = {
             width,
             height
         );
-
-        (
-            state.particles ?? []
-        ).forEach(particle => {
-
-            this.drawParticle(
-                context,
-                particle,
-                width,
-                height
-            );
-
-        });
 
         return true;
 

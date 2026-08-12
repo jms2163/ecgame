@@ -3,20 +3,22 @@
 // Reusable particle model for membrane-transport labs
 // --------------------------------------------------
 
-import ExperimentMaterialLibrary from
-    "./ExperimentMaterialLibrary.js";
+import ExperimentMaterialLibrary
+    from "./ExperimentMaterialLibrary.js";
 
-const MIN_POSITION = 0.04;
-const MAX_POSITION = 0.96;
+const MIN_POSITION = 0.02;
+const MAX_POSITION = 0.98;
 
 const DEFAULT_SPEED = 0.18;
-const PARTICLE_RADIUS = 0.035;
+const PARTICLE_RADIUS = 0.018;
+
+const MEMBRANE_START = 0.45;
+const MEMBRANE_END = 0.55;
+
+const MEMBRANE_CLEARANCE = 0.012;
 
 const ParticleSimulationEngine = {
 
-    // --------------------------------------------------
-    // Utility
-    // --------------------------------------------------
     clamp(
         value,
         minimum = MIN_POSITION,
@@ -30,9 +32,6 @@ const ParticleSimulationEngine = {
 
     },
 
-    // --------------------------------------------------
-    // Stable initial velocities for repeatable tests
-    // --------------------------------------------------
     createInitialVelocity(index) {
 
         const directions = [
@@ -59,9 +58,6 @@ const ParticleSimulationEngine = {
 
     },
 
-    // --------------------------------------------------
-    // Read a material visual safely
-    // --------------------------------------------------
     getVisualId(materialId) {
 
         return ExperimentMaterialLibrary[
@@ -71,9 +67,68 @@ const ParticleSimulationEngine = {
 
     },
 
-    // --------------------------------------------------
-    // Build one particle from a placed component
-    // --------------------------------------------------
+    getZoneBounds(zoneId) {
+
+        if (zoneId === "side_a") {
+            return {
+                start: MIN_POSITION,
+                end:
+                    MEMBRANE_START -
+                    MEMBRANE_CLEARANCE
+            };
+        }
+
+        if (zoneId === "side_b") {
+            return {
+                start:
+                    MEMBRANE_END +
+                    MEMBRANE_CLEARANCE,
+
+                end:
+                    MAX_POSITION
+            };
+        }
+
+        return {
+            start:
+                MEMBRANE_START,
+
+            end:
+                MEMBRANE_END
+        };
+
+    },
+
+    convertLocalXToWorldX(
+        zoneId,
+        localX
+    ) {
+
+        const zone =
+            this.getZoneBounds(
+                zoneId
+            );
+
+        const normalizedLocalX =
+            this.clamp(
+                localX,
+                MIN_POSITION,
+                MAX_POSITION
+            );
+
+        return (
+            zone.start +
+            (
+                (
+                    zone.end -
+                    zone.start
+                ) *
+                normalizedLocalX
+            )
+        );
+
+    },
+
     createParticle(
         component,
         index
@@ -96,7 +151,8 @@ const ParticleSimulationEngine = {
 
             position: {
                 x:
-                    this.clamp(
+                    this.convertLocalXToWorldX(
+                        component.zoneId,
                         component.position?.x ??
                         0.5
                     ),
@@ -116,17 +172,22 @@ const ParticleSimulationEngine = {
             radius:
                 PARTICLE_RADIUS,
 
-            // Water that crosses during the osmosis
-            // model remains on its new side.
+            // Once water reaches the higher-solute side,
+            // it cannot pass back through this membrane.
             membraneCrossingLocked:
-                false
+                false,
+
+            // Exists only while a water particle is moving
+            // continuously through the membrane region.
+            isMembraneTransit:
+                false,
+
+            membraneTargetZoneId:
+                null
         };
 
     },
 
-    // --------------------------------------------------
-    // Create a reusable simulation state
-    // --------------------------------------------------
     createInitialState({
         simulation,
         snapshot
@@ -170,8 +231,6 @@ const ParticleSimulationEngine = {
 
             elapsedMs: 0,
 
-            waterTransferAccumulatorMs: 0,
-
             totalWaterTransfers: 0,
 
             isRunning: true
@@ -179,37 +238,162 @@ const ParticleSimulationEngine = {
 
     },
 
-    // --------------------------------------------------
-    // Move one particle and bounce it off its compartment
-    // walls.
-    // --------------------------------------------------
-    advanceParticle(
-        particle,
-        elapsedMilliseconds
+    getMaterialCount(
+        particles,
+        zoneId,
+        materialId
     ) {
 
-        const elapsedSeconds =
-            elapsedMilliseconds / 1000;
+        return particles.filter(
+            particle =>
+                particle.zoneId ===
+                zoneId &&
+                particle.materialId ===
+                materialId
+        ).length;
 
-        const nextParticle = {
-            ...particle,
+    },
 
-            position: {
-                ...particle.position
-            },
+    getBalancedSaltPairCount(
+        particles,
+        zoneId
+    ) {
 
-            velocity: {
-                ...particle.velocity
+        const sodiumCount =
+            this.getMaterialCount(
+                particles,
+                zoneId,
+                "sodium_ion"
+            );
+
+        const chlorideCount =
+            this.getMaterialCount(
+                particles,
+                zoneId,
+                "chloride_ion"
+            );
+
+        return sodiumCount === chlorideCount
+            ? sodiumCount
+            : 0;
+
+    },
+
+    getOsmoticGradient(
+        particles,
+        simulation
+    ) {
+
+        const zoneIds =
+            simulation?.zoneIds?.filter(
+                zoneId =>
+                    zoneId !== "membrane"
+            ) ?? [];
+
+        if (zoneIds.length !== 2) {
+            return null;
+        }
+
+        const [
+            firstZoneId,
+            secondZoneId
+        ] = zoneIds;
+
+        const firstPairs =
+            this.getBalancedSaltPairCount(
+                particles,
+                firstZoneId
+            );
+
+        const secondPairs =
+            this.getBalancedSaltPairCount(
+                particles,
+                secondZoneId
+            );
+
+        if (firstPairs === secondPairs) {
+            return null;
+        }
+
+        return firstPairs > secondPairs
+            ? {
+                higherSoluteZoneId:
+                    firstZoneId,
+
+                lowerSoluteZoneId:
+                    secondZoneId
             }
-        };
+            : {
+                higherSoluteZoneId:
+                    secondZoneId,
 
-        nextParticle.position.x +=
-            nextParticle.velocity.x *
-            elapsedSeconds;
+                lowerSoluteZoneId:
+                    firstZoneId
+            };
 
-        nextParticle.position.y +=
-            nextParticle.velocity.y *
-            elapsedSeconds;
+    },
+
+    getExpectedCrossingDirection(
+        particle,
+        gradient
+    ) {
+
+        if (
+            particle.materialId !== "water" ||
+            particle.membraneCrossingLocked ||
+            !gradient
+        ) {
+            return null;
+        }
+
+        if (
+            particle.zoneId !==
+            gradient.lowerSoluteZoneId
+        ) {
+            return null;
+        }
+
+        return gradient.lowerSoluteZoneId ===
+            "side_a"
+            ? 1
+            : -1;
+
+    },
+
+    shouldStartMembraneTransit(
+        particle,
+        gradient
+    ) {
+
+        const direction =
+            this.getExpectedCrossingDirection(
+                particle,
+                gradient
+            );
+
+        if (!direction) {
+            return false;
+        }
+
+        if (direction > 0) {
+            return (
+                particle.velocity.x > 0 &&
+                particle.position.x >=
+                MEMBRANE_START -
+                MEMBRANE_CLEARANCE
+            );
+        }
+
+        return (
+            particle.velocity.x < 0 &&
+            particle.position.x <=
+            MEMBRANE_END +
+            MEMBRANE_CLEARANCE
+        );
+
+    },
+
+    reflectFromOuterWall(nextParticle) {
 
         if (
             nextParticle.position.x <
@@ -263,35 +447,192 @@ const ParticleSimulationEngine = {
                 );
         }
 
+    },
+
+    reflectFromMembrane(
+        nextParticle,
+        direction
+    ) {
+
+        if (direction > 0) {
+            nextParticle.position.x =
+                MEMBRANE_START -
+                MEMBRANE_CLEARANCE;
+
+            nextParticle.velocity.x =
+                -Math.abs(
+                    nextParticle.velocity.x
+                );
+
+            return;
+        }
+
+        nextParticle.position.x =
+            MEMBRANE_END +
+            MEMBRANE_CLEARANCE;
+
+        nextParticle.velocity.x =
+            Math.abs(
+                nextParticle.velocity.x
+            );
+
+    },
+
+    advanceParticle(
+        particle,
+        elapsedMilliseconds,
+        gradient
+    ) {
+
+        const elapsedSeconds =
+            elapsedMilliseconds / 1000;
+
+        const nextParticle = {
+            ...particle,
+
+            position: {
+                ...particle.position
+            },
+
+            velocity: {
+                ...particle.velocity
+            }
+        };
+
+        nextParticle.position.x +=
+            nextParticle.velocity.x *
+            elapsedSeconds;
+
+        nextParticle.position.y +=
+            nextParticle.velocity.y *
+            elapsedSeconds;
+
+        this.reflectFromOuterWall(
+            nextParticle
+        );
+
+        // --------------------------------------------------
+        // A water molecule already crossing continues at its
+        // ordinary speed until it exits the membrane.
+        // --------------------------------------------------
+        if (
+            nextParticle.isMembraneTransit
+        ) {
+
+            const movingRight =
+                nextParticle.velocity.x > 0;
+
+            const exitedIntoSideB =
+                movingRight &&
+                nextParticle.position.x >=
+                MEMBRANE_END +
+                MEMBRANE_CLEARANCE;
+
+            const exitedIntoSideA =
+                !movingRight &&
+                nextParticle.position.x <=
+                MEMBRANE_START -
+                MEMBRANE_CLEARANCE;
+
+            if (
+                exitedIntoSideA ||
+                exitedIntoSideB
+            ) {
+                nextParticle.zoneId =
+                    nextParticle
+                        .membraneTargetZoneId;
+
+                nextParticle.isMembraneTransit =
+                    false;
+
+                nextParticle.membraneTargetZoneId =
+                    null;
+
+                nextParticle.membraneCrossingLocked =
+                    true;
+
+                nextParticle.completedCrossing =
+                    true;
+            }
+
+            return nextParticle;
+        }
+
+        // --------------------------------------------------
+        // A lower-solute water molecule may pass through
+        // when it physically reaches the membrane.
+        // --------------------------------------------------
+        if (
+            this.shouldStartMembraneTransit(
+                nextParticle,
+                gradient
+            )
+        ) {
+            nextParticle.isMembraneTransit =
+                true;
+
+            nextParticle.membraneTargetZoneId =
+                gradient.higherSoluteZoneId;
+
+            nextParticle.zoneId =
+                "membrane";
+
+            return nextParticle;
+        }
+
+        // --------------------------------------------------
+        // All other particles bounce from the membrane:
+        // ions, high-side water, and water with no valid
+        // osmotic gradient.
+        // --------------------------------------------------
+        if (
+            nextParticle.zoneId === "side_a" &&
+            nextParticle.velocity.x > 0 &&
+            nextParticle.position.x >=
+            MEMBRANE_START -
+            MEMBRANE_CLEARANCE
+        ) {
+            this.reflectFromMembrane(
+                nextParticle,
+                1
+            );
+        }
+
+        if (
+            nextParticle.zoneId === "side_b" &&
+            nextParticle.velocity.x < 0 &&
+            nextParticle.position.x <=
+            MEMBRANE_END +
+            MEMBRANE_CLEARANCE
+        ) {
+            this.reflectFromMembrane(
+                nextParticle,
+                -1
+            );
+        }
+
         return nextParticle;
 
     },
 
-    // --------------------------------------------------
-    // Move every particle
-    // --------------------------------------------------
     advanceParticles(
         particles,
-        elapsedMilliseconds
+        elapsedMilliseconds,
+        gradient
     ) {
 
         return particles.map(
             particle =>
                 this.advanceParticle(
                     particle,
-                    elapsedMilliseconds
+                    elapsedMilliseconds,
+                    gradient
                 )
         );
 
     },
 
-    // --------------------------------------------------
-    // Soft particle collision response within one zone.
-    // This is visual motion only; it models no chemistry.
-    // --------------------------------------------------
-    resolveParticleCollisions(
-        particles
-    ) {
+    resolveParticleCollisions(particles) {
 
         const resolvedParticles =
             particles.map(
@@ -334,6 +675,8 @@ const ParticleSimulationEngine = {
                     ];
 
                 if (
+                    first.isMembraneTransit ||
+                    second.isMembraneTransit ||
                     first.zoneId !==
                     second.zoneId
                 ) {
@@ -444,247 +787,6 @@ const ParticleSimulationEngine = {
 
     },
 
-    // --------------------------------------------------
-    // Count material instances in a zone
-    // --------------------------------------------------
-    getMaterialCount(
-        particles,
-        zoneId,
-        materialId
-    ) {
-
-        return particles.filter(
-            particle =>
-                particle.zoneId ===
-                zoneId &&
-                particle.materialId ===
-                materialId
-        ).length;
-
-    },
-
-    // --------------------------------------------------
-    // A valid dissolved NaCl population has equal Na+ and
-    // Cl− counts. An unbalanced side creates no osmotic
-    // driving force in this simplified teaching model.
-    // --------------------------------------------------
-    getBalancedSaltPairCount(
-        particles,
-        zoneId
-    ) {
-
-        const sodiumCount =
-            this.getMaterialCount(
-                particles,
-                zoneId,
-                "sodium_ion"
-            );
-
-        const chlorideCount =
-            this.getMaterialCount(
-                particles,
-                zoneId,
-                "chloride_ion"
-            );
-
-        if (
-            sodiumCount !==
-            chlorideCount
-        ) {
-            return 0;
-        }
-
-        return sodiumCount;
-
-    },
-
-    // --------------------------------------------------
-    // Determine the lower- and higher-solute sides.
-    // Labels are intentionally irrelevant: side_a and
-    // side_b remain neutral internal identifiers.
-    // --------------------------------------------------
-    getOsmoticGradient(
-        particles,
-        simulation
-    ) {
-
-        const zoneIds =
-            simulation?.zoneIds?.filter(
-                zoneId =>
-                    zoneId !== "membrane"
-            ) ?? [];
-
-        if (zoneIds.length !== 2) {
-            return null;
-        }
-
-        const [
-            firstZoneId,
-            secondZoneId
-        ] = zoneIds;
-
-        const firstPairs =
-            this.getBalancedSaltPairCount(
-                particles,
-                firstZoneId
-            );
-
-        const secondPairs =
-            this.getBalancedSaltPairCount(
-                particles,
-                secondZoneId
-            );
-
-        if (firstPairs === secondPairs) {
-            return null;
-        }
-
-        if (firstPairs > secondPairs) {
-            return {
-                higherSoluteZoneId:
-                    firstZoneId,
-
-                lowerSoluteZoneId:
-                    secondZoneId
-            };
-        }
-
-        return {
-            higherSoluteZoneId:
-                secondZoneId,
-
-            lowerSoluteZoneId:
-                firstZoneId
-        };
-
-    },
-
-    // --------------------------------------------------
-    // Move one water particle across the membrane.
-    // Ions are never moved by this rule.
-    // --------------------------------------------------
-    transferOneWaterParticle(
-        state,
-        gradient
-    ) {
-
-        const sourceWater =
-            state.particles.find(
-                particle =>
-                    particle.materialId ===
-                    "water" &&
-                    particle.zoneId ===
-                    gradient.lowerSoluteZoneId &&
-                    !particle.membraneCrossingLocked
-            );
-
-        if (!sourceWater) {
-            return false;
-        }
-
-        sourceWater.zoneId =
-            gradient.higherSoluteZoneId;
-
-        sourceWater.membraneCrossingLocked =
-            true;
-
-        const [
-            firstZoneId
-        ] =
-            state.simulation.zoneIds.filter(
-                zoneId =>
-                    zoneId !== "membrane"
-            );
-
-        const movedToFirstZone =
-            gradient.higherSoluteZoneId ===
-            firstZoneId;
-
-        sourceWater.position.x =
-            movedToFirstZone
-                ? 0.92
-                : 0.08;
-
-        sourceWater.position.y =
-            0.3 +
-            (
-                (
-                    state.totalWaterTransfers %
-                    5
-                ) * 0.1
-            );
-
-        sourceWater.velocity.x =
-            movedToFirstZone
-                ? -Math.abs(
-                    sourceWater.velocity.x
-                )
-                : Math.abs(
-                    sourceWater.velocity.x
-                );
-
-        state.totalWaterTransfers += 1;
-
-        return true;
-
-    },
-
-    // --------------------------------------------------
-    // Apply simplified net osmosis at a steady interval.
-    // Water moves lower solute -> higher solute and
-    // remains on the higher-solute side.
-    // --------------------------------------------------
-    applyMembraneTransport(
-        state,
-        elapsedMilliseconds
-    ) {
-
-        if (
-            state.simulation
-                ?.waterCrossingRule !==
-            "lower_to_higher_trap"
-        ) {
-            return;
-        }
-
-        const intervalMs =
-            state.simulation
-                .waterCrossingIntervalMs ??
-            700;
-
-        state.waterTransferAccumulatorMs +=
-            elapsedMilliseconds;
-
-        while (
-            state.waterTransferAccumulatorMs >=
-            intervalMs
-        ) {
-
-            state.waterTransferAccumulatorMs -=
-                intervalMs;
-
-            const gradient =
-                this.getOsmoticGradient(
-                    state.particles,
-                    state.simulation
-                );
-
-            if (!gradient) {
-                continue;
-            }
-
-            this.transferOneWaterParticle(
-                state,
-                gradient
-            );
-
-        }
-
-    },
-
-    // --------------------------------------------------
-    // Advance one simulation frame
-    // --------------------------------------------------
     step(
         state,
         elapsedMilliseconds
@@ -706,32 +808,45 @@ const ParticleSimulationEngine = {
         const nextState =
             structuredClone(state);
 
+        const gradient =
+            this.getOsmoticGradient(
+                nextState.particles,
+                nextState.simulation
+            );
+
         nextState.elapsedMs +=
             safeElapsedMilliseconds;
 
-        const movedParticles =
-            this.advanceParticles(
-                nextState.particles,
-                safeElapsedMilliseconds
-            );
-
         nextState.particles =
             this.resolveParticleCollisions(
-                movedParticles
+                this.advanceParticles(
+                    nextState.particles,
+                    safeElapsedMilliseconds,
+                    gradient
+                )
             );
 
-        this.applyMembraneTransport(
-            nextState,
-            safeElapsedMilliseconds
+        const completedTransfers =
+            nextState.particles.filter(
+                particle =>
+                    particle.completedCrossing
+            );
+
+        nextState.totalWaterTransfers +=
+            completedTransfers.length;
+
+        completedTransfers.forEach(
+            particle => {
+
+                delete particle.completedCrossing;
+
+            }
         );
 
         return nextState;
 
     },
 
-    // --------------------------------------------------
-    // Stop without destroying the current state
-    // --------------------------------------------------
     stop(state) {
 
         return {
@@ -742,9 +857,6 @@ const ParticleSimulationEngine = {
 
     },
 
-    // --------------------------------------------------
-    // Useful for tests and future status displays
-    // --------------------------------------------------
     createZoneSummary(
         particles,
         zoneIds = []
