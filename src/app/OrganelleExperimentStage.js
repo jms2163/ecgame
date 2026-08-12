@@ -12,11 +12,17 @@ import OrganelleExperimentPlacementController
 import ExperimentStageDefinitionResolver
     from "./ExperimentStageDefinitionResolver.js";
 
+import ExperimentPlacementEvaluator
+    from "./ExperimentPlacementEvaluator.js";
+
 import ParticleSimulationEngine
     from "./ParticleSimulationEngine.js";
 
 import ParticleSimulationView
     from "./ParticleSimulationView.js";
+
+import ResearchManager
+    from "./ResearchManager.js";
 
 const OrganelleExperimentStage = {
 
@@ -27,6 +33,43 @@ const OrganelleExperimentStage = {
     activeExperiment: null,
     activeResolvedExperiment: null,
     isParticleSimulationRunning: false,
+
+    // --------------------------------------------------
+    // Stop and remove the canvas overlay so the original
+    // drag-and-drop workspace is interactive again.
+    // --------------------------------------------------
+    stopParticleSimulation() {
+
+        ParticleSimulationView.clear();
+
+        const simulationSurface =
+            document.getElementById(
+                "organelle-particle-simulation-surface"
+            );
+
+        simulationSurface?.classList.add(
+            "hidden"
+        );
+
+        this.isParticleSimulationRunning =
+            false;
+
+        const simulationButton =
+            this.controlsElement?.querySelector(
+                '[data-action="simulate"]'
+            );
+
+        if (simulationButton) {
+            simulationButton.textContent =
+                "Simulate";
+
+            simulationButton.setAttribute(
+                "aria-pressed",
+                "false"
+            );
+        }
+
+    },
 
     // --------------------------------------------------
     // Find experiment-stage elements
@@ -105,44 +148,23 @@ renderControls(experiment) {
             control.label ??
             controlId;
 
-        const isResetControl =
-            controlId === "reset";
+        button.addEventListener(
+            "click",
+            () => {
 
-        const isReflectionControl =
-            controlId === "reflection" &&
-            Boolean(
-                experiment.assessment?.reflection
-            );
+                this.handleControlAction(
+                    controlId
+                );
 
-        const isSimulateControl =
-            controlId === "simulate" &&
-            Boolean(
-                experiment.simulation?.modelId
-            );
-
-        button.disabled =
-            !isResetControl &&
-            !isReflectionControl &&
-            !isSimulateControl;
+            }
+        );
 
         if (
-            isResetControl ||
-            isReflectionControl ||
-            isSimulateControl
-        ) {
-            button.addEventListener(
-                "click",
-                () => {
-
-                    this.handleControlAction(
-                        controlId
-                    );
-
-                }
-            );
-        }
-
-        if (isReflectionControl) {
+    controlId === "reflection" &&
+    Boolean(
+        experiment.assessment?.reflection
+    )
+) {
             button.setAttribute(
                 "aria-controls",
                 "organelle-experiment-reflection"
@@ -179,6 +201,18 @@ handleControlAction(actionId) {
         return;
     }
 
+    if (actionId === "labels") {
+        this.togglePlacedLabels();
+
+        return;
+    }
+
+    if (actionId === "submit") {
+        this.submitExperiment();
+
+        return;
+    }
+
     if (actionId !== "reset") {
         return;
     }
@@ -201,6 +235,205 @@ handleControlAction(actionId) {
     );
 
 },
+
+    // --------------------------------------------------
+    // Toggle placed labels without hiding their palette.
+    // This makes particle movement easier to observe.
+    // --------------------------------------------------
+    togglePlacedLabels() {
+
+        const stage =
+            this.contentElement?.querySelector(
+                ".membrane-transport-stage"
+            );
+
+        const labelsButton =
+            this.controlsElement?.querySelector(
+                '[data-action="labels"]'
+            );
+
+        if (!stage || !labelsButton) {
+            return;
+        }
+
+        const labelsAreNowHidden =
+            !stage.classList.contains(
+                "membrane-transport-stage--labels-hidden"
+            );
+
+        stage.classList.toggle(
+            "membrane-transport-stage--labels-hidden",
+            labelsAreNowHidden
+        );
+
+        labelsButton.textContent =
+            labelsAreNowHidden
+                ? "Show Labels"
+                : "Hide Labels";
+
+        labelsButton.setAttribute(
+            "aria-pressed",
+            String(labelsAreNowHidden)
+        );
+
+    },
+
+    // --------------------------------------------------
+    // Save the visible reflection text explicitly.
+    // --------------------------------------------------
+    saveReflectionDraft({
+        announce = true
+    } = {}) {
+
+        const textarea =
+            document.getElementById(
+                "organelle-experiment-reflection-response"
+            );
+
+        if (!textarea?.dataset.reflectionId) {
+            return false;
+        }
+
+        const saved =
+            OrganelleExperimentAttemptManager
+                .setReflectionResponse(
+                    textarea.dataset.reflectionId,
+                    textarea.value
+                );
+
+        if (announce && saved) {
+            const status =
+                document.querySelector(
+                    ".organelle-experiment-reflection-status"
+                );
+
+            if (status) {
+                status.textContent =
+                    "Draft saved for this attempt.";
+            }
+        }
+
+        return saved;
+
+    },
+
+    // --------------------------------------------------
+    // Check label presence without revealing correctness.
+    // --------------------------------------------------
+    getMissingPlacedLabelIds() {
+
+        const requiredLabelIds =
+            this.activeResolvedExperiment
+                ?.stage?.labels
+                ?.map(label => label.id) ?? [];
+
+        const placedLabelIds =
+            new Set(
+                this.getPlacementSnapshot()
+                    .labels
+                    .map(label => label.id)
+            );
+
+        return requiredLabelIds.filter(
+            labelId =>
+                !placedLabelIds.has(labelId)
+        );
+
+    },
+
+    // --------------------------------------------------
+    // Submit the current configuration for scoring.
+    // Only a perfect submission completes research.
+    // --------------------------------------------------
+    submitExperiment() {
+
+        const experiment =
+            this.activeResolvedExperiment;
+
+        if (!experiment?.assessment) {
+            return;
+        }
+
+        this.saveReflectionDraft({
+            announce: false
+        });
+
+        const missingLabelIds =
+            this.getMissingPlacedLabelIds();
+
+        if (missingLabelIds.length > 0) {
+            const shouldContinue =
+                window.confirm(
+                    "You have not labeled all features on this diagram. Submit anyway?"
+                );
+
+            if (!shouldContinue) {
+                return;
+            }
+        }
+
+        const report =
+            ExperimentPlacementEvaluator.evaluate(
+                {
+                    assessment:
+                        experiment.assessment,
+
+                    snapshot:
+                        this.getPlacementSnapshot(),
+
+                    reflectionResponses:
+                        this.getAttemptSnapshot()
+                            .reflectionResponses
+                }
+            );
+
+        if (!report.isPerfect) {
+            this.showSimulationResult(
+                {
+                    title:
+                        "Submission Reviewed",
+
+                    message:
+                        `Score: ${report.scorePoints} / ${report.scoreMaximum} (${report.scorePercent}%). Revise your model and submit again when you are ready.`
+                }
+            );
+
+            return;
+        }
+
+        const completion =
+            ResearchManager.completeExperiment(
+                experiment.id
+            );
+
+        if (completion.completed) {
+            this.showSimulationResult(
+                {
+                    title:
+                        "Experiment Completed",
+
+                    message:
+                        `Perfect score: ${report.scorePoints} / ${report.scoreMaximum}. ${completion.xpAwarded} XP awarded.`
+                }
+            );
+
+            return;
+        }
+
+        this.showSimulationResult(
+            {
+                title:
+                    "Submission Reviewed",
+
+                message:
+                    completion.reason ===
+                    "already-completed"
+                        ? "This experiment was already completed."
+                        : "Your model earned a perfect score, but its research reward could not be applied."
+            }
+        );
+
+    },
 
     // --------------------------------------------------
     // Show or hide the current reflection panel
@@ -329,15 +562,28 @@ handleControlAction(actionId) {
         textarea.addEventListener(
             "input",
             () => {
-
-                OrganelleExperimentAttemptManager
-                    .setReflectionResponse(
-                        reflection.id,
-                        textarea.value
-                    );
-
                 status.textContent =
-                    "Draft saved for this attempt.";
+                    "Draft has unsaved changes.";
+
+            }
+        );
+
+        const saveButton =
+            document.createElement("button");
+
+        saveButton.type = "button";
+
+        saveButton.className =
+            "organelle-experiment-reflection-save-button";
+
+        saveButton.textContent =
+            "Save Draft";
+
+        saveButton.addEventListener(
+            "click",
+            () => {
+
+                this.saveReflectionDraft();
 
             }
         );
@@ -347,6 +593,7 @@ handleControlAction(actionId) {
             prompt,
             label,
             textarea,
+            saveButton,
             status
         );
 
@@ -466,18 +713,7 @@ runSimulation() {
 
     if (this.isParticleSimulationRunning) {
 
-        ParticleSimulationView.stop();
-
-        this.isParticleSimulationRunning =
-            false;
-
-        simulationButton.textContent =
-            "Simulate";
-
-        simulationButton.setAttribute(
-            "aria-pressed",
-            "false"
-        );
+        this.stopParticleSimulation();
 
         return;
     }
@@ -547,10 +783,7 @@ runSimulation() {
         if (!this.initialize()) {
             return;
         }
-        ParticleSimulationView.clear();
-
-this.isParticleSimulationRunning =
-    false;
+        this.stopParticleSimulation();
 
         OrganelleExperimentPlacementController.reset();
 
@@ -846,10 +1079,7 @@ stage.append(
             resolvedExperiment
         );
 
-        ParticleSimulationView.clear();
-
-this.isParticleSimulationRunning =
-    false;
+        this.stopParticleSimulation();
     
 
         this.contentElement.replaceChildren();
@@ -956,3 +1186,5 @@ this.contentElement.appendChild(
 };
 
 export default OrganelleExperimentStage;
+
+

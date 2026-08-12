@@ -396,9 +396,9 @@ simulation: {
     },
 
     waterCrossingRule:
-        "lower_to_higher_trap",
+        "lower_to_higher_trap"
 
-        waterCrossingIntervalMs: 700
+        
 
 },
 
