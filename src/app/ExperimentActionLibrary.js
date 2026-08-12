@@ -84,7 +84,20 @@ const ExperimentActionLibrary = {
         requiresPlacement:
             false
 
-    }
+    },
+
+    reset: {
+
+    id:
+        "reset",
+
+    label:
+        "Reset",
+
+    requiresPlacement:
+        false
+
+}
 
 };
 

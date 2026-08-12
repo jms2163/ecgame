@@ -48,6 +48,8 @@ const OrganelleExperimentLibrary = {
 
         stage: {
 
+            
+
             template:
                 "membrane_transport",
 
@@ -72,11 +74,294 @@ const OrganelleExperimentLibrary = {
 
                 "reflection",
 
-                "submit"
+                "submit",
+
+                "reset",
 
             ]
 
         },
+
+        // strawberry
+
+            assessment: {
+
+    scoreMaximum:
+        60,
+
+        sideZoneIds: [
+    "side_a",
+    "side_b"
+],
+
+    setupRules: [
+
+        {
+            id:
+                "water_in_cytosol",
+
+            type:
+                "minimum_material_in_semantic_zone",
+
+            materialId:
+                "water",
+
+            semanticZone:
+                "cytosol",
+
+            minimumCount:
+                1,
+
+            points:
+                5
+        },
+
+        {
+            id:
+                "water_in_extracellular_solution",
+
+            type:
+                "minimum_material_in_semantic_zone",
+
+            materialId:
+                "water",
+
+            semanticZone:
+                "extracellular",
+
+            minimumCount:
+                1,
+
+            points:
+                5
+        },
+
+        {
+            id:
+                "inward_sodium_chloride_gradient",
+
+            type:
+                "balanced_ion_gradient",
+
+            cationId:
+                "sodium_ion",
+
+            anionId:
+                "chloride_ion",
+
+            higherConcentrationZone:
+                "cytosol",
+
+            scoreUnits: [
+
+                {
+                    id:
+                        "sodium_gradient",
+
+                    points:
+                        5
+                },
+
+                {
+                    id:
+                        "chloride_gradient",
+
+                    points:
+                        5
+                }
+
+            ]
+
+        }
+
+    ],
+
+    labelRules: [
+
+        {
+            id:
+                "plasma_membrane_label",
+
+            type:
+                "label_in_zone",
+
+            labelId:
+                "plasma_membrane",
+
+            zoneId:
+                "membrane",
+
+            points:
+                5
+        },
+
+        {
+            id:
+                "cytosol_label",
+
+            type:
+                "semantic_zone_label",
+
+            labelId:
+                "cytosol",
+
+            semanticZone:
+                "cytosol",
+
+                ionGradientRuleId:
+    "inward_sodium_chloride_gradient",
+
+            concentrationRelation:
+                "higher",
+
+            points:
+                5
+        },
+
+        {
+            id:
+                "extracellular_solution_label",
+
+            type:
+                "semantic_zone_label",
+
+            labelId:
+                "extracellular_solution",
+
+            semanticZone:
+                "extracellular",
+
+                ionGradientRuleId:
+    "inward_sodium_chloride_gradient",
+
+            concentrationRelation:
+                "lower",
+
+            points:
+                5
+        },
+
+        {
+            id:
+                "sodium_ion_label",
+
+            type:
+                "label_near_material",
+
+            labelId:
+                "sodium_ion",
+
+            materialId:
+                "sodium_ion",
+
+            maximumDistance:
+                0.20,
+
+            points:
+                5
+        },
+
+        {
+            id:
+                "chloride_ion_label",
+
+            type:
+                "label_near_material",
+
+            labelId:
+                "chloride_ion",
+
+            materialId:
+                "chloride_ion",
+
+            maximumDistance:
+                0.20,
+
+            points:
+                5
+        },
+
+        {
+            id:
+                "hypertonic_label",
+
+            type:
+                "label_in_semantic_zone",
+
+            labelId:
+                "hypertonic",
+
+            semanticZone:
+                "cytosol",
+
+            points:
+                5
+        },
+
+        {
+            id:
+                "hypotonic_label",
+
+            type:
+                "label_in_semantic_zone",
+
+            labelId:
+                "hypotonic",
+
+            semanticZone:
+                "extracellular",
+
+            points:
+                5
+        }
+
+    ],
+
+    reflection: {
+
+        id:
+            "water_osmosis_explanation",
+
+        prompt:
+            "Explain why the net movement of water in your model is into the amoeba.",
+
+        maximumPoints:
+            5,
+
+        keywordGroups: [
+
+            [
+                "water",
+                "h2o"
+            ],
+
+            [
+                "osmosis",
+                "osmotic"
+            ],
+
+            [
+                "solute",
+                "salt",
+                "ion",
+                "nacl"
+            ],
+
+            [
+                "concentration",
+                "gradient"
+            ],
+
+            [
+                "hypertonic",
+                "hypotonic"
+            ]
+
+        ]
+
+    }
+
+},
 
         requirements: {
 
@@ -174,7 +459,9 @@ const OrganelleExperimentLibrary = {
 
                 "reflection",
 
-                "submit"
+                "submit",
+
+                "reset"
 
             ]
 

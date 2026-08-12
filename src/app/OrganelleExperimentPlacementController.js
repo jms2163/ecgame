@@ -14,6 +14,7 @@ const OrganelleExperimentPlacementController = {
     dropZones: new Map(),
 
     placements: [],
+    placementEvents: [],
     labelSourceElements: new Map(),
 
     activeDrag: null,
@@ -29,6 +30,7 @@ const OrganelleExperimentPlacementController = {
     start(experiment) {
 
         this.reset();
+        this.placements = [];
 
         this.activeExperimentId =
             experiment?.id ?? null;
@@ -58,29 +60,31 @@ const OrganelleExperimentPlacementController = {
     },
 
     // --------------------------------------------------
-    // Clear temporary stage state
-    // --------------------------------------------------
-    reset() {
+// Clear temporary stage state
+// --------------------------------------------------
+reset() {
 
-        this.cancelActiveDrag();
+    this.cancelActiveDrag();
 
-        this.activeExperimentId =
-            null;
+    this.activeExperimentId =
+        null;
 
-        this.materials.clear();
+    this.materials.clear();
 
-        this.labels.clear();
+    this.labels.clear();
 
-        this.dropZones.clear();
+    this.dropZones.clear();
 
-        this.placements = [];
+    this.placements = [];
 
-        this.labelSourceElements.clear();
+    this.placementEvents = [];
 
-        this.placementCounter =
-            0;
+    this.labelSourceElements.clear();
 
-    },
+    this.placementCounter =
+        0;
+
+},
 
     // --------------------------------------------------
     // Prepare persistent pointer handlers
@@ -506,73 +510,137 @@ createDragGhost(payload) {
     },
 
     // --------------------------------------------------
-    // Add or move one experiment placement
+// Record one placement action for future Journal review
+// --------------------------------------------------
+recordPlacementEvent(
+    eventType,
+    placement
+) {
+
+    if (!placement) {
+        return;
+    }
+
+    this.placementEvents.push(
+        {
+            eventId:
+                `event-${this.placementEvents.length + 1}`,
+
+            eventType,
+
+            kind:
+                placement.kind,
+
+            definitionId:
+                placement.definitionId,
+
+            zoneId:
+                placement.zoneId,
+
+            position:
+                structuredClone(
+                    placement.position
+                ),
+
+            occurredAtMs:
+                Date.now()
+        }
+    );
+
+},
+
     // --------------------------------------------------
-    placeActiveDrag(
-        zoneId,
-        clientX,
-        clientY
+// Add or move one experiment placement
+// --------------------------------------------------
+// --------------------------------------------------
+// Add or move one experiment placement
+// --------------------------------------------------
+placeActiveDrag(
+    zoneId,
+    clientX,
+    clientY
+) {
+
+    const zone =
+        this.dropZones.get(zoneId);
+
+    if (!zone || !this.activeDrag) {
+        return;
+    }
+
+    const position =
+        this.getNormalizedPosition(
+            zone,
+            clientX,
+            clientY
+        );
+
+    let changedPlacement =
+        null;
+
+    let eventType =
+        null;
+
+    if (
+        this.activeDrag.source ===
+        "placement"
     ) {
-
-        const zone =
-            this.dropZones.get(zoneId);
-
-        if (!zone || !this.activeDrag) {
-            return;
-        }
-
-        const position =
-            this.getNormalizedPosition(
-                zone,
-                clientX,
-                clientY
+        const placement =
+            this.placements.find(
+                candidate =>
+                    candidate.id ===
+                    this.activeDrag.placementId
             );
 
-        if (
-            this.activeDrag.source ===
-            "placement"
-        ) {
-            const placement =
-                this.placements.find(
-                    candidate =>
-                        candidate.id ===
-                        this.activeDrag.placementId
-                );
+        if (placement) {
+            placement.zoneId =
+                zoneId;
 
-            if (placement) {
-                placement.zoneId =
-                    zoneId;
+            placement.position =
+                position;
 
-                placement.position =
-                    position;
-            }
+            changedPlacement =
+                placement;
 
-        } else {
-
-            this.placementCounter++;
-
-            this.placements.push(
-                {
-                    id:
-                        `placement-${this.placementCounter}`,
-
-                    kind:
-                        this.activeDrag.kind,
-
-                    definitionId:
-                        this.activeDrag.definitionId,
-
-                    zoneId,
-
-                    position
-                }
-            );
-
+            eventType =
+                "moved";
         }
 
-        this.renderPlacements();
+    } else {
 
-    },
+        this.placementCounter++;
+
+        changedPlacement = {
+            id:
+                `placement-${this.placementCounter}`,
+
+            kind:
+                this.activeDrag.kind,
+
+            definitionId:
+                this.activeDrag.definitionId,
+
+            zoneId,
+
+            position
+        };
+
+        this.placements.push(
+            changedPlacement
+        );
+
+        eventType =
+            "placed";
+    }
+
+    this.recordPlacementEvent(
+        eventType,
+        changedPlacement
+    );
+
+    this.renderPlacements();
+
+},
 
     // --------------------------------------------------
     // Render placed items in their assigned zones
@@ -785,6 +853,9 @@ createDragGhost(payload) {
             {
                 experimentId:
                     this.activeExperimentId,
+
+                    events:
+    this.placementEvents,
 
                 components:
                     this.placements
