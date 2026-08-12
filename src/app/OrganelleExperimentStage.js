@@ -29,6 +29,8 @@ import OrganelleExperimentSubmissionManager
 
 import SaveManager
     from "./SaveManager.js";
+import ProblemReportManager
+    from "./ProblemReportManager.js";
 
 const OrganelleExperimentStage = {
 
@@ -668,7 +670,7 @@ handleControlAction(actionId) {
             "organelle-experiment-integrity-notice";
 
         integrityNotice.textContent =
-            "Academic integrity: Build and explain your own model. Submitted reflections may be reviewed for substantial similarity to other studentsâ€™ work.";
+            "Academic integrity: Build and explain your own model. Submitted reflections may be reviewed for substantial similarity to other students.™ work.";
 
         const label =
             document.createElement("label");
@@ -1359,7 +1361,7 @@ this.contentElement.appendChild(
         this.isReviewMode = true;
 
         this.titleElement.textContent =
-            `${this.activeResolvedExperiment.title} â€” Submission Review`;
+            `${this.activeResolvedExperiment.title} - Submission Review`;
 
         this.controlsElement.replaceChildren();
 
@@ -1396,7 +1398,6 @@ this.contentElement.appendChild(
 
         const reviewControls =
             document.createElement("section");
-
         reviewControls.className =
             "organelle-experiment-review-controls";
 
@@ -1430,7 +1431,7 @@ this.contentElement.appendChild(
 
             const previous = document.createElement("button");
             previous.type = "button";
-            previous.textContent = "â† Previous attempt";
+            previous.textContent = "Previous <-";
             previous.disabled = submissionIndex === 0;
             previous.addEventListener("click", () => {
                 this.openReview(
@@ -1441,7 +1442,7 @@ this.contentElement.appendChild(
 
             const next = document.createElement("button");
             next.type = "button";
-            next.textContent = "Next attempt â†’";
+            next.textContent = "Next ->";
             next.disabled =
                 submissionIndex === submissions.length - 1;
             next.addEventListener("click", () => {
@@ -1454,28 +1455,6 @@ this.contentElement.appendChild(
             navigation.append(previous, position, next);
             reviewControls.appendChild(navigation);
         }
-
-        const reviewActions =
-            document.createElement("div");
-
-        reviewActions.className =
-            "organelle-experiment-review-actions";
-
-        const regrade = document.createElement("button");
-        regrade.type = "button";
-        regrade.textContent = "Regrade assessment";
-        regrade.addEventListener("click", () => {
-            const outcome = this.regradeExperiment(experiment);
-            this.showSimulationResult({
-                title: "Assessment Regraded",
-                message: outcome
-                    ? `Highest score: ${outcome.best.report.scorePoints} / ${outcome.best.report.scoreMaximum}.`
-                    : "No saved submission is available to regrade."
-            });
-        });
-
-        reviewActions.appendChild(regrade);
-        reviewControls.appendChild(reviewActions);
 
         const failedCriteria =
             submission.report?.criteria?.filter(
@@ -1547,10 +1526,49 @@ this.contentElement.appendChild(
                 );
         }
 
-        this.contentElement.appendChild(
-            reviewControls
-        );
+        const actions = document.createElement("div");
+        actions.className = "organelle-experiment-review-actions";
 
+        const regrade = document.createElement("button");
+        regrade.type = "button";
+        regrade.textContent = "Regrade assessment";
+        regrade.addEventListener("click", () => {
+            const outcome = this.regradeExperiment(experiment);
+            this.showSimulationResult({ title: "Assessment Regraded", message: outcome ? `Highest score: ${outcome.best.report.scorePoints} / ${outcome.best.report.scoreMaximum}.` : "No saved submission is available to regrade." });
+        });
+
+        const report = document.createElement("button");
+        report.type = "button";
+        report.textContent = "Report a grading issue";
+        report.addEventListener("click", () => {
+            this.openProblemReportOverlay(experiment, submission);
+        });
+
+        actions.append(regrade, report);
+        reviewControls.appendChild(actions);
+        this.contentElement.appendChild(reviewControls);
+
+    },
+
+    openProblemReportOverlay(experiment, submission) {
+        const overlay = document.createElement("div");
+        overlay.className = "organelle-problem-report-overlay";
+        const dialog = document.createElement("form");
+        dialog.className = "organelle-problem-report-dialog";
+        dialog.innerHTML = `<h3>Report a grading issue</h3><label>Issue type<select name="issueType"><option value="reflection">Reflection scoring</option><option value="placement">Placement, label, or orientation</option><option value="interface">Interface or saving</option><option value="other">Other</option></select></label><label>Briefly report the problem you want your instructor to review.<textarea name="message" required maxlength="1500"></textarea></label><div class="organelle-problem-report-actions"><button type="submit">Submit report</button><button type="button" data-cancel>Cancel</button></div>`;
+        dialog.addEventListener("submit", async event => {
+            event.preventDefault();
+            const values = new FormData(dialog);
+            try {
+                await ProblemReportManager.send(ProblemReportManager.createPayload({ experiment, submission, issueType: values.get("issueType"), message: values.get("message") }));
+                overlay.remove();
+                this.showSimulationResult({ title: "Report Sent", message: "Your selected submission was sent to your instructor for review." });
+            } catch (error) { console.error("Problem report failed", error); }
+        });
+        dialog.querySelector("[data-cancel]").addEventListener("click", () => overlay.remove());
+        overlay.appendChild(dialog);
+        this.contentElement.appendChild(overlay);
+        dialog.querySelector("textarea").focus();
     },
 
     // --------------------------------------------------
