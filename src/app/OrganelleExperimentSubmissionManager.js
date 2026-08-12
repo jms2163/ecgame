@@ -144,6 +144,15 @@ const OrganelleExperimentSubmissionManager = {
             isPerfect:
                 Boolean(report.isPerfect),
 
+            rubricVersion:
+                experiment.assessment?.rubricVersion ??
+                "unversioned",
+
+            // Preserve criterion-level evidence for private
+            // learner feedback and future rubric regrading.
+            report:
+                structuredClone(report),
+
             technicalVocabularyMatches:
                 this.getTechnicalVocabularyMatches(
                     experiment,
@@ -279,6 +288,30 @@ const OrganelleExperimentSubmissionManager = {
     }
 
     ,
+
+    applyRegrade({ experiment, results }) {
+        this.ensureRegistryStructures();
+        const best = [...results].sort((a, b) =>
+            b.report.scorePoints - a.report.scorePoints
+        )[0];
+        if (!best) return null;
+        const research = gameState.registry.research;
+        research.bestExperimentScores[experiment.id] = {
+            submissionId: best.submission.id, scorePoints: best.report.scorePoints,
+            scoreMaximum: best.report.scoreMaximum, scorePercent: best.report.scorePercent,
+            isPerfect: best.report.isPerfect, achievedAtMs: Date.now(),
+            rubricVersion: experiment.assessment?.rubricVersion ?? "unversioned",
+            regradedAtMs: Date.now()
+        };
+        const eligible = results.find(result => result.report.isPerfect &&
+            this.getTechnicalVocabularyMatches(experiment, result.submission.attemptSnapshot).length);
+        if (eligible && !research.stars[experiment.id]) research.stars[experiment.id] = {
+            awardedAtMs: Date.now(), sourceSubmissionId: eligible.submission.id,
+            reason: "technical-vocabulary-regrade",
+            matchedTerms: this.getTechnicalVocabularyMatches(experiment, eligible.submission.attemptSnapshot)
+        };
+        return structuredClone({ best, starAwarded: Boolean(eligible) });
+    },
 
     // --------------------------------------------------
     // Read the persisted exceptional-work star, if earned.
