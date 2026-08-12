@@ -323,40 +323,101 @@ const OrganelleExperimentLibrary = {
             "water_osmosis_explanation",
 
         prompt:
-            "Explain why the net movement of water in your model is into the amoeba.",
+            "Explain why water has a net movement into the amoeba. Describe the difference between the two sides of the membrane and how that difference affects water movement.",
 
         maximumPoints:
             5,
 
         keywordGroups: [
 
-            [
-                "water",
-                "h2o"
-            ],
+    // Identifies the moving substance.
+    [
+        "water",
+        "H2O"
+    ],
 
-            [
-                "osmosis",
-                "osmotic"
-            ],
+    // Identifies the solute or concentration context.
+    [
+        "solute",
+        "solutes",
+        "ion",
+        "ions",
+        "salt",
+        "salty",
+        "sodium",
+        "chloride",
+        "NaCl",
+        "concentration",
+        "gradient",
+        "hypertonic",
+        "hypotonic",
+        "salt concentration",
+        "solute concentration",
+        "ion concentration",
+        "concentration gradient",
+        "osmotic gradient",
+        "higher concentration",
+        "higher solute concentration",
+        "higher salt concentration",
+        "more concentrated",
+        "more salty",
+        "saltier"
+    ],
 
-            [
-                "solute",
-                "salt",
-                "ion",
-                "nacl"
-            ],
+    // Identifies the cause-and-effect direction:
+    // water enters the cell toward its higher-solute cytosol.
+    [
+        "higher solute",
+        "more solute",
+        "more salt",
+        "more ions",
+        "higher ion concentration",
+        "higher solute concentration",
+        "higher salt concentration",
+        "higher concentration of solute",
+        "higher concentration of salt",
+        "greater solute concentration",
+        "greater salt concentration",
+        "more concentrated",
+        "more highly concentrated",
+        "saltier side",
+        "saltier cytosol",
+        "higher concentration",
+        "toward the cytosol",
+        "to the cytosol",
+        "into the cytosol",
+        "towards the cytosol",
+        "toward cytosol",
+        "into the amoeba",
+        "to the amoeba",
+        "inside the amoeba",
+        "into the cell",
+        "to the cell",
+        "inside the cell",
+        "enters the cell",
+        "enter the cell",
+        "enters the amoeba",
+        "enter the amoeba",
+        "moves into the cell",
+        "move into the cell",
+        "moves into the amoeba",
+        "move into the amoeba",
+        "moves inward",
+        "move inward",
+        "flows into the cell",
+        "flow into the cell"
+    ]
 
-            [
-                "concentration",
-                "gradient"
-            ],
+],
 
-            [
-                "hypertonic",
-                "hypotonic"
-            ]
-
+        // Recognized only after a perfect score; these
+        // terms never contribute to the 60-point grade.
+        technicalVocabulary: [
+            "osmosis",
+            "osmotic",
+            "passive transport",
+            "passive diffusion",
+            "diffusion"
         ]
 
     }
@@ -461,7 +522,7 @@ simulation: {
             "+500 XP • +5% membrane transport • +3% vacuole osmoregulation",
 
         objective:
-            "Place aquaporin correctly in the plasma membrane and compare direct water diffusion with channel-facilitated water transport.",
+            "An amoeba has taken in too much water and must export the excess to restore water balance. Arrange the materials to move water out of the cell.",
 
         stage: {
 
@@ -490,7 +551,7 @@ simulation: {
 
             controls: [
 
-                "flip",
+                "rotate",
 
                 "simulate",
 
@@ -503,6 +564,278 @@ simulation: {
                 "reset"
 
             ]
+
+        },
+
+        assessment: {
+
+            scoreMaximum:
+                75,
+
+            sideZoneIds: [
+                "side_a",
+                "side_b"
+            ],
+
+            setupRules: [
+
+                {
+                    id: "water_in_cytosol",
+                    type: "minimum_material_in_semantic_zone",
+                    materialId: "water",
+                    semanticZone: "cytosol",
+                    minimumCount: 1,
+                    points: 5
+                },
+
+                {
+                    id: "water_in_extracellular_solution",
+                    type: "minimum_material_in_semantic_zone",
+                    materialId: "water",
+                    semanticZone: "extracellular",
+                    minimumCount: 1,
+                    points: 5
+                },
+
+                {
+                    id: "outward_sodium_chloride_gradient",
+                    type: "balanced_ion_gradient",
+                    cationId: "sodium_ion",
+                    anionId: "chloride_ion",
+                    higherConcentrationZone: "extracellular",
+                    scoreUnits: [
+                        {
+                            id: "outward_sodium_gradient",
+                            points: 5
+                        },
+                        {
+                            id: "outward_chloride_gradient",
+                            points: 5
+                        }
+                    ]
+                },
+
+                {
+                    id: "aquaporin_membrane_placement_and_orientation",
+                    type: "material_in_zone_with_allowed_rotation",
+                    materialId: "aquaporin",
+                    zoneId: "membrane",
+                    allowedRotationDeg: [90, 270],
+                    placementScoreUnit: {
+                        id: "aquaporin_in_membrane",
+                        points: 5
+                    },
+                    orientationScoreUnit: {
+                        id: "aquaporin_spans_membrane",
+                        points: 5
+                    }
+                }
+
+            ],
+
+            labelRules: [
+
+                {
+                    id: "plasma_membrane_label",
+                    type: "label_in_zone",
+                    labelId: "plasma_membrane",
+                    zoneId: "membrane",
+                    points: 5
+                },
+
+                {
+                    id: "cytosol_label",
+                    type: "semantic_zone_label",
+                    labelId: "cytosol",
+                    semanticZone: "cytosol",
+                    ionGradientRuleId: "outward_sodium_chloride_gradient",
+                    concentrationRelation: "lower",
+                    points: 5
+                },
+
+                {
+                    id: "extracellular_solution_label",
+                    type: "semantic_zone_label",
+                    labelId: "extracellular_solution",
+                    semanticZone: "extracellular",
+                    ionGradientRuleId: "outward_sodium_chloride_gradient",
+                    concentrationRelation: "higher",
+                    points: 5
+                },
+
+                {
+                    id: "sodium_ion_label",
+                    type: "label_near_material",
+                    labelId: "sodium_ion",
+                    materialId: "sodium_ion",
+                    maximumDistance: 0.20,
+                    points: 5
+                },
+
+                {
+                    id: "chloride_ion_label",
+                    type: "label_near_material",
+                    labelId: "chloride_ion",
+                    materialId: "chloride_ion",
+                    maximumDistance: 0.20,
+                    points: 5
+                },
+
+                {
+                    id: "hypertonic_label",
+                    type: "label_in_semantic_zone",
+                    labelId: "hypertonic",
+                    semanticZone: "extracellular",
+                    points: 5
+                },
+
+                {
+                    id: "hypotonic_label",
+                    type: "label_in_semantic_zone",
+                    labelId: "hypotonic",
+                    semanticZone: "cytosol",
+                    points: 5
+                },
+
+                {
+                    id: "aquaporin_channel_label",
+                    type: "label_near_material",
+                    labelId: "aquaporin_channel",
+                    materialId: "aquaporin",
+                    maximumDistance: 0.20,
+                    points: 5
+                }
+
+            ],
+
+            reflection: {
+
+                id:
+                    "aquaporin_water_export_explanation",
+
+                prompt:
+                    "Explain why water moves out of the amoeba through your aquaporin model. Describe the solute difference across the membrane, why the aquaporin must span the membrane, and why ATP is not needed.",
+
+                maximumPoints:
+                    5,
+
+              keywordGroups: [
+
+    // 1 point — identifies what is moving
+    [
+        "water",
+        "H2O"
+    ],
+
+    // 1 point — identifies the external solute difference
+    [
+        "extracellular solution",
+        "outside solution",
+        "external solution",
+        "outside of the cell has",
+        "outside has",
+        "higher concentration",
+        "high concentration",
+        "higher salt concentration",
+        "higher solute concentration",
+        "more salt",
+        "more solute",
+        "salt concentration",
+        "solute concentration",
+        "osmotic gradient",
+        "concentration gradient",
+        "hypertonic environment",
+        "hypertonic solution",
+        "hypertonic outside",
+        "outside is hypertonic"
+    ],
+
+    // 1 point — identifies water leaving the amoeba
+    [
+        "out of the amoeba",
+        "out of the cell",
+        "outside of the amoeba",
+        "outside of the cell",
+        "to the outside of the amoeba",
+        "to the outside of the cell",
+        "to the outside",
+        "moves to the outside",
+        "move to the outside",
+        "moves outward",
+        "move outward",
+        "flows outward",
+        "flow outward",
+        "flows out",
+        "flow out",
+        "moves out",
+        "move out",
+        "diffuses out",
+        "diffuse out",
+        "exits the cell",
+        "exit the cell",
+        "leaves the cell",
+        "leave the cell"
+    ],
+
+    // 1 point — identifies the aquaporin membrane pathway
+    [
+        "aquaporin channel",
+        "aquaporin pore",
+        "aquaporin protein",
+        "aquaporin transport protein",
+        "aquaporin spanning the membrane",
+        "aquaporin spans the membrane",
+        "aquaporin span the membrane",
+        "aquaporin through the membrane",
+        "aquaporin in the membrane",
+        "aquaporin embedded in the membrane",
+        "channel in the membrane",
+        "channel through the membrane",
+        "membrane channel",
+        "water channel",
+        "transport protein",
+        "protein channel",
+        "spans the membrane",
+        "span the membrane",
+        "spanning the membrane",
+        "through the membrane",
+        "embedded in the membrane"
+    ],
+
+    // 1 point — identifies ATP-independent passive movement
+    [
+        "without ATP",
+        "no ATP",
+        "ATP is not needed",
+        "ATP is unnecessary",
+        "ATP is not required",
+        "does not use ATP",
+        "doesn't use ATP",
+        "does not require ATP",
+        "doesn't require ATP",
+        "passive transport",
+        "passively",
+        "passive diffusion",
+        "facilitated diffusion",
+        "does not require energy",
+        "doesn't require energy",
+        "no energy required",
+        "no energy is required",
+        "without energy",
+        "without energy input"
+    ]
+
+],
+
+                technicalVocabulary: [
+                    "facilitated diffusion",
+                    "channel protein",
+                    "selective channel",
+                    "osmosis",
+                    "passive transport"
+                ]
+
+            }
 
         },
 

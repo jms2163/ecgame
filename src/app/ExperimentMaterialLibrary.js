@@ -65,7 +65,15 @@ const ExperimentMaterialLibrary = {
             "Aquaporin water channel",
 
         visualId:
-            "aquaporin_channel"
+            "aquaporin_channel",
+
+        // The source art is horizontal. Start it vertical
+        // so students must rotate it to span the membrane.
+        initialRotationDeg:
+            0,
+
+        rotatable:
+            true
 
     }
 

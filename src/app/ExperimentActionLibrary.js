@@ -5,16 +5,16 @@
 
 const ExperimentActionLibrary = {
 
-    flip: {
+    rotate: {
 
         id:
-            "flip",
+            "rotate",
 
         label:
-            "Flip",
+            "Rotate",
 
-        requiresPlacement:
-            false
+        requiresSelectedPlacement:
+            true
 
     },
 

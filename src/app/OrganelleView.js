@@ -73,6 +73,22 @@ const OrganelleView = {
     },
 
     // --------------------------------------------------
+    // Open the latest persisted submission in read-only
+    // review mode, without starting a new attempt.
+    // --------------------------------------------------
+    reviewSubmission(
+        experiment,
+        submission
+    ) {
+
+        OrganelleExperimentStage.openReview(
+            experiment,
+            submission
+        );
+
+    },
+
+    // --------------------------------------------------
     // Activate Organelle Lab
     // --------------------------------------------------
     activate({
@@ -109,6 +125,16 @@ const OrganelleView = {
                     experiment =>
                         this.openExperiment(
                             experiment
+                        ),
+
+                onReviewSubmission:
+                    (
+                        experiment,
+                        submission
+                    ) =>
+                        this.reviewSubmission(
+                            experiment,
+                            submission
                         )
             }
         );

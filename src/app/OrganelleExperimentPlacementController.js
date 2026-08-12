@@ -21,6 +21,11 @@ const OrganelleExperimentPlacementController = {
     dragGhostElement: null,
     placementCounter: 0,
 
+    selectedPlacementId: null,
+    onSelectionChanged: null,
+
+    isReadOnly: false,
+
     boundPointerMove: null,
     boundPointerUp: null,
 
@@ -34,6 +39,8 @@ const OrganelleExperimentPlacementController = {
 
         this.activeExperimentId =
             experiment?.id ?? null;
+
+        this.isReadOnly = false;
 
         (
             experiment?.stage?.materials ?? []
@@ -62,7 +69,7 @@ const OrganelleExperimentPlacementController = {
     // --------------------------------------------------
 // Clear temporary stage state
 // --------------------------------------------------
-reset() {
+    reset() {
 
     this.cancelActiveDrag();
 
@@ -83,6 +90,15 @@ reset() {
 
     this.placementCounter =
         0;
+
+    this.selectedPlacementId =
+        null;
+
+    this.onSelectionChanged =
+        null;
+
+    this.isReadOnly =
+        false;
 
 },
 
@@ -294,6 +310,8 @@ createMaterialSource(material) {
             return;
         }
 
+        this.selectPlacement(placementId);
+
         this.beginDrag(
             {
                 source: "placement",
@@ -323,18 +341,36 @@ createDragGhost(payload) {
 
     if (payload.kind === "material") {
 
-        const material =
-            this.materials.get(
-                payload.definitionId
-            );
-
-        ghost.appendChild(
-            this.createMaterialVisual(
-                material
-            )
+    const material =
+        this.materials.get(
+            payload.definitionId
         );
 
-    } else {
+    const visual =
+        this.createMaterialVisual(
+            material
+        );
+
+    const placement =
+        payload.source === "placement"
+            ? this.placements.find(
+                candidate =>
+                    candidate.id ===
+                    payload.placementId
+            )
+            : null;
+
+    const rotationDeg =
+        placement?.rotationDeg ??
+        material?.initialRotationDeg ??
+        0;
+
+    visual.style.transform =
+        `rotate(${rotationDeg}deg)`;
+
+    ghost.appendChild(visual);
+
+} else {
 
         const label =
             this.labels.get(
@@ -512,7 +548,7 @@ createDragGhost(payload) {
     // --------------------------------------------------
 // Record one placement action for future Journal review
 // --------------------------------------------------
-recordPlacementEvent(
+    recordPlacementEvent(
     eventType,
     placement
 ) {
@@ -541,6 +577,9 @@ recordPlacementEvent(
                 structuredClone(
                     placement.position
                 ),
+
+            rotationDeg:
+                placement.rotationDeg ?? 0,
 
             occurredAtMs:
                 Date.now()
@@ -622,12 +661,29 @@ placeActiveDrag(
 
             zoneId,
 
-            position
+            position,
+
+            rotationDeg:
+                this.activeDrag.kind === "material"
+                    ? this.materials.get(
+                        this.activeDrag.definitionId
+                    )?.initialRotationDeg ?? 0
+                    : 0
         };
 
         this.placements.push(
             changedPlacement
         );
+
+        if (
+            changedPlacement.kind === "material" &&
+            this.materials.get(
+                changedPlacement.definitionId
+            )?.rotatable
+        ) {
+            this.selectedPlacementId =
+                changedPlacement.id;
+        }
 
         eventType =
             "placed";
@@ -639,6 +695,10 @@ placeActiveDrag(
     );
 
     this.renderPlacements();
+
+    this.onSelectionChanged?.(
+        this.getSelectedPlacement()
+    );
 
 },
 
@@ -698,6 +758,11 @@ placeActiveDrag(
         element.dataset.placementId =
             placement.id;
 
+        element.classList.toggle(
+            "organelle-experiment-placement--selected",
+            placement.id === this.selectedPlacementId
+        );
+
         element.style.left =
             `${placement.position.x * 100}%`;
 
@@ -711,11 +776,15 @@ placeActiveDrag(
             placement.definitionId
         );
 
-    element.appendChild(
+    const visual =
         this.createMaterialVisual(
             material
-        )
-    );
+        );
+
+    visual.style.transform =
+        `rotate(${placement.rotationDeg ?? 0}deg)`;
+
+    element.appendChild(visual);
 
 } else {
 
@@ -729,17 +798,19 @@ placeActiveDrag(
 
         }
 
-        element.addEventListener(
-            "pointerdown",
-            event => {
+        if (!this.isReadOnly) {
+            element.addEventListener(
+                "pointerdown",
+                event => {
 
-                this.beginPlacementDrag(
-                    placement.id,
-                    event
-                );
+                    this.beginPlacementDrag(
+                        placement.id,
+                        event
+                    );
 
-            }
-        );
+                }
+            );
+        }
 
         return element;
 
@@ -872,7 +943,10 @@ placeActiveDrag(
                                 placement.zoneId,
 
                             position:
-                                placement.position
+                                placement.position,
+
+                            rotationDeg:
+                                placement.rotationDeg ?? 0
                         })),
 
                 labels:
@@ -894,6 +968,175 @@ placeActiveDrag(
                         }))
             }
         );
+
+    }
+
+    ,
+
+    // --------------------------------------------------
+    // Select one individual placed material for controls
+    // such as Rotate. Labels cannot be selected.
+    // --------------------------------------------------
+    selectPlacement(placementId) {
+
+        const placement =
+            this.placements.find(
+                candidate =>
+                    candidate.id === placementId &&
+                    candidate.kind === "material"
+            ) ?? null;
+
+        this.selectedPlacementId =
+            placement?.id ?? null;
+
+        this.renderPlacements();
+
+        this.onSelectionChanged?.(
+            placement
+                ? structuredClone(placement)
+                : null
+        );
+
+        return Boolean(placement);
+
+    },
+
+    // --------------------------------------------------
+    // Rotate the selected, rotatable material by 90°.
+    // --------------------------------------------------
+    rotateSelectedPlacement() {
+
+        const placement =
+            this.placements.find(
+                candidate =>
+                    candidate.id === this.selectedPlacementId
+            );
+
+        const material =
+            this.materials.get(
+                placement?.definitionId
+            );
+
+        if (!placement || !material?.rotatable) {
+            return false;
+        }
+
+        placement.rotationDeg =
+            ((placement.rotationDeg ?? 0) + 90) % 360;
+
+        this.recordPlacementEvent(
+            "rotated",
+            placement
+        );
+
+        this.renderPlacements();
+
+        this.onSelectionChanged?.(
+            structuredClone(placement)
+        );
+
+        return true;
+
+    },
+
+    // --------------------------------------------------
+    // Read the selected placement without exposing it.
+    // --------------------------------------------------
+    getSelectedPlacement() {
+
+        const placement =
+            this.placements.find(
+                candidate =>
+                    candidate.id === this.selectedPlacementId
+            );
+
+        return placement
+            ? structuredClone(placement)
+            : null;
+
+    }
+
+    ,
+
+    // --------------------------------------------------
+    // Rebuild a saved placement snapshot for read-only
+    // submission review. The active experiment must match.
+    // --------------------------------------------------
+    restoreSnapshot(snapshot) {
+
+        if (
+            !snapshot ||
+            snapshot.experimentId !==
+                this.activeExperimentId
+        ) {
+            console.warn(
+                "OrganelleExperimentPlacementController: snapshot does not match the active experiment"
+            );
+
+            return false;
+        }
+
+        const savedPlacements = [
+            ...(snapshot.components ?? []).map(
+                component => ({
+                    kind: "material",
+                    definitionId: component.id,
+                    zoneId: component.zoneId,
+                    position: component.position
+                    ,
+                    rotationDeg:
+                        component.rotationDeg ?? 0
+                })
+            ),
+            ...(snapshot.labels ?? []).map(
+                label => ({
+                    kind: "label",
+                    definitionId: label.id,
+                    zoneId: label.zoneId,
+                    position: label.position
+                })
+            )
+        ];
+
+        this.placements =
+            savedPlacements
+                .filter(placement =>
+                    this.dropZones.has(
+                        placement.zoneId
+                    ) &&
+                    this[
+                        placement.kind === "material"
+                            ? "materials"
+                            : "labels"
+                    ].has(placement.definitionId) &&
+                    Number.isFinite(
+                        placement.position?.x
+                    ) &&
+                    Number.isFinite(
+                        placement.position?.y
+                    )
+                )
+                .map((placement, index) => ({
+                    id: `review-placement-${index + 1}`,
+                    ...structuredClone(placement)
+                }));
+
+        this.placementEvents =
+            structuredClone(
+                snapshot.events ?? []
+            );
+
+        this.placementCounter =
+            this.placements.length;
+
+        this.selectedPlacementId =
+            null;
+
+        this.isReadOnly = true;
+
+        this.renderPlacements();
+
+        return true;
 
     }
 

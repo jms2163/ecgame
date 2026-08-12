@@ -584,6 +584,30 @@
     text-align: center;
 }
 
+.organelle-experiment-placement--selected {
+    outline: 2px solid #8fd3ff;
+    outline-offset: 4px;
+    filter: drop-shadow(0 0 8px rgba(143, 211, 255, 0.95));
+}
+
+.organelle-experiment-particle--aquaporin {
+    display: block;
+    width: 4.5rem;
+    height: 3.1rem;
+    border-radius: 0;
+    object-fit: contain;
+    transform-origin: center;
+}
+
+.organelle-experiment-selected-protein-status {
+    flex-basis: 100%;
+    margin: 4px 0 0;
+    color: #8fd3ff;
+    font-size: 0.78rem;
+    font-weight: bold;
+    text-align: right;
+}
+
 .organelle-experiment-drag-ghost {
     position: fixed;
     z-index: 1000;
@@ -697,6 +721,14 @@
     color: #f7efff;
 }
 
+.organelle-experiment-integrity-notice {
+    padding: 8px 10px;
+    color: #c7ecff;
+    border-left: 3px solid #8fd3ff;
+    background: rgba(69, 156, 205, 0.12);
+    font-size: 0.82rem;
+}
+
 .organelle-experiment-reflection label {
     color: #cdbfd8;
     font-size: 0.85rem;
@@ -788,4 +820,58 @@
 .membrane-transport-stage--labels-hidden
 .organelle-experiment-placement--label {
     visibility: hidden;
+}
+
+.organelle-experiment-review-link {
+    color: #8fd3ff;
+}
+
+.organelle-experiment-review-link:hover,
+.organelle-experiment-review-link:focus-visible {
+    color: #c7ecff;
+}
+
+.organelle-experiment-star {
+    position: relative;
+    display: inline-block;
+    margin-left: 0.4rem;
+    color: #8fd3ff;
+    cursor: help;
+}
+
+.organelle-experiment-star::after {
+    position: absolute;
+    z-index: 30;
+    bottom: calc(100% + 7px);
+    left: 50%;
+    padding: 5px 8px;
+    color: #0f041c;
+    background: #c7ecff;
+    content: attr(data-tooltip);
+    font-size: 0.75rem;
+    font-weight: bold;
+    pointer-events: none;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+}
+
+.organelle-experiment-star:hover::after,
+.organelle-experiment-star:focus-visible::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .organelle-experiment-star {
+        animation: organelle-star-pulse 1.4s ease-in-out infinite;
+    }
+}
+
+@keyframes organelle-star-pulse {
+    50% {
+        filter: brightness(1.5);
+        transform: scale(1.15);
+    }
 }
