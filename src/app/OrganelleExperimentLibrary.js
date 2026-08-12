@@ -363,6 +363,45 @@ const OrganelleExperimentLibrary = {
 
 },
 
+simulation: {
+
+    modelId:
+        "particle_membrane_transport",
+
+    modelVariant:
+        "osmosis",
+
+    zoneIds: [
+        "side_a",
+        "membrane",
+        "side_b"
+    ],
+
+    membraneRules: {
+
+        blockedMaterialIds: [
+
+            "sodium_ion",
+
+            "chloride_ion"
+
+        ],
+
+        permeableMaterialIds: [
+
+            "water"
+
+        ]
+
+    },
+
+    waterCrossingRule:
+        "lower_to_higher_trap",
+
+        waterCrossingIntervalMs: 700
+
+},
+
         requirements: {
 
             discoveries: [
