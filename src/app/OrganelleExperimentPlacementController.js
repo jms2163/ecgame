@@ -490,6 +490,18 @@ createDragGhost(payload) {
             "organelle-experiment-drop-zone--active"
         );
 
+        const trashTarget =
+            document.elementFromPoint(
+                clientX,
+                clientY
+            )?.closest(
+                "[data-experiment-trash]"
+            );
+
+        trashTarget?.classList.add(
+            "organelle-experiment-trash--active"
+        );
+
     },
 
     // --------------------------------------------------
@@ -863,6 +875,27 @@ placeActiveDrag(
     // --------------------------------------------------
     handlePointerUp(event) {
 
+        const trashTarget =
+            document.elementFromPoint(
+                event.clientX,
+                event.clientY
+            )?.closest(
+                "[data-experiment-trash]"
+            );
+
+        if (
+            trashTarget &&
+            this.activeDrag?.source === "placement" &&
+            this.activeDrag?.kind === "material"
+        ) {
+            this.removePlacement(
+                this.activeDrag.placementId
+            );
+
+            this.cancelActiveDrag();
+            return;
+        }
+
         const target =
             document.elementFromPoint(
                 event.clientX,
@@ -888,6 +921,48 @@ placeActiveDrag(
     },
 
     // --------------------------------------------------
+    // Explicitly remove one placed material. Palette
+    // sources and labels cannot be deleted through trash.
+    // --------------------------------------------------
+    removePlacement(placementId) {
+
+        const index =
+            this.placements.findIndex(
+                placement =>
+                    placement.id === placementId &&
+                    placement.kind === "material"
+            );
+
+        if (index < 0) {
+            return false;
+        }
+
+        const [removedPlacement] =
+            this.placements.splice(index, 1);
+
+        if (
+            this.selectedPlacementId ===
+            removedPlacement.id
+        ) {
+            this.selectedPlacementId = null;
+        }
+
+        this.recordPlacementEvent(
+            "removed",
+            removedPlacement
+        );
+
+        this.renderPlacements();
+
+        this.onSelectionChanged?.(
+            this.getSelectedPlacement()
+        );
+
+        return true;
+
+    },
+
+    // --------------------------------------------------
     // Remove active-drag visuals and listeners
     // --------------------------------------------------
     cancelActiveDrag() {
@@ -903,6 +978,14 @@ placeActiveDrag(
                 "organelle-experiment-drop-zone--active"
             );
 
+        });
+
+        document.querySelectorAll(
+            "[data-experiment-trash]"
+        ).forEach(element => {
+            element.classList.remove(
+                "organelle-experiment-trash--active"
+            );
         });
 
         this.dragGhostElement?.remove();

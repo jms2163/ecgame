@@ -229,6 +229,26 @@
         repeat(3, minmax(0, 1fr));
 }
 
+.organelle-experiment-trash {
+    display: grid;
+    width: 3.25rem;
+    height: 3.25rem;
+    place-items: center;
+    margin-top: 10px;
+    border: 1px dashed #a5677f;
+    border-radius: 0.4rem;
+    color: #ffd5de;
+    background: #351020;
+    font-size: 1.6rem;
+    transition: transform 120ms ease, background 120ms ease;
+}
+
+.organelle-experiment-trash--active {
+    transform: scale(1.08);
+    border-color: #ffd5de;
+    background: #7a2339;
+}
+
 
 
 .organelle-experiment-material {
