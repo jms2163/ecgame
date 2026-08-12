@@ -365,7 +365,7 @@ handleControlAction(actionId) {
         }
 
         this.selectedProteinStatusElement.textContent =
-            `Selected protein: ${material.displayName} (${selectedPlacement.rotationDeg ?? 0}°)`;
+            `Selected protein: ${material.displayName} (${selectedPlacement.rotationDeg ?? 0}Â°)`;
 
     },
 
@@ -668,7 +668,7 @@ handleControlAction(actionId) {
             "organelle-experiment-integrity-notice";
 
         integrityNotice.textContent =
-            "Academic integrity: Build and explain your own model. Submitted reflections may be reviewed for substantial similarity to other students’ work.";
+            "Academic integrity: Build and explain your own model. Submitted reflections may be reviewed for substantial similarity to other studentsâ€™ work.";
 
         const label =
             document.createElement("label");
@@ -1359,7 +1359,7 @@ this.contentElement.appendChild(
         this.isReviewMode = true;
 
         this.titleElement.textContent =
-            `${this.activeResolvedExperiment.title} — Submission Review`;
+            `${this.activeResolvedExperiment.title} â€” Submission Review`;
 
         this.controlsElement.replaceChildren();
 
@@ -1394,6 +1394,12 @@ this.contentElement.appendChild(
         const summary =
             document.createElement("section");
 
+        const reviewControls =
+            document.createElement("section");
+
+        reviewControls.className =
+            "organelle-experiment-review-controls";
+
         summary.className =
             "organelle-experiment-submission-summary";
 
@@ -1424,7 +1430,7 @@ this.contentElement.appendChild(
 
             const previous = document.createElement("button");
             previous.type = "button";
-            previous.textContent = "← Previous attempt";
+            previous.textContent = "â† Previous attempt";
             previous.disabled = submissionIndex === 0;
             previous.addEventListener("click", () => {
                 this.openReview(
@@ -1435,7 +1441,7 @@ this.contentElement.appendChild(
 
             const next = document.createElement("button");
             next.type = "button";
-            next.textContent = "Next attempt →";
+            next.textContent = "Next attempt â†’";
             next.disabled =
                 submissionIndex === submissions.length - 1;
             next.addEventListener("click", () => {
@@ -1446,8 +1452,30 @@ this.contentElement.appendChild(
             });
 
             navigation.append(previous, position, next);
-            summary.appendChild(navigation);
+            reviewControls.appendChild(navigation);
         }
+
+        const reviewActions =
+            document.createElement("div");
+
+        reviewActions.className =
+            "organelle-experiment-review-actions";
+
+        const regrade = document.createElement("button");
+        regrade.type = "button";
+        regrade.textContent = "Regrade assessment";
+        regrade.addEventListener("click", () => {
+            const outcome = this.regradeExperiment(experiment);
+            this.showSimulationResult({
+                title: "Assessment Regraded",
+                message: outcome
+                    ? `Highest score: ${outcome.best.report.scorePoints} / ${outcome.best.report.scoreMaximum}.`
+                    : "No saved submission is available to regrade."
+            });
+        });
+
+        reviewActions.appendChild(regrade);
+        reviewControls.appendChild(reviewActions);
 
         const failedCriteria =
             submission.report?.criteria?.filter(
@@ -1518,6 +1546,10 @@ this.contentElement.appendChild(
                     submission.placementSnapshot
                 );
         }
+
+        this.contentElement.appendChild(
+            reviewControls
+        );
 
     },
 

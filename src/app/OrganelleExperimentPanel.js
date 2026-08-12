@@ -219,7 +219,7 @@ const OrganelleExperimentPanel = {
                 reviewLink.className =
                     "organelle-experiment-review-link";
                 reviewLink.textContent =
-                    "Review attempt";
+                    "Review submission";
 
                 reviewLink.addEventListener("click", event => {
                     event.preventDefault();
@@ -325,17 +325,6 @@ starElement.setAttribute(
                 );
             }
 
-        }
-
-        if (state !== "locked" && this.getBestScore(experiment.id)) {
-            const regrade = document.createElement("button");
-            regrade.type = "button";
-            regrade.className = "organelle-experiment-regrade";
-            regrade.textContent = "Regrade assessment";
-            regrade.addEventListener("click", () => {
-                this.onRegradeAssessment?.(experiment);
-            });
-            card.appendChild(regrade);
         }
 
         if (state === "available") {
