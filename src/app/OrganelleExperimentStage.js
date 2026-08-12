@@ -15,6 +15,8 @@ const OrganelleExperimentStage = {
     controlsElement: null,
     contentElement: null,
 
+    activeExperiment: null,
+
     // --------------------------------------------------
     // Find experiment-stage elements
     // --------------------------------------------------
@@ -60,7 +62,7 @@ const OrganelleExperimentStage = {
     },
 
     // --------------------------------------------------
-    // Render inactive experiment controls
+    // Render experiment controls
     // --------------------------------------------------
     renderControls(experiment) {
 
@@ -92,14 +94,59 @@ const OrganelleExperimentStage = {
                 control.label ??
                 controlId;
 
-            // Enabled in later experiment milestones.
-            button.disabled = true;
+            const isResetControl =
+                controlId === "reset";
+
+            // Other controls become active in later steps.
+            button.disabled =
+                !isResetControl;
+
+            if (isResetControl) {
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        this.handleControlAction(
+                            controlId
+                        );
+
+                    }
+                );
+            }
 
             this.controlsElement.appendChild(
                 button
             );
 
         });
+
+    },
+
+    // --------------------------------------------------
+    // Handle active experiment controls
+    // --------------------------------------------------
+    handleControlAction(actionId) {
+
+        if (actionId !== "reset") {
+            return;
+        }
+
+        const shouldReset =
+            window.confirm(
+                "Reset this experiment? All current placements and responses will be cleared. This attempt will not be recorded."
+            );
+
+        if (!shouldReset) {
+            return;
+        }
+
+        if (!this.activeExperiment) {
+            return;
+        }
+
+        this.open(
+            this.activeExperiment
+        );
 
     },
 
@@ -113,6 +160,9 @@ const OrganelleExperimentStage = {
         }
 
         OrganelleExperimentPlacementController.reset();
+
+        this.activeExperiment =
+            null;
 
         this.titleElement.textContent =
             "No Experiment Open";
@@ -147,21 +197,21 @@ const OrganelleExperimentStage = {
         stage.dataset.template =
             "membrane_transport";
 
-        const extracellular =
+        const sideA =
             document.createElement("section");
 
-        extracellular.className =
+        sideA.className =
             "membrane-transport-compartment";
 
-        extracellular.setAttribute(
+        sideA.setAttribute(
             "aria-label",
-            "Extracellular placement area"
+            "Experiment side A placement area"
         );
 
         OrganelleExperimentPlacementController
             .registerDropZone(
-                extracellular,
-                "extracellular"
+                sideA,
+                "side_a"
             );
 
         const membrane =
@@ -172,7 +222,7 @@ const OrganelleExperimentStage = {
 
         membrane.setAttribute(
             "aria-label",
-            "Plasma membrane placement area"
+            "Membrane placement area"
         );
 
         OrganelleExperimentPlacementController
@@ -206,7 +256,9 @@ const OrganelleExperimentStage = {
                 part.className =
                     className;
 
-                lipid.appendChild(part);
+                lipid.appendChild(
+                    part
+                );
 
             });
 
@@ -216,27 +268,27 @@ const OrganelleExperimentStage = {
 
         }
 
-        const cytosol =
+        const sideB =
             document.createElement("section");
 
-        cytosol.className =
+        sideB.className =
             "membrane-transport-compartment";
 
-        cytosol.setAttribute(
+        sideB.setAttribute(
             "aria-label",
-            "Cytosol placement area"
+            "Experiment side B placement area"
         );
 
         OrganelleExperimentPlacementController
             .registerDropZone(
-                cytosol,
-                "cytosol"
+                sideB,
+                "side_b"
             );
 
         stage.append(
-            extracellular,
+            sideA,
             membrane,
-            cytosol
+            sideB
         );
 
         return stage;
@@ -347,6 +399,9 @@ const OrganelleExperimentStage = {
 
             return;
         }
+
+        this.activeExperiment =
+            experiment;
 
         const resolvedExperiment = {
 
