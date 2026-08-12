@@ -1112,9 +1112,36 @@ stage.append(
 
         });
 
+        const trash =
+            document.createElement("div");
+
+        trash.className =
+            "organelle-experiment-trash";
+
+        trash.dataset.experimentTrash =
+            "true";
+
+        trash.setAttribute(
+            "role",
+            "img"
+        );
+
+        trash.setAttribute(
+            "aria-label",
+            "Drag unwanted materials here to remove them from the simulation"
+        );
+
+        trash.setAttribute(
+            "title",
+            "Drag unwanted materials here to remove them from the simulation"
+        );
+
+        trash.textContent = "🗑";
+
         tray.append(
             heading,
-            materials
+            materials,
+            trash
         );
 
         return tray;
