@@ -369,6 +369,70 @@ const ExperimentPlacementEvaluator = {
     },
 
     // --------------------------------------------------
+    // Evaluate one material placed in a required zone at
+    // one of the allowed right-angle orientations.
+    // --------------------------------------------------
+    evaluateMaterialInZoneWithRotationRule(
+        rule,
+        context
+    ) {
+
+        const matchingMaterial =
+            this.getPlacements(
+                context.snapshot,
+                "material"
+            ).find(material =>
+                material.id === rule.materialId &&
+                material.zoneId === rule.zoneId
+            ) ?? null;
+
+        const rotationDeg =
+            ((matchingMaterial?.rotationDeg ?? 0) % 360 + 360) % 360;
+
+        const allowedRotations =
+            rule.allowedRotationDeg ?? [];
+
+        const placementPassed =
+            Boolean(matchingMaterial);
+
+        const orientationPassed =
+            placementPassed &&
+            allowedRotations.includes(rotationDeg);
+
+        return [
+            {
+                id: rule.placementScoreUnit.id,
+                type: rule.type,
+                passed: placementPassed,
+                awardedPoints: placementPassed
+                    ? rule.placementScoreUnit.points
+                    : 0,
+                maximumPoints:
+                    rule.placementScoreUnit.points,
+                details: {
+                    zoneId: matchingMaterial?.zoneId ?? null,
+                    requiredZoneId: rule.zoneId
+                }
+            },
+            {
+                id: rule.orientationScoreUnit.id,
+                type: rule.type,
+                passed: orientationPassed,
+                awardedPoints: orientationPassed
+                    ? rule.orientationScoreUnit.points
+                    : 0,
+                maximumPoints:
+                    rule.orientationScoreUnit.points,
+                details: {
+                    rotationDeg,
+                    allowedRotations
+                }
+            }
+        ];
+
+    },
+
+    // --------------------------------------------------
     // Evaluate a label placed in one exact zone
     // --------------------------------------------------
     evaluateLabelInZoneRule(
@@ -633,6 +697,16 @@ const ExperimentPlacementEvaluator = {
             "balanced_ion_gradient"
         ) {
             return this.evaluateBalancedIonGradientRule(
+                rule,
+                context
+            );
+        }
+
+        if (
+            rule.type ===
+            "material_in_zone_with_allowed_rotation"
+        ) {
+            return this.evaluateMaterialInZoneWithRotationRule(
                 rule,
                 context
             );

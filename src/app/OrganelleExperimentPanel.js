@@ -7,6 +7,8 @@ import CellMapLayout from "./CellMapLayout.js";
 import OrganelleExperimentLibrary
     from "./OrganelleExperimentLibrary.js";
 import ResearchManager from "./ResearchManager.js";
+import OrganelleExperimentSubmissionManager
+    from "./OrganelleExperimentSubmissionManager.js";
 
 const OrganelleExperimentPanel = {
 
@@ -19,6 +21,7 @@ const OrganelleExperimentPanel = {
 
     currentOrganelleId: null,
     onOpenExperiment: null,
+    onReviewSubmission: null,
 
     // --------------------------------------------------
     // Find Organelle Lab display elements
@@ -110,6 +113,27 @@ const OrganelleExperimentPanel = {
     },
 
     // --------------------------------------------------
+    // Read a human-facing title for a prerequisite ID.
+    // --------------------------------------------------
+    getExperimentTitle(experimentId) {
+
+        return OrganelleExperimentLibrary[
+            experimentId
+        ]?.title ?? experimentId;
+
+    },
+
+    // --------------------------------------------------
+    // Read the highest persisted score, if attempted.
+    // --------------------------------------------------
+    getBestScore(experimentId) {
+
+        return OrganelleExperimentSubmissionManager
+            .getBestScore(experimentId);
+
+    },
+
+    // --------------------------------------------------
     // Create one experiment card
     // --------------------------------------------------
     createExperimentCard(
@@ -143,16 +167,6 @@ const OrganelleExperimentPanel = {
         title.textContent =
             experiment.title;
 
-        const reward =
-            document.createElement("p");
-
-        reward.className =
-            "organelle-experiment-reward";
-
-        reward.textContent =
-            experiment.catalogReward ??
-            "No listed reward";
-
         const summary =
             document.createElement("p");
 
@@ -166,60 +180,127 @@ const OrganelleExperimentPanel = {
             "organelle-experiment-status";
 
         statusElement.textContent =
-            state === "completed"
-                ? "Completed"
-                : state === "available"
+            state === "available"
                     ? "Available"
-                    : "Locked";
+                    : state === "locked"
+                        ? "Locked"
+                        : "Completed · ";
 
         card.append(
             title,
-            reward,
             summary,
             statusElement
         );
 
-        if (
-            state === "completed" &&
-            experiment.observation
-        ) {
+        if (state === "available") {
 
-            const observation =
-                document.createElement("section");
+            const bestScore =
+                this.getBestScore(
+                    experiment.id
+                );
 
-            observation.className =
-                "organelle-experiment-observation";
+            if (bestScore) {
+                const score =
+                    document.createElement("span");
 
-            const observationTitle =
-                document.createElement("h5");
+                score.className =
+                    "organelle-experiment-best-score";
 
-            observationTitle.textContent =
-                experiment.observation.title;
+                score.textContent =
+                    ` · Highest score: ${bestScore.scorePoints} / ${bestScore.scoreMaximum}`;
 
-            const description =
-                document.createElement("p");
+                statusElement.appendChild(score);
+            }
 
-            description.textContent =
-                experiment.observation.description;
+        }
 
-            const takeaway =
-                document.createElement("p");
+        if (state === "completed") {
 
-            takeaway.className =
-                "organelle-experiment-takeaway";
+            const reviewLink =
+                document.createElement("a");
 
-            takeaway.textContent =
-                experiment.observation.takeaway;
+            reviewLink.href = "#";
 
-            observation.append(
-                observationTitle,
-                description,
-                takeaway
+            reviewLink.className =
+                "organelle-experiment-review-link";
+
+            reviewLink.textContent =
+                "Review submission";
+
+            reviewLink.addEventListener(
+                "click",
+                event => {
+
+                    event.preventDefault();
+
+                    if (
+                        typeof this.onReviewSubmission !==
+                        "function"
+                    ) {
+                        return;
+                    }
+
+                    const submissions =
+                        OrganelleExperimentSubmissionManager
+                            .getSubmissions(
+                                experiment.id
+                            );
+
+                    this.onReviewSubmission(
+                        experiment,
+                        submissions.at(-1) ?? null
+                    );
+
+                }
             );
 
-            card.appendChild(
-                observation
+            statusElement.appendChild(
+                reviewLink
             );
+
+            const star =
+                OrganelleExperimentSubmissionManager
+                    .getStar(experiment.id);
+
+            if (star) {
+                const starElement =
+                    document.createElement("span");
+
+                starElement.className =
+                    "organelle-experiment-star";
+
+                starElement.textContent =
+    "★";
+
+starElement.setAttribute(
+    "data-tooltip",
+    "Exceptional Work!"
+);
+
+starElement.setAttribute(
+    "tabindex",
+    "0"
+);
+
+                starElement.setAttribute(
+                    "title",
+                    "Exceptional Work!"
+                );
+
+                starElement.setAttribute(
+                    "aria-label",
+                    "Exceptional Work!"
+                );
+
+                starElement.setAttribute(
+                    "role",
+                    "img"
+                );
+
+                statusElement.appendChild(
+                    starElement
+                );
+            }
 
         }
 
@@ -291,13 +372,18 @@ const OrganelleExperimentPanel = {
                 status.incompleteExperiments
                     .length > 0
             ) {
-                details.push(
-                    `Requires experiment: ${
-                        status.incompleteExperiments.join(
-                            ", "
-                        )
-                    }`
-                );
+                status.incompleteExperiments
+                    .forEach(experimentId => {
+
+                        details.push(
+                            `Requires: 100% ${
+                                this.getExperimentTitle(
+                                    experimentId
+                                )
+                            } score.`
+                        );
+
+                    });
             }
 
             requirements.textContent =
@@ -343,6 +429,7 @@ const OrganelleExperimentPanel = {
         organelleId,
         {
             onOpenExperiment = null,
+            onReviewSubmission = null,
             actionMessage = ""
         } = {}
     ) {
@@ -356,6 +443,9 @@ const OrganelleExperimentPanel = {
 
         this.onOpenExperiment =
             onOpenExperiment;
+
+        this.onReviewSubmission =
+            onReviewSubmission;
 
         this.unlockedListElement.replaceChildren();
 

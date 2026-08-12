@@ -53,7 +53,11 @@ cellSystems:
         experimentSubmissions: {},
 
         // Highest score reached for each experiment.
-        bestExperimentScores: {}
+        bestExperimentScores: {},
+
+        // One exceptional-work star per experiment.
+        // Future BadgeManager derives its total from this map.
+        stars: {}
 
     },
 

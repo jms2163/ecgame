@@ -43,8 +43,10 @@ const ExperimentMaterialVisualLibrary = {
                 "aquaporin_channel",
 
             cssClass:
-                "aquaporin"
+                "aquaporin",
 
+            assetPath:
+    "./public/assets/experiments/proteins/aquaporin.png"
         }
 
     },
@@ -71,7 +73,9 @@ const ExperimentMaterialVisualLibrary = {
         }
 
         const visual =
-            document.createElement("span");
+            definition.assetPath
+                ? document.createElement("img")
+                : document.createElement("span");
 
         visual.className =
             "organelle-experiment-particle " +
@@ -86,6 +90,14 @@ const ExperimentMaterialVisualLibrary = {
 
         visual.dataset.visualId =
             definition.id;
+
+        if (definition.assetPath) {
+            visual.src = definition.assetPath;
+
+            visual.alt = decorative
+                ? ""
+                : "Aquaporin water channel";
+        }
 
         return visual;
 

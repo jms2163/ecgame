@@ -24,6 +24,12 @@ import ParticleSimulationView
 import ResearchManager
     from "./ResearchManager.js";
 
+import OrganelleExperimentSubmissionManager
+    from "./OrganelleExperimentSubmissionManager.js";
+
+import SaveManager
+    from "./SaveManager.js";
+
 const OrganelleExperimentStage = {
 
     titleElement: null,
@@ -33,6 +39,10 @@ const OrganelleExperimentStage = {
     activeExperiment: null,
     activeResolvedExperiment: null,
     isParticleSimulationRunning: false,
+
+    isReviewMode: false,
+
+    selectedProteinStatusElement: null,
 
     // --------------------------------------------------
     // Stop and remove the canvas overlay so the original
@@ -132,6 +142,9 @@ renderControls(experiment) {
                 ? control
                 : control.id;
 
+        const isReflectionControl =
+            controlId === "reflection";
+
         const button =
             document.createElement("button");
 
@@ -159,12 +172,7 @@ renderControls(experiment) {
             }
         );
 
-        if (
-    controlId === "reflection" &&
-    Boolean(
-        experiment.assessment?.reflection
-    )
-) {
+        if (isReflectionControl) {
             button.setAttribute(
                 "aria-controls",
                 "organelle-experiment-reflection"
@@ -182,12 +190,42 @@ renderControls(experiment) {
 
     });
 
+    const selectedProteinStatus =
+        document.createElement("p");
+
+    selectedProteinStatus.id =
+        "organelle-experiment-selected-protein-status";
+
+    selectedProteinStatus.className =
+        "organelle-experiment-selected-protein-status";
+
+    selectedProteinStatus.textContent =
+        "Select a placed protein to rotate it.";
+
+    selectedProteinStatus.setAttribute(
+        "aria-live",
+        "polite"
+    );
+
+    this.selectedProteinStatusElement =
+        selectedProteinStatus;
+
+    this.controlsElement.appendChild(
+        selectedProteinStatus
+    );
+
+    this.updateSelectedProteinStatus();
+
 },
 
     // --------------------------------------------------
 // Handle active experiment controls
 // --------------------------------------------------
 handleControlAction(actionId) {
+
+    if (this.isReviewMode) {
+        return;
+    }
 
     if (actionId === "reflection") {
         this.toggleReflectionPanel();
@@ -197,6 +235,23 @@ handleControlAction(actionId) {
 
     if (actionId === "simulate") {
         this.runSimulation();
+
+        return;
+    }
+
+    if (actionId === "rotate") {
+        const rotated =
+            OrganelleExperimentPlacementController
+                .rotateSelectedPlacement();
+
+        if (!rotated) {
+            this.showSimulationResult(
+                {
+                    title: "Select a Protein",
+                    message: "Place and select an aquaporin in the membrane before rotating it."
+                }
+            );
+        }
 
         return;
     }
@@ -275,6 +330,42 @@ handleControlAction(actionId) {
             "aria-pressed",
             String(labelsAreNowHidden)
         );
+
+    },
+
+    // --------------------------------------------------
+    // Keep the selected-protein indicator in sync with
+    // the controller's individual placement selection.
+    // --------------------------------------------------
+    updateSelectedProteinStatus(placement = null) {
+
+        const selectedPlacement =
+            placement ??
+            OrganelleExperimentPlacementController
+                .getSelectedPlacement();
+
+        if (!this.selectedProteinStatusElement) {
+            return;
+        }
+
+        const material = selectedPlacement
+            ? this.activeResolvedExperiment?.stage
+                ?.materials
+                ?.find(candidate =>
+                    candidate.id ===
+                    selectedPlacement.definitionId
+                )
+            : null;
+
+        if (!material?.rotatable) {
+            this.selectedProteinStatusElement.textContent =
+                "Select a placed protein to rotate it.";
+
+            return;
+        }
+
+        this.selectedProteinStatusElement.textContent =
+            `Selected protein: ${material.displayName} (${selectedPlacement.rotationDeg ?? 0}°)`;
 
     },
 
@@ -387,7 +478,26 @@ handleControlAction(actionId) {
                 }
             );
 
+        const placementSnapshot =
+            this.getPlacementSnapshot();
+
+        const attemptSnapshot =
+            this.getAttemptSnapshot();
+
         if (!report.isPerfect) {
+            OrganelleExperimentSubmissionManager
+                .recordSubmission(
+                    {
+                        experiment,
+                        report,
+                        placementSnapshot,
+                        attemptSnapshot,
+                        completion: null
+                    }
+                );
+
+            SaveManager.save();
+
             this.showSimulationResult(
                 {
                     title:
@@ -405,6 +515,19 @@ handleControlAction(actionId) {
             ResearchManager.completeExperiment(
                 experiment.id
             );
+
+        OrganelleExperimentSubmissionManager
+            .recordSubmission(
+                {
+                    experiment,
+                    report,
+                    placementSnapshot,
+                    attemptSnapshot,
+                    completion
+                }
+            );
+
+        SaveManager.save();
 
         if (completion.completed) {
             this.showSimulationResult(
@@ -521,6 +644,15 @@ handleControlAction(actionId) {
         prompt.textContent =
             reflection.prompt;
 
+        const integrityNotice =
+            document.createElement("p");
+
+        integrityNotice.className =
+            "organelle-experiment-integrity-notice";
+
+        integrityNotice.textContent =
+            "Academic integrity: Build and explain your own model. Submitted reflections may be reviewed for substantial similarity to other students’ work.";
+
         const label =
             document.createElement("label");
 
@@ -591,6 +723,7 @@ handleControlAction(actionId) {
         panel.append(
             heading,
             prompt,
+            integrityNotice,
             label,
             textarea,
             saveButton,
@@ -794,6 +927,8 @@ runSimulation() {
 
         this.activeResolvedExperiment =
             null;
+
+        this.isReviewMode = false;
 
         this.titleElement.textContent =
             "No Experiment Open";
@@ -1049,6 +1184,8 @@ stage.append(
         this.activeExperiment =
             experiment;
 
+        this.isReviewMode = false;
+
         const resolvedExperiment = {
 
             ...experiment,
@@ -1071,6 +1208,13 @@ stage.append(
         OrganelleExperimentPlacementController.start(
             resolvedExperiment
         );
+
+        OrganelleExperimentPlacementController
+            .onSelectionChanged =
+                placement =>
+                    this.updateSelectedProteinStatus(
+                        placement
+                    );
 
         this.titleElement.textContent =
             resolvedExperiment.title;
@@ -1164,6 +1308,111 @@ this.contentElement.appendChild(
     },
 
     // --------------------------------------------------
+    // Render the latest saved submission without starting
+    // an editable attempt or revealing an answer key.
+    // --------------------------------------------------
+    openReview(
+        experiment,
+        submission
+    ) {
+
+        if (!this.initialize()) {
+            return;
+        }
+
+        if (!experiment) {
+            this.clear();
+
+            return;
+        }
+
+        this.stopParticleSimulation();
+
+        this.activeExperiment = experiment;
+
+        this.activeResolvedExperiment = {
+            ...experiment,
+            stage:
+                ExperimentStageDefinitionResolver
+                    .resolveStage(
+                        experiment.stage
+                    )
+        };
+
+        this.isReviewMode = true;
+
+        this.titleElement.textContent =
+            `${this.activeResolvedExperiment.title} — Submission Review`;
+
+        this.controlsElement.replaceChildren();
+
+        this.contentElement.replaceChildren();
+
+        if (!submission) {
+            const message =
+                document.createElement("p");
+
+            message.textContent =
+                "No saved submission is available for this completed experiment. Future submitted attempts can be reviewed here.";
+
+            this.contentElement.appendChild(
+                message
+            );
+
+            return;
+        }
+
+        const summary =
+            document.createElement("section");
+
+        summary.className =
+            "organelle-experiment-submission-summary";
+
+        const score =
+            document.createElement("p");
+
+        score.textContent =
+            `Submitted score: ${submission.scorePoints} / ${submission.scoreMaximum}`;
+
+        const timestamp =
+            document.createElement("p");
+
+        timestamp.textContent =
+            `Submitted: ${new Date(submission.submittedAtMs).toLocaleString()}`;
+
+        summary.append(score, timestamp);
+
+        this.contentElement.appendChild(summary);
+
+        OrganelleExperimentPlacementController.start(
+            this.activeResolvedExperiment
+        );
+
+        if (
+            this.activeResolvedExperiment.stage?.template ===
+            "membrane_transport"
+        ) {
+            const workspace =
+                document.createElement("div");
+
+            workspace.className =
+                "organelle-experiment-workspace";
+
+            workspace.appendChild(
+                this.renderMembraneTransportStage()
+            );
+
+            this.contentElement.appendChild(workspace);
+
+            OrganelleExperimentPlacementController
+                .restoreSnapshot(
+                    submission.placementSnapshot
+                );
+        }
+
+    },
+
+    // --------------------------------------------------
     // Read temporary placement data for future grading
     // --------------------------------------------------
     getPlacementSnapshot() {
@@ -1186,5 +1435,3 @@ this.contentElement.appendChild(
 };
 
 export default OrganelleExperimentStage;
-
-
