@@ -3,11 +3,20 @@
 // Renders the currently open organelle experiment
 // --------------------------------------------------
 
+import OrganelleExperimentAttemptManager
+    from "./OrganelleExperimentAttemptManager.js";
+
 import OrganelleExperimentPlacementController
     from "./OrganelleExperimentPlacementController.js";
 
 import ExperimentStageDefinitionResolver
     from "./ExperimentStageDefinitionResolver.js";
+
+import ParticleSimulationEngine
+    from "./ParticleSimulationEngine.js";
+
+import ParticleSimulationView
+    from "./ParticleSimulationView.js";
 
 const OrganelleExperimentStage = {
 
@@ -16,6 +25,8 @@ const OrganelleExperimentStage = {
     contentElement: null,
 
     activeExperiment: null,
+    activeResolvedExperiment: null,
+    isParticleSimulationRunning: false,
 
     // --------------------------------------------------
     // Find experiment-stage elements
@@ -62,93 +73,471 @@ const OrganelleExperimentStage = {
     },
 
     // --------------------------------------------------
-    // Render experiment controls
-    // --------------------------------------------------
-    renderControls(experiment) {
+// Render experiment controls
+// --------------------------------------------------
+renderControls(experiment) {
 
-        this.controlsElement.replaceChildren();
+    this.controlsElement.replaceChildren();
 
-        const controls =
-            experiment.stage?.controls ?? [];
+    const controls =
+        experiment.stage?.controls ?? [];
 
-        controls.forEach(control => {
+    controls.forEach(control => {
 
-            const controlId =
-                typeof control === "string"
-                    ? control
-                    : control.id;
+        const controlId =
+            typeof control === "string"
+                ? control
+                : control.id;
 
-            const button =
-                document.createElement("button");
+        const button =
+            document.createElement("button");
 
-            button.type =
-                "button";
+        button.type =
+            "button";
 
-            button.className =
-                "organelle-experiment-control";
+        button.className =
+            "organelle-experiment-control";
 
-            button.dataset.action =
-                controlId;
+        button.dataset.action =
+            controlId;
 
-            button.textContent =
-                control.label ??
-                controlId;
+        button.textContent =
+            control.label ??
+            controlId;
 
-            const isResetControl =
-                controlId === "reset";
+        const isResetControl =
+            controlId === "reset";
 
-            // Other controls become active in later steps.
-            button.disabled =
-                !isResetControl;
-
-            if (isResetControl) {
-                button.addEventListener(
-                    "click",
-                    () => {
-
-                        this.handleControlAction(
-                            controlId
-                        );
-
-                    }
-                );
-            }
-
-            this.controlsElement.appendChild(
-                button
+        const isReflectionControl =
+            controlId === "reflection" &&
+            Boolean(
+                experiment.assessment?.reflection
             );
 
-        });
-
-    },
-
-    // --------------------------------------------------
-    // Handle active experiment controls
-    // --------------------------------------------------
-    handleControlAction(actionId) {
-
-        if (actionId !== "reset") {
-            return;
-        }
-
-        const shouldReset =
-            window.confirm(
-                "Reset this experiment? All current placements and responses will be cleared. This attempt will not be recorded."
+        const isSimulateControl =
+            controlId === "simulate" &&
+            Boolean(
+                experiment.simulation?.modelId
             );
 
-        if (!shouldReset) {
-            return;
+        button.disabled =
+            !isResetControl &&
+            !isReflectionControl &&
+            !isSimulateControl;
+
+        if (
+            isResetControl ||
+            isReflectionControl ||
+            isSimulateControl
+        ) {
+            button.addEventListener(
+                "click",
+                () => {
+
+                    this.handleControlAction(
+                        controlId
+                    );
+
+                }
+            );
         }
 
-        if (!this.activeExperiment) {
-            return;
+        if (isReflectionControl) {
+            button.setAttribute(
+                "aria-controls",
+                "organelle-experiment-reflection"
+            );
+
+            button.setAttribute(
+                "aria-expanded",
+                "false"
+            );
         }
 
-        this.open(
-            this.activeExperiment
+        this.controlsElement.appendChild(
+            button
         );
 
+    });
+
+},
+
+    // --------------------------------------------------
+// Handle active experiment controls
+// --------------------------------------------------
+handleControlAction(actionId) {
+
+    if (actionId === "reflection") {
+        this.toggleReflectionPanel();
+
+        return;
+    }
+
+    if (actionId === "simulate") {
+        this.runSimulation();
+
+        return;
+    }
+
+    if (actionId !== "reset") {
+        return;
+    }
+
+    const shouldReset =
+        window.confirm(
+            "Reset this experiment? All current placements and responses will be cleared. This attempt will not be recorded."
+        );
+
+    if (!shouldReset) {
+        return;
+    }
+
+    if (!this.activeExperiment) {
+        return;
+    }
+
+    this.open(
+        this.activeExperiment
+    );
+
+},
+
+    // --------------------------------------------------
+    // Show or hide the current reflection panel
+    // --------------------------------------------------
+    toggleReflectionPanel() {
+
+        const panel =
+            document.getElementById(
+                "organelle-experiment-reflection"
+            );
+
+        const reflectionButton =
+            this.controlsElement.querySelector(
+                '[data-action="reflection"]'
+            );
+
+        if (!panel) {
+            return;
+        }
+
+        const shouldOpen =
+            panel.classList.contains(
+                "hidden"
+            );
+
+        panel.classList.toggle(
+            "hidden",
+            !shouldOpen
+        );
+
+        panel.setAttribute(
+            "aria-hidden",
+            String(!shouldOpen)
+        );
+
+        reflectionButton?.setAttribute(
+            "aria-expanded",
+            String(shouldOpen)
+        );
+
+        if (shouldOpen) {
+            panel.querySelector("textarea")?.focus();
+        }
+
     },
+
+    // --------------------------------------------------
+    // Build one reusable reflection form
+    // --------------------------------------------------
+    createReflectionPanel(experiment) {
+
+        const reflection =
+            experiment.assessment?.reflection;
+
+        if (!reflection) {
+            return null;
+        }
+
+        const panel =
+            document.createElement("section");
+
+        panel.id =
+            "organelle-experiment-reflection";
+
+        panel.className =
+            "organelle-experiment-reflection hidden";
+
+        panel.setAttribute(
+            "aria-hidden",
+            "true"
+        );
+
+        const heading =
+            document.createElement("h3");
+
+        heading.textContent =
+            "Reflection";
+
+        const prompt =
+            document.createElement("p");
+
+        prompt.className =
+            "organelle-experiment-reflection-prompt";
+
+        prompt.textContent =
+            reflection.prompt;
+
+        const label =
+            document.createElement("label");
+
+        label.htmlFor =
+            "organelle-experiment-reflection-response";
+
+        label.textContent =
+            "Your explanation";
+
+        const textarea =
+            document.createElement("textarea");
+
+        textarea.id =
+            "organelle-experiment-reflection-response";
+
+        textarea.rows =
+            5;
+
+        textarea.dataset.reflectionId =
+            reflection.id;
+
+        textarea.value =
+            OrganelleExperimentAttemptManager
+                .getReflectionResponse(
+                    reflection.id
+                );
+
+        const status =
+            document.createElement("p");
+
+        status.className =
+            "organelle-experiment-reflection-status";
+
+        status.setAttribute(
+            "aria-live",
+            "polite"
+        );
+
+        textarea.addEventListener(
+            "input",
+            () => {
+
+                OrganelleExperimentAttemptManager
+                    .setReflectionResponse(
+                        reflection.id,
+                        textarea.value
+                    );
+
+                status.textContent =
+                    "Draft saved for this attempt.";
+
+            }
+        );
+
+        panel.append(
+            heading,
+            prompt,
+            label,
+            textarea,
+            status
+        );
+
+        return panel;
+
+    },
+
+    // --------------------------------------------------
+// Build an initially hidden simulation-result panel
+// --------------------------------------------------
+createSimulationResultPanel() {
+
+    const panel =
+        document.createElement("section");
+
+    panel.id =
+        "organelle-experiment-simulation-result";
+
+    panel.className =
+        "organelle-experiment-simulation-result hidden";
+
+    panel.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+
+    panel.setAttribute(
+        "aria-live",
+        "polite"
+    );
+
+    const heading =
+        document.createElement("h3");
+
+    heading.id =
+        "organelle-experiment-simulation-title";
+
+    const message =
+        document.createElement("p");
+
+    message.id =
+        "organelle-experiment-simulation-message";
+
+    panel.append(
+        heading,
+        message
+    );
+
+    return panel;
+
+},
+
+// --------------------------------------------------
+// Show one neutral simulation status or outcome
+// --------------------------------------------------
+showSimulationResult({
+    title,
+    message
+}) {
+
+    const panel =
+        document.getElementById(
+            "organelle-experiment-simulation-result"
+        );
+
+    if (!panel) {
+        return;
+    }
+
+    const heading =
+        panel.querySelector(
+            "#organelle-experiment-simulation-title"
+        );
+
+    const messageElement =
+        panel.querySelector(
+            "#organelle-experiment-simulation-message"
+        );
+
+    heading.textContent =
+        title;
+
+    messageElement.textContent =
+        message;
+
+    panel.classList.remove(
+        "hidden"
+    );
+
+    panel.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+
+},
+
+// --------------------------------------------------
+// Start or stop the visible particle simulation.
+// Simulation is exploratory: it never grades or
+// requires labels or a reflection response.
+// --------------------------------------------------
+runSimulation() {
+
+    const experiment =
+        this.activeResolvedExperiment;
+
+    if (
+        !experiment?.simulation?.modelId
+    ) {
+        return;
+    }
+
+    const simulationButton =
+        this.controlsElement.querySelector(
+            '[data-action="simulate"]'
+        );
+
+    if (this.isParticleSimulationRunning) {
+
+        ParticleSimulationView.stop();
+
+        this.isParticleSimulationRunning =
+            false;
+
+        simulationButton.textContent =
+            "Simulate";
+
+        simulationButton.setAttribute(
+            "aria-pressed",
+            "false"
+        );
+
+        return;
+    }
+
+    const simulationSurface =
+        document.getElementById(
+            "organelle-particle-simulation-surface"
+        );
+
+    if (!simulationSurface) {
+        console.warn(
+            "OrganelleExperimentStage: particle simulation surface not found"
+        );
+
+        return;
+    }
+
+    const initialState =
+        ParticleSimulationEngine
+            .createInitialState(
+                {
+                    simulation:
+                        experiment.simulation,
+
+                    snapshot:
+                        this.getPlacementSnapshot()
+                }
+            );
+
+    simulationSurface.classList.remove(
+        "hidden"
+    );
+
+    if (
+        !ParticleSimulationView.mount(
+            simulationSurface
+        )
+    ) {
+        return;
+    }
+
+    ParticleSimulationView.start(
+        initialState
+    );
+
+    OrganelleExperimentAttemptManager
+        .markSimulationRun();
+
+    this.isParticleSimulationRunning =
+        true;
+
+    simulationButton.textContent =
+        "Stop Simulation";
+
+    simulationButton.setAttribute(
+        "aria-pressed",
+        "true"
+    );
+
+},
 
     // --------------------------------------------------
     // Clear the active experiment stage
@@ -158,10 +547,19 @@ const OrganelleExperimentStage = {
         if (!this.initialize()) {
             return;
         }
+        ParticleSimulationView.clear();
+
+this.isParticleSimulationRunning =
+    false;
 
         OrganelleExperimentPlacementController.reset();
 
+        OrganelleExperimentAttemptManager.reset();
+
         this.activeExperiment =
+            null;
+
+        this.activeResolvedExperiment =
             null;
 
         this.titleElement.textContent =
@@ -285,11 +683,26 @@ const OrganelleExperimentStage = {
                 "side_b"
             );
 
-        stage.append(
-            sideA,
-            membrane,
-            sideB
-        );
+        const simulationSurface =
+    document.createElement("div");
+
+simulationSurface.id =
+    "organelle-particle-simulation-surface";
+
+simulationSurface.className =
+    "organelle-particle-simulation-surface hidden";
+
+simulationSurface.setAttribute(
+    "aria-label",
+    "Particle simulation"
+);
+
+stage.append(
+    sideA,
+    membrane,
+    sideB,
+    simulationSurface
+);
 
         return stage;
 
@@ -415,6 +828,13 @@ const OrganelleExperimentStage = {
 
         };
 
+        this.activeResolvedExperiment =
+            resolvedExperiment;
+
+        OrganelleExperimentAttemptManager.start(
+            resolvedExperiment.id
+        );
+
         OrganelleExperimentPlacementController.start(
             resolvedExperiment
         );
@@ -425,6 +845,12 @@ const OrganelleExperimentStage = {
         this.renderControls(
             resolvedExperiment
         );
+
+        ParticleSimulationView.clear();
+
+this.isParticleSimulationRunning =
+    false;
+    
 
         this.contentElement.replaceChildren();
 
@@ -453,41 +879,57 @@ const OrganelleExperimentStage = {
         );
 
         if (
-            resolvedExperiment.stage?.template !==
+            resolvedExperiment.stage?.template ===
             "membrane_transport"
         ) {
-            return;
+            const activityLayout =
+                document.createElement("div");
+
+            activityLayout.className =
+                "organelle-experiment-activity-layout";
+
+            const workspace =
+                document.createElement("div");
+
+            workspace.className =
+                "organelle-experiment-workspace";
+
+            workspace.append(
+                this.renderMembraneTransportStage(),
+                this.renderMaterialTray(
+                    resolvedExperiment
+                )
+            );
+
+            activityLayout.append(
+                this.renderLabelTray(
+                    resolvedExperiment
+                ),
+                workspace
+            );
+
+            this.contentElement.appendChild(
+                activityLayout
+            );
         }
 
-        const activityLayout =
-            document.createElement("div");
-
-        activityLayout.className =
-            "organelle-experiment-activity-layout";
-
-        const workspace =
-            document.createElement("div");
-
-        workspace.className =
-            "organelle-experiment-workspace";
-
-        workspace.append(
-            this.renderMembraneTransportStage(),
-            this.renderMaterialTray(
+        const reflectionPanel =
+            this.createReflectionPanel(
                 resolvedExperiment
-            )
-        );
+            );
 
-        activityLayout.append(
-            this.renderLabelTray(
-                resolvedExperiment
-            ),
-            workspace
-        );
+        if (reflectionPanel) {
+            this.contentElement.appendChild(
+                reflectionPanel
+            );
+        }
 
-        this.contentElement.appendChild(
-            activityLayout
-        );
+        const simulationPanel =
+    this.createSimulationResultPanel();
+
+this.contentElement.appendChild(
+    simulationPanel
+);
 
     },
 
@@ -498,6 +940,16 @@ const OrganelleExperimentStage = {
 
         return OrganelleExperimentPlacementController
             .getPlacementSnapshot();
+
+    },
+
+    // --------------------------------------------------
+    // Read temporary reflection and simulation state
+    // --------------------------------------------------
+    getAttemptSnapshot() {
+
+        return OrganelleExperimentAttemptManager
+            .getSnapshot();
 
     }
 
