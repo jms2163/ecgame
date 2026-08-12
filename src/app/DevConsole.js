@@ -18,6 +18,17 @@ import ResearchManager from "./ResearchManager.js";
 import CellSystemManager
     from "./CellSystemManager.js";
     import OrganelleView from "./OrganelleView.js";
+    import OrganelleExperimentStage
+    from "./OrganelleExperimentStage.js";
+
+import OrganelleExperimentSubmissionManager
+    from "./OrganelleExperimentSubmissionManager.js";
+
+import ExperimentPlacementEvaluator
+    from "./ExperimentPlacementEvaluator.js";
+
+import OrganelleExperimentLibrary
+    from "./OrganelleExperimentLibrary.js";
 
 const DevConsole = {
 
@@ -38,7 +49,11 @@ const DevConsole = {
             XPManager,
             ResearchManager,
             CellSystemManager,
-            OrganelleView
+            OrganelleView,
+            OrganelleExperimentStage,
+OrganelleExperimentSubmissionManager,
+ExperimentPlacementEvaluator,
+OrganelleExperimentLibrary
             
 
         };

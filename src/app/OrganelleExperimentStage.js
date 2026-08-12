@@ -560,6 +560,23 @@ handleControlAction(actionId) {
 
     // --------------------------------------------------
     // Show or hide the current reflection panel
+    regradeExperiment(experiment) {
+        const submissions = OrganelleExperimentSubmissionManager.getSubmissions(experiment.id);
+        const results = submissions.map(submission => ({ submission, report: ExperimentPlacementEvaluator.evaluate({
+            assessment: experiment.assessment,
+            snapshot: submission.placementSnapshot,
+            reflectionResponses: submission.attemptSnapshot?.reflectionResponses
+        }) }));
+        const perfect = results.find(result => result.report.isPerfect);
+        let completion = null;
+        if (perfect) completion = ResearchManager.completeExperiment(experiment.id);
+        const outcome = OrganelleExperimentSubmissionManager.applyRegrade({ experiment, results });
+        SaveManager.save();
+        return outcome;
+    },
+
+    // --------------------------------------------------
+    // Show or hide the current reflection panel
     // --------------------------------------------------
     toggleReflectionPanel() {
 
@@ -1112,36 +1129,9 @@ stage.append(
 
         });
 
-        const trash =
-            document.createElement("div");
-
-        trash.className =
-            "organelle-experiment-trash";
-
-        trash.dataset.experimentTrash =
-            "true";
-
-        trash.setAttribute(
-            "role",
-            "img"
-        );
-
-        trash.setAttribute(
-            "aria-label",
-            "Drag unwanted materials here to remove them from the simulation"
-        );
-
-        trash.setAttribute(
-            "title",
-            "Drag unwanted materials here to remove them from the simulation"
-        );
-
-        trash.textContent = "🗑";
-
         tray.append(
             heading,
-            materials,
-            trash
+            materials
         );
 
         return tray;
@@ -1389,6 +1379,18 @@ this.contentElement.appendChild(
             return;
         }
 
+        const submissions =
+            OrganelleExperimentSubmissionManager
+                .getSubmissions(experiment.id);
+
+        const submissionIndex =
+            Math.max(
+                0,
+                submissions.findIndex(candidate =>
+                    candidate.id === submission.id
+                )
+            );
+
         const summary =
             document.createElement("section");
 
@@ -1408,6 +1410,86 @@ this.contentElement.appendChild(
             `Submitted: ${new Date(submission.submittedAtMs).toLocaleString()}`;
 
         summary.append(score, timestamp);
+
+        if (submissions.length > 1) {
+            const navigation =
+                document.createElement("nav");
+
+            navigation.className =
+                "organelle-experiment-review-navigation";
+
+            const position = document.createElement("span");
+            position.textContent =
+                `Attempt ${submissionIndex + 1} of ${submissions.length}`;
+
+            const previous = document.createElement("button");
+            previous.type = "button";
+            previous.textContent = "← Previous attempt";
+            previous.disabled = submissionIndex === 0;
+            previous.addEventListener("click", () => {
+                this.openReview(
+                    experiment,
+                    submissions[submissionIndex - 1]
+                );
+            });
+
+            const next = document.createElement("button");
+            next.type = "button";
+            next.textContent = "Next attempt →";
+            next.disabled =
+                submissionIndex === submissions.length - 1;
+            next.addEventListener("click", () => {
+                this.openReview(
+                    experiment,
+                    submissions[submissionIndex + 1]
+                );
+            });
+
+            navigation.append(previous, position, next);
+            summary.appendChild(navigation);
+        }
+
+        const failedCriteria =
+            submission.report?.criteria?.filter(
+                criterion => !criterion.passed
+            ) ?? [];
+
+        if (failedCriteria.length > 0) {
+            const guidance =
+                document.createElement("section");
+
+            guidance.className =
+                "organelle-experiment-review-guidance";
+
+            const heading =
+                document.createElement("h3");
+
+            heading.textContent =
+                "Concepts to revisit";
+
+            const list =
+                document.createElement("ul");
+
+            const messages = [
+                ...new Set(
+                    failedCriteria.map(criterion =>
+                        this.getCriterionFeedback(
+                            this.activeResolvedExperiment,
+                            criterion
+                        )
+                    ).filter(Boolean)
+                )
+            ];
+
+            messages.forEach(message => {
+                const item = document.createElement("li");
+                item.textContent = message;
+                list.appendChild(item);
+            });
+
+            guidance.append(heading, list);
+            summary.appendChild(guidance);
+        }
 
         this.contentElement.appendChild(summary);
 
@@ -1436,6 +1518,33 @@ this.contentElement.appendChild(
                     submission.placementSnapshot
                 );
         }
+
+    },
+
+    // --------------------------------------------------
+    // Translate reusable criterion categories into a
+    // lab-authored concept cue; never reveal an answer key.
+    // --------------------------------------------------
+    getCriterionFeedback(experiment, criterion) {
+
+        const feedback =
+            experiment?.assessment?.feedback ?? {};
+
+        const id = String(criterion?.id ?? "");
+
+        if (/rotation|orientation|spans/.test(id)) {
+            return feedback.membraneSpanningOrientation;
+        }
+
+        if (/gradient|hypertonic|hypotonic|cytosol|extracellular/.test(id)) {
+            return feedback.drivingGradient ?? feedback.destinationSide;
+        }
+
+        if (/reflection/.test(criterion?.type ?? "")) {
+            return feedback.movingSubstance ?? feedback.energyRequirement;
+        }
+
+        return feedback.destinationSide;
 
     },
 

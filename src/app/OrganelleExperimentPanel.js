@@ -22,6 +22,7 @@ const OrganelleExperimentPanel = {
     currentOrganelleId: null,
     onOpenExperiment: null,
     onReviewSubmission: null,
+    onRegradeAssessment: null,
 
     // --------------------------------------------------
     // Find Organelle Lab display elements
@@ -210,6 +211,28 @@ const OrganelleExperimentPanel = {
                     ` · Highest score: ${bestScore.scorePoints} / ${bestScore.scoreMaximum}`;
 
                 statusElement.appendChild(score);
+
+                const reviewLink =
+                    document.createElement("a");
+
+                reviewLink.href = "#";
+                reviewLink.className =
+                    "organelle-experiment-review-link";
+                reviewLink.textContent =
+                    "Review attempt";
+
+                reviewLink.addEventListener("click", event => {
+                    event.preventDefault();
+                    const submissions =
+                        OrganelleExperimentSubmissionManager
+                            .getSubmissions(experiment.id);
+                    this.onReviewSubmission?.(
+                        experiment,
+                        submissions.at(-1) ?? null
+                    );
+                });
+
+                statusElement.appendChild(reviewLink);
             }
 
         }
@@ -302,6 +325,17 @@ starElement.setAttribute(
                 );
             }
 
+        }
+
+        if (state !== "locked" && this.getBestScore(experiment.id)) {
+            const regrade = document.createElement("button");
+            regrade.type = "button";
+            regrade.className = "organelle-experiment-regrade";
+            regrade.textContent = "Regrade assessment";
+            regrade.addEventListener("click", () => {
+                this.onRegradeAssessment?.(experiment);
+            });
+            card.appendChild(regrade);
         }
 
         if (state === "available") {
@@ -430,6 +464,7 @@ starElement.setAttribute(
         {
             onOpenExperiment = null,
             onReviewSubmission = null,
+            onRegradeAssessment = null,
             actionMessage = ""
         } = {}
     ) {
@@ -446,6 +481,8 @@ starElement.setAttribute(
 
         this.onReviewSubmission =
             onReviewSubmission;
+
+        this.onRegradeAssessment = onRegradeAssessment;
 
         this.unlockedListElement.replaceChildren();
 

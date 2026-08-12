@@ -843,6 +843,29 @@
 }
 
 .organelle-experiment-review-link {
+    display: block;
+    width: fit-content;
+    margin-top: 0.45rem;
+}
+
+.organelle-experiment-review-navigation {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    align-items: center;
+    margin-top: 0.8rem;
+}
+
+.organelle-experiment-review-navigation button {
+    padding: 0.35rem 0.55rem;
+}
+
+.organelle-experiment-review-navigation button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.organelle-experiment-review-link {
     color: #8fd3ff;
 }
 

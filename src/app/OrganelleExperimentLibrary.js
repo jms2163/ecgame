@@ -89,6 +89,18 @@ const OrganelleExperimentLibrary = {
     scoreMaximum:
         60,
 
+    rubricVersion:
+        "water-passive-v2",
+
+    feedback: {
+        movingSubstance: "Revisit the relationship between water, the solute difference, and net movement into the cell.",
+        drivingGradient: "Recheck which side has the higher solute concentration and how that drives net movement.",
+        destinationSide: "Recheck which compartment should receive the net movement.",
+        membraneSpanningOrientation: "Recheck whether the transport structure crosses the membrane with the needed orientation.",
+        proteinSideOrientation: "Recheck which side of the protein should face the cytosol.",
+        energyRequirement: "Recheck whether this transport process requires ATP."
+    },
+
         sideZoneIds: [
     "side_a",
     "side_b"
@@ -569,8 +581,20 @@ simulation: {
 
         assessment: {
 
-            scoreMaximum:
-                75,
+    scoreMaximum:
+        75,
+
+    rubricVersion:
+        "aquaporin-v2",
+
+    feedback: {
+        movingSubstance: "Revisit how the external solute difference affects net water movement through the membrane.",
+        drivingGradient: "Recheck which side has the higher solute concentration and how that drives water movement out of the amoeba.",
+        destinationSide: "Recheck which side of the membrane should be the extracellular solution.",
+        membraneSpanningOrientation: "Recheck whether the aquaporin crosses the membrane in the working orientation.",
+        proteinSideOrientation: "Recheck which side of the protein should face the cytosol.",
+        energyRequirement: "Recheck why this transport does not require ATP."
+    },
 
             sideZoneIds: [
                 "side_a",
