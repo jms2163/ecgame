@@ -1,11 +1,19 @@
-/* public/css/organelle-lab/membrane.css */
-
+/* A fixed, decorative phospholipid bilayer within the membrane drop zone. */
 .membrane-transport-bilayer[data-membrane-style="phospholipid-bilayer"] {
+    position: relative;
     min-width: 6rem;
     padding: 0;
-    background:
-        #2b103d
-        url("../../assets/experiments/membranes/phospholipid-bilayer.svg")
-        center / 100% 100%
-        no-repeat;
+    background: #2b103d;
+}
+
+.membrane-transport-bilayer-visual {
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    pointer-events: none;
+    user-select: none;
 }
