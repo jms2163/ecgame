@@ -1,0 +1,14 @@
+/* Material tray and the current placement-particle appearance. No visual changes in this baseline. */
+.organelle-experiment-material-tray { margin-top: 12px; padding: 10px; border: 1px solid #58326b; background: #16051e; }
+.organelle-experiment-material-tray h3 { margin: 0 0 10px; color: #df80ff; font-size: 0.8rem; text-transform: uppercase; }
+.organelle-experiment-material-list { display: grid; grid-template-columns: repeat(3, minmax(7rem, 1fr)); gap: 10px; overflow-x: auto; }
+.organelle-experiment-trash { display: grid; width: 3.25rem; height: 3.25rem; place-items: center; margin-top: 10px; border: 1px dashed #a5677f; border-radius: 0.4rem; color: #ffd5de; background: #351020; font-size: 1.6rem; transition: transform 120ms ease, background 120ms ease; }
+.organelle-experiment-trash--active { transform: scale(1.08); border-color: #ffd5de; background: #7a2339; }
+.organelle-experiment-material { display: grid; width: 3.25rem; min-width: 7rem; height: 3.25rem; place-items: center; border: 1px solid #74465f; background: #2b103d; touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; }
+.organelle-experiment-material:active { cursor: grabbing; }
+.organelle-experiment-material-name { color: #f7efff; font-size: 0.72rem; white-space: nowrap; }
+.organelle-experiment-particle { width: 2rem; height: 2rem; border-radius: 50%; }
+.organelle-experiment-particle--water { background: radial-gradient(circle at 32% 28%, #e5f7ff 0 12%, #55bce8 36%, #216fbc 100%); box-shadow: 0 0 10px rgba(85, 188, 232, 0.65); }
+.organelle-experiment-particle--sodium { background: radial-gradient(circle at 32% 28%, #f0a0aa 0 12%, #a93f52 36%, #5d1022 100%); box-shadow: 0 0 10px rgba(169, 63, 82, 0.55); }
+.organelle-experiment-particle--chloride { background: radial-gradient(circle at 32% 28%, #d2ffc2 0 12%, #65bd64 36%, #285f39 100%); box-shadow: 0 0 10px rgba(101, 189, 100, 0.55); }
+.organelle-experiment-particle--aquaporin { display: block; width: 4.5rem; height: 3.1rem; border-radius: 0; object-fit: contain; transform-origin: center; }

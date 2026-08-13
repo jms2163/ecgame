@@ -1006,6 +1006,11 @@ runSimulation() {
             "membrane-transport-bilayer";
 
         membrane.setAttribute(
+            "data-membrane-style",
+            "phospholipid-bilayer"
+        );
+
+        membrane.setAttribute(
             "aria-label",
             "Membrane placement area"
         );
@@ -1015,43 +1020,6 @@ runSimulation() {
                 membrane,
                 "membrane"
             );
-
-        for (
-            let lipidIndex = 0;
-            lipidIndex < 12;
-            lipidIndex++
-        ) {
-
-            const lipid =
-                document.createElement("div");
-
-            lipid.className =
-                "membrane-transport-lipid";
-
-            [
-                "membrane-lipid-head",
-                "membrane-lipid-tail",
-                "membrane-lipid-tail",
-                "membrane-lipid-head"
-            ].forEach(className => {
-
-                const part =
-                    document.createElement("span");
-
-                part.className =
-                    className;
-
-                lipid.appendChild(
-                    part
-                );
-
-            });
-
-            membrane.appendChild(
-                lipid
-            );
-
-        }
 
         const sideB =
             document.createElement("section");
@@ -1131,9 +1099,28 @@ stage.append(
 
         });
 
+        const trash =
+            document.createElement("div");
+
+        trash.className =
+            "organelle-experiment-trash";
+
+        trash.dataset.experimentTrash = "true";
+
+        trash.setAttribute(
+            "aria-label",
+            "Drag unwanted placed materials here to remove them from the simulation"
+        );
+
+        trash.title =
+            "Drag unwanted placed materials here to remove them from the simulation";
+
+        trash.textContent = "\u{1F5D1}";
+
         tray.append(
             heading,
-            materials
+            materials,
+            trash
         );
 
         return tray;
