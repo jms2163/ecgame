@@ -1,130 +1,139 @@
-import CellSystemDefinitions from "./CellSystemDefinitions.js";
+// --------------------------------------------------
+// GameState.js
+// Default persisted state for ECGame
+// --------------------------------------------------
+
+import CellSystemDefinitions
+    from "./CellSystemDefinitions.js";
 
 const gameState = {
 
     player: {
         id: null,
         name: "",
-
+        displayName: "",
         level: 1,
         xp: 0,
-
         currentZone: "pond",
         currentZoom: 0
     },
 
     // --------------------------------------------------
-// Player cell biological systems
-// --------------------------------------------------
-cellSystems:
-    CellSystemDefinitions.createStartingCellSystems(),
-
-  registry: {
-
-    resources: {
-        atp: {
-            current: 50,
-            maximum: 50
-        }
-    },
-
-    inventory: [],
-
-    discoveries: [
-    "plasma_membrane",
-    "cytoskeleton",
-    "glycoproteins"
-],
-
+    // Player cell biological systems
     // --------------------------------------------------
-    // One-time research outcomes
-    // --------------------------------------------------
-    achievements: {},
+    cellSystems:
+        CellSystemDefinitions
+            .createStartingCellSystems(),
 
-    research: {
+    registry: {
 
-        // Example future record:
-        // water_passive_diffusion: {
-        //     completedAtMs: 1780000000000
-        // }
-        completedExperiments: {},
+        resources: {
+            atp: {
+                current: 50,
+                maximum: 50
+            }
+        },
 
-        // Every scored submission, grouped by experiment ID.
-        experimentSubmissions: {},
+        inventory: [],
 
-        // Highest score reached for each experiment.
-        bestExperimentScores: {}
+        discoveries: [
+            "plasma_membrane",
+            "cytoskeleton",
+            "glycoproteins"
+        ],
+
+        achievements: {},
+
+        research: {
+            completedExperiments: {},
+            experimentSubmissions: {},
+            bestExperimentScores: {},
+            stars: {}
+        },
+
+        certifications: [],
+        quests: [],
+        journal: []
 
     },
 
-    certifications: [],
-    quests: [],
-    journal: []
-
-},
-
+    // --------------------------------------------------
+    // Global zones
+    //
+    // completed means the zone's current required learning
+    // milestone is complete. It does not mean the entire
+    // scientific subject can never be revisited.
+    // --------------------------------------------------
     zones: {
 
         pond: {
             unlocked: true,
+            completed: false,
 
             state: {
-
                 player: {
                     x: 0,
                     y: 0,
                     anchored: false
                 },
+
                 movement: {
-    atpCost: 10
-},
+                    atpCost: 10
+                },
 
                 worldSeed: null,
 
                 world: {
                     tiles: {}
                 }
-
             }
         },
 
         quantum: {
             unlocked: false,
+            completed: false,
             state: {}
         },
 
         atomLab: {
             unlocked: false,
+            completed: false,
             state: {}
         },
 
         atomizer: {
             unlocked: false,
+            completed: false,
             state: {}
         },
 
         molecularizer: {
             unlocked: false,
+            completed: false,
             state: {}
         },
 
         macromolecularizer: {
             unlocked: false,
+            completed: false,
             state: {}
         },
 
         polymerizer: {
             unlocked: false,
+            completed: false,
             state: {}
         },
 
         metabolism: {
             unlocked: false,
+            completed: false,
             state: {}
         },
 
         genetics: {
             unlocked: false,
+            completed: false,
             state: {}
         }
 
@@ -135,7 +144,7 @@ cellSystems:
         difficulty: "normal"
     },
 
-    saveVersion: "1.0"
+    saveVersion: "1.2"
 
 };
 

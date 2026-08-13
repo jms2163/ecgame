@@ -1,124 +1,73 @@
 // --------------------------------------------------
 // Bootstrap.js
-// Responsible for initializing the entire game
+// Initializes ECGame in dependency order
 // --------------------------------------------------
 
-import GameStateManager from "./GameStateManager.js";
+import GameStateManager
+    from "./GameStateManager.js";
 import DataLoader from "./DataLoader.js";
 import SaveManager from "./SaveManager.js";
-import VersionManager from "./VersionManager.js";
 import ZoneManager from "./ZoneManager.js";
+import NavigationUI from "./NavigationUI.js";
+import ZoneCatalog from "./ZoneCatalog.js";
 import DevConsole from "./DevConsole.js";
-import PondWorld from "./PondTileFactory.js";
-import SeededRandom from "./SeededRandom.js";
-import ResourceManager from "./ResourceManager.js";
-// Zones
-import Pond from "./Pond.js";
-// import SimulationClock from "./SimulationClock.js";
-// import ZoneManager from "./ZoneManager.js";
-
+import ResourceManager
+    from "./ResourceManager.js";
 
 const Bootstrap = {
-    
 
+    async initialize() {
 
-    // --------------------------------------------------
-    // Main entry point
-    // --------------------------------------------------
-    async initialize(){
-
-        //BootstrapUI.initialize();
         DevConsole.initialize();
 
-
         await DataLoader.loadAll();
-
 
         GameStateManager.initialize();
 
         SaveManager.initialize();
-
         SaveManager.load();
+
         ResourceManager.initialize();
 
         ZoneManager.initialize();
+        NavigationUI.initialize();
 
-        ZoneManager.enterZone("pond");
+        const requestedZoneId =
+            GameStateManager
+                .getCurrentZoneId();
 
+        const initialResult =
+            ZoneManager.enterZone(
+                requestedZoneId
+            );
 
+        if (!initialResult.entered) {
+            const fallbackZoneId =
+                ZoneCatalog
+                    .getDefaultZoneId();
 
-        // Initialize observers/events
-        // await this.initializeObservers();
-        // BootstrapUI.mark("Observers");
+            const fallbackResult =
+                ZoneManager.enterZone(
+                    fallbackZoneId
+                );
 
+            if (!fallbackResult.entered) {
+                throw new Error(
+                    "ECGame could not activate its default zone"
+                );
+            }
+        }
 
-        // Initialize user interface
-        // await this.initializeUI();
-        // BootstrapUI.mark("UI");
+        NavigationUI.refresh();
 
+        console.log(
+            "ECGame bootstrap complete."
+        );
 
-        // Initialize world zones
-        // await this.initializeZones();
-        // BootstrapUI.mark("Zones");
-
-
-        // Start simulation loop
-        // await this.startSimulation();
-        // BootstrapUI.mark("Simulation");
-
-
-
-
-    },
-
-
-    // --------------------------------------------------
-    // Future initialization steps
-    // --------------------------------------------------
-
-    async loadData(){
-
-        // DataLoader.loadAll();
-
-    },
-
-
-    async initializeGameState(){
-
-        // GameStateManager.initialize();
-
-    },
-
-
-    async initializeObservers(){
-
-        // GameStateObserver.initialize();
-
-    },
-
-
-    async initializeUI(){
-
-        // UIManager.initialize();
-
-    },
-
-
-    async initializeZones(){
-
-        // ZoneManager.initialize();
-
-    },
-
-
-    async startSimulation(){
-
-        // SimulationClock.start();
+        return true;
 
     }
 
-
 };
-
 
 export default Bootstrap;

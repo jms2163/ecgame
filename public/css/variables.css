@@ -5,4 +5,12 @@
 :root {
     --color-status-available: #5ee38d;
     --color-status-locked: #ff6f7d;
+    --color-status-completed: #72d7ff;
+    --color-status-coming-soon: #b7a7c9;
+
+    --color-nav-background: #0f041c;
+    --color-nav-panel: #1c0a3a;
+    --color-nav-border: #310d54;
+    --color-nav-accent: #df80ff;
+    --color-nav-text: #f7efff;
 }
