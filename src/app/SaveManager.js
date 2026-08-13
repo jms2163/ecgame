@@ -1,176 +1,222 @@
 // --------------------------------------------------
 // SaveManager.js
-// Handles saving, loading, exporting, importing,
-// and backup/restore of game saves.
+// Handles local saving, loading, export, and backup
 // --------------------------------------------------
 
 import gameState from "./GameState.js";
-import VersionManager from "./VersionManager.js";
+import VersionManager
+    from "./VersionManager.js";
+import GameStateObserver
+    from "./GameStateObserver.js";
 
 const SAVE_KEY = "ECGame_Save";
 const BACKUP_KEY = "ECGame_Save_Backup";
 
 const SaveManager = {
 
-    // --------------------------------------------------
-    // Initialize
-    // --------------------------------------------------
     initialize() {
-        // Reserved for initial setup if needed later
+        return true;
     },
 
-
-    // --------------------------------------------------
-    // Save
-    // --------------------------------------------------
     save() {
-        localStorage.setItem(
-            SAVE_KEY,
-            JSON.stringify(gameState)
-        );
-        console.log("Game saved.");
-    },
 
+        try {
+            gameState.saveVersion =
+                VersionManager
+                    .getCurrentVersion();
 
-    // --------------------------------------------------
-    // Load
-    // --------------------------------------------------
-    load() {
-
-    const data = localStorage.getItem(SAVE_KEY);
-
-    if (!data) {
-        console.warn("No save found.");
-        return;
-    }
-
-    try {
-
-        let saveData = JSON.parse(data);
-
-        const saveVersion =
-            VersionManager.getSaveVersion(saveData);
-
-        const currentVersion =
-            VersionManager.getCurrentVersion();
-
-
-        // --------------------------------------------------
-        // Check whether an upgrade is required
-        // --------------------------------------------------
-
-        if (
-            !VersionManager.isCompatible(
-                saveVersion,
-                currentVersion
-            )
-        ) {
-
-            console.log(
-                `Save requires upgrade: ${saveVersion} → ${currentVersion}`
-            );
-
-
-            // Preserve the original save
-            this.backup();
-
-
-            // Upgrade the save
-            saveData =
-                VersionManager.upgrade(saveData);
-
-
-            // Save the upgraded version
             localStorage.setItem(
                 SAVE_KEY,
-                JSON.stringify(saveData)
+                JSON.stringify(gameState)
             );
 
+            console.log(
+                "Game saved."
+            );
+
+            return true;
+
+        } catch (error) {
+            console.error(
+                "Failed to save game:",
+                error
+            );
+
+            return false;
         }
 
+    },
 
-        // --------------------------------------------------
-        // Hydrate live GameState
-        // --------------------------------------------------
+    load() {
 
-        Object.assign(
-            gameState,
-            saveData
-        );
-
-
-        console.log(
-            "Game loaded:",
-            gameState
-        );
-
-    } catch (error) {
-
-        console.error(
-            "Failed to load game save:",
-            error
-        );
-
-    }
-
-},
-
-
-    // --------------------------------------------------
-    // Backup
-    // --------------------------------------------------
-    backup() {
-        const data = localStorage.getItem(SAVE_KEY);
+        const data =
+            localStorage.getItem(
+                SAVE_KEY
+            );
 
         if (!data) {
-            console.warn("No save exists to back up.");
-            return;
+            console.warn(
+                "No save found."
+            );
+
+            return false;
         }
 
-        localStorage.setItem(BACKUP_KEY, data);
-        console.log("Previous save backed up.");
+        try {
+            let saveData =
+                JSON.parse(data);
+
+            const saveVersion =
+                VersionManager
+                    .getSaveVersion(
+                        saveData
+                    );
+
+            const currentVersion =
+                VersionManager
+                    .getCurrentVersion();
+
+            if (
+                !VersionManager.isCompatible(
+                    saveVersion,
+                    currentVersion
+                )
+            ) {
+                console.log(
+                    `Save requires upgrade: ${saveVersion} -> ${currentVersion}`
+                );
+
+                this.backup();
+
+                saveData =
+                    VersionManager.upgrade(
+                        saveData
+                    );
+
+                localStorage.setItem(
+                    SAVE_KEY,
+                    JSON.stringify(saveData)
+                );
+            }
+
+            Object.assign(
+                gameState,
+                saveData
+            );
+
+            GameStateObserver.notify(
+                "game-state-loaded",
+                {
+                    source: "local-storage"
+                }
+            );
+
+            console.log(
+                "Game loaded:",
+                gameState
+            );
+
+            return true;
+
+        } catch (error) {
+            console.error(
+                "Failed to load game save:",
+                error
+            );
+
+            return false;
+        }
+
     },
 
+    backup() {
 
-    // --------------------------------------------------
-    // Restore Backup
-    // --------------------------------------------------
+        const data =
+            localStorage.getItem(
+                SAVE_KEY
+            );
+
+        if (!data) {
+            console.warn(
+                "No save exists to back up."
+            );
+
+            return false;
+        }
+
+        localStorage.setItem(
+            BACKUP_KEY,
+            data
+        );
+
+        console.log(
+            "Previous save backed up."
+        );
+
+        return true;
+
+    },
+
     restoreBackup() {
-        const backup = localStorage.getItem(BACKUP_KEY);
+
+        const backup =
+            localStorage.getItem(
+                BACKUP_KEY
+            );
 
         if (!backup) {
-            console.warn("No save backup exists.");
-            return;
+            console.warn(
+                "No save backup exists."
+            );
+
+            return false;
         }
 
-        localStorage.setItem(SAVE_KEY, backup);
-        console.log("Previous save restored.");
+        localStorage.setItem(
+            SAVE_KEY,
+            backup
+        );
+
+        console.log(
+            "Previous save restored. Call SaveManager.load() to hydrate it."
+        );
+
+        return true;
+
     },
 
-
-    // --------------------------------------------------
-    // Export
-    // --------------------------------------------------
     export() {
-        return JSON.stringify(gameState, null, 2);
+
+        return JSON.stringify(
+            gameState,
+            null,
+            2
+        );
+
     },
 
+    import() {
 
-    // --------------------------------------------------
-    // Import
-    // --------------------------------------------------
-    import(data) {
-        // TODO: Load external save data into gameState once structure is finalized
-        console.log("Import not implemented yet.");
+        console.log(
+            "Import not implemented yet."
+        );
+
+        return false;
+
     },
 
-
-    // --------------------------------------------------
-    // Clear
-    // --------------------------------------------------
     clear() {
-        localStorage.removeItem(SAVE_KEY);
-        console.log("Game save cleared.");
+
+        localStorage.removeItem(
+            SAVE_KEY
+        );
+
+        console.log(
+            "Game save cleared."
+        );
+
+        return true;
+
     }
 
 };

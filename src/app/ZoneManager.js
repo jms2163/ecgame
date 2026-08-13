@@ -1,142 +1,343 @@
 // --------------------------------------------------
 // ZoneManager.js
-// Controls which game zone is currently active
+// Owns global-zone registration and lifecycle transitions
 // --------------------------------------------------
 
 import Pond from "./Pond.js";
-import GameStateManager from "./GameStateManager.js";
 import TestZone from "./TestZone.js";
+import GameStateManager
+    from "./GameStateManager.js";
+import GameStateObserver
+    from "./GameStateObserver.js";
+import ZoneCatalog from "./ZoneCatalog.js";
+
+const ZONE_REGISTRY = new Map([
+    [
+        "pond",
+        {
+            module: Pond,
+            rootId: "pond-zone",
+            persistCurrentZone: true
+        }
+    ],
+    [
+        "test",
+        {
+            module: TestZone,
+            rootId: "test-zone",
+            persistCurrentZone: false
+        }
+    ]
+]);
 
 const ZoneManager = {
 
     currentZone: null,
+    currentZoneId: null,
 
-    // --------------------------------------------------
-    // Initialize Zone Manager
-    // --------------------------------------------------
     initialize() {
 
-        console.log("ZoneManager initialized");
+        console.log(
+            "ZoneManager initialized"
+        );
+
+        return true;
 
     },
 
-    // --------------------------------------------------
-// Show active zone and hide inactive zones
-// --------------------------------------------------
-updateZoneVisibility(zoneId) {
+    isRegistered(zoneId) {
 
-    const zoneElements = {
-        pond: document.getElementById("pond-zone"),
-        test: document.getElementById("test-zone")
-    };
+        return ZONE_REGISTRY.has(
+            zoneId
+        );
 
-    Object.entries(zoneElements).forEach(
-        ([id, element]) => {
+    },
 
-            if (!element) {
-                console.warn(
-                    `ZoneManager: DOM root for "${id}" not found`
+    getCurrentZoneId() {
+
+        return this.currentZoneId;
+
+    },
+
+    getRegisteredZoneIds() {
+
+        return Array.from(
+            ZONE_REGISTRY.keys()
+        );
+
+    },
+
+    resolveEntry(zoneId) {
+
+        return ZONE_REGISTRY.get(zoneId) ??
+            null;
+
+    },
+
+    createFailure(
+        zoneId,
+        reason,
+        message
+    ) {
+
+        console.warn(
+            `ZoneManager: ${message}`
+        );
+
+        return {
+            entered: false,
+            zoneId,
+            reason,
+            message
+        };
+
+    },
+
+    validateEntry(zoneId) {
+
+        const entry =
+            this.resolveEntry(zoneId);
+
+        if (!entry) {
+
+            if (ZoneCatalog.has(zoneId)) {
+                return this.createFailure(
+                    zoneId,
+                    "not-implemented",
+                    `zone "${zoneId}" is not implemented yet`
                 );
-
-                return;
             }
 
-            const isActive =
-                id === zoneId;
-
-            element.classList.toggle(
-                "hidden",
-                !isActive
+            return this.createFailure(
+                zoneId,
+                "unknown-zone",
+                `unknown zone "${zoneId}"`
             );
-
-        }
-    );
-
-},
-
-    // --------------------------------------------------
-    // Enter a game zone
-    // --------------------------------------------------
-    enterZone(zoneId) {
-
-        console.log(`ZoneManager: entering ${zoneId}`);
-
-        // --------------------------------------------------
-        // Identify requested zone
-        // --------------------------------------------------
-        let nextZone = null;
-
-        switch (zoneId) {
-
-            case "pond":
-                nextZone = Pond;
-                break;
-
-            case "test":
-                nextZone = TestZone;
-                break;
-            
-            
-
-            default:
-                console.warn(`ZoneManager: unknown zone "${zoneId}"`);
-                return;
         }
 
-        // --------------------------------------------------
-        // Deactivate current zone
-        // --------------------------------------------------
-        if (this.currentZone) {
-
-            this.currentZone.deactivate();
-
+        if (
+            entry.persistCurrentZone &&
+            !GameStateManager
+                .isZoneAccessible(zoneId)
+        ) {
+            return this.createFailure(
+                zoneId,
+                "locked",
+                `zone "${zoneId}" is locked`
+            );
         }
 
-        // --------------------------------------------------
-        // Initialize requested zone
-        // --------------------------------------------------
-        nextZone.initialize();
-        // --------------------------------------------------
-// Make requested zone visible
-// --------------------------------------------------
-this.updateZoneVisibility(zoneId);
-        // --------------------------------------------------
-        // Activate requested zone
-        // --------------------------------------------------
-        nextZone.activate();
-
-        // --------------------------------------------------
-        // Record active zone
-        // --------------------------------------------------
-        this.currentZone = nextZone;
-
-        // --------------------------------------------------
-        // Record zone in GameState
-        // --------------------------------------------------
-        GameStateManager.setCurrentZone(zoneId);
-
-        console.log(`ZoneManager: ${zoneId} is now active`);
+        return {
+            entered: true,
+            zoneId,
+            entry
+        };
 
     },
 
-    // --------------------------------------------------
-    // Change the active view inside the current zone
-    // --------------------------------------------------
+    updateZoneVisibility(zoneId) {
+
+        ZONE_REGISTRY.forEach(
+            (entry, registeredZoneId) => {
+
+                const element =
+                    document.getElementById(
+                        entry.rootId
+                    );
+
+                if (!element) {
+                    console.warn(
+                        `ZoneManager: DOM root #${entry.rootId} for "${registeredZoneId}" was not found`
+                    );
+
+                    return;
+                }
+
+                element.classList.toggle(
+                    "hidden",
+                    registeredZoneId !== zoneId
+                );
+
+            }
+        );
+
+    },
+
+    enterZone(zoneId) {
+
+        console.log(
+            `ZoneManager: entering ${zoneId}`
+        );
+
+        // Resolve and authorize the destination before
+        // deactivating the current zone.
+        const validation =
+            this.validateEntry(zoneId);
+
+        if (!validation.entered) {
+            return validation;
+        }
+
+        const nextEntry =
+            validation.entry;
+
+        const nextZone =
+            nextEntry.module;
+
+        if (
+            this.currentZoneId === zoneId &&
+            this.currentZone === nextZone
+        ) {
+            this.updateZoneVisibility(
+                zoneId
+            );
+
+            return {
+                entered: true,
+                zoneId,
+                reason: "already-active",
+                message:
+                    `Zone "${zoneId}" is already active.`
+            };
+        }
+
+        const previousZone =
+            this.currentZone;
+
+        const previousZoneId =
+            this.currentZoneId;
+
+        try {
+            // Initialization must be safe and idempotent.
+            // Preparing first lets a failed initialization
+            // leave the current zone untouched.
+            nextZone.initialize();
+        } catch (error) {
+            console.error(
+                `ZoneManager: failed to initialize "${zoneId}"`,
+                error
+            );
+
+            return {
+                entered: false,
+                zoneId,
+                reason: "initialization-failed",
+                message:
+                    `Unable to initialize zone "${zoneId}".`
+            };
+        }
+
+        try {
+            previousZone?.deactivate();
+
+            this.updateZoneVisibility(
+                zoneId
+            );
+
+            nextZone.activate();
+
+            if (nextEntry.persistCurrentZone) {
+
+                const recorded =
+                    GameStateManager
+                        .setCurrentZone(zoneId);
+
+                if (!recorded) {
+                    throw new Error(
+                        `GameState rejected zone "${zoneId}"`
+                    );
+                }
+
+            }
+
+            this.currentZone = nextZone;
+            this.currentZoneId = zoneId;
+
+            GameStateObserver.notify(
+                "active-zone-changed",
+                {
+                    zoneId,
+                    previousZoneId
+                }
+            );
+
+            console.log(
+                `ZoneManager: ${zoneId} is now active`
+            );
+
+            return {
+                entered: true,
+                zoneId,
+                reason: "entered",
+                message:
+                    `Zone "${zoneId}" is now active.`
+            };
+
+        } catch (error) {
+            console.error(
+                `ZoneManager: failed to activate "${zoneId}"`,
+                error
+            );
+
+            try {
+                nextZone.deactivate?.();
+
+                if (
+                    previousZone &&
+                    previousZoneId
+                ) {
+                    this.updateZoneVisibility(
+                        previousZoneId
+                    );
+
+                    previousZone.activate();
+                }
+            } catch (rollbackError) {
+                console.error(
+                    "ZoneManager: rollback failed",
+                    rollbackError
+                );
+            }
+
+            this.currentZone = previousZone;
+            this.currentZoneId =
+                previousZoneId;
+
+            return {
+                entered: false,
+                zoneId,
+                reason: "activation-failed",
+                message:
+                    `Unable to activate zone "${zoneId}".`
+            };
+        }
+
+    },
+
     showView(level) {
 
         if (!this.currentZone) {
-            console.warn("ZoneManager: no active zone");
-            return;
+            console.warn(
+                "ZoneManager: no active zone"
+            );
+
+            return false;
         }
 
-        if (typeof this.currentZone.showView !== "function") {
+        if (
+            typeof this.currentZone.showView !==
+            "function"
+        ) {
             console.warn(
                 "ZoneManager: current zone does not support internal views"
             );
-            return;
+
+            return false;
         }
 
         this.currentZone.showView(level);
+
+        return true;
 
     }
 
