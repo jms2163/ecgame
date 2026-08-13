@@ -41,6 +41,7 @@ const OrganelleExperimentStage = {
     activeExperiment: null,
     activeResolvedExperiment: null,
     isParticleSimulationRunning: false,
+    simulationStructureResizeObserver: null,
 
     isReviewMode: false,
 
@@ -62,10 +63,46 @@ const OrganelleExperimentStage = {
     },
 
     // --------------------------------------------------
+    // Keep placement-only actions unavailable while the
+    // particle view is running. The simulation is read-only
+    // until the student deliberately stops it.
+    // --------------------------------------------------
+    setSimulationPlacementControlsDisabled(disabled) {
+
+        [
+            "rotate",
+            "labels"
+        ].forEach(actionId => {
+
+            const control =
+                this.controlsElement?.querySelector(
+                    `[data-action="${actionId}"]`
+                );
+
+            if (!control) {
+                return;
+            }
+
+            control.disabled = disabled;
+
+            control.setAttribute(
+                "aria-disabled",
+                String(disabled)
+            );
+
+        });
+
+    },
+
+    // --------------------------------------------------
     // Stop and remove the canvas overlay so the original
     // drag-and-drop workspace is interactive again.
     // --------------------------------------------------
     stopParticleSimulation() {
+
+        this.simulationStructureResizeObserver?.disconnect();
+
+        this.simulationStructureResizeObserver = null;
 
         ParticleSimulationView.clear();
 
@@ -81,6 +118,10 @@ const OrganelleExperimentStage = {
         this.isParticleSimulationRunning =
             false;
 
+        this.setSimulationPlacementControlsDisabled(
+            false
+        );
+
         const simulationButton =
             this.controlsElement?.querySelector(
                 '[data-action="simulate"]'
@@ -94,6 +135,198 @@ const OrganelleExperimentStage = {
                 "aria-pressed",
                 "false"
             );
+        }
+
+    },
+
+    // --------------------------------------------------
+    // Render placed structures over the particle canvas.
+    // These structures affect simulation rules but do not
+    // become moving particles themselves.
+    // --------------------------------------------------
+    mountFixedSimulationStructures({
+        simulationSurface,
+        stageElement,
+        simulation,
+        snapshot
+    }) {
+
+        const structureMaterialIds =
+            simulation?.fixedStructureMaterialIds ??
+            [];
+
+        if (
+            !simulationSurface ||
+            !stageElement ||
+            !Array.isArray(structureMaterialIds)
+        ) {
+            return;
+        }
+
+        this.simulationStructureResizeObserver?.disconnect();
+
+        this.simulationStructureResizeObserver = null;
+
+        const membraneElement =
+            stageElement.querySelector(
+                ".membrane-transport-bilayer"
+            );
+
+        const synchronizeStructurePositions = [];
+
+        structureMaterialIds.forEach(materialId => {
+
+            const material =
+                this.activeResolvedExperiment
+                    ?.stage
+                    ?.materials
+                    ?.find(candidate =>
+                        candidate.id === materialId
+                    );
+
+            if (!material?.visualId) {
+                return;
+            }
+
+            const placements =
+                (snapshot?.components ?? []).filter(
+                    component =>
+                        component.id === materialId &&
+                        component.zoneId === "membrane"
+                );
+
+            const sourceVisuals = Array.from(
+                stageElement.querySelectorAll(
+                    `.organelle-experiment-placement ` +
+                    `[data-visual-id="${material.visualId}"]`
+                )
+            );
+
+            sourceVisuals.forEach(
+                (sourceVisual, index) => {
+
+                    const placement =
+                        placements[index];
+
+                    if (!placement) {
+                        return;
+                    }
+
+                    const sourceStyle =
+                        getComputedStyle(sourceVisual);
+
+                    const structure =
+                        sourceVisual.cloneNode(true);
+
+                    structure.classList.add(
+                        "organelle-particle-simulation-structure"
+                    );
+
+                    structure.style.width =
+                        sourceStyle.width;
+
+                    structure.style.height =
+                        sourceStyle.height;
+
+                    structure.style.transform =
+                        `translate(-50%, -50%) rotate(${placement.rotationDeg ?? 0}deg)`;
+
+                    structure.removeAttribute(
+                        "data-visual-id"
+                    );
+
+                    structure.setAttribute(
+                        "aria-hidden",
+                        "true"
+                    );
+
+                    const synchronizePosition = () => {
+
+                        const surfaceBounds =
+                            simulationSurface.getBoundingClientRect();
+
+                        const membraneBounds =
+                            membraneElement?.getBoundingClientRect();
+
+                        if (
+                            surfaceBounds.width <= 0 ||
+                            surfaceBounds.height <= 0 ||
+                            !membraneBounds ||
+                            membraneBounds.width <= 0 ||
+                            membraneBounds.height <= 0
+                        ) {
+                            return;
+                        }
+
+                        // Placement coordinates are normalized within the
+                        // membrane drop zone. Recalculate against the live
+                        // membrane bounds, so DevTools or viewport resizing
+                        // cannot move a fixed protein into a compartment.
+                        const left =
+                            (
+                                membraneBounds.left -
+                                surfaceBounds.left +
+                                placement.position.x *
+                                membraneBounds.width
+                            ) /
+                            surfaceBounds.width;
+
+                        const top =
+                            (
+                                membraneBounds.top -
+                                surfaceBounds.top +
+                                placement.position.y *
+                                membraneBounds.height
+                            ) /
+                            surfaceBounds.height;
+
+                        structure.style.left =
+                            `${left * 100}%`;
+
+                        structure.style.top =
+                            `${top * 100}%`;
+
+                    };
+
+                    synchronizeStructurePositions.push(
+                        synchronizePosition
+                    );
+
+                    simulationSurface.appendChild(
+                        structure
+                    );
+
+                    synchronizePosition();
+
+                }
+            );
+
+        });
+
+        if (
+            synchronizeStructurePositions.length > 0 &&
+            typeof ResizeObserver !== "undefined"
+        ) {
+            this.simulationStructureResizeObserver =
+                new ResizeObserver(() => {
+
+                    synchronizeStructurePositions.forEach(
+                        synchronizePosition => {
+                            synchronizePosition();
+                        }
+                    );
+
+                });
+
+            this.simulationStructureResizeObserver.observe(
+                stageElement
+            );
+
+            if (membraneElement) {
+                this.simulationStructureResizeObserver.observe(
+                    membraneElement
+                );
+            }
         }
 
     },
@@ -244,6 +477,16 @@ handleControlAction(actionId) {
         return;
     }
 
+    if (
+        this.isParticleSimulationRunning &&
+        (
+            actionId === "rotate" ||
+            actionId === "labels"
+        )
+    ) {
+        return;
+    }
+
     if (actionId === "reflection") {
         this.toggleReflectionPanel();
 
@@ -382,7 +625,7 @@ handleControlAction(actionId) {
         }
 
         this.selectedProteinStatusElement.textContent =
-            `Selected protein: ${material.displayName} (${selectedPlacement.rotationDeg ?? 0}Â°)`;
+            `Selected protein: ${material.displayName} (${selectedPlacement.rotationDeg ?? 0}\u00B0)`;
 
     },
 
@@ -898,15 +1141,87 @@ runSimulation() {
         return;
     }
 
+    // The setup membrane may have a responsive minimum width.
+    // Read its actual rendered bounds so simulation artwork and
+    // engine collisions remain aligned at every viewport size.
+    const stageElement =
+        simulationSurface.closest(
+            ".membrane-transport-stage"
+        );
+
+    const membraneElement =
+        stageElement?.querySelector(
+            ".membrane-transport-bilayer"
+        );
+
+    const stageBounds =
+        stageElement?.getBoundingClientRect();
+
+    const membraneBounds =
+        membraneElement?.getBoundingClientRect();
+
+    const fallbackGeometry =
+        experiment.simulation.membraneGeometry ??
+        {
+            start: 0.44,
+            end: 0.56
+        };
+
+    const hasRenderableGeometry =
+        stageBounds?.width > 0 &&
+        membraneBounds?.width > 0;
+
+    const renderedStart = hasRenderableGeometry
+        ? Math.max(
+            0,
+            Math.min(
+                1,
+                (membraneBounds.left - stageBounds.left) /
+                stageBounds.width
+            )
+        )
+        : fallbackGeometry.start;
+
+    const renderedEnd = hasRenderableGeometry
+        ? Math.max(
+            renderedStart,
+            Math.min(
+                1,
+                (membraneBounds.right - stageBounds.left) /
+                stageBounds.width
+            )
+        )
+        : fallbackGeometry.end;
+
+    const simulation = {
+        ...structuredClone(experiment.simulation),
+        membraneGeometry: {
+            start: renderedStart,
+            end: renderedEnd
+        }
+    };
+
+    simulationSurface.style.setProperty(
+        "--membrane-start",
+        `${renderedStart * 100}%`
+    );
+
+    simulationSurface.style.setProperty(
+        "--membrane-width",
+        `${(renderedEnd - renderedStart) * 100}%`
+    );
+
+    const snapshot =
+        this.getPlacementSnapshot();
+
     const initialState =
         ParticleSimulationEngine
             .createInitialState(
                 {
                     simulation:
-                        experiment.simulation,
+                        simulation,
 
-                    snapshot:
-                        this.getPlacementSnapshot()
+                    snapshot
                 }
             );
 
@@ -922,6 +1237,15 @@ runSimulation() {
         return;
     }
 
+    this.mountFixedSimulationStructures(
+        {
+            simulationSurface,
+            stageElement,
+            simulation,
+            snapshot
+        }
+    );
+
     ParticleSimulationView.start(
         initialState
     );
@@ -931,6 +1255,10 @@ runSimulation() {
 
     this.isParticleSimulationRunning =
         true;
+
+    this.setSimulationPlacementControlsDisabled(
+        true
+    );
 
     simulationButton.textContent =
         "Stop Simulation";
@@ -999,6 +1327,58 @@ runSimulation() {
         stage.dataset.template =
             "membrane_transport";
 
+        // One geometry definition drives the setup grid,
+        // simulation backdrop, and particle-engine bounds.
+        const geometry =
+            this.activeResolvedExperiment
+                ?.simulation
+                ?.membraneGeometry ??
+            {
+                start: 0.44,
+                end: 0.56
+            };
+
+        const membraneStart =
+            Number.isFinite(geometry.start) &&
+            Number.isFinite(geometry.end) &&
+            geometry.start > 0 &&
+            geometry.end < 1 &&
+            geometry.start < geometry.end
+                ? geometry.start
+                : 0.44;
+
+        const membraneEnd =
+            Number.isFinite(geometry.start) &&
+            Number.isFinite(geometry.end) &&
+            geometry.start > 0 &&
+            geometry.end < 1 &&
+            geometry.start < geometry.end
+                ? geometry.end
+                : 0.56;
+
+        const membraneWidth =
+            membraneEnd - membraneStart;
+
+        stage.style.setProperty(
+            "--membrane-side-track",
+            `${membraneStart * 100}fr`
+        );
+
+        stage.style.setProperty(
+            "--membrane-track",
+            `${membraneWidth * 100}fr`
+        );
+
+        stage.style.setProperty(
+            "--membrane-start",
+            `${membraneStart * 100}%`
+        );
+
+        stage.style.setProperty(
+            "--membrane-width",
+            `${membraneWidth * 100}%`
+        );
+
         const sideA =
             document.createElement("section");
 
@@ -1030,6 +1410,30 @@ runSimulation() {
         membrane.setAttribute(
             "aria-label",
             "Membrane placement area"
+        );
+
+        // The phospholipid bilayer is a fixed visual part of
+        // the stage—not a draggable experiment material.
+        // Rendering it as an element keeps it visible even if
+        // stylesheet background paths change during refactors.
+        const membraneVisual =
+            document.createElement("img");
+
+        membraneVisual.className =
+            "membrane-transport-bilayer-visual";
+
+        membraneVisual.src =
+            "./public/assets/experiments/membranes/phospholipid-bilayer.svg";
+
+        membraneVisual.alt = "";
+
+        membraneVisual.setAttribute(
+            "aria-hidden",
+            "true"
+        );
+
+        membrane.appendChild(
+            membraneVisual
         );
 
         OrganelleExperimentPlacementController
@@ -1132,7 +1536,31 @@ stage.append(
         trash.title =
             "Drag unwanted placed materials here to remove them from the simulation";
 
-        trash.textContent = "\u{1F5D1}";
+        const trashIcon =
+            document.createElement("span");
+
+        trashIcon.className =
+            "organelle-experiment-trash-icon";
+
+        trashIcon.setAttribute(
+            "aria-hidden",
+            "true"
+        );
+
+        trashIcon.textContent = "\u{1F5D1}";
+
+        const trashLabel =
+            document.createElement("span");
+
+        trashLabel.className =
+            "organelle-experiment-material-name";
+
+        trashLabel.textContent = "Trash";
+
+        trash.append(
+            trashIcon,
+            trashLabel
+        );
 
         tray.append(
             heading,
@@ -1439,7 +1867,7 @@ this.contentElement.appendChild(
 
             const previous = document.createElement("button");
             previous.type = "button";
-            previous.textContent = "Previous <-";
+            previous.textContent = "‹ Previous";
             previous.disabled = submissionIndex === 0;
             previous.addEventListener("click", () => {
                 this.openReview(
@@ -1450,7 +1878,7 @@ this.contentElement.appendChild(
 
             const next = document.createElement("button");
             next.type = "button";
-            next.textContent = "Next ->";
+            next.textContent = "Next ›";
             next.disabled =
                 submissionIndex === submissions.length - 1;
             next.addEventListener("click", () => {
@@ -1563,17 +1991,67 @@ this.contentElement.appendChild(
         overlay.className = "organelle-problem-report-overlay";
         const dialog = document.createElement("form");
         dialog.className = "organelle-problem-report-dialog";
-        dialog.innerHTML = `<h3>Report a grading issue</h3><label>Issue type<select name="issueType"><option value="reflection">Reflection scoring</option><option value="placement">Placement, label, or orientation</option><option value="interface">Interface or saving</option><option value="other">Other</option></select></label><label>Briefly report the problem you want your instructor to review.<textarea name="message" required maxlength="1500"></textarea></label><div class="organelle-problem-report-actions"><button type="submit">Submit report</button><button type="button" data-cancel>Cancel</button></div>`;
+        dialog.setAttribute("role", "dialog");
+        dialog.setAttribute("aria-modal", "true");
+        dialog.setAttribute("aria-labelledby", "organelle-problem-report-title");
+        dialog.innerHTML = `<h3 id="organelle-problem-report-title">Report a grading issue</h3><p class="organelle-problem-report-intro">Send your selected submission and a brief description to your instructor for review.</p><label>Issue type<select name="issueType"><option value="reflection">Reflection scoring</option><option value="placement">Placement, label, or orientation</option><option value="interface">Interface or saving</option><option value="other">Other</option></select></label><label>Briefly report the problem you want your instructor to review.<textarea name="message" required maxlength="1500"></textarea></label><p class="organelle-problem-report-status" aria-live="polite"></p><div class="organelle-problem-report-actions"><button type="submit">Submit report</button><button type="button" data-cancel>Cancel</button></div>`;
+
+        const submitButton =
+            dialog.querySelector('[type="submit"]');
+
+        const closeButton =
+            dialog.querySelector("[data-cancel]");
+
+        const status =
+            dialog.querySelector(
+                ".organelle-problem-report-status"
+            );
+
+        let slowSubmissionTimer = null;
+
+        const closeOverlay = () => {
+            window.clearTimeout(slowSubmissionTimer);
+            overlay.remove();
+        };
+
         dialog.addEventListener("submit", async event => {
             event.preventDefault();
+
+            submitButton.disabled = true;
+            submitButton.textContent = "Submitting...";
+
+            closeButton.textContent = "Close";
+
+            status.textContent = "Submitting report. Please wait.";
+
+            slowSubmissionTimer = window.setTimeout(() => {
+                if (!overlay.isConnected) {
+                    return;
+                }
+
+                status.textContent =
+                    "This is taking longer than expected. You may close this window and continue working.";
+            }, 5000);
+
             const values = new FormData(dialog);
             try {
                 await ProblemReportManager.send(ProblemReportManager.createPayload({ experiment, submission, issueType: values.get("issueType"), message: values.get("message") }));
+                window.clearTimeout(slowSubmissionTimer);
                 overlay.remove();
                 this.showSimulationResult({ title: "Report Sent", message: "Your selected submission was sent to your instructor for review." });
-            } catch (error) { console.error("Problem report failed", error); }
+            } catch (error) {
+                window.clearTimeout(slowSubmissionTimer);
+                console.error("Problem report failed", error);
+                submitButton.disabled = false;
+                submitButton.textContent = "Submit report";
+
+                closeButton.textContent = "Cancel";
+
+                status.textContent =
+                    "The report could not be sent. Please try again.";
+            }
         });
-        dialog.querySelector("[data-cancel]").addEventListener("click", () => overlay.remove());
+        closeButton.addEventListener("click", closeOverlay);
         overlay.appendChild(dialog);
         this.contentElement.appendChild(overlay);
         dialog.querySelector("textarea").focus();
@@ -1599,6 +2077,28 @@ this.contentElement.appendChild(
         }
 
         if (/reflection/.test(criterion?.type ?? "")) {
+            const matchedGroups =
+                criterion?.details?.matchedGroups ??
+                [];
+
+            const firstMissingGroupIndex =
+                matchedGroups.findIndex(
+                    matched => !matched
+                );
+
+            const reflectionFeedback =
+                experiment?.assessment?.reflection
+                    ?.feedbackByKeywordGroup ??
+                [];
+
+            if (firstMissingGroupIndex >= 0) {
+                return reflectionFeedback[
+                    firstMissingGroupIndex
+                ] ??
+                feedback.movingSubstance ??
+                feedback.energyRequirement;
+            }
+
             return feedback.movingSubstance ?? feedback.energyRequirement;
         }
 

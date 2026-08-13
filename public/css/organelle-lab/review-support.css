@@ -10,9 +10,171 @@
 .organelle-experiment-reflection-status { min-height: 1.25rem; color: var(--color-status-available, #5ee38d); font-size: 0.85rem; }
 .organelle-experiment-review-link { display: block; width: fit-content; margin-top: 0.45rem; color: #8fd3ff; }
 .organelle-experiment-review-link:hover, .organelle-experiment-review-link:focus-visible { color: #c7ecff; }
-.organelle-experiment-review-navigation { display: flex; flex-wrap: wrap; gap: 0.55rem; align-items: center; margin-top: 0.8rem; }
-.organelle-experiment-review-navigation button { padding: 0.35rem 0.55rem; }
-.organelle-experiment-review-navigation button:disabled { opacity: 0.5; cursor: not-allowed; }
+.organelle-experiment-review-navigation { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.55rem; align-items: center; margin-top: 0.8rem; }
+.organelle-experiment-review-navigation button {
+    padding: 0.4rem 0.65rem;
+    color: #f7efff;
+    border: 1px solid #df80ff;
+    border-radius: 4px;
+    background: #2b103d;
+    font: inherit;
+    cursor: pointer;
+}
+
+.organelle-experiment-review-navigation button:hover,
+.organelle-experiment-review-navigation button:focus-visible {
+    border-color: #f4a0ff;
+    box-shadow: 0 0 10px rgba(244, 160, 255, 0.65);
+}
+
+.organelle-experiment-review-navigation button:focus-visible {
+    outline: 2px solid rgba(247, 239, 255, 0.85);
+    outline-offset: 2px;
+}
+
+.organelle-experiment-review-navigation button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Secondary review actions stay distinct from primary submit controls. */
+.organelle-experiment-review-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.organelle-experiment-review-actions > button {
+    padding: 0.45rem 0.7rem;
+    color: #8fd3ff;
+    border: 1px solid #8fd3ff;
+    border-radius: 4px;
+    background: rgba(69, 156, 205, 0.12);
+    font: inherit;
+    cursor: pointer;
+}
+
+.organelle-experiment-review-actions > button:hover,
+.organelle-experiment-review-actions > button:focus-visible {
+    color: #c7ecff;
+    border-color: #c7ecff;
+    background: rgba(69, 156, 205, 0.22);
+    box-shadow: 0 0 10px rgba(143, 211, 255, 0.55);
+}
+
+.organelle-experiment-review-actions > button:focus-visible {
+    outline: 2px solid rgba(247, 239, 255, 0.85);
+    outline-offset: 2px;
+}
+
+/* Report overlay appears above the saved-attempt view. */
+.organelle-problem-report-overlay {
+    position: fixed;
+    z-index: 100;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    background: rgba(5, 1, 10, 0.78);
+}
+
+.organelle-problem-report-dialog {
+    display: grid;
+    gap: 0.85rem;
+    width: min(100%, 34rem);
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+    padding: 1.25rem;
+    box-sizing: border-box;
+    color: #f7efff;
+    border: 2px solid #8fd3ff;
+    border-radius: 12px;
+    background: #16051e;
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.55);
+}
+
+.organelle-problem-report-dialog h3,
+.organelle-problem-report-dialog p {
+    margin: 0;
+}
+
+.organelle-problem-report-dialog h3 {
+    color: #c7ecff;
+}
+
+.organelle-problem-report-intro,
+.organelle-problem-report-status {
+    color: #cdbfd8;
+    font-size: 0.9rem;
+}
+
+.organelle-problem-report-dialog label {
+    display: grid;
+    gap: 0.4rem;
+    color: #f7efff;
+    font-weight: bold;
+}
+
+.organelle-problem-report-dialog select,
+.organelle-problem-report-dialog textarea {
+    width: 100%;
+    padding: 0.65rem;
+    box-sizing: border-box;
+    color: #0f041c;
+    border: 1px solid #8fd3ff;
+    border-radius: 4px;
+    background: #ffffff;
+    font: inherit;
+}
+
+.organelle-problem-report-dialog textarea {
+    min-height: 7rem;
+    resize: vertical;
+}
+
+.organelle-problem-report-dialog select:focus-visible,
+.organelle-problem-report-dialog textarea:focus-visible {
+    outline: 2px solid #c7ecff;
+    outline-offset: 2px;
+}
+
+.organelle-problem-report-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.65rem;
+}
+
+.organelle-problem-report-actions button {
+    padding: 0.45rem 0.7rem;
+    border-radius: 4px;
+    font: inherit;
+    cursor: pointer;
+}
+
+.organelle-problem-report-actions button[type="submit"] {
+    color: #0f041c;
+    border: 1px solid #c7ecff;
+    background: #8fd3ff;
+}
+
+.organelle-problem-report-actions button[data-cancel] {
+    color: #f7efff;
+    border: 1px solid #a791b2;
+    background: #2b103d;
+}
+
+.organelle-problem-report-actions button:hover:not(:disabled),
+.organelle-problem-report-actions button:focus-visible {
+    box-shadow: 0 0 10px rgba(143, 211, 255, 0.55);
+}
+
+.organelle-problem-report-actions button:disabled {
+    cursor: wait;
+    opacity: 0.7;
+}
 .organelle-experiment-star { position: relative; display: inline-block; margin-left: 0.4rem; color: #8fd3ff; cursor: help; }
 .organelle-experiment-star::after { position: absolute; z-index: 30; bottom: calc(100% + 7px); left: 50%; padding: 5px 8px; color: #0f041c; background: #c7ecff; content: attr(data-tooltip); font-size: 0.75rem; font-weight: bold; pointer-events: none; transform: translateX(-50%); white-space: nowrap; opacity: 0; visibility: hidden; }
 .organelle-experiment-star:hover::after, .organelle-experiment-star:focus-visible::after { opacity: 1; visibility: visible; }

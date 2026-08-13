@@ -67,8 +67,16 @@ const ExperimentMaterialLibrary = {
         visualId:
             "aquaporin_channel",
 
-        // The source art is horizontal. Start it vertical
-        // so students must rotate it to span the membrane.
+        // The source art is vertical at 0°. These dimensions
+        // give it a matching vertical placement boundary.
+        placementSize: {
+            widthRem: 3.1,
+            heightRem: 4.5
+        },
+
+        // The vertically oriented source art begins in the
+        // incorrect membrane orientation. Students rotate it
+        // to span the membrane.
         initialRotationDeg:
             0,
 

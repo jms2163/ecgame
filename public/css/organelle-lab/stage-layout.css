@@ -27,7 +27,7 @@
 .organelle-experiment-label-tray h3 { margin: 0 0 10px; color: #df80ff; font-size: 0.8rem; text-transform: uppercase; }
 .organelle-experiment-label-list { display: grid; gap: 7px; }
 .organelle-experiment-label { padding: 6px; color: #e3d8eb; border: 1px solid #74465f; background: #2b103d; font-size: 0.75rem; text-align: center; }
-.membrane-transport-stage { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 5.5rem minmax(0, 1fr); min-height: 17rem; overflow: hidden; border: 1px solid #74465f; background: #16051e; }
+.membrane-transport-stage { --membrane-side-track: 44fr; --membrane-track: 12fr; position: relative; display: grid; grid-template-columns: minmax(0, var(--membrane-side-track)) minmax(0, var(--membrane-track)) minmax(0, var(--membrane-side-track)); min-height: 17rem; overflow: hidden; border: 1px solid #74465f; background: #16051e; }
 .membrane-transport-compartment { position: relative; min-height: 17rem; overflow: hidden; background: radial-gradient(circle at center, rgba(72, 139, 196, 0.16), transparent 70%); }
 .membrane-transport-bilayer { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 6px; overflow: hidden; background: #2b103d; }
 .membrane-transport-lipid { display: flex; align-items: center; justify-content: center; width: 4.5rem; height: 1rem; }

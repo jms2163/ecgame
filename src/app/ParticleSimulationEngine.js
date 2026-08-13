@@ -12,8 +12,8 @@ const MAX_POSITION = 0.98;
 const DEFAULT_SPEED = 0.18;
 const PARTICLE_RADIUS = 0.018;
 
-const MEMBRANE_START = 0.45;
-const MEMBRANE_END = 0.55;
+const DEFAULT_MEMBRANE_START = 0.44;
+const DEFAULT_MEMBRANE_END = 0.56;
 
 const MEMBRANE_CLEARANCE = 0.012;
 
@@ -67,13 +67,46 @@ const ParticleSimulationEngine = {
 
     },
 
-    getZoneBounds(zoneId) {
+    getMembraneBounds(simulation) {
+
+        const configured =
+            simulation?.membraneGeometry ??
+            {};
+
+        const start =
+            Number.isFinite(configured.start)
+                ? configured.start
+                : DEFAULT_MEMBRANE_START;
+
+        const end =
+            Number.isFinite(configured.end)
+                ? configured.end
+                : DEFAULT_MEMBRANE_END;
+
+        return start > MIN_POSITION &&
+            end < MAX_POSITION &&
+            start < end
+            ? { start, end }
+            : {
+                start: DEFAULT_MEMBRANE_START,
+                end: DEFAULT_MEMBRANE_END
+            };
+
+    },
+
+    getZoneBounds(
+        zoneId,
+        simulation
+    ) {
+
+        const membrane =
+            this.getMembraneBounds(simulation);
 
         if (zoneId === "side_a") {
             return {
                 start: MIN_POSITION,
                 end:
-                    MEMBRANE_START -
+                    membrane.start -
                     MEMBRANE_CLEARANCE
             };
         }
@@ -81,7 +114,7 @@ const ParticleSimulationEngine = {
         if (zoneId === "side_b") {
             return {
                 start:
-                    MEMBRANE_END +
+                    membrane.end +
                     MEMBRANE_CLEARANCE,
 
                 end:
@@ -91,22 +124,24 @@ const ParticleSimulationEngine = {
 
         return {
             start:
-                MEMBRANE_START,
+                membrane.start,
 
             end:
-                MEMBRANE_END
+                membrane.end
         };
 
     },
 
     convertLocalXToWorldX(
         zoneId,
-        localX
+        localX,
+        simulation
     ) {
 
         const zone =
             this.getZoneBounds(
-                zoneId
+                zoneId,
+                simulation
             );
 
         const normalizedLocalX =
@@ -131,7 +166,8 @@ const ParticleSimulationEngine = {
 
     createParticle(
         component,
-        index
+        index,
+        simulation
     ) {
 
         return {
@@ -154,7 +190,9 @@ const ParticleSimulationEngine = {
                     this.convertLocalXToWorldX(
                         component.zoneId,
                         component.position?.x ??
-                        0.5
+                        0.5,
+
+                        simulation
                     ),
 
                 y:
@@ -209,6 +247,27 @@ const ParticleSimulationEngine = {
                 ? snapshot.components
                 : [];
 
+        // Structures such as aquaporins participate in
+        // simulation rules but are not moving particles.
+        // Each experiment may explicitly choose the materials
+        // that the particle renderer should animate.
+        const particleMaterialIds =
+            Array.isArray(
+                simulation.particleMaterialIds
+            )
+                ? simulation.particleMaterialIds
+                : null;
+
+        const particleComponents =
+            particleMaterialIds
+                ? components.filter(
+                    component =>
+                        particleMaterialIds.includes(
+                            component.id
+                        )
+                )
+                : components;
+
         return {
             modelId:
                 simulation.modelId,
@@ -223,12 +282,16 @@ const ParticleSimulationEngine = {
             particles: (() => {
                 let particleIndex = 0;
 
-                return components.flatMap(component => {
+                return particleComponents.flatMap(component => {
                 const count = component.id === "water"
                     ? (simulation.waterParticlesPerPlacement ?? 1)
                     : 1;
                 return Array.from({ length: count }, (_, offset) => {
-                    const particle = this.createParticle(component, particleIndex++);
+                    const particle = this.createParticle(
+                        component,
+                        particleIndex++,
+                        simulation
+                    );
                     particle.position.y = this.clamp(particle.position.y + ((offset % 4) - 1.5) * 0.055);
                     return particle;
                 });
@@ -379,8 +442,12 @@ const ParticleSimulationEngine = {
 
     shouldStartMembraneTransit(
         particle,
-        gradient
+        gradient,
+        simulation
     ) {
+
+        const membrane =
+            this.getMembraneBounds(simulation);
 
         const direction =
             this.getExpectedCrossingDirection(
@@ -396,7 +463,7 @@ const ParticleSimulationEngine = {
             return (
                 particle.velocity.x > 0 &&
                 particle.position.x >=
-                MEMBRANE_START -
+                membrane.start -
                 MEMBRANE_CLEARANCE
             );
         }
@@ -404,7 +471,7 @@ const ParticleSimulationEngine = {
         return (
             particle.velocity.x < 0 &&
             particle.position.x <=
-            MEMBRANE_END +
+            membrane.end +
             MEMBRANE_CLEARANCE
         );
 
@@ -468,12 +535,16 @@ const ParticleSimulationEngine = {
 
     reflectFromMembrane(
         nextParticle,
-        direction
+        direction,
+        simulation
     ) {
+
+        const membrane =
+            this.getMembraneBounds(simulation);
 
         if (direction > 0) {
             nextParticle.position.x =
-                MEMBRANE_START -
+                membrane.start -
                 MEMBRANE_CLEARANCE;
 
             nextParticle.velocity.x =
@@ -485,7 +556,7 @@ const ParticleSimulationEngine = {
         }
 
         nextParticle.position.x =
-            MEMBRANE_END +
+            membrane.end +
             MEMBRANE_CLEARANCE;
 
         nextParticle.velocity.x =
@@ -518,6 +589,9 @@ const ParticleSimulationEngine = {
             }
         };
 
+        const membrane =
+            this.getMembraneBounds(simulation);
+
         nextParticle.position.x +=
             nextParticle.velocity.x *
             elapsedSeconds;
@@ -544,13 +618,13 @@ const ParticleSimulationEngine = {
             const exitedIntoSideB =
                 movingRight &&
                 nextParticle.position.x >=
-                MEMBRANE_END +
+                membrane.end +
                 MEMBRANE_CLEARANCE;
 
             const exitedIntoSideA =
                 !movingRight &&
                 nextParticle.position.x <=
-                MEMBRANE_START -
+                membrane.start -
                 MEMBRANE_CLEARANCE;
 
             if (
@@ -591,13 +665,14 @@ const ParticleSimulationEngine = {
         if (
             this.shouldStartMembraneTransit(
                 nextParticle,
-                gradient
+                gradient,
+                simulation
             )
         ) {
             if (pore) {
                 const nearPore = Math.abs(nextParticle.position.y - pore.y) <= pore.radius;
                 if (!nearPore) {
-                    this.reflectFromMembrane(nextParticle, nextParticle.velocity.x > 0 ? 1 : -1);
+                    this.reflectFromMembrane(nextParticle, nextParticle.velocity.x > 0 ? 1 : -1, simulation);
                     return nextParticle;
                 }
                 nextParticle.postPoreVelocity = {
@@ -617,7 +692,7 @@ const ParticleSimulationEngine = {
                 nextParticle.velocity.y = 0;
                 nextParticle.position.y = pore.y;
             } else if (simulation?.poreRule) {
-                this.reflectFromMembrane(nextParticle, nextParticle.velocity.x > 0 ? 1 : -1);
+                this.reflectFromMembrane(nextParticle, nextParticle.velocity.x > 0 ? 1 : -1, simulation);
                 return nextParticle;
             }
             nextParticle.isMembraneTransit =
@@ -641,12 +716,13 @@ const ParticleSimulationEngine = {
             nextParticle.zoneId === "side_a" &&
             nextParticle.velocity.x > 0 &&
             nextParticle.position.x >=
-            MEMBRANE_START -
+            membrane.start -
             MEMBRANE_CLEARANCE
         ) {
             this.reflectFromMembrane(
                 nextParticle,
-                1
+                1,
+                simulation
             );
         }
 
@@ -654,12 +730,13 @@ const ParticleSimulationEngine = {
             nextParticle.zoneId === "side_b" &&
             nextParticle.velocity.x < 0 &&
             nextParticle.position.x <=
-            MEMBRANE_END +
+            membrane.end +
             MEMBRANE_CLEARANCE
         ) {
             this.reflectFromMembrane(
                 nextParticle,
-                -1
+                -1,
+                simulation
             );
         }
 

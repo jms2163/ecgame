@@ -16,6 +16,7 @@ const OrganelleExperimentPlacementController = {
     placements: [],
     placementEvents: [],
     labelSourceElements: new Map(),
+    materialSourceElements: new Map(),
 
     activeDrag: null,
     dragGhostElement: null,
@@ -88,6 +89,8 @@ const OrganelleExperimentPlacementController = {
 
     this.labelSourceElements.clear();
 
+    this.materialSourceElements.clear();
+
     this.placementCounter =
         0;
 
@@ -151,6 +154,32 @@ createMaterialVisual(material) {
 },
 
     // --------------------------------------------------
+    // Placement dimensions come from material data. This
+    // lets each protein keep an accurately shaped, rotating
+    // selection boundary without a CSS-only exception.
+    // --------------------------------------------------
+    applyPlacementVisualSize(visual, material) {
+
+        const size =
+            material?.placementSize;
+
+        if (!visual || !size) {
+            return;
+        }
+
+        if (Number.isFinite(size.widthRem)) {
+            visual.style.width =
+                `${size.widthRem}rem`;
+        }
+
+        if (Number.isFinite(size.heightRem)) {
+            visual.style.height =
+                `${size.heightRem}rem`;
+        }
+
+    },
+
+    // --------------------------------------------------
 // Create a palette material source
 // --------------------------------------------------
 createMaterialSource(material) {
@@ -164,6 +193,11 @@ createMaterialSource(material) {
     source.dataset.materialId =
         material.id;
 
+    source.dataset.materialName =
+        material.displayName ??
+        material.ariaLabel ??
+        material.id;
+
     source.setAttribute(
         "aria-label",
         material.ariaLabel
@@ -173,6 +207,11 @@ createMaterialSource(material) {
         this.createMaterialVisual(
             material
         );
+
+    this.applyPlacementVisualSize(
+        visual,
+        material
+    );
 
     const name =
         document.createElement("span");
@@ -190,9 +229,24 @@ createMaterialSource(material) {
         name
     );
 
+    this.materialSourceElements.set(
+        material.id,
+        source
+    );
+
+    this.refreshMaterialSources();
+
     source.addEventListener(
         "pointerdown",
         event => {
+
+            if (
+                this.hasReachedMaterialPlacementLimit(
+                    material.id
+                )
+            ) {
+                return;
+            }
 
             this.beginPaletteDrag(
                 "material",
@@ -350,6 +404,11 @@ createDragGhost(payload) {
         this.createMaterialVisual(
             material
         );
+
+    this.applyPlacementVisualSize(
+        visual,
+        material
+    );
 
     const placement =
         payload.source === "placement"
@@ -753,6 +812,8 @@ placeActiveDrag(
 
         this.refreshLabelSources();
 
+        this.refreshMaterialSources();
+
     },
 
     // --------------------------------------------------
@@ -782,6 +843,11 @@ placeActiveDrag(
             `${placement.position.y * 100}%`;
 
         if (placement.kind === "material") {
+            element.style.transform =
+                `translate(-50%, -50%) rotate(${placement.rotationDeg ?? 0}deg)`;
+        }
+
+        if (placement.kind === "material") {
 
     const material =
         this.materials.get(
@@ -797,7 +863,7 @@ placeActiveDrag(
         element.appendChild(cluster);
     } else {
         const visual = this.createMaterialVisual(material);
-        visual.style.transform = `rotate(${placement.rotationDeg ?? 0}deg)`;
+        this.applyPlacementVisualSize(visual, material);
         element.appendChild(visual);
     }
 
@@ -867,6 +933,82 @@ placeActiveDrag(
                     "aria-disabled",
                     String(isUsed)
                 );
+
+            }
+        );
+
+    },
+
+    // --------------------------------------------------
+    // Enforce optional per-experiment material caps and
+    // keep capped palette sources visibly informative.
+    // --------------------------------------------------
+    getPlacedMaterialCount(materialId) {
+
+        return this.placements.filter(
+            placement =>
+                placement.kind === "material" &&
+                placement.definitionId === materialId
+        ).length;
+
+    },
+
+    hasReachedMaterialPlacementLimit(materialId) {
+
+        const maximum =
+            this.materials.get(materialId)
+                ?.maxPlacements;
+
+        return Number.isFinite(maximum) &&
+            this.getPlacedMaterialCount(materialId) >=
+            maximum;
+
+    },
+
+    refreshMaterialSources() {
+
+        this.materialSourceElements.forEach(
+            (element, materialId) => {
+
+                const material =
+                    this.materials.get(materialId);
+
+                const maximum =
+                    material?.maxPlacements;
+
+                if (!Number.isFinite(maximum)) {
+                    return;
+                }
+
+                const placed =
+                    this.getPlacedMaterialCount(materialId);
+
+                const reached =
+                    placed >= maximum;
+
+                element.classList.toggle(
+                    "organelle-experiment-material--limit-reached",
+                    reached
+                );
+
+                element.setAttribute(
+                    "aria-disabled",
+                    String(reached)
+                );
+
+                element.setAttribute(
+                    "aria-label",
+                    `${material.ariaLabel}: ${placed} of ${maximum} placed`
+                );
+
+                const name = element.querySelector(
+                    ".organelle-experiment-material-name"
+                );
+
+                if (name) {
+                    name.textContent =
+                        `${element.dataset.materialName} (${placed} / ${maximum})`;
+                }
 
             }
         );

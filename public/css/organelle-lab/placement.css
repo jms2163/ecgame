@@ -7,7 +7,10 @@
 .organelle-experiment-placement { position: absolute; z-index: 5; transform: translate(-50%, -50%); cursor: grab; }
 .organelle-experiment-placement .organelle-experiment-particle { display: block; }
 .organelle-experiment-placement--label { max-width: 7rem; padding: 4px 6px; color: #f7efff; border: 1px solid #df80ff; background: #2b103d; font-size: 0.7rem; text-align: center; }
-.organelle-experiment-placement--selected { outline: 2px solid #8fd3ff; outline-offset: 4px; filter: drop-shadow(0 0 8px rgba(143, 211, 255, 0.95)); }
+
+/* Keep the selection boundary close to the placed protein. */
+.organelle-experiment-placement--selected { outline: 2px solid #8fd3ff; outline-offset: 1px; filter: drop-shadow(0 0 8px rgba(143, 211, 255, 0.95)); }
+
 .organelle-experiment-selected-protein-status { flex-basis: 100%; margin: 4px 0 0; color: #8fd3ff; font-size: 0.78rem; font-weight: bold; text-align: right; }
 .organelle-experiment-drag-ghost { position: fixed; z-index: 1000; display: grid; min-width: 2.5rem; min-height: 2.5rem; place-items: center; pointer-events: none; transform: translate(-50%, -50%); opacity: 0.85; }
 .organelle-experiment-drag-ghost--label { padding: 4px 6px; color: #f7efff; border: 1px solid #f4a0ff; background: #2b103d; font-size: 0.75rem; text-align: center; }

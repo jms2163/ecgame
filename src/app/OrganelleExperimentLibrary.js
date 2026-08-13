@@ -55,11 +55,20 @@ const OrganelleExperimentLibrary = {
 
             materials: [
 
-                "water",
+                {
+                    id: "water",
+                    maxPlacements: 2
+                },
 
-                "sodium_ion",
+                {
+                    id: "sodium_ion",
+                    maxPlacements: 2
+                },
 
-                "chloride_ion"
+                {
+                    id: "chloride_ion",
+                    maxPlacements: 2
+                }
 
             ],
 
@@ -96,7 +105,7 @@ const OrganelleExperimentLibrary = {
         movingSubstance: "Revisit the relationship between water, the solute difference, and net movement into the cell.",
         drivingGradient: "Recheck which side has the higher solute concentration and how that drives net movement.",
         destinationSide: "Recheck which compartment should receive the net movement.",
-        membraneSpanningOrientation: "Recheck whether the transport structure crosses the membrane with the needed orientation.",
+        membraneSpanningOrientation: "Recheck whether the transport structure orientation allows material to properly cross the membrane.",
         proteinSideOrientation: "Recheck which side of the protein should face the cytosol.",
         energyRequirement: "Recheck whether this transport process requires ATP."
     },
@@ -450,6 +459,20 @@ simulation: {
         "side_b"
     ],
 
+    // Only dissolved substances become moving particles.
+    particleMaterialIds: [
+        "water",
+        "sodium_ion",
+        "chloride_ion"
+    ],
+
+    // Shared by the setup grid, simulation backdrop, and
+    // particle-engine collision bounds.
+    membraneGeometry: {
+        start: 0.44,
+        end: 0.56
+    },
+
     membraneRules: {
 
         blockedMaterialIds: [
@@ -543,13 +566,25 @@ simulation: {
 
             materials: [
 
-                "water",
+                {
+                    id: "water",
+                    maxPlacements: 2
+                },
 
-                "sodium_ion",
+                {
+                    id: "sodium_ion",
+                    maxPlacements: 2
+                },
 
-                "chloride_ion",
+                {
+                    id: "chloride_ion",
+                    maxPlacements: 2
+                },
 
-                "aquaporin"
+                {
+                    id: "aquaporin",
+                    maxPlacements: 1
+                }
 
             ],
 
@@ -579,6 +614,67 @@ simulation: {
 
         },
 
+        // The engine expands each placed water source into
+        // twelve moving molecules. A valid, vertical aquaporin
+        // creates the only rapid crossing path through the membrane.
+        simulation: {
+
+            modelId:
+                "particle_membrane_transport",
+
+            modelVariant:
+                "aquaporin_facilitated_osmosis",
+
+            zoneIds: [
+                "side_a",
+                "membrane",
+                "side_b"
+            ],
+
+            // Aquaporin remains a fixed membrane structure;
+            // only dissolved substances become particles.
+            particleMaterialIds: [
+                "water",
+                "sodium_ion",
+                "chloride_ion"
+            ],
+
+            // Stays visible over the particle canvas but is
+            // not converted into a moving simulation particle.
+            fixedStructureMaterialIds: [
+                "aquaporin"
+            ],
+
+            // Shared by the setup grid, simulation backdrop,
+            // and particle-engine collision bounds.
+            membraneGeometry: {
+                start: 0.44,
+                end: 0.56
+            },
+
+            waterParticlesPerPlacement:
+                12,
+
+            poreRule: {
+
+                materialId:
+                    "aquaporin",
+
+                allowedRotationDeg: [
+                    90,
+                    270
+                ],
+
+                radius:
+                    0.10,
+
+                speedMultiplier:
+                    5
+
+            }
+
+        },
+
         assessment: {
 
     scoreMaximum:
@@ -591,7 +687,7 @@ simulation: {
         movingSubstance: "Revisit how the external solute difference affects net water movement through the membrane.",
         drivingGradient: "Recheck which side has the higher solute concentration and how that drives water movement out of the amoeba.",
         destinationSide: "Recheck which side of the membrane should be the extracellular solution.",
-        membraneSpanningOrientation: "Recheck whether the aquaporin crosses the membrane in the working orientation.",
+        membraneSpanningOrientation: "Recheck whether the aquaporin orientation allows material to properly cross the membrane.",
         proteinSideOrientation: "Recheck which side of the protein should face the cytosol.",
         energyRequirement: "Recheck why this transport does not require ATP."
     },
@@ -861,19 +957,6 @@ simulation: {
 
             }
 
-        },
-
-        simulation: {
-            modelId: "particle_membrane_transport",
-            modelVariant: "aquaporin",
-            zoneIds: ["side_a", "membrane", "side_b"],
-            waterParticlesPerPlacement: 12,
-            poreRule: {
-                materialId: "aquaporin",
-                allowedRotationDeg: [90, 270],
-                radius: 0.10,
-                speedMultiplier: 5
-            }
         },
 
         requirements: {
