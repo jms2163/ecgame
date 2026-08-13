@@ -3,6 +3,9 @@
 // Evaluates data-defined experiment placement rules
 // --------------------------------------------------
 
+import ReflectionConceptMatcher
+    from "./ReflectionConceptMatcher.js";
+
 const ExperimentPlacementEvaluator = {
 
     // --------------------------------------------------
@@ -823,35 +826,33 @@ const ExperimentPlacementEvaluator = {
         }
 
         const response =
-            String(
-                reflectionResponses?.[
-                    reflection.id
-                ] ?? ""
-            ).toLowerCase();
+            reflectionResponses?.[
+                reflection.id
+            ] ?? "";
 
-        const keywordGroups =
-            reflection.keywordGroups ?? [];
+        const matchReport =
+            ReflectionConceptMatcher.evaluate(
+                reflection,
+                response
+            );
+
+        const conceptGroups =
+            matchReport.concepts;
 
         const matchedGroups =
-            keywordGroups.map(group =>
-                group.some(keyword =>
-                    response.includes(
-                        String(keyword).toLowerCase()
-                    )
-                )
-            );
+            matchReport.matchedGroups;
 
         const matchedCount =
             matchedGroups.filter(Boolean).length;
 
         const awardedPoints =
-            keywordGroups.length > 0
+            conceptGroups.length > 0
                 ? Number(
                     (
                         reflection.maximumPoints *
                         (
                             matchedCount /
-                            keywordGroups.length
+                            conceptGroups.length
                         )
                     ).toFixed(2)
                 )
@@ -863,11 +864,11 @@ const ExperimentPlacementEvaluator = {
                 reflection.id,
 
             type:
-                "reflection_keyword_groups",
+                "reflection_concept_groups",
 
             passed:
                 matchedCount ===
-                keywordGroups.length,
+                conceptGroups.length,
 
             awardedPoints,
 
@@ -878,9 +879,15 @@ const ExperimentPlacementEvaluator = {
                 matchedCount,
 
                 keywordGroupCount:
-                    keywordGroups.length,
+                    conceptGroups.length,
 
-                matchedGroups
+                matchedGroups,
+
+                conceptMatches:
+                    matchReport.conceptMatches,
+
+                normalizedResponse:
+                    matchReport.normalizedResponse
             }
 
         };
