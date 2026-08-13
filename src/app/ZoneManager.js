@@ -4,6 +4,7 @@
 // --------------------------------------------------
 
 import Pond from "./Pond.js";
+import QuantumZone from "./QuantumZone.js";
 import TestZone from "./TestZone.js";
 import GameStateManager
     from "./GameStateManager.js";
@@ -17,6 +18,14 @@ const ZONE_REGISTRY = new Map([
         {
             module: Pond,
             rootId: "pond-zone",
+            persistCurrentZone: true
+        }
+    ],
+    [
+        "quantum",
+        {
+            module: QuantumZone,
+            rootId: "quantum-zone",
             persistCurrentZone: true
         }
     ],
@@ -137,6 +146,8 @@ const ZoneManager = {
 
     updateZoneVisibility(zoneId) {
 
+        let activeRootFound = false;
+
         ZONE_REGISTRY.forEach(
             (entry, registeredZoneId) => {
 
@@ -146,11 +157,24 @@ const ZoneManager = {
                     );
 
                 if (!element) {
-                    console.warn(
-                        `ZoneManager: DOM root #${entry.rootId} for "${registeredZoneId}" was not found`
-                    );
+
+                    if (
+                        registeredZoneId ===
+                        zoneId
+                    ) {
+                        console.warn(
+                            `ZoneManager: active DOM root #${entry.rootId} for "${registeredZoneId}" was not found`
+                        );
+                    }
 
                     return;
+                }
+
+                if (
+                    registeredZoneId ===
+                    zoneId
+                ) {
+                    activeRootFound = true;
                 }
 
                 element.classList.toggle(
@@ -160,6 +184,8 @@ const ZoneManager = {
 
             }
         );
+
+        return activeRootFound;
 
     },
 
@@ -188,9 +214,18 @@ const ZoneManager = {
             this.currentZoneId === zoneId &&
             this.currentZone === nextZone
         ) {
-            this.updateZoneVisibility(
-                zoneId
-            );
+            const activeRootFound =
+                this.updateZoneVisibility(
+                    zoneId
+                );
+
+            if (!activeRootFound) {
+                return this.createFailure(
+                    zoneId,
+                    "missing-zone-root",
+                    `DOM root for zone "${zoneId}" is missing`
+                );
+            }
 
             return {
                 entered: true,
@@ -230,9 +265,16 @@ const ZoneManager = {
         try {
             previousZone?.deactivate();
 
-            this.updateZoneVisibility(
-                zoneId
-            );
+            const activeRootFound =
+                this.updateZoneVisibility(
+                    zoneId
+                );
+
+            if (!activeRootFound) {
+                throw new Error(
+                    `DOM root for zone "${zoneId}" is missing`
+                );
+            }
 
             nextZone.activate();
 

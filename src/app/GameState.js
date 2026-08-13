@@ -31,6 +31,13 @@ const gameState = {
             atp: {
                 current: 50,
                 maximum: 50
+            },
+
+            particles: {
+                capacity: 5,
+                proton: 0,
+                neutron: 0,
+                electron: 0
             }
         },
 
@@ -90,9 +97,26 @@ const gameState = {
         },
 
         quantum: {
-            unlocked: false,
+            // The old progression exposed the Quantum
+            // Field at the beginning of Chemical Life.
+            unlocked: true,
             completed: false,
-            state: {}
+
+            state: {
+                subatomicAssembly: {
+                    activityId:
+                        "q1_particles",
+
+                    totalCollected: {
+                        proton: 0,
+                        neutron: 0,
+                        electron: 0
+                    },
+
+                    completed: false,
+                    completedAtMs: null
+                }
+            }
         },
 
         atomLab: {
@@ -144,7 +168,7 @@ const gameState = {
         difficulty: "normal"
     },
 
-    saveVersion: "1.2"
+    saveVersion: "1.3"
 
 };
 
