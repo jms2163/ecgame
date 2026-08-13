@@ -168,6 +168,14 @@ const OrganelleExperimentPanel = {
         title.textContent =
             experiment.title;
 
+        const titleRow =
+            document.createElement("div");
+
+        titleRow.className =
+            "organelle-experiment-title-row";
+
+        titleRow.appendChild(title);
+
         const summary =
             document.createElement("p");
 
@@ -188,7 +196,7 @@ const OrganelleExperimentPanel = {
                         : "Completed · ";
 
         card.append(
-            title,
+            titleRow,
             summary,
             statusElement
         );
@@ -320,7 +328,7 @@ starElement.setAttribute(
                     "img"
                 );
 
-                statusElement.appendChild(
+                titleRow.appendChild(
                     starElement
                 );
             }

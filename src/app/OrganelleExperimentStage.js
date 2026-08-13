@@ -47,6 +47,21 @@ const OrganelleExperimentStage = {
     selectedProteinStatusElement: null,
 
     // --------------------------------------------------
+    // Keep the landing stage compact while no experiment
+    // is open, without changing the active lab workspace.
+    // --------------------------------------------------
+    setIdleStage(isIdle) {
+
+        this.contentElement
+            ?.closest("#organelle-experiment-stage")
+            ?.classList.toggle(
+                "organelle-experiment-stage--idle",
+                isIdle
+            );
+
+    },
+
+    // --------------------------------------------------
     // Stop and remove the canvas overlay so the original
     // drag-and-drop workspace is interactive again.
     // --------------------------------------------------
@@ -949,6 +964,8 @@ runSimulation() {
 
         this.isReviewMode = false;
 
+        this.setIdleStage(true);
+
         this.titleElement.textContent =
             "No Experiment Open";
 
@@ -1190,6 +1207,8 @@ stage.append(
         this.activeExperiment =
             experiment;
 
+        this.setIdleStage(false);
+
         this.isReviewMode = false;
 
         const resolvedExperiment = {
@@ -1333,6 +1352,8 @@ this.contentElement.appendChild(
         }
 
         this.stopParticleSimulation();
+
+        this.setIdleStage(false);
 
         this.activeExperiment = experiment;
 

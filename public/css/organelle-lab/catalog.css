@@ -1,5 +1,5 @@
 /* Experiment catalog pane and cards. */
-#organelle-experiment-pane { padding: 16px; box-sizing: border-box; color: #f7efff; background: #0f041c; border: 3px solid #df80ff; }
+#organelle-experiment-pane { padding: 16px; box-sizing: border-box; color: #f7efff; background: #0f041c; border: 3px solid #df80ff; border-radius: 12px; }
 #organelle-lab-header { padding-bottom: 12px; border-bottom: 1px solid rgba(223, 128, 255, 0.45); }
 #organelle-lab-header > p:first-child { margin: 0; color: #df80ff; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; }
 #organelle-lab-focus-name { margin: 6px 0; color: #f7efff; }
@@ -11,7 +11,9 @@
 .organelle-experiment-group + .organelle-experiment-group { margin-top: 18px; }
 .organelle-experiment-section-heading { margin: 0; color: #df80ff; font-size: 0.9rem; text-transform: uppercase; }
 #organelle-locked-experiments-heading { color: #b78acb; }
-.organelle-experiment-card { padding: 12px; color: #f7efff; background: #16051e; border: 1px solid #58326b; }
+.organelle-experiment-card { padding: 12px; color: #f7efff; background: #16051e; border: 1px solid #58326b; border-radius: 6px; }
+.organelle-experiment-title-row { display: flex; align-items: center; gap: 0.45rem; }
+.organelle-experiment-title-row .organelle-experiment-star { margin-left: 0; }
 .organelle-experiment-card h4 { margin: 0 0 4px; color: #f7efff; font-size: 0.95rem; }
 .organelle-experiment-card p { margin: 0; color: #cdbfd8; }
 .organelle-experiment-reward { margin-bottom: 8px !important; color: #df80ff !important; font-size: 0.85rem; font-weight: bold; }
