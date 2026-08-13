@@ -349,6 +349,71 @@ const OrganelleExperimentLibrary = {
         maximumPoints:
             5,
 
+        // Each group is one required biological idea. Patterns
+        // allow ordinary sentence variation; terms are exact
+        // concept vocabulary with word boundaries.
+        conceptGroups: [
+
+            {
+                id: "water",
+                terms: [
+                    "water",
+                    "h2o"
+                ]
+            },
+
+            {
+                id: "solute_context",
+                terms: [
+                    "solute",
+                    "solutes",
+                    "salt",
+                    "sodium",
+                    "chloride",
+                    "nacl",
+                    "hypertonic",
+                    "hypotonic",
+                    "osmosis",
+                    "osmotic gradient",
+                    "concentration gradient"
+                ],
+                patterns: [
+                    "\\b(higher|greater|more)\\s+(solute|salt|ion)s?\\b",
+                    "\\b(higher|greater)\\s+concentration\\s+(of\\s+)?(solute|salt|ions?)\\b",
+                    "\\b(salt|solute|ion)\\s+concentration\\b",
+                    "\\b(saltier|more concentrated)\\b"
+                ],
+                technicalTerms: [
+                    "hypertonic",
+                    "hypotonic",
+                    "osmosis"
+                ]
+            },
+
+            {
+                id: "water_enters_cell",
+                patterns: [
+                    "\\b(moves?|flows?|diffuses?|enters?)\\s+(?:\\w+\\s+){0,5}?(into|in|toward|towards|to)\\s+(?:\\w+\\s+){0,4}?(cell|amoeba|cytosol)\\b",
+                    "\\b(into|in)\\s+(?:\\w+\\s+){0,4}?(cell|amoeba|cytosol)\\b",
+                    "\\b(cell|amoeba|cytosol)\\s+(?:\\w+\\s+){0,5}?(enters?|receives?)\\b"
+                ],
+                terms: [
+                    "moves inward",
+                    "flows inward"
+                ]
+            }
+
+        ],
+
+        feedbackByKeywordGroup: [
+            "Name the substance that moves through the membrane.",
+            "Describe the solute or concentration difference between the two sides.",
+            "State that water has net movement into the amoeba or cytosol."
+        ],
+
+        // Retained only as a compatibility fallback for older
+        // evaluator versions. The current evaluator uses the
+        // concise conceptGroups above.
         keywordGroups: [
 
     // Identifies the moving substance.
@@ -839,6 +904,86 @@ simulation: {
                 maximumPoints:
                     5,
 
+                conceptGroups: [
+
+                    {
+                        id: "water",
+                        terms: [
+                            "water",
+                            "h2o"
+                        ]
+                    },
+
+                    {
+                        id: "external_solute_difference",
+                        terms: [
+                            "hypertonic",
+                            "osmotic gradient",
+                            "concentration gradient"
+                        ],
+                        patterns: [
+                            "\\b(higher|greater|more)\\s+(salt|solute|ion)s?\\b",
+                            "\\b(higher|greater)\\s+concentration\\s+(of\\s+)?(salt|solute|ions?)\\b",
+                            "\\b(salt|solute|ion)\\s+concentration\\b",
+                            "\\boutside\\s+(?:\\w+\\s+){0,5}?(higher|greater|more|hypertonic)\\b",
+                            "\\b(higher|greater|more|hypertonic)\\s+(?:\\w+\\s+){0,5}?(outside|external|extracellular)\\b"
+                        ],
+                        technicalTerms: [
+                            "hypertonic",
+                            "osmosis"
+                        ]
+                    },
+
+                    {
+                        id: "water_leaves_cell",
+                        patterns: [
+                            "\\b(moves?|flows?|diffuses?|leaves?|exits?)\\s+(?:\\w+\\s+){0,5}?(out|outward|outside)\\b",
+                            "\\b(out|outward|outside)\\s+(?:\\w+\\s+){0,5}?(cell|amoeba)\\b",
+                            "\\b(cell|amoeba)\\s+(?:\\w+\\s+){0,5}?(leaves?|exits?)\\b"
+                        ],
+                        terms: [
+                            "out of the cell",
+                            "out of the amoeba"
+                        ]
+                    },
+
+                    {
+                        id: "aquaporin_pathway",
+                        terms: [
+                            "aquaporin channel",
+                            "aquaporin pore",
+                            "membrane channel",
+                            "water channel"
+                        ],
+                        patterns: [
+                            "\\baquaporin\\s+(?:\\w+\\s+){0,5}?(membrane|channel|pore)\\b",
+                            "\\b(channel|pore)\\s+(?:\\w+\\s+){0,5}?membrane\\b",
+                            "\\b(through|via|using)\\s+(?:\\w+\\s+){0,3}?aquaporin\\b",
+                            "\\bspan(s|ning)?\\s+(?:\\w+\\s+){0,4}?membrane\\b"
+                        ],
+                        technicalTerms: [
+                            "aquaporin"
+                        ]
+                    },
+
+                    {
+                        id: "passive_no_atp",
+                        patterns: [
+                            "\\b(without|no)\\s+atp\\b",
+                            "\\batp\\s+(?:\\w+\\s+){0,4}?(not|unnecessary)\\s+(?:\\w+\\s+){0,4}?(needed|required|used)\\b",
+                            "\\b(doesnt|does not)\\s+(need|require|use)\\s+(atp|energy)\\b",
+                            "\\b(doesnt|does not)\\s+(?:\\w+\\s+){0,4}?(atp|energy)\\b",
+                            "\\b(passive|passively|facilitated diffusion|passive transport)\\b",
+                            "\\bno\\s+energy\\s+required\\b"
+                        ],
+                        terms: [
+                            "atp is not needed",
+                            "does not need atp"
+                        ]
+                    }
+
+                ],
+
               keywordGroups: [
 
     // 1 point — identifies what is moving
@@ -899,10 +1044,16 @@ simulation: {
 
     // 1 point — identifies the aquaporin membrane pathway
     [
+        "aquaporin",
         "aquaporin channel",
         "aquaporin pore",
         "aquaporin protein",
         "aquaporin transport protein",
+        "aquaporin is in the membrane",
+        "aquaporin which is in the membrane",
+        "aquaporin located in the membrane",
+        "aquaporin within the membrane",
+        "aquaporin in membrane",
         "aquaporin spanning the membrane",
         "aquaporin spans the membrane",
         "aquaporin span the membrane",
@@ -913,6 +1064,10 @@ simulation: {
         "channel through the membrane",
         "membrane channel",
         "water channel",
+        "through aquaporin",
+        "through the aquaporin",
+        "via aquaporin",
+        "using aquaporin",
         "transport protein",
         "protein channel",
         "spans the membrane",
@@ -926,6 +1081,9 @@ simulation: {
     [
         "without ATP",
         "no ATP",
+        "does not need ATP",
+        "doesn't need ATP",
+        "ATP not needed",
         "ATP is not needed",
         "ATP is unnecessary",
         "ATP is not required",
@@ -946,6 +1104,17 @@ simulation: {
     ]
 
 ],
+
+                // Feedback is indexed to the corresponding
+                // concept group above. It points to a concept,
+                // never a model answer or required wording.
+                feedbackByKeywordGroup: [
+                    "Name the substance that moves through the membrane.",
+                    "Explain how the higher external solute concentration affects net water movement.",
+                    "State that water moves out of the amoeba toward the outside solution.",
+                    "Explain that aquaporin provides the membrane pathway for water.",
+                    "State that this water movement does not require ATP."
+                ],
 
                 technicalVocabulary: [
                     "facilitated diffusion",
