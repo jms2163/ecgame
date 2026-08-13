@@ -22,6 +22,13 @@ import PondWorldConfig
 import ResourceManager
     from "./ResourceManager.js";
 import XPManager from "./XPManager.js";
+import ParticleInventoryManager
+    from "./ParticleInventoryManager.js";
+import SubatomicAssemblyManager
+    from "./SubatomicAssemblyManager.js";
+import SubatomicAssemblyUI
+    from "./SubatomicAssemblyUI.js";
+import QuantumZone from "./QuantumZone.js";
 import ResearchManager
     from "./ResearchManager.js";
 import CellSystemManager
@@ -56,6 +63,10 @@ const DevConsole = {
             PondWorldConfig,
             ResourceManager,
             XPManager,
+            ParticleInventoryManager,
+            SubatomicAssemblyManager,
+            SubatomicAssemblyUI,
+            QuantumZone,
             ResearchManager,
             CellSystemManager,
             OrganelleView,

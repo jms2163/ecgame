@@ -21,11 +21,10 @@ const ZONE_DEFINITIONS = Object.freeze([
     Object.freeze({
         id: "quantum",
         label: "Quantum Field",
-        releaseState: RELEASE_STATE.COMING_SOON,
+        releaseState: RELEASE_STATE.PLAYABLE,
         lockedMessage:
-            "Complete the required earlier activity to enter the Quantum Field.",
-        comingSoonMessage:
-            "Subatomic Assembly is the next activity being prepared."
+            "The Quantum Field is locked in this save. Complete or restore the required entry prerequisite.",
+        comingSoonMessage: ""
     }),
 
     Object.freeze({
@@ -35,7 +34,7 @@ const ZONE_DEFINITIONS = Object.freeze([
         lockedMessage:
             "Complete Subatomic Assembly in the Quantum Field first.",
         comingSoonMessage:
-            "Hydrogen synthesis will become available after Subatomic Assembly is released."
+            "Hydrogen synthesis is the next activity planned after Subatomic Assembly."
     }),
 
     Object.freeze({

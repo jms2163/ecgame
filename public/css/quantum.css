@@ -1,0 +1,282 @@
+/* --------------------------------------------------
+   Quantum Field: Subatomic Assembly
+-------------------------------------------------- */
+
+#quantum-zone {
+    box-sizing: border-box;
+    min-height: calc(100vh - 110px);
+    padding: 22px;
+    color: #f7efff;
+    background:
+        radial-gradient(
+            circle at 50% 15%,
+            rgba(86, 36, 143, 0.42),
+            transparent 38%
+        ),
+        #07020d;
+    font-family: monospace;
+}
+
+#quantum-zone.hidden {
+    display: none;
+}
+
+.quantum-activity-header,
+.quantum-progress-panel,
+.quantum-identification-panel,
+.quantum-reference-panel {
+    width: min(960px, 100%);
+    box-sizing: border-box;
+    margin: 0 auto 18px;
+    padding: 18px;
+    background: rgba(20, 7, 38, 0.92);
+    border: 1px solid #51217e;
+    border-radius: 8px;
+}
+
+.quantum-activity-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    border-top: 3px solid #df80ff;
+}
+
+.quantum-eyebrow,
+.quantum-prompt-label {
+    margin: 0 0 7px;
+    color: #c9a8ee;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.9px;
+    text-transform: uppercase;
+}
+
+#quantum-zone-title {
+    margin: 0;
+    color: #ffffff;
+    font-size: clamp(24px, 4vw, 38px);
+}
+
+.quantum-description {
+    max-width: 700px;
+    margin: 10px 0 0;
+    color: #d9cbea;
+    line-height: 1.55;
+}
+
+.quantum-status-badge {
+    flex: 0 0 auto;
+    padding: 6px 10px;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+}
+
+.quantum-status-badge[data-status="available"] {
+    color: var(--color-status-available);
+}
+
+.quantum-status-badge[data-status="completed"] {
+    color: var(--color-status-completed);
+}
+
+.quantum-progress-panel h2,
+.quantum-reference-panel h2 {
+    margin: 0 0 12px;
+    color: #ffffff;
+    font-size: 16px;
+}
+
+#subatomic-progress {
+    width: 100%;
+    height: 16px;
+    accent-color: #72d7ff;
+}
+
+.quantum-progress-text {
+    margin: 7px 0 14px;
+    color: #d9cbea;
+    font-size: 12px;
+}
+
+.quantum-counter-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.quantum-counter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px;
+    background: #0e051b;
+    border: 1px solid #3d1a61;
+    border-radius: 6px;
+}
+
+.quantum-counter--proton {
+    border-left: 4px solid #ff6f7d;
+}
+
+.quantum-counter--neutron {
+    border-left: 4px solid #b7a7c9;
+}
+
+.quantum-counter--electron {
+    border-left: 4px solid #72d7ff;
+}
+
+.quantum-counter-name {
+    color: #e9ddf6;
+    font-size: 12px;
+}
+
+.quantum-counter-value {
+    color: #ffffff;
+    font-size: 15px;
+}
+
+.quantum-identification-panel {
+    text-align: center;
+}
+
+#subatomic-prompt {
+    max-width: 780px;
+    min-height: 52px;
+    margin: 0 auto 18px;
+    color: #ffffff;
+    font-size: clamp(17px, 2.8vw, 23px);
+    line-height: 1.45;
+}
+
+.quantum-choice-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.quantum-particle-choice {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 116px;
+    padding: 14px;
+    color: #ffffff;
+    background: #15072a;
+    border: 2px solid #51217e;
+    border-radius: 8px;
+    font-family: inherit;
+    cursor: pointer;
+    transition:
+        transform 0.15s ease,
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.quantum-particle-choice:hover:not(:disabled),
+.quantum-particle-choice:focus-visible:not(:disabled) {
+    transform: translateY(-2px);
+    border-color: #df80ff;
+    box-shadow: 0 0 12px
+        rgba(223, 128, 255, 0.48);
+    outline: none;
+}
+
+.quantum-particle-choice:disabled {
+    opacity: 0.48;
+    cursor: default;
+}
+
+.quantum-particle-choice--proton {
+    border-bottom-color: #ff6f7d;
+}
+
+.quantum-particle-choice--neutron {
+    border-bottom-color: #b7a7c9;
+}
+
+.quantum-particle-choice--electron {
+    border-bottom-color: #72d7ff;
+}
+
+.quantum-particle-symbol {
+    font-size: 35px;
+    font-weight: bold;
+}
+
+.quantum-particle-name {
+    margin-top: 7px;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+.quantum-feedback {
+    min-height: 21px;
+    margin: 16px 0 0;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.quantum-feedback[data-tone="correct"] {
+    color: var(--color-status-available);
+}
+
+.quantum-feedback[data-tone="incorrect"] {
+    color: var(--color-status-locked);
+}
+
+.quantum-feedback[data-tone="completed"] {
+    color: var(--color-status-completed);
+}
+
+.quantum-reference-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #e9ddf6;
+    font-size: 12px;
+}
+
+.quantum-reference-table th,
+.quantum-reference-table td {
+    padding: 9px;
+    border: 1px solid #3d1a61;
+    text-align: left;
+}
+
+.quantum-reference-table th {
+    color: #ffffff;
+    background: #16082b;
+}
+
+@media (max-width: 700px) {
+    #quantum-zone {
+        padding: 12px;
+    }
+
+    .quantum-activity-header {
+        flex-direction: column;
+    }
+
+    .quantum-counter-grid,
+    .quantum-choice-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .quantum-particle-choice {
+        min-height: 82px;
+    }
+
+    .quantum-reference-panel {
+        overflow-x: auto;
+    }
+}
