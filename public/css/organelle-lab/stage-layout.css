@@ -1,5 +1,5 @@
 /* Stage, activity layout, label tray, and membrane geometry. */
-#organelle-experiment-stage { min-height: 40rem; box-sizing: border-box; color: #f7efff; background: #0f041c; border: 3px solid #f4a0ff; }
+#organelle-experiment-stage { min-height: 40rem; box-sizing: border-box; color: #f7efff; background: #0f041c; border: 3px solid #f4a0ff; border-radius: 12px; overflow: hidden; }
 #organelle-experiment-stage-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-bottom: 1px solid rgba(244, 160, 255, 0.55); }
 #organelle-experiment-stage-heading > p { margin: 0; color: #f4a0ff; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; }
 #organelle-experiment-stage-title { margin: 6px 0 0; color: #f7efff; }
@@ -8,6 +8,16 @@
 .organelle-experiment-control:disabled { cursor: not-allowed; opacity: 0.7; }
 #organelle-experiment-stage-content { display: flex; flex-direction: column; align-items: stretch; min-height: 32rem; padding: 16px; box-sizing: border-box; color: #cdbfd8; }
 #organelle-experiment-stage-content > p:only-child { margin: auto; text-align: center; }
+
+/* A compact landing state makes the catalog useful before a lab is opened. */
+#organelle-experiment-stage.organelle-experiment-stage--idle {
+    min-height: 19rem;
+}
+
+#organelle-experiment-stage.organelle-experiment-stage--idle
+#organelle-experiment-stage-content {
+    min-height: 11rem;
+}
 .organelle-experiment-objective-label { margin: 0; color: #f4a0ff; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; }
 .organelle-experiment-objective { max-width: 34rem; margin: 8px 0 0; color: #f7efff; font-size: 1.1rem; }
 .organelle-experiment-stage-message { margin-top: 28px; color: #cdbfd8; }
