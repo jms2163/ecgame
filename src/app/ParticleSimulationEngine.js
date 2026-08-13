@@ -220,14 +220,22 @@ const ParticleSimulationEngine = {
             simulation:
                 structuredClone(simulation),
 
-            particles:
-                components.map(
-                    (component, index) =>
-                        this.createParticle(
-                            component,
-                            index
-                        )
-                ),
+            particles: (() => {
+                let particleIndex = 0;
+
+                return components.flatMap(component => {
+                const count = component.id === "water"
+                    ? (simulation.waterParticlesPerPlacement ?? 1)
+                    : 1;
+                return Array.from({ length: count }, (_, offset) => {
+                    const particle = this.createParticle(component, particleIndex++);
+                    particle.position.y = this.clamp(particle.position.y + ((offset % 4) - 1.5) * 0.055);
+                    return particle;
+                });
+                });
+            })(),
+
+            pore: this.resolvePore(components, simulation),
 
             elapsedMs: 0,
 
@@ -236,6 +244,14 @@ const ParticleSimulationEngine = {
             isRunning: true
         };
 
+    },
+
+    resolvePore(components, simulation) {
+        const rule = simulation?.poreRule;
+        const protein = components.find(component => component.id === rule?.materialId && component.zoneId === "membrane");
+        const rotation = ((protein?.rotationDeg ?? 0) % 360 + 360) % 360;
+        if (!protein || !(rule?.allowedRotationDeg ?? []).includes(rotation)) return null;
+        return { y: this.clamp(protein.position?.y ?? .5), radius: rule.radius ?? .09, speedMultiplier: rule.speedMultiplier ?? 4 };
     },
 
     getMaterialCount(
@@ -335,7 +351,8 @@ const ParticleSimulationEngine = {
 
     getExpectedCrossingDirection(
         particle,
-        gradient
+        gradient,
+        pore
     ) {
 
         if (
@@ -481,7 +498,9 @@ const ParticleSimulationEngine = {
     advanceParticle(
         particle,
         elapsedMilliseconds,
-        gradient
+        gradient,
+        pore,
+        simulation
     ) {
 
         const elapsedSeconds =
@@ -545,6 +564,13 @@ const ParticleSimulationEngine = {
                 nextParticle.isMembraneTransit =
                     false;
 
+                if (nextParticle.postPoreVelocity) {
+                    nextParticle.velocity =
+                        nextParticle.postPoreVelocity;
+
+                    delete nextParticle.postPoreVelocity;
+                }
+
                 nextParticle.membraneTargetZoneId =
                     null;
 
@@ -568,6 +594,32 @@ const ParticleSimulationEngine = {
                 gradient
             )
         ) {
+            if (pore) {
+                const nearPore = Math.abs(nextParticle.position.y - pore.y) <= pore.radius;
+                if (!nearPore) {
+                    this.reflectFromMembrane(nextParticle, nextParticle.velocity.x > 0 ? 1 : -1);
+                    return nextParticle;
+                }
+                nextParticle.postPoreVelocity = {
+                    ...nextParticle.velocity
+                };
+
+                const direction =
+                    nextParticle.velocity.x > 0
+                        ? 1
+                        : -1;
+
+                nextParticle.velocity.x =
+                    direction *
+                    DEFAULT_SPEED *
+                    pore.speedMultiplier;
+
+                nextParticle.velocity.y = 0;
+                nextParticle.position.y = pore.y;
+            } else if (simulation?.poreRule) {
+                this.reflectFromMembrane(nextParticle, nextParticle.velocity.x > 0 ? 1 : -1);
+                return nextParticle;
+            }
             nextParticle.isMembraneTransit =
                 true;
 
@@ -618,7 +670,9 @@ const ParticleSimulationEngine = {
     advanceParticles(
         particles,
         elapsedMilliseconds,
-        gradient
+        gradient,
+        pore,
+        simulation
     ) {
 
         return particles.map(
@@ -626,7 +680,9 @@ const ParticleSimulationEngine = {
                 this.advanceParticle(
                     particle,
                     elapsedMilliseconds,
-                    gradient
+                gradient,
+                pore,
+                simulation
                 )
         );
 
@@ -822,7 +878,9 @@ const ParticleSimulationEngine = {
                 this.advanceParticles(
                     nextState.particles,
                     safeElapsedMilliseconds,
-                    gradient
+                    gradient,
+                    nextState.pore,
+                    nextState.simulation
                 )
             );
 

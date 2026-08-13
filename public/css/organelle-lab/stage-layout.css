@@ -1,0 +1,26 @@
+/* Stage, activity layout, label tray, and membrane geometry. */
+#organelle-experiment-stage { min-height: 40rem; box-sizing: border-box; color: #f7efff; background: #0f041c; border: 3px solid #f4a0ff; }
+#organelle-experiment-stage-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-bottom: 1px solid rgba(244, 160, 255, 0.55); }
+#organelle-experiment-stage-heading > p { margin: 0; color: #f4a0ff; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; }
+#organelle-experiment-stage-title { margin: 6px 0 0; color: #f7efff; }
+#organelle-experiment-stage-controls { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.organelle-experiment-control { padding: 6px 8px; color: #a791b2; border: 1px solid #58326b; background: #16051e; font-family: inherit; font-size: 0.75rem; text-transform: uppercase; }
+.organelle-experiment-control:disabled { cursor: not-allowed; opacity: 0.7; }
+#organelle-experiment-stage-content { display: flex; flex-direction: column; align-items: stretch; min-height: 32rem; padding: 16px; box-sizing: border-box; color: #cdbfd8; }
+#organelle-experiment-stage-content > p:only-child { margin: auto; text-align: center; }
+.organelle-experiment-objective-label { margin: 0; color: #f4a0ff; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; }
+.organelle-experiment-objective { max-width: 34rem; margin: 8px 0 0; color: #f7efff; font-size: 1.1rem; }
+.organelle-experiment-stage-message { margin-top: 28px; color: #cdbfd8; }
+.organelle-experiment-activity-layout { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr); gap: 12px; width: 100%; margin-top: 22px; }
+.organelle-experiment-workspace { min-width: 0; }
+.organelle-experiment-label-tray { padding: 10px; border: 1px solid #58326b; background: #16051e; }
+.organelle-experiment-label-tray h3 { margin: 0 0 10px; color: #df80ff; font-size: 0.8rem; text-transform: uppercase; }
+.organelle-experiment-label-list { display: grid; gap: 7px; }
+.organelle-experiment-label { padding: 6px; color: #e3d8eb; border: 1px solid #74465f; background: #2b103d; font-size: 0.75rem; text-align: center; }
+.membrane-transport-stage { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 5.5rem minmax(0, 1fr); min-height: 17rem; overflow: hidden; border: 1px solid #74465f; background: #16051e; }
+.membrane-transport-compartment { position: relative; min-height: 17rem; overflow: hidden; background: radial-gradient(circle at center, rgba(72, 139, 196, 0.16), transparent 70%); }
+.membrane-transport-bilayer { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 6px; overflow: hidden; background: #2b103d; }
+.membrane-transport-lipid { display: flex; align-items: center; justify-content: center; width: 4.5rem; height: 1rem; }
+.membrane-lipid-tail { width: 1.15rem; height: 2px; background: #9b66b7; }
+@media (max-width: 760px) { #organelle-workspace { grid-template-columns: 1fr; } #organelle-experiment-stage { min-height: 28rem; } #organelle-experiment-stage-content { min-height: 20rem; } }
+@media (max-width: 560px) { #organelle-experiment-stage-header { align-items: flex-start; flex-direction: column; } #organelle-experiment-stage-controls { justify-content: flex-start; } .organelle-experiment-activity-layout { grid-template-columns: 1fr; } .organelle-experiment-label-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

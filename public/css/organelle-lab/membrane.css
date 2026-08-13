@@ -1,0 +1,11 @@
+/* public/css/organelle-lab/membrane.css */
+
+.membrane-transport-bilayer[data-membrane-style="phospholipid-bilayer"] {
+    min-width: 6rem;
+    padding: 0;
+    background:
+        #2b103d
+        url("../../assets/experiments/membranes/phospholipid-bilayer.svg")
+        center / 100% 100%
+        no-repeat;
+}

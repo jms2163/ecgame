@@ -10,21 +10,8 @@ const DEFAULT_HEIGHT = 320;
 const MEMBRANE_START = 0.45;
 const MEMBRANE_END = 0.55;
 
-const PARTICLE_COLORS = {
-
-    water_sphere:
-        "#58b8ff",
-
-    sodium_ion_sphere:
-        "#a92f4e",
-
-    chloride_ion_sphere:
-        "#5ee38d",
-
-    aquaporin_channel:
-        "#df80ff"
-
-};
+import ExperimentMaterialVisualLibrary
+    from "./ExperimentMaterialVisualLibrary.js";
 
 const ParticleSimulationRenderer = {
 
@@ -127,11 +114,7 @@ const ParticleSimulationRenderer = {
 
     },
 
-    drawMembrane(
-        context,
-        width,
-        height
-    ) {
+    drawMembrane() {
 
         const startX =
             width * MEMBRANE_START;
@@ -213,9 +196,11 @@ const ParticleSimulationRenderer = {
             );
 
         const color =
-            PARTICLE_COLORS[
-                particle.visualId
-            ] ?? "#f7efff";
+            ExperimentMaterialVisualLibrary
+                .definitions[
+                    particle.visualId
+                ]?.simulationColor ??
+            "#f7efff";
 
         context.fillStyle =
             color;
@@ -230,7 +215,7 @@ const ParticleSimulationRenderer = {
         context.arc(
             point.x,
             point.y,
-            8,
+            6,
             0,
             Math.PI * 2
         );
@@ -272,48 +257,8 @@ const ParticleSimulationRenderer = {
             height
         );
 
-        context.fillStyle =
-            "#16051e";
-
-        context.fillRect(
-            0,
-            0,
-            width,
-            height
-        );
-
-        context.fillStyle =
-            "rgba(88, 184, 255, 0.08)";
-
-        context.fillRect(
-            10,
-            10,
-            (
-                width *
-                MEMBRANE_START
-            ) - 20,
-            height - 20
-        );
-
-        context.fillRect(
-            (
-                width *
-                MEMBRANE_END
-            ) + 10,
-            10,
-            (
-                width *
-                (
-                    1 -
-                    MEMBRANE_END
-                )
-            ) - 20,
-            height - 20
-        );
-
-        // Draw particles first. A crossing water molecule
-        // disappears behind the membrane when it enters
-        // the barrier region.
+        // The underlying stage remains visible: its membrane
+        // and placed aquaporin are the simulation scene.
         (
             state.particles ?? []
         ).forEach(
@@ -327,12 +272,6 @@ const ParticleSimulationRenderer = {
                 );
 
             }
-        );
-
-        this.drawMembrane(
-            context,
-            width,
-            height
         );
 
         return true;

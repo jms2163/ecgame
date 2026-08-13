@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 360" role="img" aria-label="Phospholipid bilayer">
+  <rect width="96" height="360" fill="#2b103d"/>
+  <g stroke="#93b469" stroke-width="3" stroke-linecap="round" fill="none">
+    <path id="lt" d="M18 9 Q28 4 36 9 T45 9"/><path id="lb" d="M18 17 Q28 22 36 17 T45 17"/>
+    <path id="rt" d="M78 9 Q68 4 60 9 T51 9"/><path id="rb" d="M78 17 Q68 22 60 17 T51 17"/>
+  </g>
+  <g id="row" stroke="#333" stroke-width="1.2" fill="#f5cb5c">
+    <use href="#lt" stroke="#93b469"/><use href="#lb" stroke="#93b469"/><circle cx="12" cy="13" r="7"/><circle cx="14" cy="11" r="1.6" fill="#fffae0" stroke="none"/>
+    <use href="#rt" stroke="#93b469"/><use href="#rb" stroke="#93b469"/><circle cx="84" cy="13" r="7"/><circle cx="82" cy="11" r="1.6" fill="#fffae0" stroke="none"/>
+  </g>
+  <use href="#row" y="0"/><use href="#row" y="30"/><use href="#row" y="60"/><use href="#row" y="90"/>
+  <use href="#row" y="120"/><use href="#row" y="150"/><use href="#row" y="180"/><use href="#row" y="210"/>
+  <use href="#row" y="240"/><use href="#row" y="270"/><use href="#row" y="300"/><use href="#row" y="330"/>
+</svg>

@@ -13,7 +13,8 @@ const ExperimentMaterialVisualLibrary = {
                 "water_sphere",
 
             cssClass:
-                "water"
+                "water",
+            simulationColor: "#58b8ff"
 
         },
 
@@ -23,7 +24,8 @@ const ExperimentMaterialVisualLibrary = {
                 "sodium_ion_sphere",
 
             cssClass:
-                "sodium"
+                "sodium",
+            simulationColor: "#a92f4e"
 
         },
 
@@ -33,7 +35,8 @@ const ExperimentMaterialVisualLibrary = {
                 "chloride_ion_sphere",
 
             cssClass:
-                "chloride"
+                "chloride",
+            simulationColor: "#5ee38d"
 
         },
 

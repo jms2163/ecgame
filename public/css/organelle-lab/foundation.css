@@ -1,0 +1,8 @@
+/* Shared workspace shell. */
+#organelle-workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(16rem, 1fr);
+    gap: 16px;
+    width: min(100%, 72rem);
+    margin: 0 auto;
+}

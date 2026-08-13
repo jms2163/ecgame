@@ -863,6 +863,19 @@ simulation: {
 
         },
 
+        simulation: {
+            modelId: "particle_membrane_transport",
+            modelVariant: "aquaporin",
+            zoneIds: ["side_a", "membrane", "side_b"],
+            waterParticlesPerPlacement: 12,
+            poreRule: {
+                materialId: "aquaporin",
+                allowedRotationDeg: [90, 270],
+                radius: 0.10,
+                speedMultiplier: 5
+            }
+        },
+
         requirements: {
 
             discoveries: [

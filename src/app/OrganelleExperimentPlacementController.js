@@ -788,15 +788,18 @@ placeActiveDrag(
             placement.definitionId
         );
 
-    const visual =
-        this.createMaterialVisual(
-            material
-        );
-
-    visual.style.transform =
-        `rotate(${placement.rotationDeg ?? 0}deg)`;
-
-    element.appendChild(visual);
+    if (material?.id === "water") {
+        const cluster = document.createElement("span");
+        cluster.className = "organelle-experiment-water-cluster";
+        for (let index = 0; index < 12; index += 1) {
+            cluster.appendChild(this.createMaterialVisual(material));
+        }
+        element.appendChild(cluster);
+    } else {
+        const visual = this.createMaterialVisual(material);
+        visual.style.transform = `rotate(${placement.rotationDeg ?? 0}deg)`;
+        element.appendChild(visual);
+    }
 
 } else {
 

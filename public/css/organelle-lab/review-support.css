@@ -1,0 +1,20 @@
+/* Reflection, saved-attempt review, star, and feedback panels. */
+.organelle-experiment-reflection { display: grid; gap: 10px; margin-top: 16px; padding: 14px; color: #f7efff; background: #16051e; border: 1px solid #df80ff; }
+.organelle-experiment-reflection h3, .organelle-experiment-reflection p { margin: 0; }
+.organelle-experiment-reflection h3 { color: #df80ff; }
+.organelle-experiment-reflection-prompt { color: #f7efff; }
+.organelle-experiment-integrity-notice { padding: 8px 10px; color: #c7ecff; border-left: 3px solid #8fd3ff; background: rgba(69, 156, 205, 0.12); font-size: 0.82rem; }
+.organelle-experiment-reflection label { color: #cdbfd8; font-size: 0.85rem; font-weight: bold; }
+.organelle-experiment-reflection textarea { width: 100%; min-height: 8rem; padding: 10px; box-sizing: border-box; resize: vertical; color: #f7efff; background: #0f041c; border: 1px solid #74465f; font: inherit; }
+.organelle-experiment-reflection textarea:focus-visible { outline: 2px solid rgba(244, 160, 255, 0.9); outline-offset: 2px; }
+.organelle-experiment-reflection-status { min-height: 1.25rem; color: var(--color-status-available, #5ee38d); font-size: 0.85rem; }
+.organelle-experiment-review-link { display: block; width: fit-content; margin-top: 0.45rem; color: #8fd3ff; }
+.organelle-experiment-review-link:hover, .organelle-experiment-review-link:focus-visible { color: #c7ecff; }
+.organelle-experiment-review-navigation { display: flex; flex-wrap: wrap; gap: 0.55rem; align-items: center; margin-top: 0.8rem; }
+.organelle-experiment-review-navigation button { padding: 0.35rem 0.55rem; }
+.organelle-experiment-review-navigation button:disabled { opacity: 0.5; cursor: not-allowed; }
+.organelle-experiment-star { position: relative; display: inline-block; margin-left: 0.4rem; color: #8fd3ff; cursor: help; }
+.organelle-experiment-star::after { position: absolute; z-index: 30; bottom: calc(100% + 7px); left: 50%; padding: 5px 8px; color: #0f041c; background: #c7ecff; content: attr(data-tooltip); font-size: 0.75rem; font-weight: bold; pointer-events: none; transform: translateX(-50%); white-space: nowrap; opacity: 0; visibility: hidden; }
+.organelle-experiment-star:hover::after, .organelle-experiment-star:focus-visible::after { opacity: 1; visibility: visible; }
+@media (prefers-reduced-motion: no-preference) { .organelle-experiment-star { animation: organelle-star-pulse 1.4s ease-in-out infinite; } }
+@keyframes organelle-star-pulse { 50% { filter: brightness(1.5); transform: scale(1.15); } }
