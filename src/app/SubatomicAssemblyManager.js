@@ -4,14 +4,14 @@
 // --------------------------------------------------
 
 import gameState from "./GameState.js";
-import GameStateManager
-    from "./GameStateManager.js";
 import GameStateObserver
     from "./GameStateObserver.js";
 import GameStars from "./GameStars.js";
 import ParticleInventoryManager
     from "./ParticleInventoryManager.js";
 import QuestManager from "./QuestManager.js";
+import QuantumAutoCollectorManager
+    from "./QuantumAutoCollectorManager.js";
 import SaveManager from "./SaveManager.js";
 
 const ACTIVITY_ID = "q1_particles";
@@ -81,6 +81,8 @@ const SubatomicAssemblyManager = {
         ParticleInventoryManager
             .initialize();
         QuestManager.initialize();
+        QuantumAutoCollectorManager
+            .initialize();
         GameStars.initialize();
 
         this.ensureState();
@@ -285,12 +287,11 @@ const SubatomicAssemblyManager = {
             );
         }
 
-        // The released Q1 activity never completes the
-        // whole repeatable Quantum resource zone.
-        GameStateManager.setZoneCompleted(
-            "quantum",
-            false
-        );
+        // Quantum mastery is independent of Q1 and is
+        // reached only after all three collector rewards
+        // have been claimed.
+        QuantumAutoCollectorManager
+            .reconcileZoneCompletion();
 
         return true;
 
@@ -555,6 +556,9 @@ const SubatomicAssemblyManager = {
             },
             inventory:
                 ParticleInventoryManager
+                    .getStatus(),
+            autoCollectors:
+                QuantumAutoCollectorManager
                     .getStatus(),
             quest:
                 QuestManager.getQuestStatus(

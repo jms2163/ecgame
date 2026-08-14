@@ -70,7 +70,41 @@ const gameState = {
                 status: "in-progress",
                 readyAtMs: null,
                 claimedAtMs: null,
-                viewedAtMs: null
+                viewedAtMs: null,
+                activatedAtMs: null,
+                objectiveBaselines: {}
+            },
+            q2_hydrogen: {
+                status: "in-progress",
+                readyAtMs: null,
+                claimedAtMs: null,
+                viewedAtMs: null,
+                activatedAtMs: null,
+                objectiveBaselines: {}
+            },
+            q7_proton_collector: {
+                status: "in-progress",
+                readyAtMs: null,
+                claimedAtMs: null,
+                viewedAtMs: null,
+                activatedAtMs: null,
+                objectiveBaselines: {}
+            },
+            q8_neutron_collector: {
+                status: "in-progress",
+                readyAtMs: null,
+                claimedAtMs: null,
+                viewedAtMs: null,
+                activatedAtMs: null,
+                objectiveBaselines: {}
+            },
+            q9_electron_collector: {
+                status: "in-progress",
+                readyAtMs: null,
+                claimedAtMs: null,
+                viewedAtMs: null,
+                activatedAtMs: null,
+                objectiveBaselines: {}
             }
         },
         journal: []
@@ -126,6 +160,27 @@ const gameState = {
                     // Each future upgrade level removes
                     // 100 ms from the 1500 ms base delay.
                     particleRespawnLevel: 0
+                },
+
+                autoCollectors: {
+                    proton: {
+                        unlocked: false,
+                        enabled: false,
+                        collectionIntervalMs:
+                            2000
+                    },
+                    neutron: {
+                        unlocked: false,
+                        enabled: false,
+                        collectionIntervalMs:
+                            2000
+                    },
+                    electron: {
+                        unlocked: false,
+                        enabled: false,
+                        collectionIntervalMs:
+                            2000
+                    }
                 },
 
                 subatomicAssembly: {
@@ -206,7 +261,7 @@ const gameState = {
         difficulty: "normal"
     },
 
-    saveVersion: "1.8"
+    saveVersion: "under-construction"
 
 };
 

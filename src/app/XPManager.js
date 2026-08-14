@@ -46,6 +46,22 @@ const XPManager = {
 
         return updatedXP;
 
+    },
+
+    // Used by transactional reward rollback.
+    setXP(amount) {
+
+        if (
+            !Number.isFinite(amount) ||
+            amount < 0
+        ) {
+            return false;
+        }
+
+        gameState.player.xp = amount;
+
+        return gameState.player.xp;
+
     }
 
 };

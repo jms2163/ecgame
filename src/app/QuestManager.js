@@ -1,18 +1,17 @@
 // --------------------------------------------------
 // QuestManager.js
-// Owns persistent quest lifecycle and reward claims
+// Generic quest lifecycle and transaction coordinator
 // --------------------------------------------------
 
 import gameState from "./GameState.js";
-import GameStateManager
-    from "./GameStateManager.js";
 import GameStateObserver
     from "./GameStateObserver.js";
-import ParticleInventoryManager
-    from "./ParticleInventoryManager.js";
+import ObjectiveRegistry
+    from "./ObjectiveRegistry.js";
 import QuestCatalog from "./QuestCatalog.js";
+import RewardRegistry
+    from "./RewardRegistry.js";
 import SaveManager from "./SaveManager.js";
-import XPManager from "./XPManager.js";
 
 const STATUS = Object.freeze({
     IN_PROGRESS: "in-progress",
@@ -23,45 +22,141 @@ const STATUS = Object.freeze({
 const VALID_STATUSES =
     new Set(Object.values(STATUS));
 
+const PLAYABLE_RELEASE_STATE =
+    "playable";
+
+function clone(value) {
+    return value === undefined
+        ? undefined
+        : structuredClone(value);
+}
+
 const QuestManager = {
 
     initialized: false,
     gameStateLoadedHandler: null,
+    objectiveEventHandlers: new Map(),
 
     initialize() {
 
-        ParticleInventoryManager
-            .initialize();
-
         this.ensureState();
-        this.reconcileAll();
 
-        if (!this.initialized) {
-            this.gameStateLoadedHandler =
-                () => {
-                    this.ensureState();
-                    this.reconcileAll();
+        if (this.reconcileAll()) {
+            SaveManager.save();
+        }
+
+        if (this.initialized) {
+            return true;
+        }
+
+        this.gameStateLoadedHandler =
+            () => {
+                this.ensureState();
+
+                if (this.reconcileAll()) {
+                    SaveManager.save();
+                }
+
+                GameStateObserver.notify(
+                    "quest-state-changed",
+                    {
+                        reason:
+                            "game-state-loaded"
+                    }
+                );
+            };
+
+        GameStateObserver.on(
+            "game-state-loaded",
+            this.gameStateLoadedHandler
+        );
+
+        this.subscribeToObjectiveEvents();
+        this.initialized = true;
+
+        return true;
+
+    },
+
+    subscribeToObjectiveEvents() {
+
+        ObjectiveRegistry
+            .getObservedEvents()
+            .forEach(eventName => {
+                if (
+                    this.objectiveEventHandlers
+                        .has(eventName)
+                ) {
+                    return;
+                }
+
+                const handler = () => {
+                    if (!this.reconcileAll()) {
+                        return;
+                    }
+
+                    SaveManager.save();
 
                     GameStateObserver.notify(
                         "quest-state-changed",
                         {
                             reason:
-                                "game-state-loaded"
+                                "objective-progress",
+                            sourceEvent:
+                                eventName
                         }
                     );
                 };
 
-            GameStateObserver.on(
-                "game-state-loaded",
-                this.gameStateLoadedHandler
-            );
+                this.objectiveEventHandlers.set(
+                    eventName,
+                    handler
+                );
 
-            this.initialized = true;
-        }
+                GameStateObserver.on(
+                    eventName,
+                    handler
+                );
+            });
 
-        return true;
+        return [
+            ...this.objectiveEventHandlers
+                .keys()
+        ];
 
     },
+
+    // --------------------------------------------------
+    // Catalog access
+    // --------------------------------------------------
+
+    hasDefinition(questId) {
+        return Object.prototype
+            .hasOwnProperty.call(
+                QuestCatalog,
+                questId
+            );
+    },
+
+    getDefinition(questId) {
+        return this.hasDefinition(questId)
+            ? clone(QuestCatalog[questId])
+            : null;
+    },
+
+    getDefinitions() {
+        return Object.values(QuestCatalog)
+            .map(clone);
+    },
+
+    isReleased(definition) {
+        return definition?.releaseState ===
+            PLAYABLE_RELEASE_STATE;
+    },
+
+    // --------------------------------------------------
+    // Persistent quest records
+    // --------------------------------------------------
 
     ensureState() {
 
@@ -69,35 +164,30 @@ const QuestManager = {
 
         if (
             !gameState.registry.quests ||
+            typeof gameState.registry.quests !==
+                "object" ||
             Array.isArray(
                 gameState.registry.quests
-            ) ||
-            typeof gameState.registry
-                .quests !== "object"
+            )
         ) {
             gameState.registry.quests = {};
         }
 
-        QuestCatalog.getAll().forEach(
-            definition => {
+        const records =
+            gameState.registry.quests;
 
-                const records =
-                    gameState.registry
-                        .quests;
-
+        this.getDefinitions()
+            .forEach(definition => {
                 if (
                     !records[definition.id] ||
                     typeof records[
                         definition.id
-                    ] !== "object"
+                    ] !== "object" ||
+                    Array.isArray(
+                        records[definition.id]
+                    )
                 ) {
-                    records[definition.id] = {
-                        status:
-                            STATUS.IN_PROGRESS,
-                        readyAtMs: null,
-                        claimedAtMs: null,
-                        viewedAtMs: null
-                    };
+                    records[definition.id] = {};
                 }
 
                 const record =
@@ -118,20 +208,36 @@ const QuestManager = {
                     )
                         ? record.readyAtMs
                         : null;
-
                 record.claimedAtMs =
                     Number.isFinite(
                         record.claimedAtMs
                     )
                         ? record.claimedAtMs
                         : null;
-
                 record.viewedAtMs =
                     Number.isFinite(
                         record.viewedAtMs
                     )
                         ? record.viewedAtMs
                         : null;
+                record.activatedAtMs =
+                    Number.isFinite(
+                        record.activatedAtMs
+                    )
+                        ? record.activatedAtMs
+                        : null;
+
+                if (
+                    !record.objectiveBaselines ||
+                    typeof record
+                        .objectiveBaselines !==
+                        "object" ||
+                    Array.isArray(
+                        record.objectiveBaselines
+                    )
+                ) {
+                    record.objectiveBaselines = {};
+                }
 
                 if (
                     record.status ===
@@ -151,17 +257,15 @@ const QuestManager = {
                         record.claimedAtMs ??
                         record.readyAtMs;
                 }
+            });
 
-            }
-        );
-
-        return gameState.registry.quests;
+        return records;
 
     },
 
     getRecord(questId) {
 
-        if (!QuestCatalog.has(questId)) {
+        if (!this.hasDefinition(questId)) {
             return null;
         }
 
@@ -169,104 +273,149 @@ const QuestManager = {
 
     },
 
-    evaluateObjective(objective) {
+    // --------------------------------------------------
+    // Objective evaluation and activation
+    // --------------------------------------------------
 
-        if (
-            objective.type ===
-                "guided-particle-collection"
-        ) {
-            const current =
-                gameState.zones?.quantum
-                    ?.state
-                    ?.subatomicAssembly
-                    ?.guidedCollected
-                    ?.[objective.particleId] ??
-                0;
+    evaluateObjective(
+        questId,
+        objective,
+        objectiveIndex = 0
+    ) {
+        return ObjectiveRegistry.evaluate({
+            questId,
+            objective,
+            objectiveIndex,
+            record:
+                this.getRecord(questId)
+        });
+    },
 
-            const normalizedCurrent =
-                Number.isInteger(current) &&
-                current >= 0
-                    ? Math.min(
-                        current,
-                        objective.target
-                    )
-                    : 0;
+    captureObjectiveBaselines(
+        definition,
+        record
+    ) {
+        definition.objectives
+            .forEach(
+                (objective, objectiveIndex) =>
+                    ObjectiveRegistry
+                        .captureBaseline({
+                            questId:
+                                definition.id,
+                            objective,
+                            objectiveIndex,
+                            record
+                        })
+            );
 
-            return {
-                current: normalizedCurrent,
-                target: objective.target,
-                complete:
-                    normalizedCurrent >=
-                    objective.target
-            };
-        }
-
-        return {
-            current: 0,
-            target: objective.target ?? 1,
-            complete: false
-        };
-
+        return record.objectiveBaselines;
     },
 
     areObjectivesComplete(questId) {
 
         const definition =
-            QuestCatalog.get(questId);
+            this.getDefinition(questId);
 
         if (!definition) {
             return false;
         }
 
         return definition.objectives.every(
-            objective =>
+            (objective, objectiveIndex) =>
                 this.evaluateObjective(
-                    objective
+                    questId,
+                    objective,
+                    objectiveIndex
                 ).complete
         );
 
     },
 
     arePrerequisitesMet(definition) {
-
-        return definition.prerequisites.every(
-            prerequisiteId =>
+        return definition.prerequisites
+            .every(prerequisiteId =>
                 this.getRecord(
                     prerequisiteId
                 )?.status ===
                     STATUS.CLAIMED
-        );
-
+            );
     },
 
-    reconcileQuest(questId) {
+    activateQuest(
+        definition,
+        activatedAtMs = Date.now()
+    ) {
 
         const record =
-            this.getRecord(questId);
+            this.getRecord(definition.id);
 
         if (
             !record ||
-            record.status === STATUS.CLAIMED
+            record.status === STATUS.CLAIMED ||
+            record.activatedAtMs !== null ||
+            !this.isReleased(definition) ||
+            !this.arePrerequisitesMet(
+                definition
+            )
         ) {
             return false;
         }
 
+        record.activatedAtMs =
+            Number.isFinite(activatedAtMs)
+                ? activatedAtMs
+                : Date.now();
+        record.objectiveBaselines = {};
+
+        this.captureObjectiveBaselines(
+            definition,
+            record
+        );
+
+        return true;
+
+    },
+
+    // --------------------------------------------------
+    // Lifecycle reconciliation
+    // --------------------------------------------------
+
+    reconcileQuest(questId) {
+
+        const definition =
+            this.getDefinition(questId);
+        const record =
+            this.getRecord(questId);
+
         if (
+            !definition ||
+            !record ||
+            record.status === STATUS.CLAIMED ||
+            !this.isReleased(definition) ||
+            !this.arePrerequisitesMet(
+                definition
+            )
+        ) {
+            return false;
+        }
+
+        const activated =
+            this.activateQuest(definition);
+
+        if (
+            record.status !==
+                STATUS.CLAIMABLE &&
             this.areObjectivesComplete(
                 questId
-            ) &&
-            record.status !==
-                STATUS.CLAIMABLE
+            )
         ) {
-            record.status =
-                STATUS.CLAIMABLE;
-            record.readyAtMs ??=
-                Date.now();
+            record.status = STATUS.CLAIMABLE;
+            record.readyAtMs ??= Date.now();
 
             return true;
         }
 
-        return false;
+        return activated;
 
     },
 
@@ -274,14 +423,13 @@ const QuestManager = {
 
         let changed = false;
 
-        QuestCatalog.getAll().forEach(
-            definition => {
+        this.getDefinitions()
+            .forEach(definition => {
                 changed =
                     this.reconcileQuest(
                         definition.id
                     ) || changed;
-            }
-        );
+            });
 
         return changed;
 
@@ -292,12 +440,23 @@ const QuestManager = {
         readyAtMs = Date.now()
     ) {
 
+        const definition =
+            this.getDefinition(questId);
         const record =
             this.getRecord(questId);
 
-        if (!record) {
+        if (
+            !definition ||
+            !record ||
+            !this.isReleased(definition) ||
+            !this.arePrerequisitesMet(
+                definition
+            )
+        ) {
             return false;
         }
+
+        this.activateQuest(definition);
 
         if (
             record.status === STATUS.CLAIMED ||
@@ -306,11 +465,7 @@ const QuestManager = {
             return true;
         }
 
-        if (
-            !this.areObjectivesComplete(
-                questId
-            )
-        ) {
+        if (!this.areObjectivesComplete(questId)) {
             return false;
         }
 
@@ -334,10 +489,14 @@ const QuestManager = {
 
     },
 
+    // --------------------------------------------------
+    // Read models for UI
+    // --------------------------------------------------
+
     getQuestStatus(questId) {
 
         const definition =
-            QuestCatalog.get(questId);
+            this.getDefinition(questId);
         const record =
             this.getRecord(questId);
 
@@ -345,104 +504,106 @@ const QuestManager = {
             return null;
         }
 
+        const released =
+            this.isReleased(definition);
+        const prerequisitesMet =
+            this.arePrerequisitesMet(
+                definition
+            );
+        const active =
+            released &&
+            prerequisitesMet &&
+            Number.isFinite(
+                record.activatedAtMs
+            );
         const objectives =
             definition.objectives.map(
-                objective => ({
+                (objective, objectiveIndex) => ({
                     ...objective,
                     ...this.evaluateObjective(
-                        objective
+                        questId,
+                        objective,
+                        objectiveIndex
                     )
                 })
             );
 
         return {
-            id: definition.id,
-            title: definition.title,
-            category:
-                definition.category,
-            description:
-                definition.description,
-            prerequisites: [
-                ...definition.prerequisites
-            ],
-            prerequisitesMet:
-                this.arePrerequisitesMet(
-                    definition
-                ),
+            ...definition,
+            released,
+            prerequisitesMet,
+            active,
             objectives,
-            rewards: {
-                ...definition.rewards,
-                zoneUnlocks: [
-                    ...definition.rewards
-                        .zoneUnlocks
-                ]
-            },
+            rewards: clone(
+                definition.rewards ?? {}
+            ),
             status: record.status,
             readyAtMs: record.readyAtMs,
             claimedAtMs:
                 record.claimedAtMs,
             viewedAtMs:
                 record.viewedAtMs,
+            activatedAtMs:
+                record.activatedAtMs,
+            objectiveBaselines: clone(
+                record.objectiveBaselines
+            ),
             viewed:
                 Number.isFinite(
                     record.viewedAtMs
                 ),
             claimable:
                 record.status ===
-                STATUS.CLAIMABLE,
+                    STATUS.CLAIMABLE,
             claimed:
                 record.status ===
-                STATUS.CLAIMED
+                    STATUS.CLAIMED
         };
 
     },
 
     getAllQuestStatuses() {
-
-        return QuestCatalog.getAll()
-            .map(
-                definition =>
-                    this.getQuestStatus(
-                        definition.id
-                    )
+        return this.getDefinitions()
+            .map(definition =>
+                this.getQuestStatus(
+                    definition.id
+                )
             )
             .filter(Boolean);
-
     },
 
     getVisibleQuestStatuses() {
-
         return this.getAllQuestStatuses()
-            .filter(
-                quest =>
-                    quest.prerequisitesMet &&
-                    !quest.claimed
+            .filter(quest =>
+                quest.released &&
+                quest.active &&
+                !quest.claimed
             );
-
     },
 
     getCompletedQuestStatuses() {
-
         return this.getAllQuestStatuses()
-            .filter(
-                quest => quest.claimed
-            )
+            .filter(quest => quest.claimed)
             .sort(
                 (left, right) =>
                     (right.claimedAtMs ?? 0) -
                     (left.claimedAtMs ?? 0)
             );
-
     },
 
     getUnviewedVisibleQuestStatuses() {
-
         return this.getVisibleQuestStatuses()
-            .filter(
-                quest => !quest.viewed
-            );
-
+            .filter(quest => !quest.viewed);
     },
+
+    hasClaimableQuest() {
+        return this.getVisibleQuestStatuses()
+            .some(quest => quest.claimable);
+    },
+
+    // --------------------------------------------------
+    // Viewed state
+    // --------------------------------------------------
 
     markVisibleQuestsViewed(
         viewedAtMs = Date.now()
@@ -452,7 +613,6 @@ const QuestManager = {
             Number.isFinite(viewedAtMs)
                 ? viewedAtMs
                 : Date.now();
-
         const quests =
             this.getUnviewedVisibleQuestStatuses();
 
@@ -465,32 +625,26 @@ const QuestManager = {
             };
         }
 
-        const previousValues =
+        const previous =
             Object.fromEntries(
-                quests.map(
-                    quest => [
-                        quest.id,
-                        this.getRecord(
-                            quest.id
-                        ).viewedAtMs
-                    ]
-                )
+                quests.map(quest => [
+                    quest.id,
+                    this.getRecord(quest.id)
+                        .viewedAtMs
+                ])
             );
 
         quests.forEach(quest => {
-            this.getRecord(
-                quest.id
-            ).viewedAtMs = timestamp;
+            this.getRecord(quest.id)
+                .viewedAtMs = timestamp;
         });
 
         if (!SaveManager.save()) {
-            Object.entries(previousValues)
+            Object.entries(previous)
                 .forEach(
-                    ([questId, previous]) => {
-                        this.getRecord(
-                            questId
-                        ).viewedAtMs =
-                            previous;
+                    ([questId, value]) => {
+                        this.getRecord(questId)
+                            .viewedAtMs = value;
                     }
                 );
 
@@ -503,9 +657,7 @@ const QuestManager = {
         }
 
         const questIds =
-            quests.map(
-                quest => quest.id
-            );
+            quests.map(quest => quest.id);
 
         GameStateObserver.notify(
             "quest-state-changed",
@@ -525,21 +677,16 @@ const QuestManager = {
 
     },
 
-    hasClaimableQuest() {
-
-        return this.getVisibleQuestStatuses()
-            .some(
-                quest => quest.claimable
-            );
-
-    },
+    // --------------------------------------------------
+    // Transactional reward claim
+    // --------------------------------------------------
 
     claimQuest(questId) {
 
         this.reconcileQuest(questId);
 
         const definition =
-            QuestCatalog.get(questId);
+            this.getDefinition(questId);
         const record =
             this.getRecord(questId);
 
@@ -553,9 +700,7 @@ const QuestManager = {
             };
         }
 
-        if (
-            record.status === STATUS.CLAIMED
-        ) {
+        if (record.status === STATUS.CLAIMED) {
             return {
                 claimed: false,
                 questId,
@@ -563,18 +708,34 @@ const QuestManager = {
                 message:
                     "This quest reward was already claimed.",
                 status:
-                    this.getQuestStatus(
-                        questId
-                    )
+                    this.getQuestStatus(questId)
+            };
+        }
+
+        if (
+            !this.isReleased(definition) ||
+            !this.arePrerequisitesMet(
+                definition
+            ) ||
+            !Number.isFinite(
+                record.activatedAtMs
+            )
+        ) {
+            return {
+                claimed: false,
+                questId,
+                reason: "quest-inactive",
+                message:
+                    "That quest is not active yet.",
+                status:
+                    this.getQuestStatus(questId)
             };
         }
 
         if (
             record.status !==
                 STATUS.CLAIMABLE ||
-            !this.areObjectivesComplete(
-                questId
-            )
+            !this.areObjectivesComplete(questId)
         ) {
             return {
                 claimed: false,
@@ -583,116 +744,48 @@ const QuestManager = {
                 message:
                     "Complete every quest objective before claiming the reward.",
                 status:
-                    this.getQuestStatus(
-                        questId
-                    )
+                    this.getQuestStatus(questId)
             };
         }
 
-        const previous = {
-            xp: XPManager.getXP(),
-            capacity:
-                ParticleInventoryManager
-                    .getStatus()
-                    .capacity,
-            questRecord:
-                structuredClone(record),
-            zoneUnlocks:
-                Object.fromEntries(
-                    definition.rewards
-                        .zoneUnlocks.map(
-                            zoneId => [
-                                zoneId,
-                                GameStateManager
-                                    .isZoneUnlocked(
-                                        zoneId
-                                    )
-                            ]
-                        )
-                )
-        };
+        const questRecordsBefore =
+            clone(this.ensureState());
+        let appliedRewards = [];
 
         try {
-            const updatedXP =
-                definition.rewards.xp
-                    ? XPManager.addXP(
-                        definition
-                            .rewards.xp
-                    )
-                    : XPManager.getXP();
-
-            if (updatedXP === false) {
-                throw new Error(
-                    "XP reward was rejected"
+            appliedRewards =
+                RewardRegistry.applyAll(
+                    definition.rewards
                 );
-            }
-
-            const updatedCapacity =
-                definition.rewards
-                    .particleCapacity
-                    ? ParticleInventoryManager
-                        .increaseCapacity(
-                            definition.rewards
-                                .particleCapacity
-                        )
-                    : ParticleInventoryManager
-                        .getStatus()
-                        .capacity;
-
-            if (updatedCapacity === false) {
-                throw new Error(
-                    "Capacity reward was rejected"
-                );
-            }
-
-            definition.rewards.zoneUnlocks
-                .forEach(zoneId => {
-                    if (
-                        !GameStateManager
-                            .setZoneUnlocked(
-                                zoneId,
-                                true
-                            )
-                    ) {
-                        throw new Error(
-                            `Zone unlock was rejected for ${zoneId}`
-                        );
-                    }
-                });
-
-            // Q1 is only the Quantum introduction.
-            GameStateManager.setZoneCompleted(
-                "quantum",
-                false
-            );
 
             record.status = STATUS.CLAIMED;
             record.claimedAtMs = Date.now();
             record.viewedAtMs ??=
                 record.claimedAtMs;
 
+            // A newly claimed prerequisite may activate
+            // later released quests and capture baselines.
+            this.reconcileAll();
+
             if (!SaveManager.save()) {
                 throw new Error(
-                    "The claimed reward could not be saved"
+                    "Quest reward could not be saved"
                 );
             }
 
+            const rewardResults =
+                RewardRegistry.resultsByKey(
+                    appliedRewards
+                );
             const payload = {
                 questId,
                 status: record.status,
                 claimedAtMs:
                     record.claimedAtMs,
-                xpAwarded:
-                    definition.rewards.xp,
-                particleCapacityAwarded:
+                rewards: clone(
                     definition.rewards
-                        .particleCapacity,
-                updatedXP,
-                updatedCapacity,
-                zoneUnlocks: [
-                    ...definition.rewards
-                        .zoneUnlocks
-                ]
+                ),
+                rewardResults
             };
 
             GameStateObserver.notify(
@@ -703,7 +796,6 @@ const QuestManager = {
                     reason: "reward-claimed"
                 }
             );
-
             GameStateObserver.notify(
                 "quest-claimed",
                 payload
@@ -714,56 +806,27 @@ const QuestManager = {
                 questId,
                 reason: "reward-claimed",
                 message:
-                    `Subatomic Assembly reward claimed. Atom Lab is unlocked and particle capacity is now ${updatedCapacity} per particle type.`,
+                    `${definition.title} reward claimed.`,
                 reward: payload,
                 status:
-                    this.getQuestStatus(
-                        questId
-                    )
+                    this.getQuestStatus(questId)
             };
 
         } catch (error) {
-            gameState.player.xp =
-                previous.xp;
+            if (appliedRewards.length > 0) {
+                RewardRegistry.revertAll(
+                    appliedRewards
+                );
+            }
 
-            gameState.registry.resources
-                .particles.capacity =
-                previous.capacity;
-
-            Object.entries(
-                previous.zoneUnlocks
-            ).forEach(
-                ([zoneId, unlocked]) => {
-                    GameStateManager
-                        .setZoneUnlocked(
-                            zoneId,
-                            unlocked
-                        );
-                }
-            );
-
-            Object.assign(
-                record,
-                previous.questRecord
-            );
-
-            GameStateObserver.notify(
-                "particle-inventory-changed",
-                {
-                    reason:
-                        "quest-claim-rolled-back",
-                    capacity:
-                        previous.capacity
-                }
-            );
+            gameState.registry.quests =
+                questRecordsBefore;
 
             GameStateObserver.notify(
                 "quest-state-changed",
                 {
                     questId,
-                    status: record.status,
-                    reason:
-                        "claim-failed"
+                    reason: "claim-failed"
                 }
             );
 
@@ -777,11 +840,9 @@ const QuestManager = {
                 questId,
                 reason: "claim-failed",
                 message:
-                    "The reward could not be claimed safely. Your previous values were restored.",
+                    "The reward could not be claimed safely. Previous values were restored.",
                 status:
-                    this.getQuestStatus(
-                        questId
-                    )
+                    this.getQuestStatus(questId)
             };
         }
 
