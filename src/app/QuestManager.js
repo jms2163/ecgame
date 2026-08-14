@@ -95,7 +95,8 @@ const QuestManager = {
                         status:
                             STATUS.IN_PROGRESS,
                         readyAtMs: null,
-                        claimedAtMs: null
+                        claimedAtMs: null,
+                        viewedAtMs: null
                     };
                 }
 
@@ -125,12 +126,29 @@ const QuestManager = {
                         ? record.claimedAtMs
                         : null;
 
+                record.viewedAtMs =
+                    Number.isFinite(
+                        record.viewedAtMs
+                    )
+                        ? record.viewedAtMs
+                        : null;
+
                 if (
                     record.status ===
                         STATUS.CLAIMED &&
                     record.claimedAtMs === null
                 ) {
                     record.claimedAtMs =
+                        record.readyAtMs;
+                }
+
+                if (
+                    record.status ===
+                        STATUS.CLAIMED &&
+                    record.viewedAtMs === null
+                ) {
+                    record.viewedAtMs =
+                        record.claimedAtMs ??
                         record.readyAtMs;
                 }
 
@@ -363,6 +381,12 @@ const QuestManager = {
             readyAtMs: record.readyAtMs,
             claimedAtMs:
                 record.claimedAtMs,
+            viewedAtMs:
+                record.viewedAtMs,
+            viewed:
+                Number.isFinite(
+                    record.viewedAtMs
+                ),
             claimable:
                 record.status ===
                 STATUS.CLAIMABLE,
@@ -394,6 +418,110 @@ const QuestManager = {
                     quest.prerequisitesMet &&
                     !quest.claimed
             );
+
+    },
+
+    getCompletedQuestStatuses() {
+
+        return this.getAllQuestStatuses()
+            .filter(
+                quest => quest.claimed
+            )
+            .sort(
+                (left, right) =>
+                    (right.claimedAtMs ?? 0) -
+                    (left.claimedAtMs ?? 0)
+            );
+
+    },
+
+    getUnviewedVisibleQuestStatuses() {
+
+        return this.getVisibleQuestStatuses()
+            .filter(
+                quest => !quest.viewed
+            );
+
+    },
+
+    markVisibleQuestsViewed(
+        viewedAtMs = Date.now()
+    ) {
+
+        const timestamp =
+            Number.isFinite(viewedAtMs)
+                ? viewedAtMs
+                : Date.now();
+
+        const quests =
+            this.getUnviewedVisibleQuestStatuses();
+
+        if (quests.length === 0) {
+            return {
+                changed: false,
+                questIds: [],
+                viewedAtMs: timestamp,
+                saved: true
+            };
+        }
+
+        const previousValues =
+            Object.fromEntries(
+                quests.map(
+                    quest => [
+                        quest.id,
+                        this.getRecord(
+                            quest.id
+                        ).viewedAtMs
+                    ]
+                )
+            );
+
+        quests.forEach(quest => {
+            this.getRecord(
+                quest.id
+            ).viewedAtMs = timestamp;
+        });
+
+        if (!SaveManager.save()) {
+            Object.entries(previousValues)
+                .forEach(
+                    ([questId, previous]) => {
+                        this.getRecord(
+                            questId
+                        ).viewedAtMs =
+                            previous;
+                    }
+                );
+
+            return {
+                changed: false,
+                questIds: [],
+                viewedAtMs: timestamp,
+                saved: false
+            };
+        }
+
+        const questIds =
+            quests.map(
+                quest => quest.id
+            );
+
+        GameStateObserver.notify(
+            "quest-state-changed",
+            {
+                questIds,
+                viewedAtMs: timestamp,
+                reason: "quests-viewed"
+            }
+        );
+
+        return {
+            changed: true,
+            questIds,
+            viewedAtMs: timestamp,
+            saved: true
+        };
 
     },
 
@@ -540,6 +668,8 @@ const QuestManager = {
 
             record.status = STATUS.CLAIMED;
             record.claimedAtMs = Date.now();
+            record.viewedAtMs ??=
+                record.claimedAtMs;
 
             if (!SaveManager.save()) {
                 throw new Error(

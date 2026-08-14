@@ -3,7 +3,7 @@
 // Handles save-version detection and upgrades
 // --------------------------------------------------
 
-const CURRENT_VERSION = "1.7";
+const CURRENT_VERSION = "1.8";
 
 const VERSION_1_2_ZONE_DEFAULTS =
     Object.freeze({
@@ -92,6 +92,11 @@ const VersionManager = {
             } else if (version === "1.6") {
                 saveData =
                     this.upgrade_1_6_to_1_7(
+                        saveData
+                    );
+            } else if (version === "1.7") {
+                saveData =
+                    this.upgrade_1_7_to_1_8(
                         saveData
                     );
             } else {
@@ -826,6 +831,79 @@ const VersionManager = {
                     : 0;
 
         saveData.saveVersion = "1.7";
+
+        return saveData;
+
+    },
+
+    // --------------------------------------------------
+    // 1.7 -> 1.8
+    // Adds persistent quest-viewed timestamps used by the
+    // global Quest navigation card's New Quest state.
+    // --------------------------------------------------
+    upgrade_1_7_to_1_8(saveData) {
+
+        saveData.registry ??= {};
+
+        if (
+            !saveData.registry.quests ||
+            typeof saveData.registry.quests !==
+                "object" ||
+            Array.isArray(
+                saveData.registry.quests
+            )
+        ) {
+            saveData.registry.quests = {};
+        }
+
+        const questRecords =
+            saveData.registry.quests;
+
+        if (
+            !questRecords.q1_particles ||
+            typeof questRecords.q1_particles !==
+                "object" ||
+            Array.isArray(
+                questRecords.q1_particles
+            )
+        ) {
+            questRecords.q1_particles = {
+                status: "in-progress",
+                readyAtMs: null,
+                claimedAtMs: null
+            };
+        }
+
+        Object.values(questRecords)
+            .forEach(record => {
+
+                if (
+                    !record ||
+                    typeof record !== "object" ||
+                    Array.isArray(record)
+                ) {
+                    return;
+                }
+
+                record.viewedAtMs =
+                    Number.isFinite(
+                        record.viewedAtMs
+                    )
+                        ? record.viewedAtMs
+                        : (
+                            record.status ===
+                                "claimed" &&
+                            Number.isFinite(
+                                record.claimedAtMs
+                            )
+                                ? record
+                                    .claimedAtMs
+                                : null
+                        );
+
+            });
+
+        saveData.saveVersion = "1.8";
 
         return saveData;
 
