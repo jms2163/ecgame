@@ -13,6 +13,9 @@ import ZoneCatalog from "./ZoneCatalog.js";
 import DevConsole from "./DevConsole.js";
 import ResourceManager
     from "./ResourceManager.js";
+import QuestManager from "./QuestManager.js";
+import QuestDrawerUI
+    from "./QuestDrawerUI.js";
 
 const Bootstrap = {
 
@@ -28,9 +31,11 @@ const Bootstrap = {
         SaveManager.load();
 
         ResourceManager.initialize();
+        QuestManager.initialize();
 
         ZoneManager.initialize();
         NavigationUI.initialize();
+        QuestDrawerUI.initialize();
 
         const requestedZoneId =
             GameStateManager

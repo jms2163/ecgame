@@ -1,6 +1,6 @@
 // --------------------------------------------------
 // SubatomicAssemblyUI.js
-// Renders the Quantum Field learning activity
+// Renders guided Q1 and repeatable Quantum harvesting
 // --------------------------------------------------
 
 import SubatomicAssemblyManager
@@ -13,11 +13,15 @@ const SubatomicAssemblyUI = {
     initialized: false,
     active: false,
     rootElement: null,
+    starElement: null,
     statusBadgeElement: null,
     progressElement: null,
     progressTextElement: null,
+    promptLabelElement: null,
     promptElement: null,
     feedbackElement: null,
+    fieldHintElement: null,
+    canvasElement: null,
     choiceElements: new Map(),
     counterElements: new Map(),
 
@@ -155,9 +159,77 @@ const SubatomicAssemblyUI = {
 
     },
 
+    createParticleSymbol(
+        definition,
+        className = ""
+    ) {
+
+        const symbol =
+            this.createElement(
+                "span",
+                { className }
+            );
+
+        symbol.appendChild(
+            document.createTextNode
+                ? document.createTextNode(
+                    definition.symbol.base
+                )
+                : this.createElement(
+                    "span",
+                    {
+                        text:
+                            definition.symbol
+                                .base
+                    }
+                )
+        );
+
+        const charge =
+            this.createElement(
+                "sup",
+                {
+                    text:
+                        definition.symbol
+                            .charge
+                }
+            );
+
+        symbol.appendChild(charge);
+
+        symbol.setAttribute(
+            "aria-label",
+            `${definition.name}, charge ${definition.charge}`
+        );
+
+        return symbol;
+
+    },
+
     buildInterface() {
 
         this.rootElement.replaceChildren();
+        this.choiceElements.clear();
+        this.counterElements.clear();
+
+        const header = this.createHeader();
+        const progressPanel =
+            this.createProgressPanel();
+        const activityPanel =
+            this.createActivityPanel();
+        const referencePanel =
+            this.createReferencePanel();
+
+        this.rootElement.append(
+            header,
+            progressPanel,
+            activityPanel,
+            referencePanel
+        );
+
+    },
+
+    createHeader() {
 
         const header = this.createElement(
             "header",
@@ -175,72 +247,89 @@ const SubatomicAssemblyUI = {
             }
         );
 
-        const eyebrow = this.createElement(
-            "p",
-            {
+        const titleRow =
+            this.createElement("div", {
                 className:
-                    "quantum-eyebrow",
-                text:
-                    "Quantum Field Â· Required Activity"
-            }
-        );
+                    "quantum-title-row"
+            });
 
-        const title = this.createElement(
-            "h1",
-            {
+        const title =
+            this.createElement("h1", {
                 id: "quantum-zone-title",
                 text: "Subatomic Assembly"
-            }
+            });
+
+        this.starElement =
+            this.createElement("span", {
+                id:
+                    "subatomic-perfect-star",
+                className:
+                    "quantum-assignment-star hidden",
+                text: "\u2605"
+            });
+
+        this.starElement.setAttribute(
+            "role",
+            "img"
+        );
+        this.starElement.setAttribute(
+            "aria-label",
+            "Perfect guided collection star earned"
+        );
+        this.starElement.title =
+            "Perfect guided collection: 15 correct selections with no incorrect particle choices";
+
+        titleRow.append(
+            title,
+            this.starElement
         );
 
-        const description =
-            this.createElement(
-                "p",
-                {
-                    className:
-                        "quantum-description",
-                    text:
-                        "Identify and collect five protons, five neutrons, and five electrons. Completion unlocks the Atom Lab prerequisite path."
-                }
-            );
-
         titleGroup.append(
-            eyebrow,
-            title,
-            description
+            this.createElement("p", {
+                className: "quantum-eyebrow",
+                text:
+                    "Quantum Field - Particle Resource Zone"
+            }),
+            titleRow,
+            this.createElement("p", {
+                className:
+                    "quantum-description",
+                text:
+                    "Learn to identify subatomic particles, then return whenever you need raw materials for Atom Lab."
+            })
         );
 
         this.statusBadgeElement =
-            this.createElement(
-                "span",
-                {
-                    className:
-                        "quantum-status-badge"
-                }
-            );
+            this.createElement("span", {
+                className:
+                    "quantum-status-badge"
+            });
 
         header.append(
             titleGroup,
             this.statusBadgeElement
         );
 
-        const progressPanel =
-            this.createElement(
-                "section",
-                {
-                    className:
-                        "quantum-progress-panel"
-                }
-            );
+        return header;
 
-        const progressHeading =
-            this.createElement(
-                "h2",
-                {
-                    text:
-                        "Collection Progress"
-                }
-            );
+    },
+
+    createProgressPanel() {
+
+        const panel = this.createElement(
+            "section",
+            {
+                className:
+                    "quantum-progress-panel"
+            }
+        );
+
+        panel.appendChild(
+            this.createElement("h2", {
+                text:
+                    "Particle Inventory"
+            })
+        );
 
         this.progressElement =
             this.createElement("progress", {
@@ -250,22 +339,16 @@ const SubatomicAssemblyUI = {
         this.progressElement.max = 15;
 
         this.progressTextElement =
-            this.createElement(
-                "p",
-                {
-                    className:
-                        "quantum-progress-text"
-                }
-            );
+            this.createElement("p", {
+                className:
+                    "quantum-progress-text"
+            });
 
         const counterGrid =
-            this.createElement(
-                "div",
-                {
-                    className:
-                        "quantum-counter-grid"
-                }
-            );
+            this.createElement("div", {
+                className:
+                    "quantum-counter-grid"
+            });
 
         SubatomicAssemblyManager
             .getParticleDefinitions()
@@ -285,11 +368,20 @@ const SubatomicAssemblyUI = {
                         "span",
                         {
                             className:
-                                "quantum-counter-name",
-                            text:
-                                `${definition.symbol} ${definition.name}`
+                                "quantum-counter-name"
                         }
                     );
+
+                counterName.append(
+                    this.createParticleSymbol(
+                        definition,
+                        "quantum-inline-symbol"
+                    ),
+                    this.createElement("span", {
+                        text:
+                            ` ${definition.name}`
+                    })
+                );
 
                 const counterValue =
                     this.createElement(
@@ -316,57 +408,59 @@ const SubatomicAssemblyUI = {
 
             });
 
-        progressPanel.append(
-            progressHeading,
+        panel.append(
             this.progressElement,
             this.progressTextElement,
             counterGrid
         );
 
-        const activityPanel =
-            this.createElement(
-                "section",
-                {
-                    className:
-                        "quantum-identification-panel",
-                    id:
-                        "subatomic-identification-panel"
-                }
-            );
+        return panel;
 
-        const promptLabel =
-            this.createElement(
-                "p",
-                {
-                    className:
-                        "quantum-prompt-label",
-                    text:
-                        "Identify the particle"
-                }
-            );
+    },
+
+    createActivityPanel() {
+
+        const panel = this.createElement(
+            "section",
+            {
+                className:
+                    "quantum-identification-panel",
+                id:
+                    "subatomic-identification-panel"
+            }
+        );
+
+        this.promptLabelElement =
+            this.createElement("p", {
+                className:
+                    "quantum-prompt-label"
+            });
 
         this.promptElement =
-            this.createElement(
-                "h2",
-                {
-                    id:
-                        "subatomic-prompt"
-                }
-            );
-
+            this.createElement("h2", {
+                id: "subatomic-prompt"
+            });
         this.promptElement.setAttribute(
             "tabindex",
             "-1"
         );
 
+        const fieldPanel =
+            this.createFieldPanel();
+
+        const keyboardLabel =
+            this.createElement("p", {
+                className:
+                    "quantum-keyboard-label",
+                text:
+                    "Keyboard alternative: choose a labeled particle control."
+            });
+
         const choices =
-            this.createElement(
-                "div",
-                {
-                    className:
-                        "quantum-choice-grid"
-                }
-            );
+            this.createElement("div", {
+                className:
+                    "quantum-choice-grid"
+            });
 
         SubatomicAssemblyManager
             .getParticleDefinitions()
@@ -389,58 +483,27 @@ const SubatomicAssemblyUI = {
                     "subatomic-prompt"
                 );
 
-                const symbol =
-                    this.createElement(
-                        "span",
-                        {
-                            className:
-                                "quantum-particle-symbol",
-                            text:
-                                definition.symbol
-                        }
-                    );
-
-                const name =
-                    this.createElement(
-                        "span",
-                        {
-                            className:
-                                "quantum-particle-name",
-                            text:
-                                definition.name
-                        }
-                    );
-
                 button.append(
-                    symbol,
-                    name
+                    this.createParticleSymbol(
+                        definition,
+                        "quantum-particle-symbol"
+                    ),
+                    this.createElement("span", {
+                        className:
+                            "quantum-particle-name",
+                        text: definition.name
+                    })
                 );
 
                 button.addEventListener(
                     "click",
-                    () => {
-
-                        const result =
-                            SubatomicAssemblyManager
-                                .submitAnswer(
-                                    definition.id
-                                );
-
-                        this.showFeedback(
-                            result.message,
-                            result.correct,
-                            result.reason
-                        );
-
-                        this.render();
-
-                    }
+                    () =>
+                        this.handleParticleSelection(
+                            definition.id
+                        )
                 );
 
-                choices.appendChild(
-                    button
-                );
-
+                choices.appendChild(button);
                 this.choiceElements.set(
                     definition.id,
                     button
@@ -449,37 +512,111 @@ const SubatomicAssemblyUI = {
             });
 
         this.feedbackElement =
-            this.createElement(
-                "p",
-                {
-                    className:
-                        "quantum-feedback",
-                    id:
-                        "subatomic-feedback"
-                }
-            );
-
+            this.createElement("p", {
+                className:
+                    "quantum-feedback",
+                id:
+                    "subatomic-feedback"
+            });
         this.feedbackElement.setAttribute(
             "aria-live",
             "polite"
         );
 
-        activityPanel.append(
-            promptLabel,
+        panel.append(
+            this.promptLabelElement,
             this.promptElement,
+            fieldPanel,
+            keyboardLabel,
             choices,
             this.feedbackElement
         );
 
-        const referencePanel =
-            this.createReferencePanel();
+        return panel;
 
-        this.rootElement.append(
-            header,
-            progressPanel,
-            activityPanel,
-            referencePanel
+    },
+
+    createFieldPanel() {
+
+        const panel = this.createElement(
+            "div",
+            {
+                className:
+                    "quantum-field-panel"
+            }
         );
+
+        const canvasShell =
+            this.createElement("div", {
+                className:
+                    "quantum-canvas-shell"
+            });
+
+        this.canvasElement =
+            this.createElement("canvas", {
+                id: "particleCanvas",
+                className:
+                    "quantum-particle-canvas"
+            });
+
+        this.canvasElement.width = 800;
+        this.canvasElement.height = 420;
+        this.canvasElement.setAttribute(
+            "role",
+            "application"
+        );
+
+        canvasShell.appendChild(
+            this.canvasElement
+        );
+
+        const legend =
+            this.createElement("div", {
+                className:
+                    "quantum-field-legend"
+            });
+
+        SubatomicAssemblyManager
+            .getParticleDefinitions()
+            .forEach(definition => {
+
+                const item =
+                    this.createElement(
+                        "span",
+                        {
+                            className:
+                                `quantum-legend-item quantum-legend-item--${definition.id}`
+                        }
+                    );
+
+                item.append(
+                    this.createParticleSymbol(
+                        definition,
+                        "quantum-inline-symbol"
+                    ),
+                    this.createElement("span", {
+                        text:
+                            ` ${definition.name}`
+                    })
+                );
+
+                legend.appendChild(item);
+
+            });
+
+        this.fieldHintElement =
+            this.createElement("p", {
+                className:
+                    "quantum-field-hint"
+            });
+
+        panel.append(
+            canvasShell,
+            legend,
+            this.fieldHintElement
+        );
+
+        return panel;
 
     },
 
@@ -493,12 +630,11 @@ const SubatomicAssemblyUI = {
             }
         );
 
-        const heading = this.createElement(
-            "h2",
-            {
+        panel.appendChild(
+            this.createElement("h2", {
                 text:
                     "Subatomic Reference"
-            }
+            })
         );
 
         const table = this.createElement(
@@ -509,10 +645,8 @@ const SubatomicAssemblyUI = {
             }
         );
 
-        const head =
-            this.createElement("thead");
-        const headRow =
-            this.createElement("tr");
+        const head = this.createElement("thead");
+        const headRow = this.createElement("tr");
 
         [
             "Particle",
@@ -530,8 +664,7 @@ const SubatomicAssemblyUI = {
 
         head.appendChild(headRow);
 
-        const body =
-            this.createElement("tbody");
+        const body = this.createElement("tbody");
 
         SubatomicAssemblyManager
             .getParticleDefinitions()
@@ -539,47 +672,112 @@ const SubatomicAssemblyUI = {
 
                 const row =
                     this.createElement("tr");
+                const particleCell =
+                    this.createElement("td");
 
-                [
-                    `${definition.symbol} ${definition.name}`,
-                    definition.charge,
-                    definition.location,
-                    definition.relativeMass
-                ].forEach(value => {
-                    row.appendChild(
-                        this.createElement(
-                            "td",
-                            { text: value }
-                        )
-                    );
-                });
+                particleCell.append(
+                    this.createParticleSymbol(
+                        definition,
+                        "quantum-inline-symbol"
+                    ),
+                    this.createElement("span", {
+                        text:
+                            ` ${definition.name}`
+                    })
+                );
+
+                row.append(
+                    particleCell,
+                    this.createElement("td", {
+                        text: definition.charge
+                    }),
+                    this.createElement("td", {
+                        text:
+                            definition.location
+                    }),
+                    this.createElement("td", {
+                        text:
+                            definition.relativeMass
+                    })
+                );
 
                 body.appendChild(row);
 
             });
 
         table.append(head, body);
-        panel.append(heading, table);
+        panel.appendChild(table);
 
         return panel;
 
     },
 
+    getCanvasElement() {
+        return this.canvasElement;
+    },
+
+    handleParticleSelection(particleId) {
+
+        const result =
+            SubatomicAssemblyManager
+                .collectParticle(
+                    particleId
+                );
+
+        this.showFeedback(
+            result.message,
+            result.correct,
+            result.reason
+        );
+
+        this.render();
+
+        return result;
+
+    },
+
+    handleFieldMiss() {
+
+        this.showFeedback(
+            "No particle was selected. Click or tap closer to the center of a visible particle.",
+            false,
+            "field-miss"
+        );
+
+        return false;
+
+    },
+
     subscribeToState() {
 
-        GameStateObserver.on(
+        [
             "game-state-loaded",
-            () => this.render()
-        );
-
-        GameStateObserver.on(
             "subatomic-assembly-changed",
-            () => this.render()
-        );
+            "particle-inventory-changed",
+            "quest-state-changed",
+            "game-star-awarded"
+        ].forEach(eventName => {
+            GameStateObserver.on(
+                eventName,
+                () => this.render()
+            );
+        });
 
         GameStateObserver.on(
-            "subatomic-assembly-completed",
-            () => this.render()
+            "quest-claimed",
+            payload => {
+                if (
+                    payload?.questId ===
+                    "q1_particles"
+                ) {
+                    this.showFeedback(
+                        `Reward claimed. Capacity is now ${payload.updatedCapacity} for each particle type, and Atom Lab is unlocked.`,
+                        true,
+                        "reward-claimed"
+                    );
+                    this.render();
+                }
+            }
         );
 
     },
@@ -598,11 +796,17 @@ const SubatomicAssemblyUI = {
             message ?? "";
 
         this.feedbackElement.dataset.tone =
-            reason === "activity-completed"
-                ? "completed"
-                : correct
-                    ? "correct"
-                    : "incorrect";
+            reason === "quest-ready" ||
+            reason === "reward-claimed"
+                ? "ready"
+                : reason === "field-miss" ||
+                    reason ===
+                        "capacity-reached" ||
+                    reason === "guidance"
+                    ? "guidance"
+                    : correct
+                        ? "correct"
+                        : "incorrect";
 
     },
 
@@ -618,54 +822,56 @@ const SubatomicAssemblyUI = {
         const status =
             SubatomicAssemblyManager
                 .getStatus();
+        const questStatus =
+            status.quest?.status ??
+            "in-progress";
 
-        this.statusBadgeElement.textContent =
-            status.completed
-                ? "Completed"
-                : "Available";
+        this.starElement?.classList.toggle(
+            "hidden",
+            !status.perfectGuidance
+                ?.starEarned
+        );
 
-        this.statusBadgeElement.dataset.status =
-            status.completed
-                ? "completed"
-                : "available";
+        if (questStatus === "claimable") {
+            this.statusBadgeElement
+                .textContent =
+                "Ready to Claim";
+            this.statusBadgeElement
+                .dataset.status =
+                "claimable";
+        } else if (
+            questStatus === "claimed"
+        ) {
+            this.statusBadgeElement
+                .textContent =
+                "Free Gathering";
+            this.statusBadgeElement
+                .dataset.status =
+                "harvesting";
+        } else {
+            this.statusBadgeElement
+                .textContent =
+                "Guided Activity";
+            this.statusBadgeElement
+                .dataset.status =
+                "guided";
+        }
 
         this.progressElement.max =
             status.targetTotal;
         this.progressElement.value =
             status.totalProgress;
 
-        this.progressTextElement.textContent =
-            `${status.totalProgress} of ${status.targetTotal} required particles identified`;
+        this.progressTextElement
+            .textContent =
+            `Guided identification: ${status.totalProgress} / ${status.targetTotal}`;
 
         this.counterElements.forEach(
             (element, particleId) => {
                 element.textContent =
-                    `${status.totalCollected[particleId]} / ${status.targetPerParticle}`;
+                    `${status.inventory[particleId]} / ${status.inventory.capacity}`;
             }
         );
-
-        if (status.completed) {
-            this.promptElement.textContent =
-                "Assembly complete. Atom Lab is unlocked; Hydrogen synthesis will be the next released activity.";
-
-            this.choiceElements.forEach(
-                button => {
-                    button.disabled = true;
-                }
-            );
-
-            this.showFeedback(
-                `Reward recorded: ${status.xpReward} XP and particle capacity ${status.inventory.capacity}.`,
-                true,
-                "activity-completed"
-            );
-
-            return true;
-        }
-
-        this.promptElement.textContent =
-            status.nextPrompt?.text ??
-            "Choose the matching particle.";
 
         this.choiceElements.forEach(
             button => {
@@ -673,15 +879,55 @@ const SubatomicAssemblyUI = {
             }
         );
 
-        if (
-            !this.feedbackElement.textContent
-        ) {
-            this.showFeedback(
-                "Use the scientific properties in the prompt and reference table.",
-                true,
-                "guidance"
+        this.canvasElement?.setAttribute(
+            "aria-disabled",
+            "false"
+        );
+
+        if (status.mode === "guided") {
+            this.promptLabelElement
+                .textContent =
+                "Identify the particle";
+            this.promptElement.textContent =
+                status.nextPrompt?.text ??
+                "Choose the matching particle.";
+            this.fieldHintElement
+                .textContent =
+                "Click or tap the moving particle that matches the scientific-property prompt.";
+            this.canvasElement?.setAttribute(
+                "aria-label",
+                "Animated quantum particle field. Select the particle that matches the current question."
             );
+
+            if (
+                !this.feedbackElement
+                    .textContent
+            ) {
+                this.showFeedback(
+                    "Use the scientific properties in the prompt and reference table.",
+                    true,
+                    "guidance"
+                );
+            }
+
+            return true;
         }
+
+        this.promptLabelElement.textContent =
+            "Free particle gathering";
+
+        this.promptElement.textContent =
+            questStatus === "claimable"
+                ? "Questions complete. Open the Quests drawer and claim your reward."
+                : "Collect whichever particles you need for Atom Lab.";
+
+        this.fieldHintElement.textContent =
+            "Click or tap any moving particle to harvest it. A replacement particle will enter the field.";
+
+        this.canvasElement?.setAttribute(
+            "aria-label",
+            "Animated quantum particle field. Select any particle to add it to inventory."
+        );
 
         return true;
 
@@ -691,7 +937,6 @@ const SubatomicAssemblyUI = {
 
         this.active = true;
         this.render();
-
         this.promptElement?.focus?.();
 
         return true;
@@ -701,7 +946,6 @@ const SubatomicAssemblyUI = {
     deactivate() {
 
         this.active = false;
-
         return true;
 
     }

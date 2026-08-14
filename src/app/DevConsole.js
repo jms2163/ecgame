@@ -29,6 +29,11 @@ import SubatomicAssemblyManager
 import SubatomicAssemblyUI
     from "./SubatomicAssemblyUI.js";
 import QuantumZone from "./QuantumZone.js";
+import QuantumField from "./QuantumField.js";
+import QuestCatalog from "./QuestCatalog.js";
+import QuestManager from "./QuestManager.js";
+import QuestDrawerUI
+    from "./QuestDrawerUI.js";
 import ResearchManager
     from "./ResearchManager.js";
 import CellSystemManager
@@ -67,6 +72,10 @@ const DevConsole = {
             SubatomicAssemblyManager,
             SubatomicAssemblyUI,
             QuantumZone,
+            QuantumField,
+            QuestCatalog,
+            QuestManager,
+            QuestDrawerUI,
             ResearchManager,
             CellSystemManager,
             OrganelleView,

@@ -37,7 +37,13 @@ const gameState = {
                 capacity: 5,
                 proton: 0,
                 neutron: 0,
-                electron: 0
+                electron: 0,
+
+                lifetimeCollected: {
+                    proton: 0,
+                    neutron: 0,
+                    electron: 0
+                }
             }
         },
 
@@ -59,7 +65,13 @@ const gameState = {
         },
 
         certifications: [],
-        quests: [],
+        quests: {
+            q1_particles: {
+                status: "in-progress",
+                readyAtMs: null,
+                claimedAtMs: null
+            }
+        },
         journal: []
 
     },
@@ -107,14 +119,22 @@ const gameState = {
                     activityId:
                         "q1_particles",
 
-                    totalCollected: {
+                    guidedCollected: {
                         proton: 0,
                         neutron: 0,
                         electron: 0
                     },
 
-                    completed: false,
-                    completedAtMs: null
+                    guidanceCompletedAtMs:
+                        null,
+
+                    // A wrong particle selection makes
+                    // the first guided run ineligible for
+                    // its exceptional-work star.
+                    incorrectGuidedSelections:
+                        0,
+                    perfectGuidanceEligible:
+                        true
                 }
             }
         },
@@ -168,7 +188,7 @@ const gameState = {
         difficulty: "normal"
     },
 
-    saveVersion: "1.3"
+    saveVersion: "1.5"
 
 };
 

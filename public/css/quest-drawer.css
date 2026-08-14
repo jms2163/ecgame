@@ -1,0 +1,247 @@
+/* --------------------------------------------------
+   Global quest drawer
+-------------------------------------------------- */
+
+.quest-drawer {
+    position: relative;
+    z-index: 200;
+    align-self: flex-end;
+    width: min(330px, 100%);
+    margin-top: 6px;
+    color: #f4f7f9;
+    font-family: monospace;
+}
+
+.quest-drawer-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 9px;
+    width: 100%;
+    padding: 7px 10px;
+    color: #f4f7f9;
+    background: #26323b;
+    border: 1px solid #64727d;
+    border-radius: 5px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.quest-drawer-toggle:hover,
+.quest-drawer-toggle:focus-visible {
+    background: #33434f;
+    border-color: #a9b7c1;
+    outline: none;
+}
+
+.quest-drawer-count {
+    display: inline-grid;
+    place-items: center;
+    min-width: 20px;
+    min-height: 20px;
+    margin-left: auto;
+    color: #162129;
+    background: #dfe6ea;
+    border-radius: 999px;
+    font-size: 10px;
+}
+
+.quest-drawer-marker {
+    color: #c7d1d8;
+}
+
+@keyframes quest-ready-pulse {
+    0%,
+    100% {
+        background: #26323b;
+        border-color: #52bf78;
+        box-shadow: 0 0 0
+            rgba(82, 191, 120, 0);
+    }
+
+    50% {
+        background: #214531;
+        border-color: #86e5a6;
+        box-shadow: 0 0 14px
+            rgba(82, 191, 120, 0.72);
+    }
+}
+
+.quest-drawer-toggle--claimable {
+    animation:
+        quest-ready-pulse 1.8s
+        ease-in-out infinite;
+}
+
+.quest-drawer-panel {
+    position: absolute;
+    top: calc(100% + 5px);
+    right: 0;
+    width: 100%;
+    max-height: min(470px, 70vh);
+    box-sizing: border-box;
+    overflow-y: auto;
+    padding: 12px;
+    background: #1c252c;
+    border: 1px solid #64727d;
+    border-radius: 6px;
+    box-shadow: 0 12px 28px
+        rgba(0, 0, 0, 0.4);
+}
+
+.quest-drawer-panel[hidden] {
+    display: none;
+}
+
+.quest-drawer-panel h2 {
+    margin: 0 0 10px;
+    color: #ffffff;
+    font-size: 15px;
+}
+
+.quest-drawer-list {
+    display: grid;
+    gap: 10px;
+}
+
+.quest-card {
+    padding: 11px;
+    background: #27343d;
+    border: 1px solid #53626d;
+    border-left: 4px solid #69a9d0;
+    border-radius: 5px;
+}
+
+.quest-card--claimable {
+    border-color: #52bf78;
+    border-left-color: #52bf78;
+}
+
+.quest-card header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.quest-card-category {
+    padding: 2px 5px;
+    color: #d8e8f2;
+    background: #354754;
+    border-radius: 3px;
+    font-size: 9px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.quest-card h3 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 13px;
+}
+
+.quest-card-description,
+.quest-card-rewards,
+.quest-drawer-empty,
+.quest-drawer-feedback {
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.quest-card-description {
+    margin: 9px 0;
+    color: #d1d9de;
+}
+
+.quest-objectives {
+    display: grid;
+    gap: 5px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.quest-objective {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    color: #c5cfd5;
+    font-size: 11px;
+}
+
+.quest-objective--complete {
+    color: #86e5a6;
+}
+
+.quest-card-rewards {
+    margin: 10px 0;
+    padding: 7px;
+    color: #e6edf1;
+    background: #1f2a31;
+    border-radius: 4px;
+}
+
+.quest-claim-button {
+    width: 100%;
+    padding: 7px;
+    color: #ffffff;
+    background: #287b47;
+    border: 1px solid #52bf78;
+    border-radius: 4px;
+    font: inherit;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.quest-claim-button:hover:not(:disabled),
+.quest-claim-button:focus-visible:not(:disabled) {
+    background: #329858;
+    outline: none;
+}
+
+.quest-claim-button:disabled {
+    color: #9aa6ad;
+    background: #303b42;
+    border-color: #59666f;
+    cursor: not-allowed;
+}
+
+.quest-drawer-empty {
+    margin: 0;
+    color: #c5cfd5;
+}
+
+.quest-drawer-feedback {
+    min-height: 16px;
+    margin: 9px 0 0;
+    color: #c5cfd5;
+}
+
+.quest-drawer-feedback[data-tone="success"] {
+    color: #86e5a6;
+}
+
+.quest-drawer-feedback[data-tone="error"] {
+    color: #ff9aa5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .quest-drawer-toggle--claimable {
+        animation: none;
+        background: #214531;
+        border-color: #86e5a6;
+    }
+}
+
+@media (max-width: 700px) {
+    .quest-drawer {
+        align-self: stretch;
+        width: 100%;
+    }
+
+    .quest-drawer-panel {
+        position: static;
+        margin-top: 5px;
+    }
+}

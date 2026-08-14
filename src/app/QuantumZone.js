@@ -7,6 +7,7 @@ import SubatomicAssemblyManager
     from "./SubatomicAssemblyManager.js";
 import SubatomicAssemblyUI
     from "./SubatomicAssemblyUI.js";
+import QuantumField from "./QuantumField.js";
 
 const QuantumZone = {
 
@@ -32,6 +33,29 @@ const QuantumZone = {
             );
         }
 
+        QuantumField.initialize({
+            canvasElement:
+                SubatomicAssemblyUI
+                    .getCanvasElement(),
+
+            onParticleSelected:
+                particleId =>
+                    SubatomicAssemblyUI
+                        .handleParticleSelection(
+                            particleId
+                        ),
+
+            onFieldMiss:
+                () =>
+                    SubatomicAssemblyUI
+                        .handleFieldMiss(),
+
+            getActivityStatus:
+                () =>
+                    SubatomicAssemblyManager
+                        .getStatus()
+        });
+
         this.initialized = true;
 
         console.log(
@@ -51,6 +75,7 @@ const QuantumZone = {
         this.active = true;
 
         SubatomicAssemblyUI.activate();
+        QuantumField.activate();
 
         console.log(
             "QuantumZone.activate() called"
@@ -68,6 +93,7 @@ const QuantumZone = {
 
         this.active = false;
 
+        QuantumField.deactivate();
         SubatomicAssemblyUI.deactivate();
 
         console.log(

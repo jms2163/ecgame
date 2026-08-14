@@ -50,12 +50,26 @@ const ParticleInventoryManager = {
                 capacity: DEFAULT_CAPACITY,
                 proton: 0,
                 neutron: 0,
-                electron: 0
+                electron: 0,
+                lifetimeCollected: {
+                    proton: 0,
+                    neutron: 0,
+                    electron: 0
+                }
             };
         }
 
         const particles =
             resources.particles;
+
+        if (
+            !particles.lifetimeCollected ||
+            typeof particles
+                .lifetimeCollected !==
+                "object"
+        ) {
+            particles.lifetimeCollected = {};
+        }
 
         if (
             !Number.isInteger(
@@ -87,6 +101,30 @@ const ParticleInventoryManager = {
                         particles.capacity;
                 }
 
+                const lifetime =
+                    particles
+                        .lifetimeCollected[
+                            particleId
+                        ];
+
+                particles
+                    .lifetimeCollected[
+                        particleId
+                    ] =
+                        Number.isInteger(
+                            lifetime
+                        ) &&
+                        lifetime >= 0
+                            ? Math.max(
+                                lifetime,
+                                particles[
+                                    particleId
+                                ]
+                            )
+                            : particles[
+                                particleId
+                            ];
+
             }
         );
 
@@ -103,7 +141,11 @@ const ParticleInventoryManager = {
             capacity: particles.capacity,
             proton: particles.proton,
             neutron: particles.neutron,
-            electron: particles.electron
+            electron: particles.electron,
+            lifetimeCollected: {
+                ...particles
+                    .lifetimeCollected
+            }
         };
 
     },
@@ -167,6 +209,9 @@ const ParticleInventoryManager = {
         }
 
         particles[particleId] += added;
+        particles.lifetimeCollected[
+            particleId
+        ] += added;
 
         GameStateObserver.notify(
             "particle-inventory-changed",
@@ -176,7 +221,12 @@ const ParticleInventoryManager = {
                 current:
                     particles[particleId],
                 capacity:
-                    particles.capacity
+                    particles.capacity,
+                lifetimeCollected:
+                    particles
+                        .lifetimeCollected[
+                            particleId
+                        ]
             }
         );
 
@@ -186,6 +236,11 @@ const ParticleInventoryManager = {
                 particles[particleId],
             capacity:
                 particles.capacity,
+            lifetimeCollected:
+                particles
+                    .lifetimeCollected[
+                        particleId
+                    ],
             reason: "added"
         };
 
