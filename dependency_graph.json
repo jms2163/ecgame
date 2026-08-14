@@ -1,0 +1,381 @@
+{
+  "RewardRegistryExample.js": [],
+  "ObjectiveRegistryExample.js": [],
+  "QuestManagerExample.js": [
+    "./QuestCatalog.js",
+    "./SaveManager.js",
+    "./GameStateObserver.js",
+    "./ObjectiveRegistry.js",
+    "./RewardRegistry.js"
+  ],
+  "QuestCatalogExample.js": [],
+  "src/app/PondWorld.js": [
+    "./PondTileFactory.js",
+    "./PondWorldGenerator.js"
+  ],
+  "src/app/CellMapHotspotCalibrator.js": [],
+  "src/app/CellSystemDefinitions.js": [
+    "./CellBalanceConfig.js"
+  ],
+  "src/app/CellMapLabelPreview.js": [
+    "./CellMapLayout.js"
+  ],
+  "src/app/BootstrapUI.js": [],
+  "src/app/PondWorldConfig.js": [
+    "./SeededRandom.js"
+  ],
+  "src/app/ParticleSimulationView.js": [
+    "./ParticleSimulationEngine.js",
+    "./ParticleSimulationRenderer.js"
+  ],
+  "src/app/Pond.js": [
+    "./PondNavigation.js",
+    "./PondController.js",
+    "./GameState.js"
+  ],
+  "src/app/SubatomicAssemblyUI.js": [
+    "./SubatomicAssemblyManager.js",
+    "./GameStateObserver.js",
+    "./GameStars.js",
+    "./QuantumAudioManager.js",
+    "./QuantumAutoCollectorManager.js"
+  ],
+  "src/app/CellConditionCalculator.js": [
+    "./CellEnvironmentBalanceConfig.js"
+  ],
+  "src/app/CellHealthCalculator.js": [],
+  "src/app/PondTileFactory.js": [],
+  "src/app/ExperimentAttemptReadinessEvaluator.js": [],
+  "src/app/GameState.js": [
+    "./CellSystemDefinitions.js"
+  ],
+  "src/app/PondMovementControls.js": [],
+  "src/app/CellEnvironmentBalanceConfig.js": [],
+  "src/app/ParticleSimulationEngine.js": [
+    "./ExperimentMaterialLibrary.js"
+  ],
+  "src/app/ResearchManager.js": [
+    "./GameState.js",
+    "./XPManager.js",
+    "./CellSystemManager.js",
+    "./OrganelleExperimentLibrary.js"
+  ],
+  "src/app/CellBalanceConfig.js": [],
+  "src/app/PondController.js": [
+    "./GameStateManager.js",
+    "./PondWorld.js",
+    "./PondWorldGenerator.js",
+    "./ResourceManager.js",
+    "./MicrobiomeLibrary.js",
+    "./CellCapabilityEvaluator.js"
+  ],
+  "src/app/TestGameState.js": [],
+  "src/app/GameStars.js": [
+    "./GameState.js",
+    "./GameStateObserver.js",
+    "./SaveManager.js"
+  ],
+  "src/app/OrganelleExperimentSubmissionManager.js": [
+    "./GameState.js"
+  ],
+  "src/app/Bootstrap.js": [
+    "./GameStateManager.js",
+    "./DataLoader.js",
+    "./SaveManager.js",
+    "./ZoneManager.js",
+    "./NavigationUI.js",
+    "./ZoneCatalog.js",
+    "./DevConsole.js",
+    "./ResourceManager.js",
+    "./QuestManager.js",
+    "./QuestDrawerUI.js",
+    "./QuantumAutoCollectorManager.js"
+  ],
+  "src/app/QuantumAudioManager.js": [
+    "./GameState.js",
+    "./GameStateObserver.js",
+    "./SaveManager.js"
+  ],
+  "src/app/ReflectionConceptMatcher.js": [],
+  "src/app/ZoneManager.js": [
+    "./Pond.js",
+    "./QuantumZone.js",
+    "./TestZone.js",
+    "./GameStateManager.js",
+    "./GameStateObserver.js",
+    "./ZoneCatalog.js"
+  ],
+  "src/app/PondGridView.js": [
+    "./GameStateManager.js",
+    "./PondWorld.js",
+    "./PondController.js",
+    "./PondMovementControls.js",
+    "./PondAmoebaView.js",
+    "./PondMicrobiomeSensorPane.js",
+    "./PondStatusHud.js",
+    "./ResourceManager.js",
+    "./PondSignalProbe.js",
+    "./PondPerception.js",
+    "./PondSignalProbeTooltip.js"
+  ],
+  "src/app/QuantumField.js": [
+    "./QuantumAudioManager.js",
+    "./QuantumSpawnTimingManager.js",
+    "./QuantumAutoCollectorManager.js"
+  ],
+  "src/app/PondWorldGenerator.js": [
+    "./MicrobiomeLibrary.js",
+    "./PondWorldConfig.js"
+  ],
+  "src/app/CellMapLayout.js": [],
+  "src/app/GameStateManager.js": [
+    "./GameState.js",
+    "./TestGameState.js",
+    "./GameStateObserver.js",
+    "./XPManager.js"
+  ],
+  "src/app/PondSensorInfoPanel.js": [],
+  "src/app/PondAmoebaView.js": [],
+  "src/app/QuestStatusResolver.js": [
+    "./QuestManager.js"
+  ],
+  "src/app/VersionManager.js": [],
+  "src/app/OrganelleExperimentPlacementController.js": [
+    "./ExperimentMaterialVisualLibrary.js"
+  ],
+  "src/app/ResourceManager.js": [
+    "./GameState.js"
+  ],
+  "src/app/CellSystemManager.js": [
+    "./GameState.js"
+  ],
+  "src/app/PondMicrobiomeSensorPane.js": [
+    "./GameStateManager.js",
+    "./MicrobiomeLibrary.js",
+    "./PondPerception.js",
+    "./PondSensorInfoPanel.js",
+    "./PondSignalProbe.js",
+    "./CellSystemManager.js",
+    "./CellHealthCalculator.js",
+    "./CellEnvironmentEngine.js",
+    "./CellConditionCalculator.js",
+    "./CellStatusEvaluator.js",
+    "./CellCapabilityEvaluator.js"
+  ],
+  "src/app/CellCapabilityEvaluator.js": [
+    "./GameStateManager.js"
+  ],
+  "src/app/TestZone.js": [],
+  "src/app/CellMapLabelCalibrator.js": [
+    "./CellMapLayout.js"
+  ],
+  "src/app/QuestManager.js": [
+    "./GameState.js",
+    "./GameStateObserver.js",
+    "./ObjectiveRegistry.js",
+    "./QuestCatalog.js",
+    "./RewardRegistry.js",
+    "./SaveManager.js"
+  ],
+  "src/app/QuantumAutoCollectorManager.js": [
+    "./GameState.js",
+    "./GameStateManager.js",
+    "./GameStateObserver.js",
+    "./ParticleInventoryManager.js",
+    "./SaveManager.js"
+  ],
+  "src/app/GameStateObserver.js": [],
+  "src/app/ExperimentSimulationEngine.js": [
+    "./ExperimentPlacementEvaluator.js"
+  ],
+  "src/app/SubatomicAssemblyManager.js": [
+    "./GameState.js",
+    "./GameStateObserver.js",
+    "./GameStars.js",
+    "./ParticleInventoryManager.js",
+    "./QuestManager.js",
+    "./QuantumAutoCollectorManager.js",
+    "./SaveManager.js"
+  ],
+  "src/app/CellMetricsPanel.js": [
+    "./GameStateManager.js",
+    "./CellMapLayout.js",
+    "./CellSystemManager.js",
+    "./CellHealthCalculator.js"
+  ],
+  "src/app/main.js": [
+    "./Bootstrap.js"
+  ],
+  "src/app/CellView.js": [
+    "./CellMapView.js",
+    "./CellMetricsPanel.js"
+  ],
+  "src/app/QuestCatalog.js": [],
+  "src/app/DataLoader.js": [
+    "../data/proteinLibrary.js",
+    "../data/motifLibrary.js",
+    "../data/moleculeLibrary.js"
+  ],
+  "src/app/ProblemReportManager.js": [
+    "./GameState.js"
+  ],
+  "src/app/PondNavigation.js": [
+    "./PondGridView.js",
+    "./CellView.js",
+    "./OrganelleView.js",
+    "./GameStateManager.js"
+  ],
+  "src/app/CellMapView.js": [
+    "./GameStateManager.js",
+    "./CellMapLayout.js"
+  ],
+  "src/app/OrganelleExperimentStage.js": [
+    "./OrganelleExperimentAttemptManager.js",
+    "./OrganelleExperimentPlacementController.js",
+    "./ExperimentStageDefinitionResolver.js",
+    "./ExperimentPlacementEvaluator.js",
+    "./ParticleSimulationEngine.js",
+    "./ParticleSimulationView.js",
+    "./ResearchManager.js",
+    "./OrganelleExperimentSubmissionManager.js",
+    "./SaveManager.js",
+    "./ProblemReportManager.js"
+  ],
+  "src/app/OrganelleExperimentLibrary.js": [],
+  "src/app/CellEnvironmentEngine.js": [
+    "./CellEnvironmentBalanceConfig.js"
+  ],
+  "src/app/ExperimentMaterialVisualLibrary.js": [],
+  "src/app/PondPerception.js": [
+    "./GameStateManager.js",
+    "./PondWorld.js"
+  ],
+  "src/app/QuantumZone.js": [
+    "./SubatomicAssemblyManager.js",
+    "./SubatomicAssemblyUI.js",
+    "./QuantumField.js",
+    "./QuantumAudioManager.js",
+    "./QuantumSpawnTimingManager.js"
+  ],
+  "src/app/PondStatusHud.js": [],
+  "src/app/ExperimentMaterialLibrary.js": [],
+  "src/app/OrganelleExperimentPanel.js": [
+    "./CellMapLayout.js",
+    "./OrganelleExperimentLibrary.js",
+    "./ResearchManager.js",
+    "./OrganelleExperimentSubmissionManager.js"
+  ],
+  "src/app/ZoneCatalog.js": [],
+  "src/app/OrganelleExperimentAttemptManager.js": [],
+  "src/app/DevConsole.js": [
+    "./GameStateManager.js",
+    "./ZoneManager.js",
+    "./NavigationUI.js",
+    "./ZoneCatalog.js",
+    "./ZoneStatusResolver.js",
+    "./SaveManager.js",
+    "./VersionManager.js",
+    "./PondWorld.js",
+    "./PondController.js",
+    "./PondPerception.js",
+    "./PondWorldGenerator.js",
+    "./SeededRandom.js",
+    "./PondWorldConfig.js",
+    "./ResourceManager.js",
+    "./XPManager.js",
+    "./ParticleInventoryManager.js",
+    "./GameStars.js",
+    "./SubatomicAssemblyManager.js",
+    "./SubatomicAssemblyUI.js",
+    "./QuantumZone.js",
+    "./QuantumField.js",
+    "./QuantumAudioManager.js",
+    "./QuantumSpawnTimingManager.js",
+    "./QuantumAutoCollectorManager.js",
+    "./QuestCatalog.js",
+    "./QuestManager.js",
+    "./ObjectiveRegistry.js",
+    "./RewardRegistry.js",
+    "./QuestDrawerUI.js",
+    "./QuestStatusResolver.js",
+    "./ResearchManager.js",
+    "./CellSystemManager.js",
+    "./OrganelleView.js",
+    "./OrganelleExperimentStage.js",
+    "./OrganelleExperimentSubmissionManager.js",
+    "./ExperimentPlacementEvaluator.js",
+    "./OrganelleExperimentLibrary.js"
+  ],
+  "src/app/OrganelleView.js": [
+    "./OrganelleExperimentPanel.js",
+    "./OrganelleExperimentStage.js"
+  ],
+  "src/app/PondSignalProbe.js": [],
+  "src/app/ZoneStatusResolver.js": [
+    "./ZoneCatalog.js",
+    "./GameStateManager.js"
+  ],
+  "src/app/ExperimentActionLibrary.js": [],
+  "src/app/ParticleSimulationRenderer.js": [
+    "./ExperimentMaterialVisualLibrary.js"
+  ],
+  "src/app/SeededRandom.js": [],
+  "src/app/ExperimentLabelLibrary.js": [],
+  "src/app/ExperimentPlacementEvaluator.js": [
+    "./ReflectionConceptMatcher.js"
+  ],
+  "src/app/CellStatusEvaluator.js": [],
+  "src/app/ParticleInventoryManager.js": [
+    "./GameState.js",
+    "./GameStateObserver.js"
+  ],
+  "src/app/ExperimentStageDefinitionResolver.js": [
+    "./ExperimentActionLibrary.js",
+    "./ExperimentLabelLibrary.js",
+    "./ExperimentMaterialLibrary.js"
+  ],
+  "src/app/SaveManager.js": [
+    "./GameState.js",
+    "./VersionManager.js",
+    "./GameStateObserver.js"
+  ],
+  "src/app/QuestDrawerUI.js": [
+    "./GameStateObserver.js",
+    "./NavigationUI.js",
+    "./QuestManager.js",
+    "./QuestStatusResolver.js",
+    "./ZoneCatalog.js"
+  ],
+  "src/app/NavigationUI.js": [
+    "./ZoneCatalog.js",
+    "./ZoneStatusResolver.js",
+    "./ZoneManager.js",
+    "./GameStateObserver.js"
+  ],
+  "src/app/QuantumSpawnTimingManager.js": [
+    "./GameState.js",
+    "./GameStateObserver.js",
+    "./SaveManager.js"
+  ],
+  "src/app/MicrobiomeLibrary.js": [],
+  "src/app/ObjectiveRegistry.js": [
+    "./GameState.js",
+    "./ParticleInventoryManager.js"
+  ],
+  "src/app/RewardRegistry.js": [
+    "./GameStateManager.js",
+    "./ParticleInventoryManager.js",
+    "./QuantumAutoCollectorManager.js",
+    "./XPManager.js"
+  ],
+  "src/app/PondSignalProbeTooltip.js": [
+    "./MicrobiomeLibrary.js"
+  ],
+  "src/app/XPManager.js": [
+    "./GameState.js"
+  ],
+  "src/data/proteinLibrary.js": [],
+  "src/data/motifLibrary.js": [],
+  "src/data/moleculeLibrary.js": [],
+  "src/data/monosaccharideLibrary.js": []
+}
