@@ -39,6 +39,8 @@ import QuestCatalog from "./QuestCatalog.js";
 import QuestManager from "./QuestManager.js";
 import QuestDrawerUI
     from "./QuestDrawerUI.js";
+import QuestStatusResolver
+    from "./QuestStatusResolver.js";
 import ResearchManager
     from "./ResearchManager.js";
 import CellSystemManager
@@ -84,6 +86,7 @@ const DevConsole = {
             QuestCatalog,
             QuestManager,
             QuestDrawerUI,
+            QuestStatusResolver,
             ResearchManager,
             CellSystemManager,
             OrganelleView,

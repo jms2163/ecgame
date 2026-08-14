@@ -15,4 +15,10 @@
     --color-nav-border: #310d54;
     --color-nav-accent: #df80ff;
     --color-nav-text: #f7efff;
+
+    /* Global Quest navigation-card states */
+    --color-quest-claim: #5ee38d;
+    --color-quest-new: #72d7ff;
+    --color-quest-progress: #c8c8d0;
+    --color-quest-history: #b7a7c9;
 }

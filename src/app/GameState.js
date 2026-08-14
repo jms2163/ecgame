@@ -69,7 +69,8 @@ const gameState = {
             q1_particles: {
                 status: "in-progress",
                 readyAtMs: null,
-                claimedAtMs: null
+                claimedAtMs: null,
+                viewedAtMs: null
             }
         },
         journal: []
@@ -205,7 +206,7 @@ const gameState = {
         difficulty: "normal"
     },
 
-    saveVersion: "1.7"
+    saveVersion: "1.8"
 
 };
 

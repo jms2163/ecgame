@@ -14,6 +14,7 @@ const NavigationUI = {
     navigationElement: null,
     listElement: null,
     messageElement: null,
+    utilityControls: new Map(),
 
     initialize() {
 
@@ -103,6 +104,75 @@ const NavigationUI = {
 
         this.messageElement.textContent =
             message;
+
+    },
+
+    // --------------------------------------------------
+    // Register a global navigation control that is not a
+    // zone. Registered controls are always rendered after
+    // every ZoneCatalog entry, in registration order.
+    // --------------------------------------------------
+    registerUtilityControl(
+        controlId,
+        element
+    ) {
+
+        if (
+            typeof controlId !== "string" ||
+            controlId.trim() === "" ||
+            !element ||
+            element.nodeType !== 1
+        ) {
+            console.warn(
+                "NavigationUI: invalid utility control registration"
+            );
+
+            return false;
+        }
+
+        this.utilityControls.set(
+            controlId,
+            element
+        );
+
+        if (this.initialized) {
+            this.refresh();
+        }
+
+        return true;
+
+    },
+
+    unregisterUtilityControl(controlId) {
+
+        const element =
+            this.utilityControls.get(
+                controlId
+            );
+
+        if (!element) {
+            return false;
+        }
+
+        this.utilityControls.delete(
+            controlId
+        );
+
+        element.remove();
+
+        if (this.initialized) {
+            this.refresh();
+        }
+
+        return true;
+
+    },
+
+    getUtilityControlIds() {
+
+        return [
+            ...this.utilityControls.keys()
+        ];
 
     },
 
@@ -235,8 +305,13 @@ const NavigationUI = {
                 )
                 .filter(Boolean);
 
+        const utilityControls = [
+            ...this.utilityControls.values()
+        ];
+
         this.listElement.replaceChildren(
-            ...buttons
+            ...buttons,
+            ...utilityControls
         );
 
         return true;
