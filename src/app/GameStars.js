@@ -1,146 +1,457 @@
-import CellSystemDefinitions from "./CellSystemDefinitions.js";
-
-const gameState = {
-
-    player: {
-        id: null,
-        name: "",
-
-        level: 1,
-        xp: 0,
-
-        currentZone: "pond",
-        currentZoom: 0
-    },
-
-    // --------------------------------------------------
-// Player cell biological systems
 // --------------------------------------------------
-cellSystems:
-    CellSystemDefinitions.createStartingCellSystems(),
+// GameStars.js
+// Shared exceptional-work star registry and UI helper
+// --------------------------------------------------
 
-  registry: {
+import gameState from "./GameState.js";
+import GameStateObserver
+    from "./GameStateObserver.js";
+import SaveManager from "./SaveManager.js";
 
-    resources: {
-        atp: {
-            current: 50,
-            maximum: 50
-        }
-    },
+const STAR_CHARACTER = "\u2605";
+const DEFAULT_TOOLTIP = "Exceptional Work!";
+const STYLESHEET_ID = "game-stars-styles";
+const STYLESHEET_PATH =
+    "./public/css/game-stars.css";
 
-    inventory: [],
+const GameStars = {
 
-    discoveries: [
-    "plasma_membrane",
-    "cytoskeleton",
-    "glycoproteins"
-],
+    initialized: false,
+    tooltipSequence: 0,
 
-    // --------------------------------------------------
-    // One-time research outcomes
-    // --------------------------------------------------
-    achievements: {},
+    initialize() {
 
-    research: {
+        this.ensureRegistry();
+        this.ensureStylesheet();
 
-        // Example future record:
-        // water_passive_diffusion: {
-        //     completedAtMs: 1780000000000
-        // }
-        completedExperiments: {},
-
-        // Every scored submission, grouped by experiment ID.
-        experimentSubmissions: {},
-
-        // Highest score reached for each experiment.
-        bestExperimentScores: {},
-
-        // One exceptional-work star per experiment.
-        // Future BadgeManager derives its total from this map.
-        stars: {}
-
-    },
-
-    certifications: [],
-    quests: [],
-    journal: []
-
-},
-
-    zones: {
-
-        pond: {
-            unlocked: true,
-
-            state: {
-
-                player: {
-                    x: 0,
-                    y: 0,
-                    anchored: false
-                },
-                movement: {
-    atpCost: 10
-},
-
-                worldSeed: null,
-
-                world: {
-                    tiles: {}
+        if (!this.initialized) {
+            GameStateObserver.on(
+                "game-state-loaded",
+                () => {
+                    this.ensureRegistry();
+                    this.refresh();
                 }
+            );
 
-            }
-        },
+            GameStateObserver.on(
+                "game-star-awarded",
+                () => this.refresh()
+            );
 
-        quantum: {
-            unlocked: false,
-            state: {}
-        },
-
-        atomLab: {
-            unlocked: false,
-            state: {}
-        },
-
-        atomizer: {
-            unlocked: false,
-            state: {}
-        },
-
-        molecularizer: {
-            unlocked: false,
-            state: {}
-        },
-
-        macromolecularizer: {
-            unlocked: false,
-            state: {}
-        },
-
-        polymerizer: {
-            unlocked: false,
-            state: {}
-        },
-
-        metabolism: {
-            unlocked: false,
-            state: {}
-        },
-
-        genetics: {
-            unlocked: false,
-            state: {}
+            this.initialized = true;
         }
 
+        return true;
+
     },
 
-    settings: {
-        volume: 1,
-        difficulty: "normal"
+    ensureRegistry() {
+
+        gameState.registry ??= {};
+        gameState.registry.research ??= {};
+
+        if (
+            !gameState.registry.research
+                .stars ||
+            typeof gameState.registry.research
+                .stars !== "object" ||
+            Array.isArray(
+                gameState.registry.research
+                    .stars
+            )
+        ) {
+            gameState.registry.research
+                .stars = {};
+        }
+
+        return gameState.registry.research
+            .stars;
+
     },
 
-    saveVersion: "1.0"
+    ensureStylesheet() {
+
+        if (
+            typeof document === "undefined" ||
+            document.getElementById(
+                STYLESHEET_ID
+            )
+        ) {
+            return false;
+        }
+
+        const stylesheet =
+            document.createElement("link");
+
+        stylesheet.id = STYLESHEET_ID;
+        stylesheet.rel = "stylesheet";
+        stylesheet.href =
+            STYLESHEET_PATH;
+
+        document.head.appendChild(
+            stylesheet
+        );
+
+        return true;
+
+    },
+
+    normalizeStarId(starId) {
+
+        return typeof starId === "string"
+            ? starId.trim()
+            : "";
+
+    },
+
+    hasStar(starId) {
+
+        const normalizedId =
+            this.normalizeStarId(starId);
+
+        if (!normalizedId) {
+            return false;
+        }
+
+        return Boolean(
+            this.ensureRegistry()[
+                normalizedId
+            ]
+        );
+
+    },
+
+    getStar(starId) {
+
+        const normalizedId =
+            this.normalizeStarId(starId);
+
+        if (!normalizedId) {
+            return null;
+        }
+
+        const tooltipText =
+            typeof tooltip === "string" &&
+            tooltip.trim()
+                ? tooltip.trim()
+                : DEFAULT_TOOLTIP;
+
+        const star =
+            this.ensureRegistry()[
+                normalizedId
+            ] ?? null;
+
+        return star
+            ? structuredClone(star)
+            : null;
+
+    },
+
+    getAllStars() {
+
+        return structuredClone(
+            this.ensureRegistry()
+        );
+
+    },
+
+    getStarCount() {
+
+        return Object.keys(
+            this.ensureRegistry()
+        ).length;
+
+    },
+
+    awardStar(
+        starId,
+        {
+            awardedAtMs = Date.now(),
+            reason = "exceptional-work",
+            ...evidence
+        } = {},
+        {
+            save = true
+        } = {}
+    ) {
+
+        const normalizedId =
+            this.normalizeStarId(starId);
+
+        if (!normalizedId) {
+            return {
+                awarded: false,
+                starId: normalizedId,
+                reason: "invalid-star-id",
+                star: null,
+                saveSucceeded: false
+            };
+        }
+
+        const stars =
+            this.ensureRegistry();
+
+        if (stars[normalizedId]) {
+            return {
+                awarded: false,
+                starId: normalizedId,
+                reason: "already-awarded",
+                star:
+                    structuredClone(
+                        stars[normalizedId]
+                    ),
+                saveSucceeded: true
+            };
+        }
+
+        const star = {
+            awardedAtMs:
+                Number.isFinite(
+                    awardedAtMs
+                )
+                    ? awardedAtMs
+                    : Date.now(),
+            reason:
+                typeof reason === "string" &&
+                reason.trim()
+                    ? reason.trim()
+                    : "exceptional-work",
+            ...structuredClone(evidence)
+        };
+
+        stars[normalizedId] = star;
+
+        const saveSucceeded =
+            save
+                ? SaveManager.save()
+                : true;
+
+        GameStateObserver.notify(
+            "game-star-awarded",
+            {
+                starId: normalizedId,
+                star:
+                    structuredClone(star),
+                saveSucceeded
+            }
+        );
+
+        this.refresh();
+
+        return {
+            awarded: true,
+            starId: normalizedId,
+            reason: "awarded",
+            star:
+                structuredClone(star),
+            saveSucceeded
+        };
+
+    },
+
+    createStarElement(
+        starId,
+        {
+            tooltip = DEFAULT_TOOLTIP,
+            className = "",
+            showWhenUnearned = false
+        } = {}
+    ) {
+
+        if (typeof document === "undefined") {
+            return null;
+        }
+
+        this.initialize();
+
+        const normalizedId =
+            this.normalizeStarId(starId);
+
+        if (!normalizedId) {
+            return null;
+        }
+
+        this.tooltipSequence += 1;
+
+        const tooltipId =
+            `game-star-tooltip-${this.tooltipSequence}`;
+
+        const starElement =
+            document.createElement("span");
+
+        starElement.className = [
+            "game-star",
+            className
+        ].filter(Boolean).join(" ");
+
+        starElement.dataset.gameStarId =
+            normalizedId;
+        starElement.dataset.showWhenUnearned =
+            String(showWhenUnearned);
+        starElement.tabIndex = 0;
+        starElement.setAttribute(
+            "role",
+            "img"
+        );
+        starElement.setAttribute(
+            "aria-label",
+            tooltipText
+        );
+        starElement.setAttribute(
+            "aria-describedby",
+            tooltipId
+        );
+
+        const symbolElement =
+            document.createElement("span");
+
+        symbolElement.className =
+            "game-star__symbol";
+        symbolElement.textContent =
+            STAR_CHARACTER;
+        symbolElement.setAttribute(
+            "aria-hidden",
+            "true"
+        );
+
+        const tooltipElement =
+            document.createElement("span");
+
+        tooltipElement.id = tooltipId;
+        tooltipElement.className =
+            "game-star__tooltip";
+        tooltipElement.textContent =
+            tooltipText;
+        tooltipElement.setAttribute(
+            "role",
+            "tooltip"
+        );
+
+        starElement.append(
+            symbolElement,
+            tooltipElement
+        );
+
+        this.refreshElement(
+            starElement
+        );
+
+        return starElement;
+
+    },
+
+    refreshElement(starElement) {
+
+        const starId =
+            starElement?.dataset
+                ?.gameStarId;
+
+        if (!starId) {
+            return false;
+        }
+
+        const earned =
+            this.hasStar(starId);
+        const showWhenUnearned =
+            starElement.dataset
+                .showWhenUnearned ===
+                "true";
+
+        starElement.hidden =
+            !earned &&
+            !showWhenUnearned;
+        starElement.dataset.earned =
+            String(earned);
+
+        return earned;
+
+    },
+
+    refresh(root = null) {
+
+        if (typeof document === "undefined") {
+            return 0;
+        }
+
+        const searchRoot =
+            root ?? document;
+
+        if (
+            typeof searchRoot
+                .querySelectorAll !==
+                "function"
+        ) {
+            return 0;
+        }
+
+        const starElements =
+            searchRoot.querySelectorAll(
+                "[data-game-star-id]"
+            );
+
+        starElements.forEach(
+            starElement =>
+                this.refreshElement(
+                    starElement
+                )
+        );
+
+        return starElements.length;
+
+    },
+
+    mountStar(
+        container,
+        starId,
+        options = {}
+    ) {
+
+        if (
+            !container ||
+            typeof container.appendChild !==
+                "function"
+        ) {
+            return null;
+        }
+
+        const normalizedId =
+            this.normalizeStarId(starId);
+
+        const existing =
+            Array.from(
+                container.querySelectorAll?.(
+                    "[data-game-star-id]"
+                ) ?? []
+            ).find(
+                element =>
+                    element.dataset
+                        .gameStarId ===
+                        normalizedId
+            );
+
+        if (existing) {
+            this.refreshElement(existing);
+            return existing;
+        }
+
+        const starElement =
+            this.createStarElement(
+                normalizedId,
+                options
+            );
+
+        if (!starElement) {
+            return null;
+        }
+
+        container.appendChild(
+            starElement
+        );
+
+        return starElement;
+
+    }
 
 };
 
-export default gameState;
+export default GameStars;

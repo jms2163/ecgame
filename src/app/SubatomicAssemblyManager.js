@@ -1,6 +1,6 @@
 // --------------------------------------------------
 // SubatomicAssemblyManager.js
-// Owns Subatomic Assembly progress and rewards
+// Owns guided Q1 identification and free harvesting
 // --------------------------------------------------
 
 import gameState from "./GameState.js";
@@ -10,13 +10,12 @@ import GameStateObserver
     from "./GameStateObserver.js";
 import ParticleInventoryManager
     from "./ParticleInventoryManager.js";
-import XPManager from "./XPManager.js";
+import QuestManager from "./QuestManager.js";
 import SaveManager from "./SaveManager.js";
 
 const ACTIVITY_ID = "q1_particles";
+const STAR_ID = "q1_particles";
 const TARGET_PER_PARTICLE = 5;
-const XP_REWARD = 50;
-const CAPACITY_REWARD = 2;
 
 const PARTICLE_ORDER = Object.freeze([
     "proton",
@@ -28,7 +27,10 @@ const PARTICLE_DEFINITIONS = Object.freeze({
     proton: Object.freeze({
         id: "proton",
         name: "Proton",
-        symbol: "pâº",
+        symbol: Object.freeze({
+            base: "p",
+            charge: "+"
+        }),
         charge: "+1",
         location: "Nucleus",
         relativeMass: "about 1 amu",
@@ -41,7 +43,10 @@ const PARTICLE_DEFINITIONS = Object.freeze({
     neutron: Object.freeze({
         id: "neutron",
         name: "Neutron",
-        symbol: "nâ°",
+        symbol: Object.freeze({
+            base: "n",
+            charge: "0"
+        }),
         charge: "0",
         location: "Nucleus",
         relativeMass: "about 1 amu",
@@ -54,14 +59,17 @@ const PARTICLE_DEFINITIONS = Object.freeze({
     electron: Object.freeze({
         id: "electron",
         name: "Electron",
-        symbol: "eâ»",
-        charge: "âˆ’1",
+        symbol: Object.freeze({
+            base: "e",
+            charge: "-"
+        }),
+        charge: "-1",
         location: "Electron cloud",
         relativeMass: "about 1/1836 amu",
         prompt:
-            "Select the âˆ’1 particle found in the electron cloud with much less mass than a proton.",
+            "Select the -1 particle found in the electron cloud with much less mass than a proton.",
         correction:
-            "An electron has a âˆ’1 charge and occupies the electron cloud outside the nucleus."
+            "An electron has a -1 charge and occupies the electron cloud outside the nucleus."
     })
 });
 
@@ -71,8 +79,10 @@ const SubatomicAssemblyManager = {
 
         ParticleInventoryManager
             .initialize();
+        QuestManager.initialize();
 
         this.ensureState();
+        this.reconcileQuestState();
 
         return true;
 
@@ -91,17 +101,6 @@ const SubatomicAssemblyManager = {
 
         quantumZone.state ??= {};
 
-        const defaultState = {
-            activityId: ACTIVITY_ID,
-            totalCollected: {
-                proton: 0,
-                neutron: 0,
-                electron: 0
-            },
-            completed: false,
-            completedAtMs: null
-        };
-
         if (
             !quantumZone.state
                 .subatomicAssembly ||
@@ -110,85 +109,254 @@ const SubatomicAssemblyManager = {
                 "object"
         ) {
             quantumZone.state
-                .subatomicAssembly =
-                defaultState;
+                .subatomicAssembly = {};
         }
 
         const state =
             quantumZone.state
                 .subatomicAssembly;
 
-        state.activityId = ACTIVITY_ID;
+        const legacyCollected =
+            state.guidedCollected ??
+            state.totalCollected ??
+            {};
 
-        if (
-            !state.totalCollected ||
-            typeof state.totalCollected !==
-                "object"
-        ) {
-            state.totalCollected = {
-                ...defaultState.totalCollected
-            };
-        }
+        state.activityId = ACTIVITY_ID;
+        state.guidedCollected ??= {};
 
         PARTICLE_ORDER.forEach(
             particleId => {
 
                 const total =
-                    state.totalCollected[
+                    legacyCollected[
                         particleId
                     ];
 
-                if (
-                    !Number.isInteger(total) ||
-                    total < 0
-                ) {
-                    state.totalCollected[
-                        particleId
-                    ] = 0;
-                } else if (
-                    total >
-                    TARGET_PER_PARTICLE
-                ) {
-                    state.totalCollected[
-                        particleId
-                    ] =
-                        TARGET_PER_PARTICLE;
-                }
+                state.guidedCollected[
+                    particleId
+                ] =
+                    Number.isInteger(total) &&
+                    total >= 0
+                        ? Math.min(
+                            total,
+                            TARGET_PER_PARTICLE
+                        )
+                        : 0;
 
             }
         );
 
-        state.completed =
-            Boolean(state.completed);
+        const guidanceComplete =
+            this.isGuidanceComplete(
+                state
+            );
 
-        if (
-            state.completed &&
-            !Number.isFinite(
-                state.completedAtMs
-            )
-        ) {
-            state.completedAtMs = null;
+        const totalProgress =
+            PARTICLE_ORDER.reduce(
+                (sum, particleId) =>
+                    sum +
+                    state.guidedCollected[
+                        particleId
+                    ],
+                0
+            );
+
+        const eligibilityWasRecorded =
+            typeof state
+                .perfectGuidanceEligible ===
+                "boolean";
+
+        state
+            .incorrectGuidedSelections =
+                Number.isInteger(
+                    state
+                        .incorrectGuidedSelections
+                ) &&
+                state
+                    .incorrectGuidedSelections >= 0
+                    ? state
+                        .incorrectGuidedSelections
+                    : 0;
+
+        if (!eligibilityWasRecorded) {
+            // A partially completed older save has no
+            // trustworthy mistake history, so do not award
+            // its star retroactively.
+            state.perfectGuidanceEligible =
+                totalProgress === 0;
         }
 
+        if (
+            state
+                .incorrectGuidedSelections > 0
+        ) {
+            state.perfectGuidanceEligible =
+                false;
+        }
+
+        const legacyCompletedAtMs =
+            Number.isFinite(
+                state.completedAtMs
+            )
+                ? state.completedAtMs
+                : null;
+
+        state.guidanceCompletedAtMs =
+            guidanceComplete
+                ? (
+                    Number.isFinite(
+                        state
+                            .guidanceCompletedAtMs
+                    )
+                        ? state
+                            .guidanceCompletedAtMs
+                        : legacyCompletedAtMs
+                )
+                : null;
+
+        delete state.totalCollected;
+        delete state.completed;
+        delete state.completedAtMs;
+
         return state;
+
+    },
+
+    ensureStarRegistry() {
+
+        gameState.registry ??= {};
+        gameState.registry.research ??= {};
+
+        if (
+            !gameState.registry.research
+                .stars ||
+            typeof gameState.registry.research
+                .stars !== "object" ||
+            Array.isArray(
+                gameState.registry.research
+                    .stars
+            )
+        ) {
+            gameState.registry.research
+                .stars = {};
+        }
+
+        return gameState.registry.research
+            .stars;
+
+    },
+
+    getStarRecord() {
+
+        const star =
+            this.ensureStarRegistry()[
+                STAR_ID
+            ] ?? null;
+
+        return star
+            ? { ...star }
+            : null;
+
+    },
+
+    awardPerfectGuidanceStar(
+        awardedAtMs = Date.now()
+    ) {
+
+        const stars =
+            this.ensureStarRegistry();
+
+        if (stars[STAR_ID]) {
+            return {
+                awarded: false,
+                star: {
+                    ...stars[STAR_ID]
+                }
+            };
+        }
+
+        stars[STAR_ID] = {
+            awardedAtMs,
+            sourceActivityId:
+                ACTIVITY_ID,
+            reason:
+                "perfect-guided-identification",
+            correctSelections:
+                TARGET_PER_PARTICLE *
+                PARTICLE_ORDER.length,
+            incorrectSelections: 0
+        };
+
+        GameStateObserver.notify(
+            "game-star-awarded",
+            {
+                starId: STAR_ID,
+                activityId: ACTIVITY_ID,
+                star: {
+                    ...stars[STAR_ID]
+                }
+            }
+        );
+
+        return {
+            awarded: true,
+            star: {
+                ...stars[STAR_ID]
+            }
+        };
+
+    },
+
+    reconcileQuestState() {
+
+        const state = this.ensureState();
+
+        if (
+            this.isGuidanceComplete(state)
+        ) {
+            QuestManager.markQuestClaimable(
+                ACTIVITY_ID,
+                state.guidanceCompletedAtMs ??
+                    Date.now()
+            );
+        }
+
+        // The released Q1 activity never completes the
+        // whole repeatable Quantum resource zone.
+        GameStateManager.setZoneCompleted(
+            "quantum",
+            false
+        );
+
+        return true;
 
     },
 
     getParticleDefinitions() {
 
         return PARTICLE_ORDER.map(
-            particleId => ({
-                ...PARTICLE_DEFINITIONS[
-                    particleId
-                ]
-            })
+            particleId => {
+                const definition =
+                    PARTICLE_DEFINITIONS[
+                        particleId
+                    ];
+
+                return {
+                    ...definition,
+                    symbol: {
+                        ...definition.symbol
+                    }
+                };
+            }
         );
 
     },
 
     getNextParticleId(state) {
 
-        if (state.completed) {
+        if (
+            this.isGuidanceComplete(state)
+        ) {
             return null;
         }
 
@@ -196,7 +364,7 @@ const SubatomicAssemblyManager = {
             PARTICLE_ORDER.reduce(
                 (sum, particleId) =>
                     sum +
-                    state.totalCollected[
+                    state.guidedCollected[
                         particleId
                     ],
                 0
@@ -209,16 +377,14 @@ const SubatomicAssemblyManager = {
         ) {
             const index =
                 (
-                    totalProgress +
-                    offset
-                ) %
-                PARTICLE_ORDER.length;
+                    totalProgress + offset
+                ) % PARTICLE_ORDER.length;
 
             const particleId =
                 PARTICLE_ORDER[index];
 
             if (
-                state.totalCollected[
+                state.guidedCollected[
                     particleId
                 ] < TARGET_PER_PARTICLE
             ) {
@@ -230,46 +396,73 @@ const SubatomicAssemblyManager = {
 
     },
 
+    isGuidanceComplete(state) {
+
+        return PARTICLE_ORDER.every(
+            particleId =>
+                state.guidedCollected[
+                    particleId
+                ] >= TARGET_PER_PARTICLE
+        );
+
+    },
+
     getStatus() {
 
-        const state =
-            this.ensureState();
-
+        const state = this.ensureState();
+        const guidanceComplete =
+            this.isGuidanceComplete(state);
         const nextParticleId =
-            this.getNextParticleId(
-                state
-            );
-
+            this.getNextParticleId(state);
         const totalProgress =
             PARTICLE_ORDER.reduce(
                 (sum, particleId) =>
                     sum +
-                    state.totalCollected[
+                    state.guidedCollected[
                         particleId
                     ],
                 0
             );
 
+        const star =
+            this.getStarRecord();
+
         return {
             activityId: ACTIVITY_ID,
+            mode: guidanceComplete
+                ? "free-harvest"
+                : "guided",
             targetPerParticle:
                 TARGET_PER_PARTICLE,
             targetTotal:
                 TARGET_PER_PARTICLE *
                 PARTICLE_ORDER.length,
             totalProgress,
-            totalCollected: {
-                ...state.totalCollected
+            guidedCollected: {
+                ...state.guidedCollected
+            },
+            guidanceComplete,
+            guidanceCompletedAtMs:
+                state
+                    .guidanceCompletedAtMs,
+            perfectGuidance: {
+                eligible:
+                    state
+                        .perfectGuidanceEligible,
+                incorrectSelections:
+                    state
+                        .incorrectGuidedSelections,
+                starEarned:
+                    Boolean(star),
+                star
             },
             inventory:
                 ParticleInventoryManager
                     .getStatus(),
-            completed: state.completed,
-            completedAtMs:
-                state.completedAtMs,
-            xpReward: XP_REWARD,
-            capacityReward:
-                CAPACITY_REWARD,
+            quest:
+                QuestManager.getQuestStatus(
+                    ACTIVITY_ID
+                ),
             nextPrompt: nextParticleId
                 ? {
                     particleId:
@@ -284,98 +477,18 @@ const SubatomicAssemblyManager = {
 
     },
 
-    isComplete(state) {
+    collectParticle(selectedParticleId) {
 
-        return PARTICLE_ORDER.every(
-            particleId =>
-                state.totalCollected[
-                    particleId
-                ] >= TARGET_PER_PARTICLE
-        );
-
-    },
-
-    completeActivity(state) {
-
-        if (state.completed) {
-            return {
-                completed: false,
-                reason: "already-completed"
-            };
-        }
-
-        state.completed = true;
-        state.completedAtMs = Date.now();
-
-        GameStateManager.setZoneCompleted(
-            "quantum",
-            true
-        );
-
-        GameStateManager.setZoneUnlocked(
-            "atomLab",
-            true
-        );
-
-        const updatedXP =
-            XPManager.addXP(XP_REWARD);
-
-        const updatedCapacity =
-            ParticleInventoryManager
-                .increaseCapacity(
-                    CAPACITY_REWARD
-                );
-
-        GameStateObserver.notify(
-            "subatomic-assembly-completed",
-            {
-                activityId: ACTIVITY_ID,
-                completedAtMs:
-                    state.completedAtMs,
-                xpAwarded: XP_REWARD,
-                atomLabUnlocked: true
-            }
-        );
-
-        return {
-            completed: true,
-            reason: "completed",
-            completedAtMs:
-                state.completedAtMs,
-            xpAwarded: XP_REWARD,
-            updatedXP,
-            capacityAwarded:
-                CAPACITY_REWARD,
-            updatedCapacity,
-            atomLabUnlocked: true
-        };
-
-    },
-
-    submitAnswer(selectedParticleId) {
-
-        const state =
-            this.ensureState();
-
-        if (state.completed) {
-            return {
-                accepted: false,
-                correct: false,
-                reason: "already-completed",
-                message:
-                    "Subatomic Assembly is already complete.",
-                status: this.getStatus()
-            };
-        }
-
-        if (
-            !PARTICLE_DEFINITIONS[
+        const definition =
+            PARTICLE_DEFINITIONS[
                 selectedParticleId
-            ]
-        ) {
+            ];
+
+        if (!definition) {
             return {
                 accepted: false,
                 correct: false,
+                collected: false,
                 reason: "unknown-particle",
                 message:
                     "Choose a proton, neutron, or electron.",
@@ -383,24 +496,68 @@ const SubatomicAssemblyManager = {
             };
         }
 
-        const expectedParticleId =
-            this.getNextParticleId(
-                state
+        const state = this.ensureState();
+        const guidanceComplete =
+            this.isGuidanceComplete(state);
+
+        if (!guidanceComplete) {
+            return this.collectGuidedParticle(
+                state,
+                selectedParticleId
             );
+        }
+
+        return this.collectFreeParticle(
+            selectedParticleId
+        );
+
+    },
+
+    collectGuidedParticle(
+        state,
+        selectedParticleId
+    ) {
+
+        const expectedParticleId =
+            this.getNextParticleId(state);
 
         if (
             selectedParticleId !==
             expectedParticleId
         ) {
+
+            state
+                .incorrectGuidedSelections +=
+                    1;
+            state.perfectGuidanceEligible =
+                false;
+
+            const saveSucceeded =
+                SaveManager.save();
+
+            GameStateObserver.notify(
+                "subatomic-assembly-changed",
+                {
+                    activityId:
+                        ACTIVITY_ID,
+                    mode: "guided",
+                    reason:
+                        "incorrect-selection",
+                    saveSucceeded
+                }
+            );
+
             return {
                 accepted: true,
                 correct: false,
+                collected: false,
                 reason: "incorrect",
                 expectedParticleId,
                 message:
                     PARTICLE_DEFINITIONS[
                         expectedParticleId
                     ].correction,
+                saveSucceeded,
                 status: this.getStatus()
             };
         }
@@ -415,26 +572,66 @@ const SubatomicAssemblyManager = {
         if (inventoryResult.added !== 1) {
             return {
                 accepted: false,
-                correct: false,
+                correct: true,
+                collected: false,
                 reason:
                     inventoryResult.reason,
                 message:
-                    "Particle storage is full. Reload the page and inspect the saved activity state before continuing.",
+                    `${PARTICLE_DEFINITIONS[expectedParticleId].name} storage is full (${inventoryResult.current} / ${inventoryResult.capacity}).`,
                 status: this.getStatus()
             };
         }
 
-        state.totalCollected[
+        state.guidedCollected[
             expectedParticleId
         ] += 1;
 
-        let completion = null;
+        let reason = "particle-collected";
+        let message =
+            `${PARTICLE_DEFINITIONS[expectedParticleId].name} collected: ${PARTICLE_DEFINITIONS[expectedParticleId].charge} charge, ${PARTICLE_DEFINITIONS[expectedParticleId].location.toLowerCase()}.`;
 
-        if (this.isComplete(state)) {
-            completion =
-                this.completeActivity(
-                    state
-                );
+        if (this.isGuidanceComplete(state)) {
+            state.guidanceCompletedAtMs =
+                Date.now();
+
+            const starResult =
+                state
+                    .perfectGuidanceEligible &&
+                state
+                    .incorrectGuidedSelections ===
+                    0
+                    ? this
+                        .awardPerfectGuidanceStar(
+                            state
+                                .guidanceCompletedAtMs
+                        )
+                    : {
+                        awarded: false,
+                        star: null
+                    };
+
+            QuestManager.markQuestClaimable(
+                ACTIVITY_ID,
+                state.guidanceCompletedAtMs
+            );
+
+            reason = "quest-ready";
+            message =
+                starResult.awarded
+                    ? "Perfect guided collection! You earned a star. Open the Quests drawer and claim the activity reward."
+                    : "Subatomic Assembly objectives complete. Open the Quests drawer and claim the reward.";
+
+            GameStateObserver.notify(
+                "subatomic-guidance-completed",
+                {
+                    activityId: ACTIVITY_ID,
+                    completedAtMs:
+                        state
+                            .guidanceCompletedAtMs,
+                    starAwarded:
+                        starResult.awarded
+                }
+            );
         }
 
         const saveSucceeded =
@@ -446,33 +643,91 @@ const SubatomicAssemblyManager = {
                 activityId: ACTIVITY_ID,
                 particleId:
                     expectedParticleId,
-                completed:
-                    state.completed,
+                mode:
+                    this.isGuidanceComplete(
+                        state
+                    )
+                        ? "free-harvest"
+                        : "guided",
                 saveSucceeded
             }
         );
 
-        const definition =
-            PARTICLE_DEFINITIONS[
-                expectedParticleId
-            ];
-
         return {
             accepted: true,
             correct: true,
-            reason: completion?.completed
-                ? "activity-completed"
-                : "particle-collected",
+            collected: true,
+            reason,
             particleId:
                 expectedParticleId,
-            message: completion?.completed
-                ? "Subatomic Assembly complete. Atom Lab is unlocked for the next activity."
-                : `${definition.name} collected: ${definition.charge} charge, ${definition.location.toLowerCase()}.`,
-            completion,
+            message,
             saveSucceeded,
             status: this.getStatus()
         };
 
+    },
+
+    collectFreeParticle(particleId) {
+
+        const definition =
+            PARTICLE_DEFINITIONS[
+                particleId
+            ];
+
+        const inventoryResult =
+            ParticleInventoryManager
+                .addParticle(
+                    particleId,
+                    1
+                );
+
+        if (inventoryResult.added !== 1) {
+            return {
+                accepted: false,
+                correct: true,
+                collected: false,
+                reason:
+                    inventoryResult.reason,
+                particleId,
+                message:
+                    `${definition.name} storage is full (${inventoryResult.current} / ${inventoryResult.capacity}). Spend particles in Atom Lab before collecting more.`,
+                status: this.getStatus()
+            };
+        }
+
+        const saveSucceeded =
+            SaveManager.save();
+
+        GameStateObserver.notify(
+            "subatomic-assembly-changed",
+            {
+                activityId: ACTIVITY_ID,
+                particleId,
+                mode: "free-harvest",
+                saveSucceeded
+            }
+        );
+
+        return {
+            accepted: true,
+            correct: true,
+            collected: true,
+            reason: "particle-harvested",
+            particleId,
+            message:
+                `${definition.name} harvested (${inventoryResult.current} / ${inventoryResult.capacity}).`,
+            saveSucceeded,
+            status: this.getStatus()
+        };
+
+    },
+
+    // Retained as a compatibility alias for existing
+    // console tests and the current UI callback.
+    submitAnswer(particleId) {
+        return this.collectParticle(
+            particleId
+        );
     }
 
 };

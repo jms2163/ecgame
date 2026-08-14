@@ -32,9 +32,9 @@ const ZONE_DEFINITIONS = Object.freeze([
         label: "Atom Lab",
         releaseState: RELEASE_STATE.COMING_SOON,
         lockedMessage:
-            "Complete Subatomic Assembly in the Quantum Field first.",
+            "Complete Subatomic Assembly and claim its reward in the Quests drawer first.",
         comingSoonMessage:
-            "Hydrogen synthesis is the next activity planned after Subatomic Assembly."
+            "Hydrogen synthesis is the next activity planned after the Subatomic Assembly reward is claimed."
     }),
 
     Object.freeze({
