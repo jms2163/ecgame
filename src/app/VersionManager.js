@@ -3,7 +3,7 @@
 // Handles save-version detection and upgrades
 // --------------------------------------------------
 
-const CURRENT_VERSION = "1.5";
+const CURRENT_VERSION = "1.7";
 
 const VERSION_1_2_ZONE_DEFAULTS =
     Object.freeze({
@@ -82,6 +82,16 @@ const VersionManager = {
             } else if (version === "1.4") {
                 saveData =
                     this.upgrade_1_4_to_1_5(
+                        saveData
+                    );
+            } else if (version === "1.5") {
+                saveData =
+                    this.upgrade_1_5_to_1_6(
+                        saveData
+                    );
+            } else if (version === "1.6") {
+                saveData =
+                    this.upgrade_1_6_to_1_7(
                         saveData
                     );
             } else {
@@ -694,6 +704,128 @@ const VersionManager = {
         }
 
         saveData.saveVersion = "1.5";
+
+        return saveData;
+
+    },
+
+    // --------------------------------------------------
+    // 1.5 -> 1.6
+    // Adds the persisted randomized Q1 prompt sequence.
+    // SubatomicAssemblyManager validates and fills this
+    // sequence while preserving any existing progress.
+    // --------------------------------------------------
+    upgrade_1_5_to_1_6(saveData) {
+
+        saveData.zones ??= {};
+        saveData.zones.quantum ??= {
+            unlocked: true,
+            completed: false,
+            state: {}
+        };
+
+        const quantum =
+            saveData.zones.quantum;
+
+        quantum.state ??= {};
+        quantum.state.subatomicAssembly ??= {
+            activityId: "q1_particles",
+            guidedCollected: {
+                proton: 0,
+                neutron: 0,
+                electron: 0
+            },
+            guidanceCompletedAtMs: null,
+            incorrectGuidedSelections: 0,
+            perfectGuidanceEligible: true
+        };
+
+        const activity =
+            quantum.state
+                .subatomicAssembly;
+
+        if (
+            !Array.isArray(
+                activity.guidedSequence
+            )
+        ) {
+            activity.guidedSequence = [];
+        }
+
+        saveData.saveVersion = "1.6";
+
+        return saveData;
+
+    },
+
+    // --------------------------------------------------
+    // 1.6 -> 1.7
+    // Adds Quantum-only sound preference and the first
+    // upgrade-ready particle-respawn timing state.
+    // --------------------------------------------------
+    upgrade_1_6_to_1_7(saveData) {
+
+        saveData.zones ??= {};
+        saveData.zones.quantum ??= {
+            unlocked: true,
+            completed: false,
+            state: {}
+        };
+
+        const quantum =
+            saveData.zones.quantum;
+
+        quantum.state ??= {};
+
+        if (
+            !quantum.state.audio ||
+            typeof quantum.state.audio !==
+                "object" ||
+            Array.isArray(
+                quantum.state.audio
+            )
+        ) {
+            quantum.state.audio = {
+                enabled: true
+            };
+        }
+
+        if (
+            typeof quantum.state.audio
+                .enabled !== "boolean"
+        ) {
+            quantum.state.audio.enabled =
+                true;
+        }
+
+        if (
+            !quantum.state.upgrades ||
+            typeof quantum.state.upgrades !==
+                "object" ||
+            Array.isArray(
+                quantum.state.upgrades
+            )
+        ) {
+            quantum.state.upgrades = {};
+        }
+
+        const respawnLevel =
+            quantum.state.upgrades
+                .particleRespawnLevel;
+
+        quantum.state.upgrades
+            .particleRespawnLevel =
+                Number.isInteger(
+                    respawnLevel
+                ) &&
+                respawnLevel >= 0
+                    ? Math.min(
+                        respawnLevel,
+                        12
+                    )
+                    : 0;
+
+        saveData.saveVersion = "1.7";
 
         return saveData;
 

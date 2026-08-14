@@ -216,6 +216,18 @@ const SubatomicAssemblyManager = {
                 )
                 : null;
 
+        if (
+            !this.isGuidedSequenceValid(
+                state.guidedSequence,
+                state.guidedCollected
+            )
+        ) {
+            state.guidedSequence =
+                this.createGuidedSequence(
+                    state.guidedCollected
+                );
+        }
+
         delete state.totalCollected;
         delete state.completed;
         delete state.completedAtMs;
@@ -304,6 +316,156 @@ const SubatomicAssemblyManager = {
 
     },
 
+    createGuidedSequence(
+        guidedCollected = {}
+    ) {
+
+        const completedPrefix = [];
+        const remaining = [];
+
+        PARTICLE_ORDER.forEach(
+            particleId => {
+                const completed =
+                    Number.isInteger(
+                        guidedCollected[
+                            particleId
+                        ]
+                    )
+                        ? Math.max(
+                            0,
+                            Math.min(
+                                TARGET_PER_PARTICLE,
+                                guidedCollected[
+                                    particleId
+                                ]
+                            )
+                        )
+                        : 0;
+
+                for (
+                    let index = 0;
+                    index < completed;
+                    index += 1
+                ) {
+                    completedPrefix.push(
+                        particleId
+                    );
+                }
+
+                for (
+                    let index = completed;
+                    index < TARGET_PER_PARTICLE;
+                    index += 1
+                ) {
+                    remaining.push(
+                        particleId
+                    );
+                }
+            }
+        );
+
+        for (
+            let index =
+                remaining.length - 1;
+            index > 0;
+            index -= 1
+        ) {
+            const randomIndex =
+                Math.floor(
+                    Math.random() *
+                    (index + 1)
+                );
+
+            [
+                remaining[index],
+                remaining[randomIndex]
+            ] = [
+                remaining[randomIndex],
+                remaining[index]
+            ];
+        }
+
+        return [
+            ...completedPrefix,
+            ...remaining
+        ];
+
+    },
+
+    isGuidedSequenceValid(
+        sequence,
+        guidedCollected
+    ) {
+
+        const targetTotal =
+            TARGET_PER_PARTICLE *
+            PARTICLE_ORDER.length;
+
+        if (
+            !Array.isArray(sequence) ||
+            sequence.length !== targetTotal ||
+            sequence.some(
+                particleId =>
+                    !PARTICLE_ORDER.includes(
+                        particleId
+                    )
+            )
+        ) {
+            return false;
+        }
+
+        const totalCounts =
+            Object.fromEntries(
+                PARTICLE_ORDER.map(
+                    particleId => [
+                        particleId,
+                        sequence.filter(
+                            entry =>
+                                entry ===
+                                particleId
+                        ).length
+                    ]
+                )
+            );
+
+        if (
+            PARTICLE_ORDER.some(
+                particleId =>
+                    totalCounts[
+                        particleId
+                    ] !==
+                    TARGET_PER_PARTICLE
+            )
+        ) {
+            return false;
+        }
+
+        const progress =
+            PARTICLE_ORDER.reduce(
+                (total, particleId) =>
+                    total +
+                    guidedCollected[
+                        particleId
+                    ],
+                0
+            );
+
+        const completedPrefix =
+            sequence.slice(0, progress);
+
+        return PARTICLE_ORDER.every(
+            particleId =>
+                completedPrefix.filter(
+                    entry =>
+                        entry === particleId
+                ).length ===
+                guidedCollected[
+                    particleId
+                ]
+        );
+
+    },
+
     getNextParticleId(state) {
 
         if (
@@ -322,29 +484,9 @@ const SubatomicAssemblyManager = {
                 0
             );
 
-        for (
-            let offset = 0;
-            offset < PARTICLE_ORDER.length;
-            offset += 1
-        ) {
-            const index =
-                (
-                    totalProgress + offset
-                ) % PARTICLE_ORDER.length;
-
-            const particleId =
-                PARTICLE_ORDER[index];
-
-            if (
-                state.guidedCollected[
-                    particleId
-                ] < TARGET_PER_PARTICLE
-            ) {
-                return particleId;
-            }
-        }
-
-        return null;
+        return state.guidedSequence[
+            totalProgress
+        ] ?? null;
 
     },
 
@@ -393,6 +535,9 @@ const SubatomicAssemblyManager = {
             guidedCollected: {
                 ...state.guidedCollected
             },
+            guidedSequence: [
+                ...state.guidedSequence
+            ],
             guidanceComplete,
             guidanceCompletedAtMs:
                 state

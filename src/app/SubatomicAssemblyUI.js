@@ -8,6 +8,8 @@ import SubatomicAssemblyManager
 import GameStateObserver
     from "./GameStateObserver.js";
 import GameStars from "./GameStars.js";
+import QuantumAudioManager
+    from "./QuantumAudioManager.js";
 
 const SubatomicAssemblyUI = {
 
@@ -24,6 +26,9 @@ const SubatomicAssemblyUI = {
     feedbackElement: null,
     fieldHintElement: null,
     canvasElement: null,
+    soundToggleElement: null,
+    soundIconElement: null,
+    soundFallbackElement: null,
     choiceElements: new Map(),
     counterElements: new Map(),
 
@@ -35,6 +40,7 @@ const SubatomicAssemblyUI = {
         }
 
         this.ensureStylesheet();
+        QuantumAudioManager.initialize();
         this.rootElement =
             this.ensureRootElement();
 
@@ -565,8 +571,74 @@ const SubatomicAssemblyUI = {
             "application"
         );
 
-        canvasShell.appendChild(
-            this.canvasElement
+        this.soundToggleElement =
+            this.createElement("button", {
+                className:
+                    "quantum-sound-toggle"
+            });
+        this.soundToggleElement.type =
+            "button";
+
+        this.soundIconElement =
+            this.createElement("img", {
+                className:
+                    "quantum-sound-toggle__icon"
+            });
+        this.soundIconElement.alt = "";
+        this.soundIconElement.setAttribute(
+            "aria-hidden",
+            "true"
+        );
+
+        this.soundFallbackElement =
+            this.createElement("span", {
+                className:
+                    "quantum-sound-toggle__fallback"
+            });
+        this.soundFallbackElement.setAttribute(
+            "aria-hidden",
+            "true"
+        );
+        this.soundFallbackElement.hidden =
+            true;
+
+        this.soundIconElement
+            .addEventListener(
+                "load",
+                () => {
+                    this.soundIconElement
+                        .hidden = false;
+                    this.soundFallbackElement
+                        .hidden = true;
+                }
+            );
+
+        this.soundIconElement
+            .addEventListener(
+                "error",
+                () => {
+                    this.soundIconElement
+                        .hidden = true;
+                    this.soundFallbackElement
+                        .hidden = false;
+                }
+            );
+
+        this.soundToggleElement
+            .addEventListener(
+                "click",
+                () =>
+                    this.toggleQuantumSound()
+            );
+
+        this.soundToggleElement.append(
+            this.soundIconElement,
+            this.soundFallbackElement
+        );
+
+        canvasShell.append(
+            this.canvasElement,
+            this.soundToggleElement
         );
 
         const legend =
@@ -715,6 +787,59 @@ const SubatomicAssemblyUI = {
         return this.canvasElement;
     },
 
+    toggleQuantumSound() {
+
+        const status =
+            QuantumAudioManager.toggle();
+
+        this.renderSoundControl();
+
+        return status;
+
+    },
+
+    renderSoundControl() {
+
+        if (
+            !this.soundToggleElement ||
+            !this.soundIconElement ||
+            !this.soundFallbackElement
+        ) {
+            return false;
+        }
+
+        const status =
+            QuantumAudioManager
+                .getStatus();
+        const label = status.enabled
+            ? "Mute Quantum Field sounds"
+            : "Enable Quantum Field sounds";
+
+        this.soundIconElement.src =
+            status.iconPath;
+        this.soundFallbackElement
+            .textContent = status.enabled
+                ? "🔊"
+                : "🔇";
+        this.soundToggleElement.title =
+            label;
+        this.soundToggleElement.setAttribute(
+            "aria-label",
+            label
+        );
+        this.soundToggleElement.setAttribute(
+            "aria-pressed",
+            String(status.enabled)
+        );
+        this.soundToggleElement.dataset.state =
+            status.enabled
+                ? "on"
+                : "off";
+
+        return true;
+
+    },
+
     handleParticleSelection(particleId) {
 
         const result =
@@ -722,6 +847,11 @@ const SubatomicAssemblyUI = {
                 .collectParticle(
                     particleId
                 );
+
+        if (result?.collected) {
+            QuantumAudioManager
+                .playCollectSound();
+        }
 
         this.showFeedback(
             result.message,
@@ -755,7 +885,8 @@ const SubatomicAssemblyUI = {
             "particle-inventory-changed",
             "quest-state-changed",
             "game-star-awarded",
-            "game-star-removed"
+            "game-star-removed",
+            "quantum-audio-changed"
         ].forEach(eventName => {
             GameStateObserver.on(
                 eventName,
@@ -829,6 +960,7 @@ const SubatomicAssemblyUI = {
         GameStars.refreshElement(
             this.starElement
         );
+        this.renderSoundControl();
 
         const guidanceComplete =
             status.guidanceComplete;
@@ -860,11 +992,15 @@ const SubatomicAssemblyUI = {
             questStatus === "claimed"
         ) {
             this.statusBadgeElement
-                .textContent =
-                "Free Gathering";
+                .hidden = true;
+        }
+
+        if (
+            status.mode === "guided" ||
+            questStatus === "claimable"
+        ) {
             this.statusBadgeElement
-                .dataset.status =
-                "harvesting";
+                .hidden = false;
         }
 
         this.progressElement.max =
@@ -929,7 +1065,7 @@ const SubatomicAssemblyUI = {
         this.promptElement.textContent =
             questStatus === "claimable"
                 ? "Questions complete. Open the Quests drawer and claim your reward."
-                : "Collect whichever particles you need for Atom Lab.";
+                : "Collect particles you need for the Atom Lab.";
 
         this.fieldHintElement.textContent =
             "Click or tap any moving particle to harvest it. A replacement particle will enter the field.";
