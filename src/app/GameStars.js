@@ -130,12 +130,6 @@ const GameStars = {
             return null;
         }
 
-        const tooltipText =
-            typeof tooltip === "string" &&
-            tooltip.trim()
-                ? tooltip.trim()
-                : DEFAULT_TOOLTIP;
-
         const star =
             this.ensureRegistry()[
                 normalizedId
@@ -160,6 +154,70 @@ const GameStars = {
         return Object.keys(
             this.ensureRegistry()
         ).length;
+
+    },
+
+    removeStar(
+        starId,
+        {
+            save = true
+        } = {}
+    ) {
+
+        const normalizedId =
+            this.normalizeStarId(starId);
+
+        if (!normalizedId) {
+            return {
+                removed: false,
+                starId: normalizedId,
+                reason: "invalid-star-id",
+                saveSucceeded: false
+            };
+        }
+
+        const stars =
+            this.ensureRegistry();
+
+        if (!stars[normalizedId]) {
+            return {
+                removed: false,
+                starId: normalizedId,
+                reason: "not-awarded",
+                saveSucceeded: true
+            };
+        }
+
+        const removedStar =
+            structuredClone(
+                stars[normalizedId]
+            );
+
+        delete stars[normalizedId];
+
+        const saveSucceeded =
+            save
+                ? SaveManager.save()
+                : true;
+
+        GameStateObserver.notify(
+            "game-star-removed",
+            {
+                starId: normalizedId,
+                star: removedStar,
+                saveSucceeded
+            }
+        );
+
+        this.refresh();
+
+        return {
+            removed: true,
+            starId: normalizedId,
+            reason: "removed",
+            star: removedStar,
+            saveSucceeded
+        };
 
     },
 
@@ -270,6 +328,12 @@ const GameStars = {
         if (!normalizedId) {
             return null;
         }
+
+        const tooltipText =
+            typeof tooltip === "string" &&
+            tooltip.trim()
+                ? tooltip.trim()
+                : DEFAULT_TOOLTIP;
 
         this.tooltipSequence += 1;
 

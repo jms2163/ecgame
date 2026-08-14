@@ -8,6 +8,7 @@ import GameStateManager
     from "./GameStateManager.js";
 import GameStateObserver
     from "./GameStateObserver.js";
+import GameStars from "./GameStars.js";
 import ParticleInventoryManager
     from "./ParticleInventoryManager.js";
 import QuestManager from "./QuestManager.js";
@@ -80,6 +81,7 @@ const SubatomicAssemblyManager = {
         ParticleInventoryManager
             .initialize();
         QuestManager.initialize();
+        GameStars.initialize();
 
         this.ensureState();
         this.reconcileQuestState();
@@ -222,40 +224,11 @@ const SubatomicAssemblyManager = {
 
     },
 
-    ensureStarRegistry() {
-
-        gameState.registry ??= {};
-        gameState.registry.research ??= {};
-
-        if (
-            !gameState.registry.research
-                .stars ||
-            typeof gameState.registry.research
-                .stars !== "object" ||
-            Array.isArray(
-                gameState.registry.research
-                    .stars
-            )
-        ) {
-            gameState.registry.research
-                .stars = {};
-        }
-
-        return gameState.registry.research
-            .stars;
-
-    },
-
     getStarRecord() {
 
-        const star =
-            this.ensureStarRegistry()[
-                STAR_ID
-            ] ?? null;
-
-        return star
-            ? { ...star }
-            : null;
+        return GameStars.getStar(
+            STAR_ID
+        );
 
     },
 
@@ -263,47 +236,26 @@ const SubatomicAssemblyManager = {
         awardedAtMs = Date.now()
     ) {
 
-        const stars =
-            this.ensureStarRegistry();
 
-        if (stars[STAR_ID]) {
-            return {
-                awarded: false,
-                star: {
-                    ...stars[STAR_ID]
-                }
-            };
-        }
-
-        stars[STAR_ID] = {
-            awardedAtMs,
-            sourceActivityId:
-                ACTIVITY_ID,
-            reason:
-                "perfect-guided-identification",
-            correctSelections:
-                TARGET_PER_PARTICLE *
-                PARTICLE_ORDER.length,
-            incorrectSelections: 0
-        };
-
-        GameStateObserver.notify(
-            "game-star-awarded",
+        return GameStars.awardStar(
+            STAR_ID,
             {
-                starId: STAR_ID,
-                activityId: ACTIVITY_ID,
-                star: {
-                    ...stars[STAR_ID]
-                }
+                awardedAtMs,
+                sourceActivityId:
+                    ACTIVITY_ID,
+                reason:
+                    "perfect-guided-identification",
+                correctSelections:
+                    TARGET_PER_PARTICLE *
+                    PARTICLE_ORDER.length,
+                incorrectSelections: 0
+            },
+            {
+                // The activity saves once after its quest
+                // and star changes are both complete.
+                save: false
             }
         );
-
-        return {
-            awarded: true,
-            star: {
-                ...stars[STAR_ID]
-            }
-        };
 
     },
 

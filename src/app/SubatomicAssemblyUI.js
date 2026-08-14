@@ -7,6 +7,7 @@ import SubatomicAssemblyManager
     from "./SubatomicAssemblyManager.js";
 import GameStateObserver
     from "./GameStateObserver.js";
+import GameStars from "./GameStars.js";
 
 const SubatomicAssemblyUI = {
 
@@ -14,6 +15,7 @@ const SubatomicAssemblyUI = {
     active: false,
     rootElement: null,
     starElement: null,
+    descriptionElement: null,
     statusBadgeElement: null,
     progressElement: null,
     progressTextElement: null,
@@ -260,29 +262,31 @@ const SubatomicAssemblyUI = {
             });
 
         this.starElement =
-            this.createElement("span", {
-                id:
-                    "subatomic-perfect-star",
-                className:
-                    "quantum-assignment-star hidden",
-                text: "\u2605"
-            });
+            GameStars.createStarElement(
+                "q1_particles",
+                {
+                    className:
+                        "quantum-assignment-star",
+                    tooltip:
+                        "Exceptional Work!"
+                }
+            );
 
-        this.starElement.setAttribute(
-            "role",
-            "img"
-        );
-        this.starElement.setAttribute(
-            "aria-label",
-            "Perfect guided collection star earned"
-        );
-        this.starElement.title =
-            "Perfect guided collection: 15 correct selections with no incorrect particle choices";
+        this.starElement.id =
+            "subatomic-perfect-star";
 
         titleRow.append(
             title,
             this.starElement
         );
+
+        this.descriptionElement =
+            this.createElement("p", {
+                className:
+                    "quantum-description",
+                text:
+                    "Learn to identify subatomic particles, then return whenever you need raw materials for Atom Lab."
+            });
 
         titleGroup.append(
             this.createElement("p", {
@@ -291,12 +295,7 @@ const SubatomicAssemblyUI = {
                     "Quantum Field - Particle Resource Zone"
             }),
             titleRow,
-            this.createElement("p", {
-                className:
-                    "quantum-description",
-                text:
-                    "Learn to identify subatomic particles, then return whenever you need raw materials for Atom Lab."
-            })
+            this.descriptionElement
         );
 
         this.statusBadgeElement =
@@ -755,7 +754,8 @@ const SubatomicAssemblyUI = {
             "subatomic-assembly-changed",
             "particle-inventory-changed",
             "quest-state-changed",
-            "game-star-awarded"
+            "game-star-awarded",
+            "game-star-removed"
         ].forEach(eventName => {
             GameStateObserver.on(
                 eventName,
@@ -826,13 +826,30 @@ const SubatomicAssemblyUI = {
             status.quest?.status ??
             "in-progress";
 
-        this.starElement?.classList.toggle(
-            "hidden",
-            !status.perfectGuidance
-                ?.starEarned
+        GameStars.refreshElement(
+            this.starElement
         );
 
-        if (questStatus === "claimable") {
+        const guidanceComplete =
+            status.guidanceComplete;
+
+        this.descriptionElement.hidden =
+            guidanceComplete;
+        this.progressElement.hidden =
+            guidanceComplete;
+        this.progressTextElement.hidden =
+            guidanceComplete;
+
+        if (status.mode === "guided") {
+            this.statusBadgeElement
+                .textContent =
+                "Guided Activity";
+            this.statusBadgeElement
+                .dataset.status =
+                "guided";
+        } else if (
+            questStatus === "claimable"
+        ) {
             this.statusBadgeElement
                 .textContent =
                 "Ready to Claim";
@@ -848,13 +865,6 @@ const SubatomicAssemblyUI = {
             this.statusBadgeElement
                 .dataset.status =
                 "harvesting";
-        } else {
-            this.statusBadgeElement
-                .textContent =
-                "Guided Activity";
-            this.statusBadgeElement
-                .dataset.status =
-                "guided";
         }
 
         this.progressElement.max =
