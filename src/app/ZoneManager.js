@@ -6,11 +6,13 @@
 import Pond from "./Pond.js";
 import QuantumZone from "./QuantumZone.js";
 import TestZone from "./TestZone.js";
+import AtomLab from "./AtomLab.js";
 import GameStateManager
     from "./GameStateManager.js";
 import GameStateObserver
     from "./GameStateObserver.js";
 import ZoneCatalog from "./ZoneCatalog.js";
+
 
 const ZONE_REGISTRY = new Map([
     [
@@ -26,6 +28,14 @@ const ZONE_REGISTRY = new Map([
         {
             module: QuantumZone,
             rootId: "quantum-zone",
+            persistCurrentZone: true
+        }
+    ],
+    [
+        "atomLab", // #TODO CAUTION
+        {
+            module: AtomLab,        // your AtomLab.js controller
+            rootId: "atomlab-zone", // the DOM root
             persistCurrentZone: true
         }
     ],
