@@ -77,16 +77,7 @@
 }
 
 .quantum-assignment-star {
-    color: #F6C453;
-    font-family: sans-serif;
     font-size: clamp(28px, 3.4vw, 38px);
-    line-height: 1;
-    text-shadow:
-        0 0 7px rgba(246, 196, 83, 0.72);
-}
-
-.quantum-assignment-star.hidden {
-    display: none;
 }
 
 .quantum-description {

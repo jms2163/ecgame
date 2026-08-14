@@ -24,6 +24,7 @@ import ResourceManager
 import XPManager from "./XPManager.js";
 import ParticleInventoryManager
     from "./ParticleInventoryManager.js";
+import GameStars from "./GameStars.js";
 import SubatomicAssemblyManager
     from "./SubatomicAssemblyManager.js";
 import SubatomicAssemblyUI
@@ -69,6 +70,7 @@ const DevConsole = {
             ResourceManager,
             XPManager,
             ParticleInventoryManager,
+            GameStars,
             SubatomicAssemblyManager,
             SubatomicAssemblyUI,
             QuantumZone,
