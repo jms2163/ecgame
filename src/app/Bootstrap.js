@@ -16,6 +16,8 @@ import ResourceManager
 import QuestManager from "./QuestManager.js";
 import QuestDrawerUI
     from "./QuestDrawerUI.js";
+import QuantumAutoCollectorManager
+    from "./QuantumAutoCollectorManager.js";
 
 const Bootstrap = {
 
@@ -31,6 +33,11 @@ const Bootstrap = {
         SaveManager.load();
 
         ResourceManager.initialize();
+        // Global initialization keeps enabled Quantum
+        // autocollectors running in every zone while the
+        // game is open.
+        QuantumAutoCollectorManager
+            .initialize();
         QuestManager.initialize();
 
         ZoneManager.initialize();

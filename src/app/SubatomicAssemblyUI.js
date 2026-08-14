@@ -10,6 +10,8 @@ import GameStateObserver
 import GameStars from "./GameStars.js";
 import QuantumAudioManager
     from "./QuantumAudioManager.js";
+import QuantumAutoCollectorManager
+    from "./QuantumAutoCollectorManager.js";
 
 const SubatomicAssemblyUI = {
 
@@ -25,6 +27,7 @@ const SubatomicAssemblyUI = {
     promptElement: null,
     feedbackElement: null,
     fieldHintElement: null,
+    keyboardLabelElement: null,
     canvasElement: null,
     soundToggleElement: null,
     soundIconElement: null,
@@ -41,6 +44,8 @@ const SubatomicAssemblyUI = {
 
         this.ensureStylesheet();
         QuantumAudioManager.initialize();
+        QuantumAutoCollectorManager
+            .initialize();
         this.rootElement =
             this.ensureRootElement();
 
@@ -453,7 +458,7 @@ const SubatomicAssemblyUI = {
         const fieldPanel =
             this.createFieldPanel();
 
-        const keyboardLabel =
+        this.keyboardLabelElement =
             this.createElement("p", {
                 className:
                     "quantum-keyboard-label",
@@ -497,13 +502,17 @@ const SubatomicAssemblyUI = {
                         className:
                             "quantum-particle-name",
                         text: definition.name
+                    }),
+                    this.createElement("span", {
+                        className:
+                            "quantum-particle-collector-status"
                     })
                 );
 
                 button.addEventListener(
                     "click",
                     () =>
-                        this.handleParticleSelection(
+                        this.handleParticleControl(
                             definition.id
                         )
                 );
@@ -532,7 +541,7 @@ const SubatomicAssemblyUI = {
             this.promptLabelElement,
             this.promptElement,
             fieldPanel,
-            keyboardLabel,
+            this.keyboardLabelElement,
             choices,
             this.feedbackElement
         );
@@ -819,8 +828,8 @@ const SubatomicAssemblyUI = {
             status.iconPath;
         this.soundFallbackElement
             .textContent = status.enabled
-                ? "🔊"
-                : "🔇";
+                ? "ðŸ”Š"
+                : "ðŸ”‡";
         this.soundToggleElement.title =
             label;
         this.soundToggleElement.setAttribute(
@@ -865,6 +874,46 @@ const SubatomicAssemblyUI = {
 
     },
 
+    handleParticleControl(particleId) {
+
+        const collector =
+            QuantumAutoCollectorManager
+                .getCollectorStatus(
+                    particleId
+                );
+
+        if (!collector?.unlocked) {
+            return this.handleParticleSelection(
+                particleId
+            );
+        }
+
+        const result =
+            QuantumAutoCollectorManager
+                .toggleCollector(particleId);
+        const particleName =
+            SubatomicAssemblyManager
+                .getParticleDefinitions()
+                .find(
+                    definition =>
+                        definition.id ===
+                        particleId
+                )?.name ?? particleId;
+
+        this.showFeedback(
+            result.enabled
+                ? `${particleName} Autocollector activated. It will gather in the background whenever storage has room.`
+                : `${particleName} Autocollector unactivated.`,
+            Boolean(result.enabled),
+            result.reason
+        );
+
+        this.render();
+
+        return result;
+
+    },
+
     handleFieldMiss() {
 
         this.showFeedback(
@@ -886,7 +935,8 @@ const SubatomicAssemblyUI = {
             "quest-state-changed",
             "game-star-awarded",
             "game-star-removed",
-            "quantum-audio-changed"
+            "quantum-audio-changed",
+            "quantum-auto-collector-changed"
         ].forEach(eventName => {
             GameStateObserver.on(
                 eventName,
@@ -901,8 +951,14 @@ const SubatomicAssemblyUI = {
                     payload?.questId ===
                     "q1_particles"
                 ) {
+                    const updatedCapacity =
+                        payload.rewardResults
+                            ?.particleCapacity
+                            ?.updatedCapacity ??
+                        "unchanged";
+
                     this.showFeedback(
-                        `Reward claimed. Capacity is now ${payload.updatedCapacity} for each particle type, and Atom Lab is unlocked.`,
+                        `Reward claimed. Capacity is now ${updatedCapacity} for each particle type, and Atom Lab is unlocked.`,
                         true,
                         "reward-claimed"
                     );
@@ -1020,8 +1076,59 @@ const SubatomicAssemblyUI = {
         );
 
         this.choiceElements.forEach(
-            button => {
+            (button, particleId) => {
+                const collector =
+                    status.autoCollectors
+                        .collectors[
+                            particleId
+                        ];
+                const collectorStatusElement =
+                    button.querySelector(
+                        ".quantum-particle-collector-status"
+                    );
+
                 button.disabled = false;
+
+                button.classList.toggle(
+                    "quantum-particle-choice--collector-active",
+                    collector.unlocked &&
+                        collector.enabled
+                );
+                button.classList.toggle(
+                    "quantum-particle-choice--collector-inactive",
+                    collector.unlocked &&
+                        !collector.enabled
+                );
+
+                if (collectorStatusElement) {
+                    collectorStatusElement
+                        .textContent =
+                            !collector.unlocked
+                                ? ""
+                                : collector.enabled
+                                    ? "Activated"
+                                    : "Unactivated";
+                }
+
+                if (collector.unlocked) {
+                    button.setAttribute(
+                        "aria-pressed",
+                        String(
+                            collector.enabled
+                        )
+                    );
+                    button.title =
+                        collector.enabled
+                            ? "Deactivate this autocollector"
+                            : "Activate this autocollector";
+                } else {
+                    button.removeAttribute(
+                        "aria-pressed"
+                    );
+                    button.removeAttribute(
+                        "title"
+                    );
+                }
             }
         );
 
@@ -1068,7 +1175,22 @@ const SubatomicAssemblyUI = {
                 : "Collect particles you need for the Atom Lab.";
 
         this.fieldHintElement.textContent =
-            "Click or tap any moving particle to harvest it. A replacement particle will enter the field.";
+            status.autoCollectors
+                .unlockedCount === 0
+                ? "Click or tap any moving particle to harvest it. A replacement particle will enter the field."
+                : status.autoCollectors
+                    .allUnlockedEnabled
+                    ? "Autocollectors all working."
+                    : status.autoCollectors
+                        .enabledCount === 0
+                        ? "Turn on your unlocked autocollectors."
+                        : "Some unlocked autocollectors are working.";
+
+        this.keyboardLabelElement.textContent =
+            status.autoCollectors
+                .unlockedCount === 0
+                ? "Keyboard alternative: choose a labeled particle control."
+                : "Use the labeled controls to gather manually or toggle unlocked autocollectors.";
 
         this.canvasElement?.setAttribute(
             "aria-label",

@@ -326,8 +326,17 @@ const QuestDrawerUI = {
                     payload?.questId ===
                     "q1_particles"
                 ) {
+                    const xpAwarded =
+                        payload.rewardResults
+                            ?.xp?.awarded ?? 0;
+                    const updatedCapacity =
+                        payload.rewardResults
+                            ?.particleCapacity
+                            ?.updatedCapacity ??
+                        "unchanged";
+
                     this.setFeedback(
-                        `Reward claimed: ${payload.xpAwarded} XP, particle capacity ${payload.updatedCapacity}, and Atom Lab unlocked.`,
+                        `Reward claimed: ${xpAwarded} XP, particle capacity ${updatedCapacity}, and Atom Lab unlocked.`,
                         "success"
                     );
                 }
@@ -501,6 +510,23 @@ const QuestDrawerUI = {
 
             rewardParts.push(
                 `Unlock ${zoneLabels.join(", ")}`
+            );
+        }
+
+        if (
+            quest.rewards
+                .collectorUnlocks.length > 0
+        ) {
+            const collectorLabels =
+                quest.rewards
+                    .collectorUnlocks
+                    .map(
+                        particleId =>
+                            `${particleId[0].toUpperCase()}${particleId.slice(1)} Autocollector`
+                    );
+
+            rewardParts.push(
+                `Unlock ${collectorLabels.join(", ")}`
             );
         }
 

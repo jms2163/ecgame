@@ -11,6 +11,8 @@ import ZoneCatalog from "./ZoneCatalog.js";
 import ZoneStatusResolver
     from "./ZoneStatusResolver.js";
 import SaveManager from "./SaveManager.js";
+import VersionManager
+    from "./VersionManager.js";
 import PondWorld from "./PondWorld.js";
 import PondController from "./PondController.js";
 import PondPerception from "./PondPerception.js";
@@ -35,8 +37,14 @@ import QuantumAudioManager
     from "./QuantumAudioManager.js";
 import QuantumSpawnTimingManager
     from "./QuantumSpawnTimingManager.js";
+import QuantumAutoCollectorManager
+    from "./QuantumAutoCollectorManager.js";
 import QuestCatalog from "./QuestCatalog.js";
 import QuestManager from "./QuestManager.js";
+import ObjectiveRegistry
+    from "./ObjectiveRegistry.js";
+import RewardRegistry
+    from "./RewardRegistry.js";
 import QuestDrawerUI
     from "./QuestDrawerUI.js";
 import QuestStatusResolver
@@ -67,6 +75,7 @@ const DevConsole = {
             ZoneCatalog,
             ZoneStatusResolver,
             SaveManager,
+            VersionManager,
             PondWorld,
             PondController,
             PondPerception,
@@ -83,8 +92,11 @@ const DevConsole = {
             QuantumField,
             QuantumAudioManager,
             QuantumSpawnTimingManager,
+            QuantumAutoCollectorManager,
             QuestCatalog,
             QuestManager,
+            ObjectiveRegistry,
+            RewardRegistry,
             QuestDrawerUI,
             QuestStatusResolver,
             ResearchManager,

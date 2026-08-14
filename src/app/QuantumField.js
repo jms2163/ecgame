@@ -7,6 +7,8 @@ import QuantumAudioManager
     from "./QuantumAudioManager.js";
 import QuantumSpawnTimingManager
     from "./QuantumSpawnTimingManager.js";
+import QuantumAutoCollectorManager
+    from "./QuantumAutoCollectorManager.js";
 
 const FIELD_WIDTH = 800;
 const FIELD_HEIGHT = 420;
@@ -514,6 +516,14 @@ const QuantumField = {
                 getActivityStatus ??
                 this.getActivityStatus;
 
+            QuantumAutoCollectorManager
+                .setVisibleCollectionHandler(
+                    particleId =>
+                        this.handleAutoCollection(
+                            particleId
+                        )
+                );
+
             return true;
         }
 
@@ -561,6 +571,8 @@ const QuantumField = {
         QuantumAudioManager.initialize();
         QuantumSpawnTimingManager
             .initialize();
+        QuantumAutoCollectorManager
+            .initialize();
 
         this.canvasElement.width =
             FIELD_WIDTH;
@@ -577,6 +589,13 @@ const QuantumField = {
         );
 
         this.initialized = true;
+        QuantumAutoCollectorManager
+            .setVisibleCollectionHandler(
+                particleId =>
+                    this.handleAutoCollection(
+                        particleId
+                    )
+            );
         this.ensurePopulation();
         this.drawFrame(0);
 
@@ -921,6 +940,78 @@ const QuantumField = {
 
     },
 
+    selectRandomParticleOfType(
+        particleId,
+        {
+            animate = true,
+            respectRespawnDelay = true
+        } = {}
+    ) {
+
+        const candidates =
+            this.particles.filter(
+                candidate =>
+                    candidate.particleId ===
+                        particleId &&
+                    candidate.phase !==
+                        "despawning" &&
+                    !candidate.expired
+            );
+
+        if (candidates.length === 0) {
+            return {
+                accepted: false,
+                correct: false,
+                collected: false,
+                reason:
+                    "particle-not-visible"
+            };
+        }
+
+        const particle =
+            candidates[
+                Math.floor(
+                    Math.random() *
+                    candidates.length
+                )
+            ];
+
+        return this.selectParticle(
+            particle,
+            {
+                animate,
+                respectRespawnDelay
+            }
+        );
+
+    },
+
+    handleAutoCollection(particleId) {
+
+        if (!this.active) {
+            return {
+                handled: false,
+                collected: false,
+                reason: "field-inactive"
+            };
+        }
+
+        const result =
+            this.selectRandomParticleOfType(
+                particleId,
+                {
+                    animate: true,
+                    respectRespawnDelay: true
+                }
+            );
+
+        return {
+            handled: true,
+            ...result
+        };
+
+    },
+
     updateParticles(deltaMs) {
 
         this.particles.forEach(
@@ -1101,13 +1192,33 @@ const QuantumField = {
         this.context.fillText(
             this.getMode() === "guided"
                 ? "SELECT THE PARTICLE THAT MATCHES THE PROMPT"
-                : "SELECT ANY PARTICLE",
+                : this.isInventorySaturated()
+                    ? "SATURATED FIELD"
+                    : "SELECT ANY PARTICLE",
             14,
             12
         );
         this.context.restore();
 
         return true;
+
+    },
+
+    isInventorySaturated() {
+
+        const inventory =
+            this.getActivityStatus?.()
+                ?.inventory;
+
+        if (!inventory) {
+            return false;
+        }
+
+        return PARTICLE_ORDER.every(
+            particleId =>
+                inventory[particleId] >=
+                inventory.capacity
+        );
 
     },
 

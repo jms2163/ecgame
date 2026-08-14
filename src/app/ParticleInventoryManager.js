@@ -273,6 +273,46 @@ const ParticleInventoryManager = {
 
         return particles.capacity;
 
+    },
+
+    // Used by transactional reward rollback.
+    setCapacity(capacity) {
+
+        if (
+            !Number.isInteger(capacity) ||
+            capacity < DEFAULT_CAPACITY
+        ) {
+            return false;
+        }
+
+        const particles =
+            this.ensureState();
+
+        particles.capacity = capacity;
+
+        PARTICLE_TYPES.forEach(
+            particleId => {
+                particles[particleId] =
+                    Math.min(
+                        particles[particleId],
+                        particles.capacity
+                    );
+            }
+        );
+
+        GameStateObserver.notify(
+            "particle-inventory-changed",
+            {
+                particleId: null,
+                added: 0,
+                capacity:
+                    particles.capacity,
+                reason: "capacity-set"
+            }
+        );
+
+        return particles.capacity;
+
     }
 
 };
