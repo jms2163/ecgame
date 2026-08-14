@@ -191,7 +191,7 @@
     width: 100%;
     max-width: 800px;
     margin: 0 auto;
-    background: #000000;
+    background: var(--quantum-page);
     border: 2px solid
         var(--quantum-border-strong);
     border-radius: 8px;
@@ -209,6 +209,91 @@
     aspect-ratio: 800 / 420;
     cursor: crosshair;
     touch-action: manipulation;
+}
+
+/* --------------------------------------------------
+   Quantum Field sound toggle
+-------------------------------------------------- */
+
+.quantum-sound-toggle {
+    position: absolute;
+    z-index: 3;
+    top: 10px;
+    right: 10px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 40px;
+    height: 40px;
+    padding: 4px;
+
+    color: var(--quantum-text);
+    background: transparent;
+    border: 0;
+    border-radius: 50%;
+    box-shadow: none;
+
+    appearance: none;
+    -webkit-appearance: none;
+
+    cursor: pointer;
+
+    transition:
+        opacity 0.16s ease,
+        transform 0.16s ease;
+}
+
+/*
+ * Mouse hover enlarges the icon slightly without
+ * generating another visible circle around it.
+ */
+.quantum-sound-toggle:hover {
+    transform: scale(1.06);
+}
+
+/*
+ * This indicator appears only when the button receives
+ * keyboard focus, such as through Tab navigation.
+ */
+.quantum-sound-toggle:focus-visible {
+    outline: none;
+    transform: scale(1.06);
+
+    box-shadow:
+        0 0 0 2px #000000,
+        0 0 0 4px var(--quantum-text);
+}
+
+/*
+ * The source PNG artwork is black with a transparent
+ * background. Convert it to white, then soften it to
+ * approximately the Quantum Field cool grey.
+ */
+.quantum-sound-toggle__icon {
+    display: block;
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+    opacity: 0.8;
+}
+
+/*
+ * JavaScript displays this fallback only when an icon
+ * file cannot be loaded.
+ */
+.quantum-sound-toggle__fallback {
+    color: var(--quantum-text);
+    font-size: 22px;
+    line-height: 1;
+}
+
+/* Ensure hidden icons and fallbacks do not occupy space. */
+.quantum-sound-toggle__icon[hidden],
+.quantum-sound-toggle__fallback[hidden] {
+    display: none !important;
 }
 
 .quantum-field-legend {
@@ -261,6 +346,7 @@
     border-radius: 8px;
     font-family: inherit;
     cursor: pointer;
+
     transition:
         transform 0.15s ease,
         border-color 0.15s ease,
@@ -271,8 +357,8 @@
 .quantum-particle-choice:focus-visible {
     transform: translateY(-2px);
     border-color: var(--quantum-border);
-    box-shadow: 0 0 0 3px
-        rgba(112, 112, 128, 0.28);
+    box-shadow:
+        0 0 0 3px rgba(112, 112, 128, 0.28);
     outline: none;
 }
 

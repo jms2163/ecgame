@@ -31,6 +31,10 @@ import SubatomicAssemblyUI
     from "./SubatomicAssemblyUI.js";
 import QuantumZone from "./QuantumZone.js";
 import QuantumField from "./QuantumField.js";
+import QuantumAudioManager
+    from "./QuantumAudioManager.js";
+import QuantumSpawnTimingManager
+    from "./QuantumSpawnTimingManager.js";
 import QuestCatalog from "./QuestCatalog.js";
 import QuestManager from "./QuestManager.js";
 import QuestDrawerUI
@@ -75,6 +79,8 @@ const DevConsole = {
             SubatomicAssemblyUI,
             QuantumZone,
             QuantumField,
+            QuantumAudioManager,
+            QuantumSpawnTimingManager,
             QuestCatalog,
             QuestManager,
             QuestDrawerUI,

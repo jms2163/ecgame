@@ -3,9 +3,17 @@
 // Lifecycle-safe repeatable particle-harvesting field
 // --------------------------------------------------
 
+import QuantumAudioManager
+    from "./QuantumAudioManager.js";
+import QuantumSpawnTimingManager
+    from "./QuantumSpawnTimingManager.js";
+
 const FIELD_WIDTH = 800;
 const FIELD_HEIGHT = 420;
 const PARTICLES_PER_TYPE = 3;
+const PARTICLE_TRANSITION_MS = 260;
+const PHOTON_INTERVAL_MS = 1000;
+const PHOTON_MARGIN = 32;
 
 const PARTICLE_ORDER = Object.freeze([
     "proton",
@@ -42,12 +50,24 @@ const PARTICLE_STYLES = Object.freeze({
     })
 });
 
+function clamp(value, minimum, maximum) {
+    return Math.max(
+        minimum,
+        Math.min(maximum, value)
+    );
+}
+
+function easeOutCubic(value) {
+    return 1 - Math.pow(1 - value, 3);
+}
+
 class FieldParticle {
 
     constructor(
         particleId,
         fieldWidth,
-        fieldHeight
+        fieldHeight,
+        animateSpawn = true
     ) {
 
         const style =
@@ -86,13 +106,56 @@ class FieldParticle {
             Math.sin(angle) * speed;
         this.pulseOffset =
             Math.random() * Math.PI * 2;
+        this.phase = animateSpawn
+            ? "spawning"
+            : "active";
+        this.transitionElapsedMs =
+            animateSpawn
+                ? 0
+                : PARTICLE_TRANSITION_MS;
+        this.expired = false;
 
     }
 
-    update(fieldWidth, fieldHeight) {
+    update(
+        fieldWidth,
+        fieldHeight,
+        deltaMs
+    ) {
 
-        this.x += this.velocityX;
-        this.y += this.velocityY;
+        const safeDeltaMs =
+            clamp(deltaMs, 0, 50);
+
+        if (this.phase !== "active") {
+            this.transitionElapsedMs +=
+                safeDeltaMs;
+
+            if (
+                this.transitionElapsedMs >=
+                PARTICLE_TRANSITION_MS
+            ) {
+                if (
+                    this.phase ===
+                    "despawning"
+                ) {
+                    this.expired = true;
+                    return;
+                }
+
+                this.phase = "active";
+                this.transitionElapsedMs =
+                    PARTICLE_TRANSITION_MS;
+            }
+        }
+
+        const frameScale =
+            safeDeltaMs /
+            (1000 / 60);
+
+        this.x +=
+            this.velocityX * frameScale;
+        this.y +=
+            this.velocityY * frameScale;
 
         const topBoundary =
             this.radius + 28;
@@ -131,10 +194,54 @@ class FieldParticle {
 
     contains(x, y) {
 
+        if (
+            this.phase === "despawning" ||
+            this.expired
+        ) {
+            return false;
+        }
+
         return Math.hypot(
             this.x - x,
             this.y - y
-        ) <= this.radius + 10;
+        ) <=
+            this.radius *
+                this.getTransitionScale() +
+            10;
+
+    }
+
+    beginDespawn(animate = true) {
+
+        if (!animate) {
+            this.expired = true;
+            return;
+        }
+
+        this.phase = "despawning";
+        this.transitionElapsedMs = 0;
+
+    }
+
+    getTransitionScale() {
+
+        const progress = clamp(
+            this.transitionElapsedMs /
+                PARTICLE_TRANSITION_MS,
+            0,
+            1
+        );
+
+        if (this.phase === "spawning") {
+            return easeOutCubic(progress);
+        }
+
+        if (this.phase === "despawning") {
+            return 1 -
+                easeOutCubic(progress);
+        }
+
+        return 1;
 
     }
 
@@ -152,9 +259,22 @@ class FieldParticle {
                 this.pulseOffset
             ) * 0.06;
 
+        const transitionScale =
+            this.getTransitionScale();
+
+        if (
+            this.expired ||
+            transitionScale <= 0.01
+        ) {
+            return;
+        }
+
         context.save();
         context.translate(this.x, this.y);
-        context.scale(pulse, pulse);
+        context.scale(
+            pulse * transitionScale,
+            pulse * transitionScale
+        );
 
         context.beginPath();
         context.arc(
@@ -199,6 +319,166 @@ class FieldParticle {
 
 }
 
+class FieldPhoton {
+
+    constructor(fieldWidth, fieldHeight) {
+
+        this.id =
+            `photon-${Date.now()}-${Math.random()}`;
+        this.radius = 5;
+        this.trail = [];
+        this.hasEntered = false;
+        this.expired = false;
+
+        const edge =
+            Math.floor(Math.random() * 4);
+        let targetX;
+        let targetY;
+
+        if (edge === 0) {
+            this.x = -PHOTON_MARGIN;
+            this.y = Math.random() *
+                fieldHeight;
+            targetX =
+                fieldWidth + PHOTON_MARGIN;
+            targetY = Math.random() *
+                fieldHeight;
+        } else if (edge === 1) {
+            this.x =
+                fieldWidth + PHOTON_MARGIN;
+            this.y = Math.random() *
+                fieldHeight;
+            targetX = -PHOTON_MARGIN;
+            targetY = Math.random() *
+                fieldHeight;
+        } else if (edge === 2) {
+            this.x = Math.random() *
+                fieldWidth;
+            this.y = -PHOTON_MARGIN;
+            targetX = Math.random() *
+                fieldWidth;
+            targetY =
+                fieldHeight + PHOTON_MARGIN;
+        } else {
+            this.x = Math.random() *
+                fieldWidth;
+            this.y =
+                fieldHeight + PHOTON_MARGIN;
+            targetX = Math.random() *
+                fieldWidth;
+            targetY = -PHOTON_MARGIN;
+        }
+
+        const distance = Math.hypot(
+            targetX - this.x,
+            targetY - this.y
+        );
+        const speed =
+            0.46 + Math.random() * 0.16;
+
+        this.velocityX =
+            (targetX - this.x) /
+            distance * speed;
+        this.velocityY =
+            (targetY - this.y) /
+            distance * speed;
+
+    }
+
+    update(deltaMs, fieldWidth, fieldHeight) {
+
+        const safeDeltaMs =
+            clamp(deltaMs, 0, 50);
+
+        this.trail.push({
+            x: this.x,
+            y: this.y
+        });
+
+        if (this.trail.length > 16) {
+            this.trail.shift();
+        }
+
+        this.x +=
+            this.velocityX * safeDeltaMs;
+        this.y +=
+            this.velocityY * safeDeltaMs;
+
+        const inside =
+            this.x >= 0 &&
+            this.x <= fieldWidth &&
+            this.y >= 0 &&
+            this.y <= fieldHeight;
+
+        this.hasEntered =
+            this.hasEntered || inside;
+
+        const outsideExitMargin =
+            this.x < -PHOTON_MARGIN ||
+            this.x >
+                fieldWidth + PHOTON_MARGIN ||
+            this.y < -PHOTON_MARGIN ||
+            this.y >
+                fieldHeight + PHOTON_MARGIN;
+
+        if (
+            this.hasEntered &&
+            outsideExitMargin
+        ) {
+            this.expired = true;
+        }
+
+    }
+
+    draw(context) {
+
+        const trailLength =
+            this.trail.length;
+
+        this.trail.forEach(
+            (point, index) => {
+                const strength =
+                    (index + 1) /
+                    Math.max(1, trailLength);
+
+                context.save();
+                context.beginPath();
+                context.arc(
+                    point.x,
+                    point.y,
+                    this.radius *
+                        (0.25 + strength * 0.55),
+                    0,
+                    Math.PI * 2
+                );
+                context.fillStyle =
+                    `rgba(246, 207, 114, ${0.025 + strength * 0.18})`;
+                context.fill();
+                context.restore();
+            }
+        );
+
+        context.save();
+        context.beginPath();
+        context.arc(
+            this.x,
+            this.y,
+            this.radius,
+            0,
+            Math.PI * 2
+        );
+        context.fillStyle =
+            "rgba(246, 207, 114, 0.46)";
+        context.shadowColor =
+            "rgba(246, 207, 114, 0.38)";
+        context.shadowBlur = 9;
+        context.fill();
+        context.restore();
+
+    }
+
+}
+
 const QuantumField = {
 
     initialized: false,
@@ -206,7 +486,11 @@ const QuantumField = {
     canvasElement: null,
     context: null,
     particles: [],
+    pendingSpawns: [],
+    photons: [],
     animationFrameId: null,
+    lastFrameTimestampMs: null,
+    nextPhotonAtMs: null,
     pointerHandler: null,
     onParticleSelected: null,
     onFieldMiss: null,
@@ -274,6 +558,10 @@ const QuantumField = {
         this.getActivityStatus =
             getActivityStatus;
 
+        QuantumAudioManager.initialize();
+        QuantumSpawnTimingManager
+            .initialize();
+
         this.canvasElement.width =
             FIELD_WIDTH;
         this.canvasElement.height =
@@ -307,7 +595,19 @@ const QuantumField = {
 
     },
 
-    ensurePopulation() {
+    prefersReducedMotion() {
+
+        return Boolean(
+            globalThis.matchMedia?.(
+                "(prefers-reduced-motion: reduce)"
+            )?.matches
+        );
+
+    },
+
+    ensurePopulation({
+        animateSpawn = true
+    } = {}) {
 
         if (!this.initialized) {
             return false;
@@ -320,20 +620,34 @@ const QuantumField = {
                     this.particles.filter(
                         particle =>
                             particle.particleId ===
-                            particleId
+                            particleId &&
+                            particle.phase !==
+                                "despawning" &&
+                            !particle.expired
                     ).length;
 
+                const pendingCount =
+                    this.pendingSpawns
+                        .filter(
+                            pending =>
+                                pending
+                                    .particleId ===
+                                particleId
+                        ).length;
+
                 for (
-                    let index = currentCount;
+                    let index =
+                        currentCount +
+                        pendingCount;
                     index < PARTICLES_PER_TYPE;
                     index += 1
                 ) {
-                    this.particles.push(
-                        new FieldParticle(
-                            particleId,
-                            FIELD_WIDTH,
-                            FIELD_HEIGHT
-                        )
+                    this.spawnParticle(
+                        particleId,
+                        {
+                            animateSpawn,
+                            playSound: false
+                        }
                     );
                 }
 
@@ -341,6 +655,106 @@ const QuantumField = {
         );
 
         return true;
+
+    },
+
+    spawnParticle(
+        particleId,
+        {
+            animateSpawn = true,
+            playSound = true
+        } = {}
+    ) {
+
+        const particle =
+            new FieldParticle(
+                particleId,
+                FIELD_WIDTH,
+                FIELD_HEIGHT,
+                animateSpawn &&
+                    !this
+                        .prefersReducedMotion()
+            );
+
+        this.particles.push(particle);
+
+        if (playSound) {
+            QuantumAudioManager
+                .playSpawnSound();
+        }
+
+        return particle;
+
+    },
+
+    queueParticleSpawn(
+        particleId,
+        queuedAtMs =
+            performance.now?.() ?? 0
+    ) {
+
+        const delayMs =
+            QuantumSpawnTimingManager
+                .getRespawnDelayMs();
+
+        const pendingSpawn = {
+            id:
+                `pending-${particleId}-${Date.now()}-${Math.random()}`,
+            particleId,
+            queuedAtMs,
+            delayMs,
+            readyAtMs:
+                queuedAtMs + delayMs
+        };
+
+        this.pendingSpawns.push(
+            pendingSpawn
+        );
+
+        return { ...pendingSpawn };
+
+    },
+
+    processPendingSpawns(timestampMs) {
+
+        const ready =
+            this.pendingSpawns.filter(
+                pending =>
+                    timestampMs >=
+                    pending.readyAtMs
+            );
+
+        if (ready.length === 0) {
+            return 0;
+        }
+
+        const readyIds =
+            new Set(
+                ready.map(
+                    pending => pending.id
+                )
+            );
+
+        this.pendingSpawns =
+            this.pendingSpawns.filter(
+                pending =>
+                    !readyIds.has(
+                        pending.id
+                    )
+            );
+
+        ready.forEach(
+            pending =>
+                this.spawnParticle(
+                    pending.particleId,
+                    {
+                        animateSpawn: true,
+                        playSound: true
+                    }
+                )
+        );
+
+        return ready.length;
 
     },
 
@@ -405,7 +819,14 @@ const QuantumField = {
 
     },
 
-    selectParticle(particle) {
+    selectParticle(
+        particle,
+        {
+            animate = true,
+            respectRespawnDelay =
+                animate
+        } = {}
+    ) {
 
         if (!this.active) {
             return {
@@ -422,16 +843,37 @@ const QuantumField = {
             );
 
         if (result?.collected) {
-            this.particles =
-                this.particles.filter(
-                    candidate =>
-                        candidate !== particle
+            const animateTransition =
+                animate &&
+                !this.prefersReducedMotion();
+
+            if (animateTransition) {
+                particle.beginDespawn(true);
+            } else {
+                this.particles =
+                    this.particles.filter(
+                        candidate =>
+                            candidate !==
+                            particle
+                    );
+            }
+
+            if (respectRespawnDelay) {
+                this.queueParticleSpawn(
+                    particle.particleId
                 );
+            } else {
+                this.spawnParticle(
+                    particle.particleId,
+                    {
+                        animateSpawn:
+                            animateTransition,
+                        playSound: true
+                    }
+                );
+            }
         }
 
-        // Replenishment occurs after every successful
-        // harvest in both guided and free modes.
-        this.ensurePopulation();
         this.drawFrame(
             performance.now?.() ?? 0
         );
@@ -441,14 +883,22 @@ const QuantumField = {
     },
 
     selectFirstParticleOfType(
-        particleId
+        particleId,
+        {
+            animate = false,
+            respectRespawnDelay =
+                animate
+        } = {}
     ) {
 
         const particle =
             this.particles.find(
                 candidate =>
                     candidate.particleId ===
-                    particleId
+                    particleId &&
+                    candidate.phase !==
+                        "despawning" &&
+                    !candidate.expired
             );
 
         if (!particle) {
@@ -461,19 +911,110 @@ const QuantumField = {
             };
         }
 
-        return this.selectParticle(particle);
+        return this.selectParticle(
+            particle,
+            {
+                animate,
+                respectRespawnDelay
+            }
+        );
 
     },
 
-    updateParticles() {
+    updateParticles(deltaMs) {
 
         this.particles.forEach(
             particle =>
                 particle.update(
                     FIELD_WIDTH,
+                    FIELD_HEIGHT,
+                    deltaMs
+                )
+        );
+
+        this.particles =
+            this.particles.filter(
+                particle =>
+                    !particle.expired
+            );
+
+    },
+
+    spawnPhoton() {
+
+        if (this.prefersReducedMotion()) {
+            return null;
+        }
+
+        const photon =
+            new FieldPhoton(
+                FIELD_WIDTH,
+                FIELD_HEIGHT
+            );
+
+        this.photons.push(photon);
+
+        return {
+            id: photon.id,
+            x: photon.x,
+            y: photon.y,
+            velocityX:
+                photon.velocityX,
+            velocityY:
+                photon.velocityY
+        };
+
+    },
+
+    spawnPhotonIfDue(timestampMs) {
+
+        if (
+            this.prefersReducedMotion()
+        ) {
+            return false;
+        }
+
+        if (
+            this.nextPhotonAtMs === null
+        ) {
+            this.nextPhotonAtMs =
+                timestampMs +
+                PHOTON_INTERVAL_MS;
+            return false;
+        }
+
+        if (
+            timestampMs <
+            this.nextPhotonAtMs
+        ) {
+            return false;
+        }
+
+        this.spawnPhoton();
+        this.nextPhotonAtMs =
+            timestampMs +
+            PHOTON_INTERVAL_MS;
+
+        return true;
+
+    },
+
+    updatePhotons(deltaMs) {
+
+        this.photons.forEach(
+            photon =>
+                photon.update(
+                    deltaMs,
+                    FIELD_WIDTH,
                     FIELD_HEIGHT
                 )
         );
+
+        this.photons =
+            this.photons.filter(
+                photon =>
+                    !photon.expired
+            );
 
     },
 
@@ -488,7 +1029,7 @@ const QuantumField = {
             FIELD_HEIGHT
         );
 
-        context.fillStyle = "#e8edf0";
+        context.fillStyle = "#000000";
         context.fillRect(
             0,
             0,
@@ -498,7 +1039,7 @@ const QuantumField = {
 
         context.save();
         context.strokeStyle =
-            "rgba(42, 64, 77, 0.12)";
+            "rgba(112, 112, 128, 0.58)";
         context.lineWidth = 1;
 
         for (
@@ -535,6 +1076,13 @@ const QuantumField = {
 
         this.drawBackground();
 
+        // Photons are decorative, non-interactive, and
+        // intentionally rendered behind harvestable matter.
+        this.photons.forEach(
+            photon =>
+                photon.draw(this.context)
+        );
+
         this.particles.forEach(
             particle =>
                 particle.draw(
@@ -545,7 +1093,7 @@ const QuantumField = {
 
         this.context.save();
         this.context.fillStyle =
-            "rgba(29, 46, 57, 0.82)";
+            "#C8C8D0";
         this.context.font =
             "12px monospace";
         this.context.textAlign = "left";
@@ -553,7 +1101,7 @@ const QuantumField = {
         this.context.fillText(
             this.getMode() === "guided"
                 ? "SELECT THE PARTICLE THAT MATCHES THE PROMPT"
-                : "FREE GATHERING - SELECT ANY PARTICLE",
+                : "SELECT ANY PARTICLE",
             14,
             12
         );
@@ -570,8 +1118,25 @@ const QuantumField = {
             return;
         }
 
+        const deltaMs =
+            this.lastFrameTimestampMs ===
+                null
+                ? 0
+                : timestampMs -
+                    this.lastFrameTimestampMs;
+
+        this.lastFrameTimestampMs =
+            timestampMs;
+
+        this.processPendingSpawns(
+            timestampMs
+        );
         this.ensurePopulation();
-        this.updateParticles();
+        this.spawnPhotonIfDue(
+            timestampMs
+        );
+        this.updatePhotons(deltaMs);
+        this.updateParticles(deltaMs);
         this.drawFrame(timestampMs);
 
         this.animationFrameId =
@@ -592,6 +1157,16 @@ const QuantumField = {
 
         this.active = true;
         this.ensurePopulation();
+
+        const now =
+            performance.now?.() ?? 0;
+
+        this.lastFrameTimestampMs = now;
+        this.nextPhotonAtMs =
+            this.prefersReducedMotion()
+                ? null
+                : now +
+                    PHOTON_INTERVAL_MS;
 
         if (this.animationFrameId === null) {
             this.animationFrameId =
@@ -622,6 +1197,26 @@ const QuantumField = {
             this.animationFrameId = null;
         }
 
+        this.lastFrameTimestampMs = null;
+        this.nextPhotonAtMs = null;
+        this.photons = [];
+
+        this.particles =
+            this.particles.filter(
+                particle =>
+                    particle.phase !==
+                        "despawning" &&
+                    !particle.expired
+            );
+
+        this.particles.forEach(
+            particle => {
+                particle.phase = "active";
+                particle.transitionElapsedMs =
+                    PARTICLE_TRANSITION_MS;
+            }
+        );
+
         console.log(
             "QuantumField.deactivate() called"
         );
@@ -638,7 +1233,11 @@ const QuantumField = {
                     particle.particleId,
                 x: particle.x,
                 y: particle.y,
-                radius: particle.radius
+                radius: particle.radius,
+                phase: particle.phase,
+                scale:
+                    particle
+                        .getTransitionScale()
             })
         );
 
@@ -654,7 +1253,10 @@ const QuantumField = {
                     this.particles.filter(
                         particle =>
                             particle.particleId ===
-                            particleId
+                            particleId &&
+                            particle.phase !==
+                                "despawning" &&
+                            !particle.expired
                     ).length;
             }
         );
@@ -677,7 +1279,24 @@ const QuantumField = {
                         ?.guidanceComplete
                 ),
             particleCount:
+                Object.values(
+                    visibleCounts
+                ).reduce(
+                    (total, count) =>
+                        total + count,
+                    0
+                ),
+            transitionParticleCount:
                 this.particles.length,
+            pendingSpawnCount:
+                this.pendingSpawns.length,
+            respawnDelayMs:
+                QuantumSpawnTimingManager
+                    .getRespawnDelayMs(),
+            photonCount:
+                this.photons.length,
+            photonIntervalMs:
+                PHOTON_INTERVAL_MS,
             visibleCounts
         };
 
@@ -702,6 +1321,10 @@ const QuantumField = {
         this.canvasElement = null;
         this.context = null;
         this.particles = [];
+        this.pendingSpawns = [];
+        this.photons = [];
+        this.lastFrameTimestampMs = null;
+        this.nextPhotonAtMs = null;
         this.pointerHandler = null;
         this.onParticleSelected = null;
         this.onFieldMiss = null;

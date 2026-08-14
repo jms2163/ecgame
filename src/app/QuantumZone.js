@@ -8,6 +8,10 @@ import SubatomicAssemblyManager
 import SubatomicAssemblyUI
     from "./SubatomicAssemblyUI.js";
 import QuantumField from "./QuantumField.js";
+import QuantumAudioManager
+    from "./QuantumAudioManager.js";
+import QuantumSpawnTimingManager
+    from "./QuantumSpawnTimingManager.js";
 
 const QuantumZone = {
 
@@ -21,6 +25,9 @@ const QuantumZone = {
         }
 
         SubatomicAssemblyManager
+            .initialize();
+        QuantumAudioManager.initialize();
+        QuantumSpawnTimingManager
             .initialize();
 
         const uiInitialized =

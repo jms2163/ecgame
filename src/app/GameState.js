@@ -115,6 +115,18 @@ const gameState = {
             completed: false,
 
             state: {
+                audio: {
+                    // Quantum sound is independent from
+                    // future global or other-zone audio.
+                    enabled: true
+                },
+
+                upgrades: {
+                    // Each future upgrade level removes
+                    // 100 ms from the 1500 ms base delay.
+                    particleRespawnLevel: 0
+                },
+
                 subatomicAssembly: {
                     activityId:
                         "q1_particles",
@@ -124,6 +136,11 @@ const gameState = {
                         neutron: 0,
                         electron: 0
                     },
+
+                    // Generated once at the start of Q1
+                    // and persisted so reloads do not
+                    // change the current question order.
+                    guidedSequence: [],
 
                     guidanceCompletedAtMs:
                         null,
@@ -188,7 +205,7 @@ const gameState = {
         difficulty: "normal"
     },
 
-    saveVersion: "1.5"
+    saveVersion: "1.7"
 
 };
 
