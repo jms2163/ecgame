@@ -21,9 +21,16 @@ const gameState = {
     // --------------------------------------------------
     // Player cell biological systems
     // --------------------------------------------------
-    cellSystems:
-        CellSystemDefinitions
-            .createStartingCellSystems(),
+    cellSystems: 
+        CellSystemDefinitions.createStartingCellSystems(),
+    
+    discoveries: {
+        organelles: {}, // future refactor
+        atoms: {},
+        isotopes: {},
+        molecules: {}
+    },
+
 
     registry: {
 
@@ -54,6 +61,7 @@ const gameState = {
             "cytoskeleton",
             "glycoproteins"
         ],
+
 
         achievements: {},
 
@@ -215,7 +223,25 @@ const gameState = {
         atomLab: {
             unlocked: false,
             completed: false,
-            state: {}
+            state: {
+                // Modes: "guided-h", "guided-he", "free-build"
+                buildMode: "guided-h",
+                
+                // Tracks progress through the current sequence array
+                guidedStepIndex: 0,
+                
+                // Tracked only during the Helium build
+                perfectHeEligible: true,
+                incorrectHeSelections: 0,
+                
+                // Retains midstream states for Lithium and beyond
+                freeBuildBuffer: {
+                    targetElement: null,
+                    protons: 0,
+                    neutrons: 0,
+                    electrons: 0
+                }
+            }
         },
 
         atomizer: {
