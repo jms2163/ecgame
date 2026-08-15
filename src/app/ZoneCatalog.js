@@ -30,7 +30,7 @@ const ZONE_DEFINITIONS = Object.freeze([
     Object.freeze({
         id: "atomLab",
         label: "Atom Lab",
-        releaseState: RELEASE_STATE.COMING_SOON,
+        releaseState: RELEASE_STATE.PLAYABLE,
         lockedMessage:
             "Complete Subatomic Assembly and claim its reward in the Quests drawer first.",
         comingSoonMessage:

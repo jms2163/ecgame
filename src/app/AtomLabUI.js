@@ -1,7 +1,12 @@
 // --------------------------------------------------
 // AtomLabUI.js
-// UI shell for Atom Lab zone
 // --------------------------------------------------
+
+// Uncomment these when your sub-components are ready
+// import PeriodicTableUI from "./PeriodicTableUI.js";
+// import AtomCraftUI from "./AtomCraftUI.js";
+
+import PeriodicTableUI from "./PeriodicTableUI.js";
 
 const AtomLabUI = {
 
@@ -36,27 +41,32 @@ const AtomLabUI = {
     },
 
     // --------------------------------------------------
-    // Ensure DOM root exists (dynamic creation)
+    // Ensure DOM root exists 
     // --------------------------------------------------
     ensureRootElement() {
 
-        // If it already exists, return it
+        // 1. Look for the existing HTML skeleton
         const existingRoot = document.getElementById("atomlab-zone");
         if (existingRoot) {
             return existingRoot;
         }
 
-        // Otherwise create it dynamically
-        const appElement = document.getElementById("app");
-        if (!appElement) {
-            console.warn("AtomLabUI: #app root not found");
-            return null;
-        }
+        // 2. Fallback: If not found, create it dynamically matching your exact HTML
+        console.warn("AtomLabUI: HTML skeleton not found, generating fallback...");
+        
+        const appElement = document.getElementById("app") || document.body;
 
         const root = document.createElement("section");
         root.id = "atomlab-zone";
         root.className = "hidden";
-        root.setAttribute("aria-labelledby", "atomlab-zone-title");
+        
+        root.innerHTML = `
+            <h1 class="zone-title">Atom Lab</h1>
+            <div class="atomlab-content">
+                <div id="atomlab-periodic-table"></div>
+                <div id="atomlab-crafting"></div>
+            </div>
+        `;
 
         appElement.appendChild(root);
 
@@ -64,44 +74,43 @@ const AtomLabUI = {
     },
 
     // --------------------------------------------------
-    // Build the initial UI shell
+    // Build and inject sub-components
     // --------------------------------------------------
     buildInterface() {
 
-        this.rootElement.replaceChildren();
+        // Target the containers provided by the HTML skeleton
+        const tableContainer = this.rootElement.querySelector("#atomlab-periodic-table");
+        const craftContainer = this.rootElement.querySelector("#atomlab-crafting");
 
-        // Header
-        const header = document.createElement("header");
-        header.className = "atomlab-header";
+        if (tableContainer) {
+            // Clear any placeholder text
+            tableContainer.replaceChildren(); 
+            
+            // Inject the Periodic Table module
+            tableContainer.appendChild(PeriodicTableUI.build());
+        } else {
+            console.warn("AtomLabUI: #atomlab-periodic-table container is missing.");
+        }
 
-        const title = document.createElement("h1");
-        title.id = "atomlab-zone-title";
-        title.textContent = "Atom Lab";
-
-        const description = document.createElement("p");
-        description.className = "atomlab-description";
-        description.textContent = "Craft atoms, explore the periodic table, and build isotopes.";
-
-        header.append(title, description);
-
-        // Placeholder main panel
-        const mainPanel = document.createElement("section");
-        mainPanel.className = "atomlab-main-panel";
-
-        const placeholder = document.createElement("p");
-        placeholder.textContent = "Atom Lab UI will appear here.";
-
-        mainPanel.appendChild(placeholder);
-
-        // Append everything
-        this.rootElement.append(header, mainPanel);
+        if (craftContainer) {
+            // Clear any placeholder text
+            craftContainer.replaceChildren();
+            
+            // Inject the Atom Crafting module
+            // craftContainer.appendChild(AtomCraftUI.build());
+        } else {
+            console.warn("AtomLabUI: #atomlab-crafting container is missing.");
+        }
     },
 
     // --------------------------------------------------
-    // Render UI state (empty for now)
+    // Render UI state
     // --------------------------------------------------
     render() {
-        // Future: update UI based on AtomLabManager state
+        // Cascade the render calls to your sub-components
+        // PeriodicTableUI.render();
+        PeriodicTableUI.build();
+        // AtomCraftUI.render();
         return true;
     }
 
