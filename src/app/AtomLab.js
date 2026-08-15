@@ -5,6 +5,7 @@
 
 import AtomLabUI from "./AtomLabUI.js";
 import AtomLabManager from "./AtomLabManager.js";
+import AtomCraftUI from "./AtomCraftUI.js";
 
 
 const AtomLab = {

@@ -1,13 +1,16 @@
 /* Container for the whole table (Subframe with Neon Glow) */
 .pt-grid {
     display: grid;
-    grid-template-columns: repeat(18, minmax(40px, 1fr)); /* 18 columns */
+    grid-template-columns: repeat(18, minmax(40px, 1fr));
+    grid-template-rows: repeat(7, 55px); /* Lock row heights so cards never stretch */
     gap: 4px;
     padding: 10px;
+    padding-top: 210px; /* Headroom inside the neon frame for AtomCraft */
     background-color: var(--color-atomlab-grid-bg);
     border: 2px solid var(--color-atomlab-neon-blue);
     border-radius: 8px;
     box-shadow: var(--color-atomlab-neon-glow);
+    position: relative;
 }
 
 /* The Element Card (Button) */
@@ -21,9 +24,10 @@
     border-radius: 4px;
     padding: 4px;
     cursor: pointer;
-    /* Added box-shadow to transition */
     transition: transform 0.1s, background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
-    min-height: 50px;
+    
+    height: 100%; /* Fills the 55px track height perfectly */
+    box-sizing: border-box;
 }
 
 .element-box:hover {

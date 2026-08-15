@@ -1,0 +1,159 @@
+/* ==================================================
+   AtomCraft UI Stylesheet (atom-craft.css)
+   ================================================== */
+
+.atom-craft-panel {
+    grid-column: 3 / 13;
+    grid-row: 1 / 4;
+    align-self: end;
+    
+    height: 375px;
+    margin-bottom: 0;
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background-color: var(--color-atomlab-grid-bg, #000000);
+    border: 2px solid var(--color-atomlab-neon-blue, #00f3ff);
+    box-shadow: var(--color-atomlab-neon-glow, 0 0 15px rgba(0, 243, 255, 0.6));
+    border-radius: 6px;
+    z-index: 5;
+}
+
+.craft-prompt {
+    background-color: #171b26;
+    border: 1px solid #28334a;
+    color: #00f3ff;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-align: center;
+    width: 100%;
+}
+
+.atom-workspace {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 220px;
+    height: 220px;
+}
+
+/* Base Shared Layout ONLY (No borders or colors) */
+.target-zone {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    cursor: pointer;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.orbit-zone {
+    width: 200px;
+    height: 200px;
+    border: 2px dashed #00f3ff;
+}
+
+.orbit-zone:hover {
+    box-shadow: 0 0 12px rgba(0, 243, 255, 0.5);
+}
+
+/* Base Nucleus Zone */
+.nucleus-zone {
+    width: 90px;
+    height: 90px;
+    border: 2px solid #ff4d6d;
+    background-color: rgba(255, 77, 109, 0.1);
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+}
+
+/* Hover & Keyboard Focus States (ADA Compliance) */
+.nucleus-zone:hover,
+.nucleus-zone:focus-visible {
+    border-color: #ff758f;
+    box-shadow: 0 0 14px rgba(255, 77, 109, 0.8);
+    background-color: rgba(255, 77, 109, 0.25);
+}
+
+/* Prompt Target State (Glowing Red to guide user) */
+.nucleus-zone.nucleus-selectable {
+    border-color: #ff4d6d;
+    animation: nucleus-selectable-glow 1.6s infinite alternate ease-in-out !important;
+}
+
+@keyframes nucleus-selectable-glow {
+    0% {
+        box-shadow: 0 0 8px rgba(255, 77, 109, 0.5), inset 0 0 4px rgba(255, 77, 109, 0.2);
+    }
+    100% {
+        box-shadow: 0 0 22px rgba(255, 77, 109, 1), inset 0 0 10px rgba(255, 77, 109, 0.5);
+    }
+}
+
+/* Active Selected State (Pulsing Inward from ring toward middle) */
+.nucleus-zone.nucleus-selected {
+    border-color: #ffffff;
+    animation: nucleus-pulse-inward 1.2s infinite ease-in-out !important;
+}
+
+@keyframes nucleus-pulse-inward {
+    0% {
+        box-shadow: 0 0 12px rgba(255, 77, 109, 0.8), inset 0 0 0px rgba(255, 77, 109, 0.8);
+        background-color: rgba(255, 77, 109, 0.1);
+    }
+    50% {
+        box-shadow: 0 0 6px rgba(255, 77, 109, 0.4), inset 0 0 25px rgba(255, 77, 109, 0.6);
+        background-color: rgba(255, 77, 109, 0.3);
+    }
+    100% {
+        box-shadow: 0 0 12px rgba(255, 77, 109, 0.8), inset 0 0 45px rgba(255, 77, 109, 0.9);
+        background-color: rgba(255, 77, 109, 0.5);
+    }
+}
+
+.zone-label {
+    position: absolute;
+    top: 4px;
+    font-size: 0.65rem;
+    color: #88a0c0;
+    text-transform: uppercase;
+    pointer-events: none;
+}
+
+.craft-live-counts {
+    display: flex;
+    gap: 16px;
+    color: #ffffff;
+    font-size: 0.9rem;
+}
+
+.craft-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.craft-btn {
+    background-color: #1a202c;
+    border: 1px solid #00f3ff;
+    color: #ffffff;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.craft-btn:hover:not(:disabled) {
+    background-color: #00f3ff;
+    color: #0d0f17;
+}
+
+.craft-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    border-color: #444;
+}
