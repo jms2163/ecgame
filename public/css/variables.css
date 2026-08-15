@@ -21,4 +21,24 @@
     --color-quest-new: #72d7ff;
     --color-quest-progress: #c8c8d0;
     --color-quest-history: #b7a7c9;
-}
+
+    /* --------------------------------------------------
+       AtomLab Theme
+    -------------------------------------------------- */
+    --color-atomlab-neon-blue: #00f3ff;
+    --color-atomlab-neon-glow: 0 0 15px rgba(0, 243, 255, 0.6), inset 0 0 10px rgba(0, 243, 255, 0.2);
+    
+    /* Grid Frame & Backgrounds */
+    --color-atomlab-grid-bg: #000000;
+    --color-atomlab-card-bg: #11141d;
+    --color-atomlab-card-bg-hover: #1b2233;
+    
+    /* Typography */
+    --color-atomlab-symbol: #a6f0ff;      /* Pale blue (no glow) */
+    --color-atomlab-atomic-num: #ffffff;  /* White */
+    
+    /* Static Series Indicators */
+    --color-atomlab-series-bg: #0b0e14;
+    --color-atomlab-series-border: #233545;
+    --color-atomlab-series-text: #60889e;
+};
