@@ -2,11 +2,8 @@
 // AtomLabUI.js
 // --------------------------------------------------
 
-// Uncomment these when your sub-components are ready
-// import PeriodicTableUI from "./PeriodicTableUI.js";
-// import AtomCraftUI from "./AtomCraftUI.js";
-
 import PeriodicTableUI from "./PeriodicTableUI.js";
+import AtomCraftUI from "./AtomCraftUI.js";
 
 const AtomLabUI = {
 
@@ -51,7 +48,7 @@ const AtomLabUI = {
             return existingRoot;
         }
 
-        // 2. Fallback: If not found, create it dynamically matching your exact HTML
+        // 2. Fallback: If not found, create it dynamically
         console.warn("AtomLabUI: HTML skeleton not found, generating fallback...");
         
         const appElement = document.getElementById("app") || document.body;
@@ -64,7 +61,6 @@ const AtomLabUI = {
             <h1 class="zone-title">Atom Lab</h1>
             <div class="atomlab-content">
                 <div id="atomlab-periodic-table"></div>
-                <div id="atomlab-crafting"></div>
             </div>
         `;
 
@@ -78,28 +74,26 @@ const AtomLabUI = {
     // --------------------------------------------------
     buildInterface() {
 
-        // Target the containers provided by the HTML skeleton
         const tableContainer = this.rootElement.querySelector("#atomlab-periodic-table");
         const craftContainer = this.rootElement.querySelector("#atomlab-crafting");
 
         if (tableContainer) {
-            // Clear any placeholder text
             tableContainer.replaceChildren(); 
             
-            // Inject the Periodic Table module
-            tableContainer.appendChild(PeriodicTableUI.build());
+            // 1. Build and inject the Periodic Table element
+            const ptElement = PeriodicTableUI.build();
+            tableContainer.appendChild(ptElement);
+
+            // 2. Locate the CSS grid inside the table and embed AtomCraft directly in top-center gap
+            const gridContainer = ptElement.querySelector(".pt-grid") || ptElement;
+            gridContainer.appendChild(AtomCraftUI.build());
         } else {
             console.warn("AtomLabUI: #atomlab-periodic-table container is missing.");
         }
 
+        // Clean up legacy standalone container if present in an existing static HTML skeleton
         if (craftContainer) {
-            // Clear any placeholder text
             craftContainer.replaceChildren();
-            
-            // Inject the Atom Crafting module
-            // craftContainer.appendChild(AtomCraftUI.build());
-        } else {
-            console.warn("AtomLabUI: #atomlab-crafting container is missing.");
         }
     },
 
@@ -107,10 +101,9 @@ const AtomLabUI = {
     // Render UI state
     // --------------------------------------------------
     render() {
-        // Cascade the render calls to your sub-components
-        // PeriodicTableUI.render();
-        PeriodicTableUI.build();
-        // AtomCraftUI.render();
+        // Cascade render calls to update active UI state without re-building DOM elements
+        PeriodicTableUI.render();
+        AtomCraftUI.render();
         return true;
     }
 
