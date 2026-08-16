@@ -5,7 +5,7 @@
     grid-template-rows: repeat(7, 55px); /* Lock row heights so cards never stretch */
     gap: 4px;
     padding: 10px;
-    padding-top: 210px; /* Headroom inside the neon frame for AtomCraft */
+    padding-top: 210px; /* Headroom inside the neon frame for AtomLab */
     background-color: var(--color-atomlab-grid-bg);
     border: 2px solid var(--color-atomlab-neon-blue);
     border-radius: 8px;

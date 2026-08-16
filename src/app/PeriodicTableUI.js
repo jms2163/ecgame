@@ -5,6 +5,7 @@
 import { elementLibrary } from "../data/elementLibrary.js";
 import AtomLabManager from "./AtomLabManager.js";
 import AtomLabUI from "./AtomLabUI.js";
+import GameStateManager from "./GameStateManager.js";
 
 const PeriodicTableUI = {
 
@@ -56,16 +57,26 @@ const PeriodicTableUI = {
             // Card click handler in PeriodicTableUI
 button.addEventListener("click", () => {
     const symbol = button.dataset.symbol;
+    const isDiscovered = GameStateManager?.hasDiscovery(symbol);
 
-    const result = AtomLabManager.processAction("select_element", symbol);
-    
-    if (result.accepted) {
-        console.log(`[PeriodicTable] ${result.message}`);
+    if (isDiscovered) {
+        // If already discovered, display view mode
+        console.log(`[PeriodicTable] Displaying view for discovered element: ${symbol}`);
+        AtomLabManager.processAction("view_element", symbol);
     } else {
-        console.warn(`[PeriodicTable] Selection rejected: ${result.message}`);
+        // Handle guided synthesis selection
+        const result = AtomLabManager.processAction("select_element", symbol);
+        
+        if (result.accepted) {
+            console.log(`[PeriodicTable] ${result.message}`);
+        } else {
+            console.warn(`[PeriodicTable] Selection rejected: ${result.message}`);
+        }
     }
 
+    // Re-render local periodic table and push update to parent container (updates prompt banner)
     this.render(AtomLabManager.getStatus());
+    AtomLabUI?.render();
 });
 
             grid.appendChild(button);
