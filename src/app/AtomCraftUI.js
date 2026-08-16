@@ -105,8 +105,10 @@ const AtomCraftUI = {
 
     render() {
         if (!this.container) return;
+        // #TODO added one-liner from the later const status = .. statement
+        status ??= AtomLabManager.getStatus();
 
-        const status = AtomLabManager.getStatus();
+        //const status = AtomLabManager.getStatus();
 
         // 1. Update Prompt Text
         if (this.promptEl) {

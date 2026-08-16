@@ -63,6 +63,8 @@ import ExperimentPlacementEvaluator
     from "./ExperimentPlacementEvaluator.js";
 import OrganelleExperimentLibrary
     from "./OrganelleExperimentLibrary.js";
+import AtomLabUI
+    from "./AtomLabUI.js";
 
 const DevConsole = {
 
@@ -105,7 +107,8 @@ const DevConsole = {
             OrganelleExperimentStage,
             OrganelleExperimentSubmissionManager,
             ExperimentPlacementEvaluator,
-            OrganelleExperimentLibrary
+            OrganelleExperimentLibrary,
+            AtomLabUI
         };
 
         console.log(
