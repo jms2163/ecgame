@@ -141,6 +141,7 @@ handleAction(actionType, payload) {
     }
 
     // Trigger immediate UI refresh
+    AtomLabUI?.render();
     this.render();
 },
 

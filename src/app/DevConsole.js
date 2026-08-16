@@ -69,6 +69,8 @@ import AtomLabManager
     from "./AtomLabManager.js";
 import DiscoveryManager
     from "./DiscoveryManager.js";
+import AtomCraftUI
+    from "./AtomCraftUI.js";
 
 const DevConsole = {
 
@@ -114,7 +116,8 @@ const DevConsole = {
             OrganelleExperimentLibrary,
             AtomLabUI,
             AtomLabManager,
-            DiscoveryManager
+            DiscoveryManager,
+            AtomCraftUI
         };
 
         console.log(
