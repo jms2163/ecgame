@@ -154,14 +154,24 @@ const AtomLabManager = {
 
     // Main entry point from the UI for any action (clicking elements, adding particles, synthesizing)
     processAction(actionType, payload) {
-        const state = this.ensureState();
+    const state = this.ensureState();
 
-        if (state.buildMode === "free-build") {
-            return this.handleFreeBuildAction(state, actionType, payload);
-        }
+    // Direct Target Selection Switch
+    if (actionType === "select_element") {
+        return this.selectElement(payload);
+    }
 
-        return this.handleGuidedAction(state, actionType, payload);
-    },
+    if (actionType === "select_isotope") {
+        return this.selectIsotope(payload);
+    }
+
+    // Workspace Crafting Actions
+    if (state.buildMode === "free-build") {
+        return this.handleFreeBuildAction(state, actionType, payload);
+    }
+
+    return this.handleGuidedAction(state, actionType, payload);
+},
 
     handleGuidedAction(state, actionType, payload) {
         const currentSequence = GUIDED_SEQUENCES[state.buildMode];
@@ -249,6 +259,75 @@ const AtomLabManager = {
             status: this.getStatus()
         };
     },
+
+    // #TODO added this function to screen routing when an element is pressed.
+   selectElement(symbol) {
+    const state = this.ensureState();
+
+    const isotopes = this.getIsotopesForElement(symbol);
+    if (!isotopes.length) {
+        return { accepted: false, message: `Unknown element symbol: ${symbol}` };
+    }
+
+    const isDiscovered = window.ECGame?.GameStateManager?.hasDiscovery(symbol);
+    const isotopeModeUnlocked = Boolean(window.ECGame?.GameStateManager?.hasDiscovery("isotope_mode"));
+    const representative = this.getRepresentativeIsotope(symbol);
+
+    state.selectedElement = symbol;
+    state.activeTargetIsotope = representative.id;
+    state.availableIsotopes = (isotopeModeUnlocked && representative.p >= 6) 
+        ? isotopes 
+        : [representative];
+
+    return {
+        accepted: true,
+        message: `Selected ${representative.name} (${symbol}). Isotope Mode: ${isotopeModeUnlocked ? "Active" : "Locked"}.`
+    };
+},
+
+getIsotopeSynthesisStatus(symbol) {
+    const isotopes = this.getIsotopesForElement(symbol);
+    if (!isotopes.length) return null;
+
+    const hasDiscovery = (id) => window.ECGame?.GameStateManager?.hasDiscovery(id);
+    const isotopeModeUnlocked = Boolean(hasDiscovery("isotope_mode"));
+
+    const isotopeStatusList = isotopes.map(iso => ({
+        id: iso.id,
+        name: iso.name,
+        symbol: iso.symbol,
+        protons: iso.p,
+        neutrons: iso.n,
+        electrons: iso.e,
+        abundance: iso.a,
+        isSynthesized: Boolean(hasDiscovery(iso.id))
+    }));
+
+    const isFullyComplete = isotopeStatusList.length > 0 && isotopeStatusList.every(iso => iso.isSynthesized);
+
+    return {
+        symbol,
+        isFullyComplete,
+        isotopeModeUnlocked,
+        isotopes: isotopeStatusList
+    };
+},
+
+// Helper: Retrieve all isotope variants for an element symbol (e.g. "C")
+getIsotopesForElement(symbol) {
+    return Object.entries(elementLibrary)
+        .filter(([id, data]) => data.symbol === symbol)
+        .map(([id, data]) => ({ id, ...data }));
+},
+
+// Helper: Get representative (highest abundance) isotope
+getRepresentativeIsotope(symbol) {
+    const isotopes = this.getIsotopesForElement(symbol);
+    if (!isotopes.length) return null;
+    return isotopes.reduce((max, iso) => (iso.a > max.a ? iso : max), isotopes[0]);
+},
+
+
 
     handleFreeBuildAction(state, actionType, payload) {
         const buffer = state.freeBuildBuffer;

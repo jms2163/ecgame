@@ -53,23 +53,19 @@ const PeriodicTableUI = {
             // #TODO updated click handler!!
             // #TODO check if element is discovered first then
             // if already discovered just display a view of it.
-            button.addEventListener("click", () => {
-    const symbol = elementData.symbol;
-    const status = AtomLabManager.getStatus();
+            // Card click handler in PeriodicTableUI
+button.addEventListener("click", () => {
+    const symbol = button.dataset.symbol;
+
+    const result = AtomLabManager.processAction("select_element", symbol);
     
-    // In guided mode, dispatch step payload check; in free-build, dispatch element selection
-    const actionType = status.mode === "free-build" ? "select_element" : "select_element";
-    
-    const result = AtomLabManager.processAction(actionType, symbol);
-    
-    if (!result.accepted) {
-        console.warn(`Element selection rejected (${symbol}):`, result.message);
+    if (result.accepted) {
+        console.log(`[PeriodicTable] ${result.message}`);
     } else {
-        console.log(`Element selected (${symbol}):`, result.message);
+        console.warn(`[PeriodicTable] Selection rejected: ${result.message}`);
     }
 
-    // Trigger immediate UI refresh
-    AtomLabUI.render();
+    this.render(AtomLabManager.getStatus());
 });
 
             grid.appendChild(button);
