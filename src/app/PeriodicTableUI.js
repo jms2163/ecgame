@@ -4,6 +4,7 @@
 
 import { elementLibrary } from "../data/elementLibrary.js";
 import AtomLabManager from "./AtomLabManager.js";
+import AtomLabUI from "./AtomLabUI.js";
 
 const PeriodicTableUI = {
 
@@ -49,12 +50,27 @@ const PeriodicTableUI = {
                 <span class="element-symbol">${elementData.symbol}</span>
             `;
 
-            // Click Handler
+            // #TODO updated click handler!!
+            // #TODO check if element is discovered first then
+            // if already discovered just display a view of it.
             button.addEventListener("click", () => {
-                console.log(`Clicked element: ${elementData.symbol}`);
-                // #TODO just uncommented next one-liner
-                AtomLabManager.processAction("select_element", elementData.symbol);
-            });
+    const symbol = elementData.symbol;
+    const status = AtomLabManager.getStatus();
+    
+    // In guided mode, dispatch step payload check; in free-build, dispatch element selection
+    const actionType = status.mode === "free-build" ? "select_element" : "select_element";
+    
+    const result = AtomLabManager.processAction(actionType, symbol);
+    
+    if (!result.accepted) {
+        console.warn(`Element selection rejected (${symbol}):`, result.message);
+    } else {
+        console.log(`Element selected (${symbol}):`, result.message);
+    }
+
+    // Trigger immediate UI refresh
+    AtomLabUI.render();
+});
 
             grid.appendChild(button);
         });
