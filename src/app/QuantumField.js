@@ -9,6 +9,7 @@ import QuantumSpawnTimingManager
     from "./QuantumSpawnTimingManager.js";
 import QuantumAutoCollectorManager
     from "./QuantumAutoCollectorManager.js";
+import ParticleInventoryManager from "./ParticleInventoryManager.js";
 
 const FIELD_WIDTH = 800;
 const FIELD_HEIGHT = 420;
@@ -1205,22 +1206,18 @@ const QuantumField = {
     },
 
     isInventorySaturated() {
+    const inventory = this.getActivityStatus?.()?.inventory 
+        || ParticleInventoryManager?.getStatus();
 
-        const inventory =
-            this.getActivityStatus?.()
-                ?.inventory;
+    if (!inventory || typeof inventory.capacity !== "number") {
+        return false;
+    }
 
-        if (!inventory) {
-            return false;
-        }
-
-        return PARTICLE_ORDER.every(
-            particleId =>
-                inventory[particleId] >=
-                inventory.capacity
-        );
-
-    },
+    return PARTICLE_ORDER.every(particleId => {
+        const count = inventory[particleId] ?? 0;
+        return count >= inventory.capacity;
+    });
+},
 
     animate(timestampMs) {
 

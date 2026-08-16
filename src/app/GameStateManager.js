@@ -98,14 +98,18 @@ const GameStateManager = {
     // --------------------------------------------------
     // Discoveries and cell systems
     // --------------------------------------------------
-    hasDiscovery(discoveryId) {
+    hasDiscovery(id) {
+    const discoveries = gameState.discoveries;
+    if (!discoveries) return false;
 
-        return Boolean(
-            gameState.registry?.discoveries
-                ?.includes(discoveryId)
-        );
-
-    },
+    // Check across all discovery buckets (atoms, isotopes, molecules)
+    return Boolean(
+        discoveries.atoms?.[id] ||
+        discoveries.isotopes?.[id] ||
+        discoveries.molecules?.[id] ||
+        discoveries[id] // Fallback for legacy flat records
+    );
+},
 
     addDiscovery(discoveryId) {
 
