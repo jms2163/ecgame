@@ -122,31 +122,35 @@ const AtomCraftUI = {
         this.render();
     },
 
-    render() {
-        if (!this.container) return;
-        // #TODO added one-liner from the later const status = .. statement
-        //const status = AtomLabManager.getStatus();
-        status ??= AtomLabManager.getStatus();
+    render(workspaceState) {
+    if (!workspaceState) return;
 
+    const { protons = 0, neutrons = 0, electrons = 0 } = workspaceState;
 
-        // 1. Update Prompt Text
-        if (this.promptEl) {
-            this.promptEl.textContent = status.nextPrompt || "Free Build Mode: Add particles and synthesize!";
-        }
+    // 1. Update Workspace Counts
+    const protonCountEl = this.container.querySelector("#count-protons");
+    const neutronCountEl = this.container.querySelector("#count-neutrons");
+    const electronCountEl = this.container.querySelector("#count-electrons");
 
-        // 2. Update Particle Inventory Counts
-        if (status.inventory) {
-            this.countsEl.p.textContent = status.inventory.proton ?? 0;
-            this.countsEl.n.textContent = status.inventory.neutron ?? 0;
-            this.countsEl.e.textContent = status.inventory.electron ?? 0;
-        }
+    if (protonCountEl) protonCountEl.textContent = protons;
+    if (neutronCountEl) neutronCountEl.textContent = neutrons;
+    if (electronCountEl) electronCountEl.textContent = electrons;
 
-        // 3. Disable control buttons if pre-requisites or inventory checks fail
-        const isReady = status.inventoryCheck?.ready ?? true;
-        Object.values(this.buttons).forEach(btn => {
-            btn.disabled = !isReady;
-        });
+    // 2. Dynamic Visual Node Rendering inside Nucleus & Orbit
+    const nucleusZone = this.container.querySelector("#target-nucleus");
+    const orbitZone = this.container.querySelector("#target-orbit");
+
+    if (nucleusZone) {
+        nucleusZone.setAttribute("aria-label", `Nucleus containing ${protons} protons and ${neutrons} neutrons`);
+        // Render simple particle dots or badge
+        nucleusZone.dataset.particles = protons + neutrons;
     }
+
+    if (orbitZone) {
+        orbitZone.setAttribute("aria-label", `Electron orbits containing ${electrons} electrons`);
+        orbitZone.dataset.electrons = electrons;
+    }
+}
 };
 
 export default AtomCraftUI;
