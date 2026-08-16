@@ -4,6 +4,7 @@
 
 import PeriodicTableUI from "./PeriodicTableUI.js";
 import AtomCraftUI from "./AtomCraftUI.js";
+import AtomLabManager from "./AtomLabManager.js";
 
 const AtomLabUI = {
 
@@ -19,6 +20,7 @@ const AtomLabUI = {
             this.render();
             return true;
         }
+
 
         this.rootElement = this.ensureRootElement();
 
@@ -102,6 +104,8 @@ const AtomLabUI = {
     // --------------------------------------------------
     render() {
         // Cascade render calls to update active UI state without re-building DOM elements
+        // #TODO check if the following one-liner is appropriate here:
+        const status = AtomLabManager.getStatus();
         PeriodicTableUI.render();
         AtomCraftUI.render();
         return true;

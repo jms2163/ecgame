@@ -1,4 +1,9 @@
+// --------------------------------------------------
+// PeriodicTableUI.js
+// --------------------------------------------------
+
 import { elementLibrary } from "../data/elementLibrary.js";
+import AtomLabManager from "./AtomLabManager.js";
 
 const PeriodicTableUI = {
 
@@ -47,7 +52,8 @@ const PeriodicTableUI = {
             // Click Handler
             button.addEventListener("click", () => {
                 console.log(`Clicked element: ${elementData.symbol}`);
-                // AtomLabManager.processAction("select_element", elementData.symbol);
+                // #TODO just uncommented next one-liner
+                AtomLabManager.processAction("select_element", elementData.symbol);
             });
 
             grid.appendChild(button);
@@ -78,9 +84,16 @@ const PeriodicTableUI = {
         return container;
     },
 
-    render() {
-        // State updates go here
+    render(status) {
+    // #TODO just pasted render code all in state goes here. 
+    if (!status) return;
+
+    // Update Header Discovery Counter (if available)
+    const elementsCountEl = document.getElementById("elements-count");
+    if (elementsCountEl && status.discoveredElementsCount !== undefined) {
+        elementsCountEl.textContent = `${status.discoveredElementsCount}/118`;
     }
+}
 };
 
 export default PeriodicTableUI;
