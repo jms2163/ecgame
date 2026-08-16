@@ -246,6 +246,83 @@ const ParticleInventoryManager = {
 
     },
 
+    removeParticle(
+    particleId,
+    amount = 1
+) {
+
+    if (!this.isParticleType(particleId)) {
+        return {
+            removed: 0,
+            reason: "unknown-particle"
+        };
+    }
+
+    if (
+        !Number.isInteger(amount) ||
+        amount <= 0
+    ) {
+        return {
+            removed: 0,
+            reason: "invalid-amount"
+        };
+    }
+
+    const particles =
+        this.ensureState();
+
+    const removed =
+        Math.min(
+            amount,
+            particles[particleId]
+        );
+
+    if (removed <= 0) {
+        return {
+            removed: 0,
+            current:
+                particles[particleId],
+            capacity:
+                particles.capacity,
+            reason: "insufficient-particles"
+        };
+    }
+
+    particles[particleId] -= removed;
+
+    GameStateObserver.notify(
+        "particle-inventory-changed",
+        {
+            particleId,
+            removed,
+            current:
+                particles[particleId],
+            capacity:
+                particles.capacity,
+            lifetimeCollected:
+                particles
+                    .lifetimeCollected[
+                        particleId
+                    ]
+        }
+    );
+
+    return {
+        removed,
+        current:
+            particles[particleId],
+        capacity:
+            particles.capacity,
+        lifetimeCollected:
+            particles
+                .lifetimeCollected[
+                    particleId
+                ],
+        reason: "removed"
+    };
+
+},
+
     increaseCapacity(amount) {
 
         if (

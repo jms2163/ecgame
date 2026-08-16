@@ -4,7 +4,7 @@
 
 
 import AtomLabManager from "./AtomLabManager.js";
-
+import AtomLabUI from "./AtomLabUI.js"
 
 const AtomCraftUI = {
     // DOM References
@@ -39,9 +39,9 @@ const AtomCraftUI = {
             </div>
 
             <div class="craft-controls">
-                <button id="btn-add-proton" class="craft-btn" data-action="proton">+ Proton</button>
-                <button id="btn-add-neutron" class="craft-btn" data-action="neutron">+ Neutron</button>
-                <button id="btn-add-electron" class="craft-btn" data-action="electron">+ Electron</button>
+                <button id="btn-add-proton" class="craft-btn" data-action="add_proton">+ Proton</button>
+                <button id="btn-add-neutron" class="craft-btn" data-action="add_neutron">+ Neutron</button>
+                <button id="btn-add-electron" class="craft-btn" data-action="add_electron">+ Electron</button>
                 <button id="btn-synthesize" class="craft-btn synthesize-btn" data-action="synthesize">Synthesize</button>
             </div>
         `;
@@ -78,16 +78,30 @@ const AtomCraftUI = {
             e.stopPropagation(); // Avoid triggering orbit click
             this.handleAction("click_nucleus", "nucleus");
         });
+        this.nucleusEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            e.stopPropagation();
+            this.handleAction("click_nucleus", "nucleus");
+        }
+    });
 
         this.orbitEl.addEventListener("click", () => {
             this.handleAction("click_orbit", "orbit");
         });
+        this.orbitEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            this.handleAction("click_orbit", "orbit");
+        }
+    });
 
         // Control panel button clicks
         this.container.querySelectorAll(".craft-btn").forEach(btn => {
             btn.addEventListener("click", (e) => {
-                const action = e.target.dataset.action;
-                this.handleAction(action, action);
+                const action = e.currentTarget.dataset.action;
+                const payload = e.currentTarget.dataset.payload;
+                this.handleAction(action, payload);
             });
         });
     },
@@ -97,7 +111,12 @@ const AtomCraftUI = {
         
         if (!result.accepted) {
             console.warn("Action rejected:", result.message);
-        }
+        } else {
+        console.log(`Action accepted (${actionType}):`, result.message);
+    }
+
+    // Trigger immediate UI refresh
+    AtomLabUI.render();
 
         // Trigger UI refresh after state changes
         this.render();
@@ -106,9 +125,9 @@ const AtomCraftUI = {
     render() {
         if (!this.container) return;
         // #TODO added one-liner from the later const status = .. statement
+        //const status = AtomLabManager.getStatus();
         status ??= AtomLabManager.getStatus();
 
-        //const status = AtomLabManager.getStatus();
 
         // 1. Update Prompt Text
         if (this.promptEl) {
