@@ -4,6 +4,7 @@
 // --------------------------------------------------
 
 import gameState from "./GameState.js";
+import GameStateManager from "./GameStateManager.js";
 import GameStateObserver from "./GameStateObserver.js";
 import GameStars from "./GameStars.js";
 import ParticleInventoryManager from "./ParticleInventoryManager.js";
@@ -11,7 +12,7 @@ import QuestManager from "./QuestManager.js";
 import SaveManager from "./SaveManager.js";
 // element and isotopic data
 import { elementLibrary } from "../data/elementLibrary.js";
-
+import DiscoveryManager from "./DiscoveryManager.js";
 
 const ACTIVITY_ID_H = "guided_hydrogen";
 const ACTIVITY_ID_HE = "guided_helium";
@@ -60,14 +61,29 @@ const STEP_DEFINITIONS = Object.freeze({
 
 const AtomLabManager = {
 
-    initialize() {
-        ParticleInventoryManager.initialize();
-        QuestManager.initialize();
-        GameStars.initialize();
+initialize() {
+    ParticleInventoryManager.initialize();
+    QuestManager.initialize();
+    GameStars.initialize();
 
-        this.ensureState();
-        return true;
-    },
+    const state = this.ensureState();
+    const gsm = window.ECGame?.GameStateManager;
+
+    // Check discovery state to assign correct starting build mode
+    if (gsm) {
+        if (!gsm.hasDiscovery("H")) {
+            state.buildMode = "guided-h";
+            state.guidedStepIndex = 0;
+        } else if (!gsm.hasDiscovery("He")) {
+            state.buildMode = "guided-he";
+            state.guidedStepIndex = 0;
+        } else if (state.buildMode !== "free-build") {
+            state.buildMode = "free-build";
+        }
+    }
+
+    return true;
+},
 
     ensureState() {
         const atomLab = gameState.zones?.atomLab;
@@ -153,112 +169,150 @@ const AtomLabManager = {
     },
 
     // Main entry point from the UI for any action (clicking elements, adding particles, synthesizing)
-    processAction(actionType, payload) {
+processAction(actionType, payload) {
     const state = this.ensureState();
 
-    // Direct Target Selection Switch
-    if (actionType === "select_element") {
-        return this.selectElement(payload);
+    let result;
+    if (state.buildMode !== "free-build") {
+        result = this.handleGuidedAction(state, actionType, payload);
+    } else {
+        result = this.handleFreeBuildAction(state, actionType, payload);
     }
 
-    if (actionType === "select_isotope") {
-        return this.selectIsotope(payload);
+    // Directly trigger top-level imported UI re-render
+    if (typeof AtomCraftUI !== "undefined" && AtomCraftUI.render) {
+        AtomCraftUI.render();
     }
 
-    // Workspace Crafting Actions
-    if (state.buildMode === "free-build") {
-        return this.handleFreeBuildAction(state, actionType, payload);
-    }
-
-    return this.handleGuidedAction(state, actionType, payload);
+    return result;
 },
 
-    handleGuidedAction(state, actionType, payload) {
-        const currentSequence = GUIDED_SEQUENCES[state.buildMode];
-        const stepId = currentSequence[state.guidedStepIndex];
-        const expected = STEP_DEFINITIONS[stepId];
+handleGuidedAction(state, actionType, payload) {
+    const currentSequence = GUIDED_SEQUENCES[state.buildMode];
+    const stepId = currentSequence[state.guidedStepIndex];
+    const expected = STEP_DEFINITIONS[stepId];
 
-        // 1. Pre-requisite check: Reject interactions if they don't have enough particles to even start the guide
-        const preReq = this.checkInventoryPreReq(state.buildMode);
-        if (!preReq.ready) {
-            return { accepted: false, correct: false, reason: "insufficient-inventory", message: preReq.missing };
+    // Safety fallback for payload extraction
+    const effectivePayload = payload || (actionType.startsWith("add_") ? actionType.replace("add_", "") : actionType);
+
+    // Normalize particle keys (guided steps use singular 'proton', freeBuildBuffer uses plural 'protons')
+    const particleMap = {
+        proton: "protons",
+        neutron: "neutrons",
+        electron: "electrons",
+        protons: "protons",
+        neutrons: "neutrons",
+        electrons: "electrons"
+    };
+
+    // 1. Pre-requisite check
+    const preReq = this.checkInventoryPreReq(state.buildMode);
+    if (!preReq.ready) {
+        return { accepted: false, correct: false, reason: "insufficient-inventory", message: preReq.missing };
+    }
+
+    // 2. Validate Action against expected step
+    if (effectivePayload !== expected.expectedPayload) {
+        if (state.buildMode === "guided-he") {
+            state.incorrectHeSelections += 1;
+            state.perfectHeEligible = false;
         }
 
-        // 2. Validate Action
-        if (payload !== expected.expectedPayload) {
-            
-            if (state.buildMode === "guided-he") {
-                state.incorrectHeSelections += 1;
-                state.perfectHeEligible = false;
-            }
-
-            SaveManager.save();
-            return {
-                accepted: true,
-                correct: false,
-                reason: "incorrect-step",
-                message: expected.prompt 
-            };
-        }
-
-        // 3. Process Particle Deductions for Correct Steps
-        if (["proton", "neutron", "electron"].includes(payload)) {
-            const deductResult = ParticleInventoryManager.removeParticle(payload, 1);
-            if (!deductResult.success) {
-                return { accepted: false, correct: true, reason: "inventory-error", message: "Error deducting particle." };
-            }
-        }
-
-        // 4. Advance Step Sequence
-        state.guidedStepIndex += 1;
-        let message = "Correct.";
-        let completedSequence = false;
-
-        if (state.guidedStepIndex >= currentSequence.length) {
-            completedSequence = true;
-            state.guidedStepIndex = 0;
-            
-            if (state.buildMode === "guided-h") {
-                DiscoveryManager.record("atoms", "H");
-                DiscoveryManager.record("isotopes", "H1");
-
-                state.buildMode = "guided-he";
-                message = "Hydrogen synthesized! Now, let's build Helium.";
-                QuestManager.markQuestClaimable(ACTIVITY_ID_H, Date.now());
-            } 
-            else if (state.buildMode === "guided-he") {
-                DiscoveryManager.record("atoms", "He");
-                DiscoveryManager.record("isotopes", "He4");
-
-                state.buildMode = "free-build";
-                message = "Helium synthesized! Free build mode unlocked.";
-                QuestManager.markQuestClaimable(ACTIVITY_ID_HE, Date.now());
-                
-                if (state.perfectHeEligible) {
-                    this.awardPerfectHeStar();
-                    message += " Perfect execution! You earned a star.";
-                }
-            }
-        }
-
-        const saveSucceeded = SaveManager.save();
-        
-        GameStateObserver.notify("atom-lab-action", {
-            buildMode: state.buildMode,
-            action: payload,
-            completedSequence,
-            saveSucceeded
-        });
-
+        SaveManager.save();
         return {
             accepted: true,
-            correct: true,
-            reason: "step-complete",
-            message,
-            saveSucceeded,
-            status: this.getStatus()
+            correct: false,
+            reason: "incorrect-step",
+            message: expected.prompt 
         };
-    },
+    }
+
+    // 3. Process Particle Deductions & Workspace Updates
+    if (actionType === "select_element" || stepId.startsWith("select_")) {
+        this.selectElement(effectivePayload);
+    }
+
+    // Helper to evaluate removal success regardless of return signature
+const isSuccess = (res) => {
+    if (res === true) return true;
+    if (typeof res === "object" && res !== null) {
+        if (res.success === true) return true;
+        if (typeof res.removed === "number" && res.removed > 0) return true;
+    }
+    return false;
+};
+
+    if (["proton", "neutron", "electron", "protons", "neutrons", "electrons"].includes(effectivePayload)) {
+    // Attempt removal using singular key first, then plural
+    let deductResult = ParticleInventoryManager.removeParticle(effectivePayload, 1);
+    if (!isSuccess(deductResult)) {
+        const altKey = particleMap[effectivePayload];
+        deductResult = ParticleInventoryManager.removeParticle(altKey, 1);
+    }
+
+    if (!isSuccess(deductResult)) {
+        return { accepted: false, correct: true, reason: "inventory-error", message: "Error deducting particle." };
+    }
+    
+    // Ensure freeBuildBuffer exists with correct plural keys
+    state.freeBuildBuffer = state.freeBuildBuffer || { protons: 0, neutrons: 0, electrons: 0 };
+    const pluralKey = particleMap[effectivePayload] || "protons";
+    state.freeBuildBuffer[pluralKey] = (state.freeBuildBuffer[pluralKey] || 0) + 1;
+}
+
+    // 4. Advance Step Sequence
+    state.guidedStepIndex += 1;
+    let message = "Correct.";
+    let completedSequence = false;
+
+    if (state.guidedStepIndex >= currentSequence.length) {
+        completedSequence = true;
+        state.guidedStepIndex = 0;
+        
+        // Clear workspace build buffer upon completion
+        state.freeBuildBuffer = { targetElement: null, protons: 0, neutrons: 0, electrons: 0 };
+
+        if (state.buildMode === "guided-h") {
+            DiscoveryManager.record("atoms", "H");
+            DiscoveryManager.record("isotopes", "H1");
+
+            state.buildMode = "guided-he";
+            message = "Hydrogen synthesized! Now, let's build Helium.";
+            QuestManager.markQuestClaimable(ACTIVITY_ID_H, Date.now());
+        } 
+        else if (state.buildMode === "guided-he") {
+            DiscoveryManager.record("atoms", "He");
+            DiscoveryManager.record("isotopes", "He4");
+
+            state.buildMode = "free-build";
+            message = "Helium synthesized! Free build mode unlocked.";
+            QuestManager.markQuestClaimable(ACTIVITY_ID_HE, Date.now());
+            
+            if (state.perfectHeEligible) {
+                this.awardPerfectHeStar();
+                message += " Perfect execution! You earned a star.";
+            }
+        }
+    }
+
+    const saveSucceeded = SaveManager.save();
+    
+    GameStateObserver.notify("atom-lab-action", {
+        buildMode: state.buildMode,
+        action: effectivePayload,
+        completedSequence,
+        saveSucceeded
+    });
+
+    return {
+        accepted: true,
+        correct: true,
+        reason: "step-complete",
+        message,
+        saveSucceeded,
+        status: this.getStatus()
+    };
+},
 
     // #TODO added this function to screen routing when an element is pressed.
    selectElement(symbol) {
@@ -269,8 +323,8 @@ const AtomLabManager = {
         return { accepted: false, message: `Unknown element symbol: ${symbol}` };
     }
 
-    const isDiscovered = window.ECGame?.GameStateManager?.hasDiscovery(symbol);
-    const isotopeModeUnlocked = Boolean(window.ECGame?.GameStateManager?.hasDiscovery("isotope_mode"));
+    const isDiscovered = GameStateManager?.hasDiscovery(symbol);
+    const isotopeModeUnlocked = Boolean(GameStateManager?.hasDiscovery("isotope_mode"));
     const representative = this.getRepresentativeIsotope(symbol);
 
     state.selectedElement = symbol;
@@ -289,7 +343,7 @@ getIsotopeSynthesisStatus(symbol) {
     const isotopes = this.getIsotopesForElement(symbol);
     if (!isotopes.length) return null;
 
-    const hasDiscovery = (id) => window.ECGame?.GameStateManager?.hasDiscovery(id);
+    const hasDiscovery = (id) => GameStateManager?.hasDiscovery(id);
     const isotopeModeUnlocked = Boolean(hasDiscovery("isotope_mode"));
 
     const isotopeStatusList = isotopes.map(iso => ({

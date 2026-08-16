@@ -133,6 +133,13 @@
     font-size: 0.9rem;
 }
 
+.craft-inventory-counts {
+    display: flex;
+    gap: 16px;
+    color: #ffffff;
+    font-size: 0.9rem;
+}
+
 .craft-controls {
     display: flex;
     gap: 8px;

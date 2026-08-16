@@ -1,0 +1,12 @@
+[ GameStateManager ] ---> (Global Save/Load JSON Engine)
+        │
+   ┌────┴───────────────────────────┐
+   ▼                                ▼
+[ Domain Stores ]          [ Event Bus ]
+ - ParticleStore            - "PARTICLE_CHANGED"
+ - QuestStore               - "ZONE_TRANSITION"
+ - ZoneProgressStore                │
+   │                                ▼
+   └────────────────────────> [ UI / Canvas Views ]
+                               - QuantumField
+                               - AtomCraftUI
