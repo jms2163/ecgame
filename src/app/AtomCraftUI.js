@@ -75,12 +75,61 @@ export function calculateNucleonPositions(Z, N, options = {}) {
     });
 }
 
+/**
+ * Calculates (x, y) coordinates for electrons distributed across up to 7 Bohr shells.
+ * 
+ * @param {number} totalElectrons - Active electron count
+ * @param {Object} options
+ * @param {number[]} [options.shellCapacities=[2, 8, 18, 32, 32, 18, 10]] - Max capacity per shell (1-7)
+ * @param {number} [options.innerRadius=105] - Radius of Ring 1
+ * @param {number} [options.shellSpacing=18] - Radial distance between concentric rings
+ * @returns {Array<{x: number, y: number, shell: number}>}
+ */
+export function calculateElectronPositions(totalElectrons, options = {}) {
+    if (totalElectrons <= 0) return [];
+
+    const shellCapacities = options.shellCapacities || [2, 8, 18, 32, 32, 18, 10];
+    const innerRadius = options.innerRadius ?? 105;
+    const shellSpacing = options.shellSpacing ?? 18;
+
+    let remaining = totalElectrons;
+    const electronPositions = [];
+
+    for (let shellIdx = 0; shellIdx < shellCapacities.length; shellIdx++) {
+        if (remaining <= 0) break;
+
+        const capacity = shellCapacities[shellIdx];
+        const count = Math.min(remaining, capacity);
+        remaining -= count;
+
+        const radius = innerRadius + (shellIdx * shellSpacing);
+
+        for (let i = 0; i < count; i++) {
+            // Angle starting at 12 o'clock (-pi/2)
+            const angle = -Math.PI / 2 + (2 * Math.PI * i) / count;
+            const x = radius * Math.cos(angle);
+            const y = radius * Math.sin(angle);
+
+            electronPositions.push({
+                x: Math.round(x * 100) / 100,
+                y: Math.round(y * 100) / 100,
+                shell: shellIdx + 1
+            });
+        }
+    }
+
+    return electronPositions;
+}
+
 const AtomCraftUI = {
     // Configurable nucleus rendering dimensions
     config: {
-        nucleusRadius: 75,  // Radius limit for nucleon positioning
-        nucleonSpacing: 8, // Pixel distance between center of nucleons
-        nucleonSize: 12     // Radius of rendered SVG particle spheres
+        nucleusRadius: 85,
+        nucleonSpacing: 8,
+        nucleonSize: 13,
+        innerShellRadius: 400, // Ring 1 radius
+        shellSpacing: 60,      // Distance between ring 1 through 7
+        electronSize: 40        // Grey circle diameter
     },
 
     // DOM References
@@ -105,9 +154,12 @@ const AtomCraftUI = {
                 <div id="target-orbit" class="target-zone orbit-zone" tabindex="0" role="button" aria-label="Electron Orbit">
                     <span class="zone-label">Orbit</span>
                     <div id="target-nucleus" class="target-zone nucleus-zone" tabindex="0" role="button" aria-label="Nucleus">
-                        <svg id="nucleus-svg" class="nucleus-svg" viewBox="-100 -100 200 200" style="width: 100%; height: 100%; pointer-events: none; overflow: visible;">
-                            <g id="nucleus-group"></g>
-                        </svg>
+                        
+<svg id="nucleus-svg" class="nucleus-svg" viewBox="-250 -250 500 500" style="width: 100%; height: 100%; pointer-events: none; overflow: visible;">
+    <g id="shells-group"></g>
+    <g id="nucleus-group"></g>
+    <g id="electrons-group"></g>
+</svg>
                     </div>
                 </div>
             </div>
@@ -249,6 +301,51 @@ const AtomCraftUI = {
         });
     },
 
+    // Inside AtomCraftUI object:
+
+renderShells() {
+    const shellsGroup = this.container.querySelector("#shells-group");
+    if (!shellsGroup) return;
+
+    // Render static ring outlines once
+    if (shellsGroup.children.length === 0) {
+        const capacities = [2, 8, 18, 32, 32, 18, 10];
+        const innerRadius = this.config.innerShellRadius;
+        const spacing = this.config.shellSpacing;
+
+        capacities.forEach((_, index) => {
+            const radius = innerRadius + (index * spacing);
+            const ring = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            ring.setAttribute("cx", "0");
+            ring.setAttribute("cy", "0");
+            ring.setAttribute("r", radius);
+            ring.setAttribute("class", "electron-shell-ring");
+            shellsGroup.appendChild(ring);
+        });
+    }
+},
+
+renderElectrons(electronCount) {
+    const electronsGroup = this.container.querySelector("#electrons-group");
+    if (!electronsGroup) return;
+
+    electronsGroup.innerHTML = "";
+
+    const positions = calculateElectronPositions(electronCount, {
+        innerRadius: this.config.innerShellRadius,
+        shellSpacing: this.config.shellSpacing
+    });
+
+    positions.forEach(p => {
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("cx", p.x);
+        circle.setAttribute("cy", p.y);
+        circle.setAttribute("r", this.config.electronSize / 2);
+        circle.setAttribute("class", "electron-particle");
+        electronsGroup.appendChild(circle);
+    });
+},
+
     render() {
         if (!this.container) return;
 
@@ -266,7 +363,7 @@ const AtomCraftUI = {
                 promptBannerEl.style.display = "block";
                 promptTextEl.textContent = status.nextPrompt;
             }
-        }
+        } 
 
         // 2. Workspace Build Counts & Nucleus SVG
         const workspace = status.freeBuildBuffer || {};
@@ -285,6 +382,8 @@ const eWorkspace = workspace.electrons ?? workspace.electron ?? 0;
 
         // Render hexagonal layout in nucleus
         this.renderNucleus(pWorkspace, nWorkspace);
+        this.renderShells();
+        this.renderElectrons(eWorkspace);
 
         // 3. Storage Inventory Counts
         const inventory = status.inventory || {};

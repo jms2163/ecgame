@@ -177,3 +177,17 @@
     stroke: #1e3799;
     stroke-width: 1px;
 }
+
+/* Static background ring lines */
+.electron-shell-ring {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.25);
+    stroke-width: 1px;
+}
+
+/* Electron sphere circles */
+.electron-particle {
+    fill: #8a95a5;
+    stroke: #485260;
+    stroke-width: 1px;
+}
