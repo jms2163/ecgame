@@ -360,6 +360,6 @@ export const elementLibrary =
 	"Lv293": { "name": "Livermorium-293", "symbol": "Lv", "p": 116, "n": 177, "e": 116, "v": 6, "a": 0.0, "r": 1, "group": 16, "period": 7 },
 	"Ts294": { "name": "Tennessine-294", "symbol": "Ts", "p": 117, "n": 177, "e": 117, "v": 7, "a": 0.0, "r": 1, "group": 17, "period": 7 },
 	"Og294": { "name": "Oganesson-294", "symbol": "Og", "p": 118, "n": 176, "e": 118, "v": 8, "a": 0.0, "r": 1, "group": 18, "period": 7 },
-	"E119": { "name": "Element-119", "symbol": " ??? ", "p": 119, "n": 176, "e": 119, "v": 1, "a": 0.0, "r": 1, "group": 1, "period": 8 },
-	"E120": { "name": "Element-120", "symbol": " ??? ", "p": 120, "n": 178, "e": 120, "v": 2, "a": 0.0, "r": 1, "group": 2, "period": 8 }
+	"E119": { "name": "Element-119", "symbol": " Uue ", "p": 119, "n": 176, "e": 119, "v": 1, "a": 0.0, "r": 1, "group": 1, "period": 8 },
+	"E120": { "name": "Element-120", "symbol": " Ubn ", "p": 120, "n": 178, "e": 120, "v": 2, "a": 0.0, "r": 1, "group": 2, "period": 8 }
 };

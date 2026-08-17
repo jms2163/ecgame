@@ -5,11 +5,12 @@
 
 import gameState from "./GameState.js";
 import GameStateObserver from "./GameStateObserver.js";
+import ParticleInventoryManager from "./ParticleInventoryManager.js";
 
 const DiscoveryManager = {
     
     /**
-     * Records a discovery without triggering inventory changes, XP, or quests.
+     * Records a discovery and handles base element progression rewards.
      * 
      * @param {string} type - Must be "atoms", "isotopes", or "molecules".
      * @param {string} id - The exact string identifier (e.g., "H", "He4", "H2O").
@@ -30,6 +31,7 @@ const DiscoveryManager = {
         gameState.discoveries.molecules ??= {};
 
         const targetBucket = gameState.discoveries[type];
+        const isFirstTimeAtom = (type === "atoms" && !targetBucket[id]);
 
         // Create or update the discovery record
         if (!targetBucket[id]) {
@@ -39,6 +41,12 @@ const DiscoveryManager = {
             };
         } else {
             targetBucket[id].count += 1;
+        }
+
+        // Expand inventory capacity by +2 for every newly discovered element
+        if (isFirstTimeAtom) {
+            ParticleInventoryManager.increaseCapacity(2);
+            console.log(`[DiscoveryManager] First-time element discovery (${id}): Particle capacity expanded by +2.`);
         }
 
         // Emit notification

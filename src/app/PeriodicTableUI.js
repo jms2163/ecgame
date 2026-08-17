@@ -22,41 +22,41 @@ const PeriodicTableUI = {
         return el;
     },
 
-    updateElementTiles(status = AtomLabManager?.getStatus()) {
-    if (!status) return;
+    updateElementTiles(state) {
+    if (!this.buttons) return;
 
-    const isSandbox = status.isSandboxUnlocked;
-    const mode = status.mode;
+    // Ordered sequence of progression elements
+    const elementSequence = ["H", "He", "Li", "Be", "B", "C", "N", "O"];
+    const isSandboxUnlocked = Boolean(GameStateManager?.hasFeature?.("sandbox_mode"));
 
-    // Track synthesized progression (defaults to 2 if Helium was completed)
-    const highestZ = GameStateManager?.getHighestSynthesizedZ?.() ?? 2;
-    const nextTargetZ = highestZ + 1;
+    this.buttons.forEach((button, symbol) => {
+        const isDiscovered = Boolean(GameStateManager?.hasDiscovery?.(symbol));
+        const index = elementSequence.indexOf(symbol);
 
-    // Progression atomic numbers (Z)
-    const elementZMap = { H: 1, He: 2, Li: 3, Be: 4, B: 5, C: 6, N: 7, O: 8 };
+        let isUnlocked = false;
 
-    this.buttons.forEach((tile, symbol) => {
-        const z = elementZMap[symbol] ?? 99;
-        let isEnabled = false;
-        let isNextTarget = false;
-
-        if (isSandbox) {
-            isEnabled = true;
-        } else if (mode === "guided-h" || mode === "interstitial-h") {
-            isEnabled = (symbol === "H");
-            isNextTarget = (symbol === "H");
-        } else if (mode === "guided-he" || mode === "interstitial-he") {
-            isEnabled = (symbol === "H" || symbol === "He");
-            isNextTarget = (symbol === "He");
+        if (isDiscovered || isSandboxUnlocked) {
+            isUnlocked = true;
+        } else if (index === 0) {
+            isUnlocked = true; // Hydrogen is always unlocked
+        } else if (index > 0) {
+            // Unlocked if the immediate predecessor is discovered
+            const previousSymbol = elementSequence[index - 1];
+            isUnlocked = Boolean(GameStateManager?.hasDiscovery?.(previousSymbol));
         } else {
-            // Sequential free build: strictly unlock up to nextTargetZ (capped at Oxygen / Z=8)
-            isEnabled = z <= nextTargetZ && z <= 8;
-            isNextTarget = (z === nextTargetZ && z <= 8);
+            // Elements beyond Oxygen remain locked until sandbox mode
+            isUnlocked = false;
         }
 
-        tile.classList.toggle("locked-tile", !isEnabled);
-        tile.classList.toggle("glowing", isNextTarget);
-        tile.disabled = !isEnabled;
+        button.disabled = !isUnlocked;
+        button.classList.toggle("locked-tile", !isUnlocked);
+        button.classList.toggle("unlocked-tile", isUnlocked);
+
+        if (isUnlocked) {
+            button.removeAttribute("disabled");
+        } else {
+            button.setAttribute("disabled", "true");
+        }
     });
 },
 
