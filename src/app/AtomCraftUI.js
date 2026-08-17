@@ -346,6 +346,8 @@ renderElectrons(electronCount) {
     });
 },
 
+
+
     render() {
         if (!this.container) return;
 

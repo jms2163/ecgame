@@ -383,92 +383,132 @@ getRepresentativeIsotope(symbol) {
 
 
 
-    handleFreeBuildAction(state, actionType, payload) {
-        const buffer = state.freeBuildBuffer;
 
-        // Handle target element selection
-        if (actionType === "select_element") {
-            buffer.targetElement = payload;
-            SaveManager.save();
-            return {
-                accepted: true,
-                reason: "element-selected",
-                message: `Target element set to ${payload}.`,
-                buffer: state.freeBuildBuffer
-            };
-        }
 
-        // Handle adding particles to the midstream buffer
-        if (["proton", "neutron", "electron"].includes(actionType)) {
-            const deductResult = ParticleInventoryManager.removeParticle(actionType, 1);
-            
-            if (!deductResult.success) {
-                return {
-                    accepted: false,
-                    correct: true,
-                    reason: "inventory-error",
-                    message: `Not enough ${actionType}s in inventory.`,
-                    buffer: state.freeBuildBuffer
-                };
-            }
-            
-            buffer[`${actionType}s`] += 1;
-            SaveManager.save();
-            
-            return {
-                accepted: true,
-                reason: "particle-added",
-                message: `Added 1 ${actionType}.`,
-                buffer: state.freeBuildBuffer
-            };
-        }
+handleFreeBuildAction(state, actionType, payload) {
+    const buffer = state.freeBuildBuffer;
 
-        // Handle synthesis and validation
-        if (actionType === "synthesize") {
-            
-            // Validate Synthesis -> Check if buffer protons/neutrons/electrons match the targetElement
-            // (Assuming validation passes here for the implementation)
-            const isSynthesisValid = buffer.targetElement !== null && buffer.protons > 0; 
+    // 1. View Discovered Element (Dynamic lookup via ElementLibrary & Discoveries)
+    if (actionType === "view_element") {
+        buffer.targetElement = payload;
+        
+        // Dynamically populate workspace counts for the discovered isotope
+        const counts = GameStateManager.getParticleCountsForElement(payload);
+        buffer.protons = counts.protons;
+        buffer.neutrons = counts.neutrons;
+        buffer.electrons = counts.electrons;
 
-            if (isSynthesisValid) {
-                const atomId = buffer.targetElement;
-                const massNumber = buffer.protons + buffer.neutrons;
-                const isotopeId = atomId + massNumber;
-
-                DiscoveryManager.record("atoms", atomId);
-                DiscoveryManager.record("isotopes", isotopeId);
-
-                // Clear the buffer after a successful build
-                state.freeBuildBuffer = { targetElement: null, protons: 0, neutrons: 0, electrons: 0 };
-                
-                const saveSucceeded = SaveManager.save();
-
-                return {
-                    accepted: true,
-                    correct: true,
-                    reason: "synthesis-success",
-                    message: `Successfully synthesized ${isotopeId}!`,
-                    saveSucceeded,
-                    buffer: state.freeBuildBuffer
-                };
-            } else {
-                return {
-                    accepted: true,
-                    correct: false,
-                    reason: "synthesis-failed",
-                    message: "The current configuration does not form a valid, stable atom.",
-                    buffer: state.freeBuildBuffer
-                };
-            }
-        }
-
+        SaveManager.save();
+        
         return {
-            accepted: false,
-            reason: "unknown-action",
-            message: "Free build action not recognized.",
+            accepted: true,
+            reason: "element-viewed",
+            message: `Viewing structure for ${payload}.`,
             buffer: state.freeBuildBuffer
         };
     }
+
+    // 2. Select Element for New Build (Clears workspace)
+    if (["select_element", "set_target_element", "set_target"].includes(actionType)) {
+        buffer.targetElement = payload;
+        buffer.protons = 0;
+        buffer.neutrons = 0;
+        buffer.electrons = 0;
+        
+        SaveManager.save();
+        
+        return {
+            accepted: true,
+            reason: "element-selected",
+            message: `Target element set to ${payload}.`,
+            buffer: state.freeBuildBuffer
+        };
+    }
+
+    // 3. Particle Addition (Normalizes "add_proton" and "proton")
+    const particleType = actionType.replace("add_", "");
+    
+    if (["proton", "neutron", "electron"].includes(particleType)) {
+        const deductResult = ParticleInventoryManager.removeParticle(particleType, 1);
+        
+        if (!deductResult.success) {
+            return {
+                accepted: false,
+                correct: true,
+                reason: "inventory-error",
+                message: `Not enough ${particleType}s in inventory.`,
+                buffer: state.freeBuildBuffer
+            };
+        }
+        
+        buffer[`${particleType}s`] = (buffer[`${particleType}s`] || 0) + 1;
+        SaveManager.save();
+        
+        return {
+            accepted: true,
+            reason: "particle-added",
+            message: `Added 1 ${particleType}.`,
+            buffer: state.freeBuildBuffer
+        };
+    }
+
+    // 4. Workspace Reset
+    if (actionType === "reset") {
+        buffer.protons = 0;
+        buffer.neutrons = 0;
+        buffer.electrons = 0;
+        buffer.targetElement = null;
+        SaveManager.save();
+
+        return {
+            accepted: true,
+            reason: "reset-complete",
+            message: "Workspace cleared.",
+            buffer: state.freeBuildBuffer
+        };
+    }
+
+    // 5. Synthesis Validation
+    if (actionType === "synthesize") {
+        const isSynthesisValid = buffer.targetElement !== null && buffer.protons > 0; 
+
+        if (isSynthesisValid) {
+            const atomId = buffer.targetElement;
+            const massNumber = buffer.protons + buffer.neutrons;
+            const isotopeId = atomId + massNumber;
+
+            DiscoveryManager.record("atoms", atomId);
+            DiscoveryManager.record("isotopes", isotopeId);
+
+            state.freeBuildBuffer = { targetElement: null, protons: 0, neutrons: 0, electrons: 0 };
+            const saveSucceeded = SaveManager.save();
+
+            return {
+                accepted: true,
+                correct: true,
+                reason: "synthesis-success",
+                message: `Successfully synthesized ${isotopeId}!`,
+                saveSucceeded,
+                buffer: state.freeBuildBuffer
+            };
+        } else {
+            return {
+                accepted: true,
+                correct: false,
+                reason: "synthesis-failed",
+                message: "The current configuration does not form a valid, stable atom.",
+                buffer: state.freeBuildBuffer
+            };
+        }
+    }
+
+    return {
+        accepted: false,
+        reason: "unknown-action",
+        message: `Free build action not recognized: ${actionType}.`,
+        buffer: state.freeBuildBuffer
+    };
+}
 };
 
 export default AtomLabManager;
