@@ -9,6 +9,12 @@ import GameStateObserver from "./GameStateObserver.js";
 
 /**
  * Calculates (x, y) cartesian positions for nucleons in an alternating hexagonal grid layout.
+ * 
+ * @param {number} Z - Proton count
+ * @param {number} N - Neutron count
+ * @param {Object} options
+ * @param {number} [options.spacing=8] - Center-to-center particle spacing in pixels
+ * @returns {Array<{type: string, x: number, y: number}>}
  */
 export function calculateNucleonPositions(Z, N, options = {}) {
     const total = Z + N;
@@ -16,9 +22,11 @@ export function calculateNucleonPositions(Z, N, options = {}) {
 
     const spacing = options.spacing ?? 8;
 
+    // 1. Dynamically calculate required hex rings to fit ALL requested nucleons
     const maxRings = Math.ceil(Math.sqrt(total / 3)) + 1;
     const positions = [];
 
+    // 2. Generate axial hex grid points
     for (let q = -maxRings; q <= maxRings; q++) {
         for (let r = -maxRings; r <= maxRings; r++) {
             const x = spacing * (Math.sqrt(3) * q + (Math.sqrt(3) / 2) * r);
@@ -29,16 +37,20 @@ export function calculateNucleonPositions(Z, N, options = {}) {
         }
     }
 
+    // 3. Sort positions strictly center-outward
     positions.sort((a, b) => a.distSq - b.distSq);
 
+    // 4. Take exact required positions for total nucleons
     const selectedPositions = positions.slice(0, total);
 
+    // 5. Interleave Protons and Neutrons (Alternating Assignment)
     let remZ = Z;
     let remN = N;
 
     return selectedPositions.map((pos, index) => {
         let type;
 
+        // Alternate preference based on index parity (0 = proton, 1 = neutron)
         const prefersProton = index % 2 === 0;
 
         if (prefersProton && remZ > 0) {
@@ -65,6 +77,13 @@ export function calculateNucleonPositions(Z, N, options = {}) {
 
 /**
  * Calculates (x, y) coordinates for electrons distributed across up to 7 Bohr shells.
+ * 
+ * @param {number} totalElectrons - Active electron count
+ * @param {Object} options
+ * @param {number[]} [options.shellCapacities=[2, 8, 18, 32, 32, 18, 10]] - Max capacity per shell (1-7)
+ * @param {number} [options.innerRadius=105] - Radius of Ring 1
+ * @param {number} [options.shellSpacing=18] - Radial distance between concentric rings
+ * @returns {Array<{x: number, y: number, shell: number}>}
  */
 export function calculateElectronPositions(totalElectrons, options = {}) {
     if (totalElectrons <= 0) return [];
@@ -86,6 +105,7 @@ export function calculateElectronPositions(totalElectrons, options = {}) {
         const radius = innerRadius + (shellIdx * shellSpacing);
 
         for (let i = 0; i < count; i++) {
+            // Angle starting at 12 o'clock (-pi/2)
             const angle = -Math.PI / 2 + (2 * Math.PI * i) / count;
             const x = radius * Math.cos(angle);
             const y = radius * Math.sin(angle);
@@ -102,29 +122,47 @@ export function calculateElectronPositions(totalElectrons, options = {}) {
 }
 
 const AtomCraftUI = {
+    // Configurable nucleus rendering dimensions
     config: {
         nucleusRadius: 85,
         nucleonSpacing: 8,
         nucleonSize: 13,
-        innerShellRadius: 400,
-        shellSpacing: 60,
-        electronSize: 40
+        innerShellRadius: 400, // Ring 1 radius
+        shellSpacing: 60,      // Distance between ring 1 through 7
+        electronSize: 40        // Grey circle diameter
     },
+    
 
+    // DOM References
     container: null,
     promptEl: null,
     nucleusEl: null,
     orbitEl: null,
     countsEl: {},
-    invEls: {},
     propertiesEl: {},
     buttons: {},
 
+    // --------------------------------------------------
+    // DOM Construction Helpers
+    // --------------------------------------------------
     createElement(tag, props = {}) {
         const el = document.createElement(tag);
         Object.assign(el, props);
         return el;
     },
+
+    updateInventoryDisplay() {
+    const status = (typeof ParticleInventoryManager !== "undefined" ? ParticleInventoryManager : window.ECGame?.ParticleInventoryManager)?.getStatus?.() || {};
+    const cap = status.capacity ?? 0;
+
+    const pEl = document.querySelector("#inventory-protons");
+    const nEl = document.querySelector("#inventory-neutrons");
+    const eEl = document.querySelector("#inventory-electrons");
+
+    if (pEl) pEl.textContent = `${status.proton ?? 0} / ${cap}`;
+    if (nEl) nEl.textContent = `${status.neutron ?? 0} / ${cap}`;
+    if (eEl) eEl.textContent = `${status.electron ?? 0} / ${cap}`;
+},
 
     createSVGElement(tag, attrs = {}) {
         const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
@@ -148,12 +186,17 @@ const AtomCraftUI = {
         return btn;
     },
 
+    // --------------------------------------------------
+    // Standardized Component Construction
+    // --------------------------------------------------
     build() {
+        // 1. Root Container
         this.container = this.createElement("div", {
             id: "atom-craft-container",
             className: "atom-craft-panel"
         });
 
+        // 2. Prompt Banner
         this.promptEl = this.createElement("span", {
             id: "craft-prompt-text",
             textContent: "Loading instructions..."
@@ -164,6 +207,7 @@ const AtomCraftUI = {
         });
         promptBanner.appendChild(this.promptEl);
 
+        // 3a. Real-time Atomic Properties Panel
         this.propertiesEl = {
             atomicNumber: this.createElement("strong", { id: "stat-atomic-number", textContent: "0" }),
             atomicMass: this.createElement("strong", { id: "stat-atomic-mass", textContent: "0" }),
@@ -191,6 +235,7 @@ const AtomCraftUI = {
 
         propertiesPanel.append(panelHeader, numRow, massRow, chargeRow);
 
+        // 3b. Workspace SVG & Interactive Zones
         const shellsGroup = this.createSVGElement("g", { id: "shells-group" });
         const nucleusGroup = this.createSVGElement("g", { id: "nucleus-group" });
         const electronsGroup = this.createSVGElement("g", { id: "electrons-group" });
@@ -230,8 +275,10 @@ const AtomCraftUI = {
             id: "atom-workspace",
             className: "atom-workspace"
         });
+        // Position properties panel to the left of the atom orbit model
         workspace.append(propertiesPanel, this.orbitEl);
 
+        // 4. Counts Container
         this.countsEl = {
             p: this.createElement("strong", { id: "count-protons", textContent: "0" }),
             n: this.createElement("strong", { id: "count-neutrons", textContent: "0" }),
@@ -250,9 +297,6 @@ const AtomCraftUI = {
         const invN = this.createElement("strong", { id: "inventory-neutrons", textContent: "0 / 0" });
         const invE = this.createElement("strong", { id: "inventory-electrons", textContent: "0 / 0" });
 
-        // Bind references to this component instance
-        this.invEls = { p: invP, n: invN, e: invE };
-
         const inventoryCounts = this.createElement("div", { className: "craft-inventory-counts" });
         inventoryCounts.append(
             this.createElement("span", { className: "counts-header", textContent: "Inventory:" }),
@@ -264,6 +308,7 @@ const AtomCraftUI = {
         const countsContainer = this.createElement("div", { className: "craft-counts-container" });
         countsContainer.append(liveCounts, inventoryCounts);
 
+        // 5. Control Buttons
         this.buttons = {
             proton: this.createButton("btn-add-proton", "craft-btn", "add_proton", "+ Proton"),
             neutron: this.createButton("btn-add-neutron", "craft-btn", "add_neutron", "+ Neutron"),
@@ -281,6 +326,7 @@ const AtomCraftUI = {
             this.buttons.reset
         );
 
+        // 6. Assemble Main Layout
         this.container.append(
             promptBanner,
             workspace,
@@ -299,7 +345,7 @@ const AtomCraftUI = {
         this.promptEl = this.container.querySelector("#craft-prompt-text");
         this.nucleusEl = this.container.querySelector("#target-nucleus");
         this.orbitEl = this.container.querySelector("#target-orbit");
-
+        
         this.propertiesEl = {
             atomicNumber: this.container.querySelector("#stat-atomic-number"),
             atomicMass: this.container.querySelector("#stat-atomic-mass"),
@@ -312,12 +358,6 @@ const AtomCraftUI = {
             e: this.container.querySelector("#count-electrons")
         };
 
-        this.invEls = {
-            p: this.container.querySelector("#inventory-protons"),
-            n: this.container.querySelector("#inventory-neutrons"),
-            e: this.container.querySelector("#inventory-electrons")
-        };
-
         this.buttons = {
             proton: this.container.querySelector("#btn-add-proton"),
             neutron: this.container.querySelector("#btn-add-neutron"),
@@ -327,10 +367,11 @@ const AtomCraftUI = {
         };
     },
 
-    bindEvents() {
+bindEvents() {
+        // Target region clicks & keyboard navigation
         if (this.nucleusEl) {
             this.nucleusEl.addEventListener("click", (e) => {
-                e.stopPropagation();
+                e.stopPropagation(); // Avoid triggering orbit click
                 this.handleAction("click_nucleus", "nucleus");
             });
             this.nucleusEl.addEventListener("keydown", (e) => {
@@ -354,6 +395,7 @@ const AtomCraftUI = {
             });
         }
 
+        // Generic handler for all action buttons (particle controls, synthesize, reset)
         this.container.querySelectorAll("[data-action]").forEach(btn => {
             btn.addEventListener("click", (e) => {
                 const action = e.currentTarget.dataset.action;
@@ -362,6 +404,7 @@ const AtomCraftUI = {
             });
         });
 
+        // Isotope selection dropdown listener (if present)
         const isotopeSelect = this.container.querySelector("#isotope-select");
         if (isotopeSelect) {
             isotopeSelect.addEventListener("change", (e) => {
@@ -369,15 +412,38 @@ const AtomCraftUI = {
             });
         }
 
-        // Module-scoped observer events
-        GameStateObserver.on("particle-inventory-changed", () => {
-            this.updateInventoryDisplay();
-        });
+        // Live inventory subscriptions (Safely checks available listener method)
+        const observer = typeof GameStateObserver !== "undefined" ? GameStateObserver : window.GameStateObserver;
 
-        GameStateObserver.on("quantum-auto-collector-harvested", () => {
-            this.updateInventoryDisplay();
-        });
+        if (observer) {
+            const listen = (event, callback) => {
+                if (typeof observer.on === "function") {
+                    observer.on(event, callback);
+                } else if (typeof observer.addListener === "function") {
+                    observer.addListener(event, callback);
+                } else if (typeof observer.subscribe === "function") {
+                    observer.subscribe(event, callback);
+                } else if (typeof observer.addEventListener === "function") {
+                    observer.addEventListener(event, callback);
+                }
+            };
 
+            listen("particle-inventory-changed", () => this.updateInventoryDisplay());
+            listen("quantum-auto-collector-harvested", () => this.updateInventoryDisplay());
+        }
+        // Clean, direct ES module event subscriptions
+    GameStateObserver.on("particle-inventory-changed", () => {
+        this.updateInventoryDisplay();
+    });
+
+    GameStateObserver.on("quantum-auto-collector-harvested", () => {
+        this.updateInventoryDisplay();
+    });
+
+    // Initial sync
+    this.updateInventoryDisplay();
+
+        // Initial sync on startup
         this.updateInventoryDisplay();
     },
 
@@ -390,19 +456,22 @@ const AtomCraftUI = {
             console.warn("Action rejected:", result.message);
         }
 
+        // Trigger immediate top-down UI refresh
         if (AtomLabUI) {
             AtomLabUI.render();
         } else {
             this.render(manager.getStatus());
         }
-
-        this.updateInventoryDisplay();
     },
 
+    // --------------------------------------------------
+    // Optimized SVG Particle Rendering (Reconciliation)
+    // --------------------------------------------------
     renderNucleus(protons, neutrons) {
         const nucleusContainer = this.container.querySelector("#nucleus-group");
         if (!nucleusContainer) return;
 
+        // Calculate positions centered around (0,0)
         const nucleons = calculateNucleonPositions(protons, neutrons, {
             spacing: this.config.nucleonSpacing,
             nucleusRadius: this.config.nucleusRadius
@@ -411,6 +480,7 @@ const AtomCraftUI = {
         const existingCircles = Array.from(nucleusContainer.children);
         const targetCount = nucleons.length;
 
+        // 1. Update existing circles or append new ones as needed
         nucleons.forEach((p, index) => {
             let circle = existingCircles[index];
             if (!circle) {
@@ -423,6 +493,7 @@ const AtomCraftUI = {
             circle.setAttribute("class", `nucleon nucleon-${p.type}`);
         });
 
+        // 2. Remove excess circles if particle count decreased
         for (let i = existingCircles.length - 1; i >= targetCount; i--) {
             existingCircles[i].remove();
         }
@@ -432,6 +503,7 @@ const AtomCraftUI = {
         const shellsGroup = this.container.querySelector("#shells-group");
         if (!shellsGroup) return;
 
+        // Render static ring outlines once
         if (shellsGroup.children.length === 0) {
             const capacities = [2, 8, 18, 32, 32, 18, 10];
             const innerRadius = this.config.innerShellRadius;
@@ -462,6 +534,7 @@ const AtomCraftUI = {
         const existingCircles = Array.from(electronsGroup.children);
         const targetCount = positions.length;
 
+        // 1. Update existing circles or append new ones as needed
         positions.forEach((p, index) => {
             let circle = existingCircles[index];
             if (!circle) {
@@ -475,33 +548,50 @@ const AtomCraftUI = {
             circle.setAttribute("cy", p.y);
         });
 
+        // 2. Remove excess circles if electron count decreased
         for (let i = existingCircles.length - 1; i >= targetCount; i--) {
             existingCircles[i].remove();
         }
     },
 
     renderIsotopeControls(state) {
-        const isotopeContainer = this.container.querySelector("#isotope-select-container");
-        if (!isotopeContainer) return;
+    const isotopeContainer = this.container.querySelector("#isotope-select-container");
+    if (!isotopeContainer) return;
 
-        isotopeContainer.style.display = !state.isIsotopeUnlocked ? "none" : "block";
-    },
+    if (!state.isIsotopeUnlocked) {
+        isotopeContainer.style.display = "none";
+    } else {
+        isotopeContainer.style.display = "block";
+    }
+},
 
+    // --------------------------------------------------
+    // Top-Down Decoupled Render Loop
+    // --------------------------------------------------
     render(state = AtomLabManager?.getStatus()) {
         if (!this.container || !state) return;
 
         this.renderBanner(state);
-        this.renderIsotopeControls(state);
+        this.renderIsotopeControls(state); // Toggle Isotope UI visibility
 
+        // 1. Refactored Banner & Interstitial CTA Update
+        this.renderBanner(state);
+
+        // 2. Workspace Build Counts & Nucleus SVG
         const workspace = state.freeBuildBuffer || {};
         const pWorkspace = workspace.protons ?? workspace.proton ?? 0;
         const nWorkspace = workspace.neutrons ?? workspace.neutron ?? 0;
         const eWorkspace = workspace.electrons ?? workspace.electron ?? 0;
 
-        if (this.countsEl.p) this.countsEl.p.textContent = pWorkspace;
-        if (this.countsEl.n) this.countsEl.n.textContent = nWorkspace;
-        if (this.countsEl.e) this.countsEl.e.textContent = eWorkspace;
+        const pEl = this.container.querySelector("#count-protons");
+        const nEl = this.container.querySelector("#count-neutrons");
+        const eEl = this.container.querySelector("#count-electrons");
 
+        if (pEl) pEl.textContent = pWorkspace;
+        if (nEl) nEl.textContent = nWorkspace;
+        if (eEl) eEl.textContent = eWorkspace;
+
+        // 3. Real-time Atomic Properties Panel Calculation
         const atomicNumber = pWorkspace;
         const atomicMass = pWorkspace + nWorkspace;
         const rawCharge = pWorkspace - eWorkspace;
@@ -514,82 +604,124 @@ const AtomCraftUI = {
         if (this.propertiesEl.atomicMass) this.propertiesEl.atomicMass.textContent = atomicMass;
         if (this.propertiesEl.netCharge) this.propertiesEl.netCharge.textContent = chargeText;
 
+        // Render particle graphics
         this.renderNucleus(pWorkspace, nWorkspace);
         this.renderShells();
         this.renderElectrons(eWorkspace);
 
-        this.updateInventoryDisplay();
-    },
-
-    renderBanner(state) {
-        const promptBannerEl = this.container.querySelector("#craft-prompt-banner");
-        const promptTextEl = this.container.querySelector("#craft-prompt-text");
-        if (!promptBannerEl || !promptTextEl) return;
-
-        const targetSymbol = state.targetElement || state.selectedElement;
-
-        const defaultIsotopes = {
-            Li: "Lithium-7",
-            Be: "Beryllium-9",
-            B:  "Boron-11",
-            C:  "Carbon-12",
-            N:  "Nitrogen-14",
-            O:  "Oxygen-16"
+        // 4. Counts Container
+        this.countsEl = {
+            p: this.createElement("strong", { id: "count-protons", textContent: "0" }),
+            n: this.createElement("strong", { id: "count-neutrons", textContent: "0" }),
+            e: this.createElement("strong", { id: "count-electrons", textContent: "0" })
         };
 
-        let promptText = state.nextPrompt || "";
-        if (!promptText && targetSymbol && defaultIsotopes[targetSymbol]) {
-            promptText = `Target: Synthesize ${defaultIsotopes[targetSymbol]}`;
-        }
+        const liveCounts = this.createElement("div", { className: "craft-live-counts" });
+        liveCounts.append(
+            this.createElement("span", { className: "counts-header", textContent: "Current Build:" }),
+            this.createCountSpan("Protons: ", this.countsEl.p),
+            this.createCountSpan("Neutrons: ", this.countsEl.n),
+            this.createCountSpan("Electrons: ", this.countsEl.e)
+        );
 
-        if (state.buildMode === "free-build" && !promptText) {
-            promptBannerEl.style.display = "none";
-            return;
-        }
+        const invP = this.createElement("strong", { id: "inventory-protons", textContent: "0 / 0" });
+        const invN = this.createElement("strong", { id: "inventory-neutrons", textContent: "0 / 0" });
+        const invE = this.createElement("strong", { id: "inventory-electrons", textContent: "0 / 0" });
 
-        promptBannerEl.style.display = "flex";
-        promptTextEl.textContent = promptText;
+        // Save component-scoped references for live updates
+        this.invEls = { p: invP, n: invN, e: invE };
 
-        let continueBtn = promptBannerEl.querySelector("#btn-continue-tutorial");
+        const inventoryCounts = this.createElement("div", { className: "craft-inventory-counts" });
+        inventoryCounts.append(
+            this.createElement("span", { className: "counts-header", textContent: "Inventory:" }),
+            this.createCountSpan("Protons: ", invP),
+            this.createCountSpan("Neutrons: ", invN),
+            this.createCountSpan("Electrons: ", invE)
+        );
 
-        if (state.isInterstitial) {
-            if (!continueBtn) {
-                continueBtn = this.createElement("button", {
-                    id: "btn-continue-tutorial",
-                    className: "craft-btn continue-btn",
-                    textContent: "Continue →"
-                });
-                
-                continueBtn.addEventListener("click", () => {
-                    this.handleAction("continue_tutorial");
-                });
-
-                promptBannerEl.appendChild(continueBtn);
-            }
-            continueBtn.style.display = "inline-block";
-        } else if (continueBtn) {
-            continueBtn.style.display = "none";
-        }
+        const countsContainer = this.createElement("div", { className: "craft-counts-container" });
+        countsContainer.append(liveCounts, inventoryCounts);
     },
 
-    updateInventoryDisplay() {
-        if (!this.invEls?.p && this.container) {
-            this.invEls = {
-                p: this.container.querySelector("#inventory-protons"),
-                n: this.container.querySelector("#inventory-neutrons"),
-                e: this.container.querySelector("#inventory-electrons")
-            };
-        }
+renderBanner(state) {
+    const promptBannerEl = this.container.querySelector("#craft-prompt-banner");
+    const promptTextEl = this.container.querySelector("#craft-prompt-text");
+    if (!promptBannerEl || !promptTextEl) return;
 
-        if (!this.invEls?.p) return;
+    const targetSymbol = state.targetElement || state.selectedElement;
 
-        const status = ParticleInventoryManager.getStatus() || {};
-        const cap = status.capacity ?? 0;
+    // Default target mass lookup for sequential free build
+    const defaultIsotopes = {
+        Li: "Lithium-7",
+        Be: "Beryllium-9",
+        B:  "Boron-11",
+        C:  "Carbon-12",
+        N:  "Nitrogen-14",
+        O:  "Oxygen-16"
+    };
 
-        this.invEls.p.textContent = `${status.proton ?? 0} / ${cap}`;
-        this.invEls.n.textContent = `${status.neutron ?? 0} / ${cap}`;
-        this.invEls.e.textContent = `${status.electron ?? 0} / ${cap}`;
+    // Determine prompt text prioritize tutorial prompts, then element targets
+    let promptText = state.nextPrompt || "";
+    if (!promptText && targetSymbol && defaultIsotopes[targetSymbol]) {
+        promptText = `Target: Synthesize ${defaultIsotopes[targetSymbol]}`;
     }
+
+    // 1. Hide banner in free-build if there is no active prompt or target element
+    if (state.buildMode === "free-build" && !promptText) {
+        promptBannerEl.style.display = "none";
+        return;
+    }
+
+    // 2. Show banner and set prompt text
+    promptBannerEl.style.display = "flex";
+    promptTextEl.textContent = promptText;
+
+    // 3. Render or toggle [ Continue → ] button during interstitial states
+    let continueBtn = promptBannerEl.querySelector("#btn-continue-tutorial");
+
+    if (state.isInterstitial) {
+        if (!continueBtn) {
+            continueBtn = this.createElement("button", {
+                id: "btn-continue-tutorial",
+                className: "craft-btn continue-btn",
+                textContent: "Continue →"
+            });
+            
+            continueBtn.addEventListener("click", () => {
+                this.handleAction("continue_tutorial");
+            });
+
+            promptBannerEl.appendChild(continueBtn);
+        }
+        continueBtn.style.display = "inline-block";
+    } else if (continueBtn) {
+        continueBtn.style.display = "none";
+    }
+},
+
+    updateInventoryDisplay() {
+    // Fallback: search within this component's container if invEls was missed
+    if (!this.invEls && this.container) {
+        this.invEls = {
+            p: this.container.querySelector("#inventory-protons"),
+            n: this.container.querySelector("#inventory-neutrons"),
+            e: this.container.querySelector("#inventory-electrons")
+        };
+    }
+
+    if (!this.invEls?.p) return;
+
+    const manager = typeof ParticleInventoryManager !== "undefined"
+        ? ParticleInventoryManager
+        : window.ECGame?.ParticleInventoryManager;
+
+    const status = manager?.getStatus?.() || {};
+    const cap = status.capacity ?? 0;
+
+    this.invEls.p.textContent = `${status.proton ?? 0} / ${cap}`;
+    this.invEls.n.textContent = `${status.neutron ?? 0} / ${cap}`;
+    this.invEls.e.textContent = `${status.electron ?? 0} / ${cap}`;
+}
 };
 
 export default AtomCraftUI;

@@ -283,14 +283,16 @@ ObjectiveRegistry.register(
     "atom-synthesis",
     {
         events: [
-            "atom-synthesis-changed"
+            "atom-synthesis-changed",
+            "discovery-made"
         ],
 
         evaluate({ objective }) {
             const current =
-                gameState.registry
-                    ?.synthesizedAtoms
-                    ?.[objective.atomId] ?? 0;
+                gameState.discoveries
+                    ?.atoms
+                    ?.[objective.atomId]
+                    ?.count ?? 0;
 
             return normalizeProgress(
                 current,
