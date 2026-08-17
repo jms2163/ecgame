@@ -1,47 +1,50 @@
 // --------------------------------------------------
 // PeriodicTableUI.js
+// Pure View Component for the Periodic Table Grid
 // --------------------------------------------------
 
 import { elementLibrary } from "../data/elementLibrary.js";
 import AtomLabManager from "./AtomLabManager.js";
-import AtomLabUI from "./AtomLabUI.js";
 import GameStateManager from "./GameStateManager.js";
 
 const PeriodicTableUI = {
 
+    container: null,
+    gridEl: null,
+    buttons: new Map(),
+
+    // --------------------------------------------------
+    // DOM Construction Helper
+    // --------------------------------------------------
+    createElement(tag, props = {}) {
+        const el = document.createElement(tag);
+        Object.assign(el, props);
+        return el;
+    },
+
+    // --------------------------------------------------
+    // Build Component Interface
+    // --------------------------------------------------
     build() {
-        const container = document.createElement("div");
-        container.id = "periodic-table";
-
-        // Header Section
-        container.innerHTML = `
-            <h3>Library</h3>
-            <div id="pt-header">
-                <div class="pt-stat">Elements Discovered: <span id="elements-count">0/118</span></div>
-                <div class="pt-stat secondary">Isotopes Synthesized: <span id="isotopes-count">0</span></div>
-            </div>
-        `;
-
-        // Grid Section
-        const grid = document.createElement("div");
-        grid.className = "pt-grid";
+        // Clean root grid container (No duplicate Library header)
+        this.container = this.createElement("div", { id: "periodic-table" });
+        this.gridEl = this.createElement("div", { className: "pt-grid" });
+        this.buttons.clear();
 
         // Generate Element Buttons
         Object.values(elementLibrary).forEach(elementData => {
-            // Skip entries missing layout coordinates
-            if (!elementData.group || !elementData.period) {
-                return;
-            }
+            if (!elementData.group || !elementData.period) return;
 
-            const button = document.createElement("button");
-            button.className = "element-box";
+            const button = this.createElement("button", {
+                className: "element-box"
+            });
             button.dataset.symbol = elementData.symbol;
-            
+
             // Grid Placement
             button.style.gridColumn = elementData.group;
             button.style.gridRow = elementData.period;
 
-            // Accessibility: Provide clear full name and atomic number to screen readers
+            // Accessibility Labeling
             const elementName = elementData.name || elementData.symbol;
             button.setAttribute("aria-label", `${elementName}, atomic number ${elementData.p}`);
 
@@ -51,72 +54,70 @@ const PeriodicTableUI = {
                 <span class="element-symbol">${elementData.symbol}</span>
             `;
 
-            // #TODO updated click handler!!
-            // #TODO check if element is discovered first then
-            // if already discovered just display a view of it.
-            // Card click handler in PeriodicTableUI
-button.addEventListener("click", () => {
-    const symbol = button.dataset.symbol;
-    const isDiscovered = GameStateManager?.hasDiscovery(symbol);
-
-    if (isDiscovered) {
-        // If already discovered, display view mode
-        console.log(`[PeriodicTable] Displaying view for discovered element: ${symbol}`);
-        AtomLabManager.processAction("view_element", symbol);
-    } else {
-        // Handle guided synthesis selection
-        const result = AtomLabManager.processAction("select_element", symbol);
-        
-        if (result.accepted) {
-            console.log(`[PeriodicTable] ${result.message}`);
-        } else {
-            console.warn(`[PeriodicTable] Selection rejected: ${result.message}`);
-        }
-    }
-
-    // Re-render local periodic table and push update to parent container (updates prompt banner)
-    this.render(AtomLabManager.getStatus());
-    AtomLabUI?.render();
-});
-
-            grid.appendChild(button);
+            this.buttons.set(elementData.symbol, button);
+            this.gridEl.appendChild(button);
         });
 
-        // --- Series Gap Labels (Lanthanides & Actinides) ---
+        // Event Delegation: Single click listener on the grid wrapper
+        this.gridEl.addEventListener("click", (e) => {
+            const btn = e.target.closest(".element-box[data-symbol]");
+            if (!btn) return;
+            this.handleElementClick(btn.dataset.symbol);
+        });
 
-        // Lanthanide Label (57-71)
-        const lanthanideLabel = document.createElement("div");
-        lanthanideLabel.className = "element-box series-label";
-        lanthanideLabel.style.gridColumn = 3;
-        lanthanideLabel.style.gridRow = 6;
-        lanthanideLabel.setAttribute("aria-label", "Lanthanide series, elements 57 through 71");
-        lanthanideLabel.innerHTML = `<span class="element-range">57–71</span>`;
+        // Series Gap Labels (Lanthanides & Actinides)
+        const lanthanideLabel = this.createSeriesLabel("57–71", 3, 6, "Lanthanide series, elements 57 through 71");
+        const actinideLabel = this.createSeriesLabel("89–103", 3, 7, "Actinide series, elements 89 through 103");
 
-        // Actinide Label (89-103)
-        const actinideLabel = document.createElement("div");
-        actinideLabel.className = "element-box series-label";
-        actinideLabel.style.gridColumn = 3;
-        actinideLabel.style.gridRow = 7;
-        actinideLabel.setAttribute("aria-label", "Actinide series, elements 89 through 103");
-        actinideLabel.innerHTML = `<span class="element-range">89–103</span>`;
+        this.gridEl.append(lanthanideLabel, actinideLabel);
+        this.container.appendChild(this.gridEl);
 
-        grid.appendChild(lanthanideLabel);
-        grid.appendChild(actinideLabel);
-
-        container.appendChild(grid);
-        return container;
+        return this.container;
     },
 
-    render(status) {
-    // #TODO just pasted render code all in state goes here. 
-    if (!status) return;
+    // Helper for non-interactive series gap markers
+    createSeriesLabel(text, col, row, ariaLabel) {
+        const label = this.createElement("div", { className: "element-box series-label" });
+        label.style.gridColumn = col;
+        label.style.gridRow = row;
+        label.setAttribute("aria-label", ariaLabel);
+        label.innerHTML = `<span class="element-range">${text}</span>`;
+        return label;
+    },
 
-    // Update Header Discovery Counter (if available)
-    const elementsCountEl = document.getElementById("elements-count");
-    if (elementsCountEl && status.discoveredElementsCount !== undefined) {
-        elementsCountEl.textContent = `${status.discoveredElementsCount}/118`;
+    // Action Dispatcher
+    handleElementClick(symbol) {
+        const isDiscovered = GameStateManager?.hasDiscovery?.(symbol);
+
+        if (isDiscovered) {
+            console.log(`[PeriodicTable] Viewing discovered element: ${symbol}`);
+            AtomLabManager.processAction("view_element", symbol);
+        } else {
+            const result = AtomLabManager.processAction("select_element", symbol);
+            if (!result.accepted) {
+                console.warn(`[PeriodicTable] Selection rejected: ${result.message}`);
+            }
+        }
+
+        // Request UI refresh via global event dispatch or direct status check
+        this.render(AtomLabManager.getStatus());
+    },
+
+    // --------------------------------------------------
+    // Top-Down Render Loop
+    // --------------------------------------------------
+    render(state = AtomLabManager?.getStatus()) {
+        if (!this.container || !state) return;
+
+        // Synchronize visual state for each element button
+        this.buttons.forEach((button, symbol) => {
+            const isDiscovered = GameStateManager?.hasDiscovery?.(symbol);
+            const isSelected = state.targetElement === symbol || state.selectedElement === symbol;
+
+            button.classList.toggle("discovered", !!isDiscovered);
+            button.classList.toggle("selected", !!isSelected);
+        });
     }
-}
 };
 
 export default PeriodicTableUI;

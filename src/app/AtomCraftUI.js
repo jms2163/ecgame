@@ -2,7 +2,6 @@
 // AtomCraftUI.js
 // --------------------------------------------------
 
-
 import AtomLabManager from "./AtomLabManager.js";
 import AtomLabUI from "./AtomLabUI.js";
 import ParticleInventoryManager from "./ParticleInventoryManager.js";
@@ -137,59 +136,189 @@ const AtomCraftUI = {
     promptEl: null,
     nucleusEl: null,
     orbitEl: null,
-    countsEl: null,
+    countsEl: {},
+    propertiesEl: {},
     buttons: {},
 
+    // --------------------------------------------------
+    // DOM Construction Helpers
+    // --------------------------------------------------
+    createElement(tag, props = {}) {
+        const el = document.createElement(tag);
+        Object.assign(el, props);
+        return el;
+    },
+
+    createSVGElement(tag, attrs = {}) {
+        const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+        Object.entries(attrs).forEach(([key, val]) => el.setAttribute(key, val));
+        return el;
+    },
+
+    createCountSpan(labelPrefix, strongElement) {
+        const span = this.createElement("span");
+        span.append(document.createTextNode(labelPrefix), strongElement);
+        return span;
+    },
+
+    createButton(id, className, action, text) {
+        const btn = this.createElement("button", {
+            id,
+            className,
+            textContent: text
+        });
+        btn.dataset.action = action;
+        return btn;
+    },
+
+    // --------------------------------------------------
+    // Standardized Component Construction
+    // --------------------------------------------------
     build() {
-        this.container = document.createElement("div");
-        this.container.id = "atom-craft-container";
-        this.container.className = "atom-craft-panel";
+        // 1. Root Container
+        this.container = this.createElement("div", {
+            id: "atom-craft-container",
+            className: "atom-craft-panel"
+        });
 
-        this.container.innerHTML = `
-            <div id="craft-prompt-banner" class="craft-prompt">
-                <span id="craft-prompt-text">Loading instructions...</span>
-            </div>
+        // 2. Prompt Banner
+        this.promptEl = this.createElement("span", {
+            id: "craft-prompt-text",
+            textContent: "Loading instructions..."
+        });
+        const promptBanner = this.createElement("div", {
+            id: "craft-prompt-banner",
+            className: "craft-prompt"
+        });
+        promptBanner.appendChild(this.promptEl);
 
-            <div id="atom-workspace" class="atom-workspace">
-                <div id="target-orbit" class="target-zone orbit-zone" tabindex="0" role="button" aria-label="Electron Orbit">
-                    <span class="zone-label">Orbit</span>
-                    <div id="target-nucleus" class="target-zone nucleus-zone" tabindex="0" role="button" aria-label="Nucleus">
-                        
-<svg id="nucleus-svg" class="nucleus-svg" viewBox="-250 -250 500 500" style="width: 100%; height: 100%; pointer-events: none; overflow: visible;">
-    <g id="shells-group"></g>
-    <g id="nucleus-group"></g>
-    <g id="electrons-group"></g>
-</svg>
-                    </div>
-                </div>
-            </div>
+        // 3a. Real-time Atomic Properties Panel
+        this.propertiesEl = {
+            atomicNumber: this.createElement("strong", { id: "stat-atomic-number", textContent: "0" }),
+            atomicMass: this.createElement("strong", { id: "stat-atomic-mass", textContent: "0" }),
+            netCharge: this.createElement("strong", { id: "stat-net-charge", textContent: "0 (Neutral)" })
+        };
 
-            <div class="craft-counts-container">
-                <div class="craft-live-counts">
-                    <span class="counts-header">Current Build:</span>
-                    <span>Protons: <strong id="count-protons">0</strong></span>
-                    <span>Neutrons: <strong id="count-neutrons">0</strong></span>
-                    <span>Electrons: <strong id="count-electrons">0</strong></span>
-                </div>
+        const propertiesPanel = this.createElement("div", {
+            id: "atom-properties-panel",
+            className: "atom-properties-panel"
+        });
 
-                <div class="craft-inventory-counts">
-                    <span class="counts-header">Inventory:</span>
-                    <span>Protons: <strong id="inventory-protons">0 / 0</strong></span>
-                    <span>Neutrons: <strong id="inventory-neutrons">0 / 0</strong></span>
-                    <span>Electrons: <strong id="inventory-electrons">0 / 0</strong></span>
-                </div>
-            </div>
+        const panelHeader = this.createElement("h4", {
+            className: "properties-title",
+            textContent: "Atomic Properties"
+        });
 
-            <div class="craft-controls">
-                <button id="btn-add-proton" class="craft-btn" data-action="add_proton">+ Proton</button>
-                <button id="btn-add-neutron" class="craft-btn" data-action="add_neutron">+ Neutron</button>
-                <button id="btn-add-electron" class="craft-btn" data-action="add_electron">+ Electron</button>
-                <button id="btn-synthesize" class="craft-btn synthesize-btn" data-action="synthesize">Synthesize</button>
-                <button id="btn-reset" class="craft-btn reset-btn" data-action="reset">Reset</button>
-            </div>
-        `;
+        const numRow = this.createElement("div", { className: "property-row" });
+        numRow.append(this.createElement("span", { textContent: "Atomic Number (Z): " }), this.propertiesEl.atomicNumber);
 
-        this.cacheDOM();
+        const massRow = this.createElement("div", { className: "property-row" });
+        massRow.append(this.createElement("span", { textContent: "Atomic Mass (A): " }), this.propertiesEl.atomicMass);
+
+        const chargeRow = this.createElement("div", { className: "property-row" });
+        chargeRow.append(this.createElement("span", { textContent: "Net Charge: " }), this.propertiesEl.netCharge);
+
+        propertiesPanel.append(panelHeader, numRow, massRow, chargeRow);
+
+        // 3b. Workspace SVG & Interactive Zones
+        const shellsGroup = this.createSVGElement("g", { id: "shells-group" });
+        const nucleusGroup = this.createSVGElement("g", { id: "nucleus-group" });
+        const electronsGroup = this.createSVGElement("g", { id: "electrons-group" });
+
+        const svg = this.createSVGElement("svg", {
+            id: "nucleus-svg",
+            class: "nucleus-svg",
+            viewBox: "-250 -250 500 500",
+            style: "width: 100%; height: 100%; pointer-events: none; overflow: visible;"
+        });
+        svg.append(shellsGroup, nucleusGroup, electronsGroup);
+
+        this.nucleusEl = this.createElement("div", {
+            id: "target-nucleus",
+            className: "target-zone nucleus-zone",
+            tabIndex: 0,
+            role: "button"
+        });
+        this.nucleusEl.setAttribute("aria-label", "Nucleus");
+        this.nucleusEl.appendChild(svg);
+
+        this.orbitEl = this.createElement("div", {
+            id: "target-orbit",
+            className: "target-zone orbit-zone",
+            tabIndex: 0,
+            role: "button"
+        });
+        this.orbitEl.setAttribute("aria-label", "Electron Orbit");
+
+        const orbitLabel = this.createElement("span", {
+            className: "zone-label",
+            textContent: "Orbit"
+        });
+        this.orbitEl.append(orbitLabel, this.nucleusEl);
+
+        const workspace = this.createElement("div", {
+            id: "atom-workspace",
+            className: "atom-workspace"
+        });
+        // Position properties panel to the left of the atom orbit model
+        workspace.append(propertiesPanel, this.orbitEl);
+
+        // 4. Counts Container
+        this.countsEl = {
+            p: this.createElement("strong", { id: "count-protons", textContent: "0" }),
+            n: this.createElement("strong", { id: "count-neutrons", textContent: "0" }),
+            e: this.createElement("strong", { id: "count-electrons", textContent: "0" })
+        };
+
+        const liveCounts = this.createElement("div", { className: "craft-live-counts" });
+        liveCounts.append(
+            this.createElement("span", { className: "counts-header", textContent: "Current Build:" }),
+            this.createCountSpan("Protons: ", this.countsEl.p),
+            this.createCountSpan("Neutrons: ", this.countsEl.n),
+            this.createCountSpan("Electrons: ", this.countsEl.e)
+        );
+
+        const invP = this.createElement("strong", { id: "inventory-protons", textContent: "0 / 0" });
+        const invN = this.createElement("strong", { id: "inventory-neutrons", textContent: "0 / 0" });
+        const invE = this.createElement("strong", { id: "inventory-electrons", textContent: "0 / 0" });
+
+        const inventoryCounts = this.createElement("div", { className: "craft-inventory-counts" });
+        inventoryCounts.append(
+            this.createElement("span", { className: "counts-header", textContent: "Inventory:" }),
+            this.createCountSpan("Protons: ", invP),
+            this.createCountSpan("Neutrons: ", invN),
+            this.createCountSpan("Electrons: ", invE)
+        );
+
+        const countsContainer = this.createElement("div", { className: "craft-counts-container" });
+        countsContainer.append(liveCounts, inventoryCounts);
+
+        // 5. Control Buttons
+        this.buttons = {
+            proton: this.createButton("btn-add-proton", "craft-btn", "add_proton", "+ Proton"),
+            neutron: this.createButton("btn-add-neutron", "craft-btn", "add_neutron", "+ Neutron"),
+            electron: this.createButton("btn-add-electron", "craft-btn", "add_electron", "+ Electron"),
+            synthesize: this.createButton("btn-synthesize", "craft-btn synthesize-btn", "synthesize", "Synthesize"),
+            reset: this.createButton("btn-reset", "craft-btn reset-btn", "reset", "Reset")
+        };
+
+        const controlsContainer = this.createElement("div", { className: "craft-controls" });
+        controlsContainer.append(
+            this.buttons.proton,
+            this.buttons.neutron,
+            this.buttons.electron,
+            this.buttons.synthesize,
+            this.buttons.reset
+        );
+
+        // 6. Assemble Main Layout
+        this.container.append(
+            promptBanner,
+            workspace,
+            countsContainer,
+            controlsContainer
+        );
+
         this.bindEvents();
         this.render();
 
@@ -197,10 +326,17 @@ const AtomCraftUI = {
     },
 
     cacheDOM() {
+        if (!this.container) return;
         this.promptEl = this.container.querySelector("#craft-prompt-text");
         this.nucleusEl = this.container.querySelector("#target-nucleus");
         this.orbitEl = this.container.querySelector("#target-orbit");
         
+        this.propertiesEl = {
+            atomicNumber: this.container.querySelector("#stat-atomic-number"),
+            atomicMass: this.container.querySelector("#stat-atomic-mass"),
+            netCharge: this.container.querySelector("#stat-net-charge")
+        };
+
         this.countsEl = {
             p: this.container.querySelector("#count-protons"),
             n: this.container.querySelector("#count-neutrons"),
@@ -271,17 +407,20 @@ const AtomCraftUI = {
             console.warn("Action rejected:", result.message);
         }
 
-        // Trigger immediate UI refresh
-        AtomLabUI?.render();
-        this.render();
+        // Trigger immediate top-down UI refresh
+        if (AtomLabUI) {
+            AtomLabUI.render();
+        } else {
+            this.render(manager.getStatus());
+        }
     },
 
+    // --------------------------------------------------
+    // Optimized SVG Particle Rendering (Reconciliation)
+    // --------------------------------------------------
     renderNucleus(protons, neutrons) {
         const nucleusContainer = this.container.querySelector("#nucleus-group");
         if (!nucleusContainer) return;
-
-        // Clear previous nucleon SVG elements
-        nucleusContainer.innerHTML = "";
 
         // Calculate positions centered around (0,0)
         const nucleons = calculateNucleonPositions(protons, neutrons, {
@@ -289,90 +428,107 @@ const AtomCraftUI = {
             nucleusRadius: this.config.nucleusRadius
         });
 
-        // Render each particle sphere into the SVG group
-        nucleons.forEach(p => {
-            const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        const existingCircles = Array.from(nucleusContainer.children);
+        const targetCount = nucleons.length;
+
+        // 1. Update existing circles or append new ones as needed
+        nucleons.forEach((p, index) => {
+            let circle = existingCircles[index];
+            if (!circle) {
+                circle = this.createSVGElement("circle");
+                nucleusContainer.appendChild(circle);
+            }
             circle.setAttribute("cx", p.x);
             circle.setAttribute("cy", p.y);
             circle.setAttribute("r", this.config.nucleonSize / 2);
             circle.setAttribute("class", `nucleon nucleon-${p.type}`);
-            
-            nucleusContainer.appendChild(circle);
         });
+
+        // 2. Remove excess circles if particle count decreased
+        for (let i = existingCircles.length - 1; i >= targetCount; i--) {
+            existingCircles[i].remove();
+        }
     },
 
-    // Inside AtomCraftUI object:
+    renderShells() {
+        const shellsGroup = this.container.querySelector("#shells-group");
+        if (!shellsGroup) return;
 
-renderShells() {
-    const shellsGroup = this.container.querySelector("#shells-group");
-    if (!shellsGroup) return;
+        // Render static ring outlines once
+        if (shellsGroup.children.length === 0) {
+            const capacities = [2, 8, 18, 32, 32, 18, 10];
+            const innerRadius = this.config.innerShellRadius;
+            const spacing = this.config.shellSpacing;
 
-    // Render static ring outlines once
-    if (shellsGroup.children.length === 0) {
-        const capacities = [2, 8, 18, 32, 32, 18, 10];
-        const innerRadius = this.config.innerShellRadius;
-        const spacing = this.config.shellSpacing;
+            capacities.forEach((_, index) => {
+                const radius = innerRadius + (index * spacing);
+                const ring = this.createSVGElement("circle", {
+                    cx: "0",
+                    cy: "0",
+                    r: radius,
+                    class: "electron-shell-ring"
+                });
+                shellsGroup.appendChild(ring);
+            });
+        }
+    },
 
-        capacities.forEach((_, index) => {
-            const radius = innerRadius + (index * spacing);
-            const ring = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            ring.setAttribute("cx", "0");
-            ring.setAttribute("cy", "0");
-            ring.setAttribute("r", radius);
-            ring.setAttribute("class", "electron-shell-ring");
-            shellsGroup.appendChild(ring);
+    renderElectrons(electronCount) {
+        const electronsGroup = this.container.querySelector("#electrons-group");
+        if (!electronsGroup) return;
+
+        const positions = calculateElectronPositions(electronCount, {
+            innerRadius: this.config.innerShellRadius,
+            shellSpacing: this.config.shellSpacing
         });
-    }
-},
 
-renderElectrons(electronCount) {
-    const electronsGroup = this.container.querySelector("#electrons-group");
-    if (!electronsGroup) return;
+        const existingCircles = Array.from(electronsGroup.children);
+        const targetCount = positions.length;
 
-    electronsGroup.innerHTML = "";
+        // 1. Update existing circles or append new ones as needed
+        positions.forEach((p, index) => {
+            let circle = existingCircles[index];
+            if (!circle) {
+                circle = this.createSVGElement("circle", {
+                    r: this.config.electronSize / 2,
+                    class: "electron-particle"
+                });
+                electronsGroup.appendChild(circle);
+            }
+            circle.setAttribute("cx", p.x);
+            circle.setAttribute("cy", p.y);
+        });
 
-    const positions = calculateElectronPositions(electronCount, {
-        innerRadius: this.config.innerShellRadius,
-        shellSpacing: this.config.shellSpacing
-    });
+        // 2. Remove excess circles if electron count decreased
+        for (let i = existingCircles.length - 1; i >= targetCount; i--) {
+            existingCircles[i].remove();
+        }
+    },
 
-    positions.forEach(p => {
-        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        circle.setAttribute("cx", p.x);
-        circle.setAttribute("cy", p.y);
-        circle.setAttribute("r", this.config.electronSize / 2);
-        circle.setAttribute("class", "electron-particle");
-        electronsGroup.appendChild(circle);
-    });
-},
-
-
-
-    render() {
-        if (!this.container) return;
-
-        const status = AtomLabManager?.getStatus();
-        if (!status) return;
+    // --------------------------------------------------
+    // Top-Down Decoupled Render Loop
+    // --------------------------------------------------
+    render(state = AtomLabManager?.getStatus()) {
+        if (!this.container || !state) return;
 
         // 1. Live Banner Prompt Update
         const promptTextEl = this.container.querySelector("#craft-prompt-text");
         const promptBannerEl = this.container.querySelector("#craft-prompt-banner");
 
         if (promptTextEl && promptBannerEl) {
-            if (status.mode === "free-build" || !status.nextPrompt) {
+            if (state.mode === "free-build" || !state.nextPrompt) {
                 promptBannerEl.style.display = "none";
             } else {
                 promptBannerEl.style.display = "block";
-                promptTextEl.textContent = status.nextPrompt;
+                promptTextEl.textContent = state.nextPrompt;
             }
         } 
 
         // 2. Workspace Build Counts & Nucleus SVG
-        const workspace = status.freeBuildBuffer || {};
-        // Check plural first, then singular as a fallback
-const pWorkspace = workspace.protons ?? workspace.proton ?? 0;
-const nWorkspace = workspace.neutrons ?? workspace.neutron ?? 0;
-const eWorkspace = workspace.electrons ?? workspace.electron ?? 0;
+        const workspace = state.freeBuildBuffer || {};
+        const pWorkspace = workspace.protons ?? workspace.proton ?? 0;
+        const nWorkspace = workspace.neutrons ?? workspace.neutron ?? 0;
+        const eWorkspace = workspace.electrons ?? workspace.electron ?? 0;
 
         const pEl = this.container.querySelector("#count-protons");
         const nEl = this.container.querySelector("#count-neutrons");
@@ -382,13 +538,26 @@ const eWorkspace = workspace.electrons ?? workspace.electron ?? 0;
         if (nEl) nEl.textContent = nWorkspace;
         if (eEl) eEl.textContent = eWorkspace;
 
-        // Render hexagonal layout in nucleus
+        // 3. Real-time Atomic Properties Panel Calculation
+        const atomicNumber = pWorkspace;
+        const atomicMass = pWorkspace + nWorkspace;
+        const rawCharge = pWorkspace - eWorkspace;
+
+        let chargeText = "0 (Neutral)";
+        if (rawCharge > 0) chargeText = `+${rawCharge}`;
+        else if (rawCharge < 0) chargeText = `${rawCharge}`;
+
+        if (this.propertiesEl.atomicNumber) this.propertiesEl.atomicNumber.textContent = atomicNumber;
+        if (this.propertiesEl.atomicMass) this.propertiesEl.atomicMass.textContent = atomicMass;
+        if (this.propertiesEl.netCharge) this.propertiesEl.netCharge.textContent = chargeText;
+
+        // Render particle graphics
         this.renderNucleus(pWorkspace, nWorkspace);
         this.renderShells();
         this.renderElectrons(eWorkspace);
 
-        // 3. Storage Inventory Counts
-        const inventory = status.inventory || {};
+        // 4. Storage Inventory Counts
+        const inventory = state.inventory || {};
         const cap = inventory.capacity ?? 0;
         
         const invP = this.container.querySelector("#inventory-protons");
@@ -400,8 +569,7 @@ const eWorkspace = workspace.electrons ?? workspace.electron ?? 0;
         if (invE) invE.textContent = `${inventory.electron ?? 0} / ${cap}`;
     },
 
-    updateInventoryDisplay() {
-        const status = ParticleInventoryManager?.getStatus();
+    updateInventoryDisplay(status = ParticleInventoryManager?.getStatus()) {
         if (!status) return;
 
         ["proton", "neutron", "electron"].forEach(type => {
