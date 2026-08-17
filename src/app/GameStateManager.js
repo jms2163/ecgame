@@ -591,16 +591,28 @@ const GameStateManager = {
     // GameStateManager.js
 
 unlockFeature(featureId) {
-    if (!gameState.features) {
-        gameState.features = {};
+    if (!featureId) return false;
+
+    // 1. Ensure safety for top-level zones and features objects
+    gameState.zones ??= {};
+    gameState.zones.features ??= {};
+
+    // Prevent duplicate triggers if already unlocked
+    if (gameState.zones.features[featureId]) {
+        return true;
     }
 
-    gameState.features[featureId] = true;
+    gameState.zones.features[featureId] = true;
     console.log(`[GameStateManager] Feature unlocked: ${featureId}`);
 
-    // Trigger save via namespace fallback
-    const saver = window.ECGame?.SaveManager || (typeof SaveManager !== "undefined" ? SaveManager : null);
-    if (saver && typeof saver.save === "function") {
+    // 2. Notify observers so UI updates immediately (e.g., showing Isotope controls)
+    if (typeof GameStateObserver !== "undefined" && GameStateObserver?.notify) {
+        GameStateObserver.notify("feature-unlocked", { featureId });
+    }
+
+    // 3. Save state updates
+    const saver = typeof SaveManager !== "undefined" ? SaveManager : window.SaveManager;
+    if (saver?.save) {
         saver.save();
     }
 
@@ -608,7 +620,7 @@ unlockFeature(featureId) {
 },
 
 hasFeature(featureId) {
-    return Boolean(gameState.features?.[featureId]);
+    return Boolean(gameState.zones?.features?.[featureId]);
 },
 
     addJournalEntry(entry) {
