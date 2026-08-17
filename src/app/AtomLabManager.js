@@ -62,29 +62,29 @@ const STEP_DEFINITIONS = Object.freeze({
 
 const AtomLabManager = {
 
-initialize() {
-    ParticleInventoryManager.initialize();
-    QuestManager.initialize();
-    GameStars.initialize();
+    initialize() {
+        ParticleInventoryManager.initialize();
+        QuestManager.initialize();
+        GameStars.initialize();
 
-    const state = this.ensureState();
-    const gsm = window.ECGame?.GameStateManager;
+        const state = this.ensureState();
+        const gsm = window.ECGame?.GameStateManager;
 
-    // Check discovery state to assign correct starting build mode
-    if (gsm) {
-        if (!gsm.hasDiscovery("H")) {
-            state.buildMode = "guided-h";
-            state.guidedStepIndex = 0;
-        } else if (!gsm.hasDiscovery("He")) {
-            state.buildMode = "guided-he";
-            state.guidedStepIndex = 0;
-        } else if (state.buildMode !== "free-build") {
-            state.buildMode = "free-build";
+        // Check discovery state to assign correct starting build mode
+        if (gsm) {
+            if (!gsm.hasDiscovery("H")) {
+                state.buildMode = "guided-h";
+                state.guidedStepIndex = 0;
+            } else if (!gsm.hasDiscovery("He")) {
+                state.buildMode = "guided-he";
+                state.guidedStepIndex = 0;
+            } else if (state.buildMode !== "free-build") {
+                state.buildMode = "free-build";
+            }
         }
-    }
 
-    return true;
-},
+        return true;
+    },
 
     ensureState() {
         const atomLab = gameState.zones?.atomLab;
@@ -146,23 +146,49 @@ initialize() {
 
     getStatus() {
         const state = this.ensureState();
-        
+        const buildMode = state.buildMode || "guided-h";
+        const isInterstitial = buildMode.startsWith("interstitial-");
+
+        // Determine prompt text based on current build state
         let nextPrompt = null;
-        if (state.buildMode !== "free-build") {
-            const currentSequence = GUIDED_SEQUENCES[state.buildMode];
+        
+        if (buildMode === "interstitial-h") {
+            nextPrompt = "Hydrogen-1 synthesized! Click Continue to proceed to Helium-4.";
+        } else if (buildMode === "interstitial-he") {
+            nextPrompt = "Helium-4 synthesized! Click Continue to attempt Lithium-7.";
+        } else if (buildMode !== "free-build" && typeof GUIDED_SEQUENCES !== "undefined" && GUIDED_SEQUENCES[buildMode]) {
+            const currentSequence = GUIDED_SEQUENCES[buildMode];
             const stepId = currentSequence[state.guidedStepIndex];
-            nextPrompt = STEP_DEFINITIONS[stepId]?.prompt;
+            nextPrompt = STEP_DEFINITIONS[stepId]?.prompt || null;
+        } else if (buildMode === "free-build") {
+            nextPrompt = state.nextPrompt || (state.targetElement ? `Synthesize ${state.targetElement}` : null);
         }
 
         return {
-            mode: state.buildMode,
+            mode: buildMode,
+            buildMode: buildMode,
             guidedStepIndex: state.guidedStepIndex,
-            inventoryCheck: this.checkInventoryPreReq(state.buildMode),
+            
+            selectedElement: state.selectedElement || state.freeBuildBuffer?.targetElement,
+            targetElement: state.targetElement || state.freeBuildBuffer?.targetElement,
+
+            // Interstitial pause state flags
+            isInterstitial,
+            canContinue: isInterstitial,
+
+            // Global feature unlock flags read by UI components
+            isIsotopeUnlocked: GameStateManager.hasFeature("isotope_mode"),
+            isSandboxUnlocked: GameStateManager.hasFeature("sandbox_mode"),
+
+            // Prerequisites & metrics
+            inventoryCheck: this.checkInventoryPreReq(buildMode),
             perfectHeStatus: {
                 eligible: state.perfectHeEligible,
                 mistakes: state.incorrectHeSelections,
                 starEarned: Boolean(this.getStarRecord())
             },
+
+            // Active build buffer & inventory status
             freeBuildBuffer: { ...state.freeBuildBuffer },
             inventory: ParticleInventoryManager.getStatus(),
             nextPrompt: nextPrompt
@@ -170,351 +196,444 @@ initialize() {
     },
 
     // Main entry point from the UI for any action (clicking elements, adding particles, synthesizing)
-processAction(actionType, payload) {
-    const state = this.ensureState();
+    processAction(actionType, payload) {
+        const state = this.ensureState();
 
-    let result;
-    if (state.buildMode !== "free-build") {
-        result = this.handleGuidedAction(state, actionType, payload);
-    } else {
-        result = this.handleFreeBuildAction(state, actionType, payload);
-    }
-
-    // Directly trigger top-level imported UI re-render
-    if (typeof AtomCraftUI !== "undefined" && AtomCraftUI.render) {
-        AtomCraftUI.render();
-    }
-
-    return result;
-},
-
-handleGuidedAction(state, actionType, payload) {
-    const currentSequence = GUIDED_SEQUENCES[state.buildMode];
-    const stepId = currentSequence[state.guidedStepIndex];
-    const expected = STEP_DEFINITIONS[stepId];
-
-    // Safety fallback for payload extraction
-    const effectivePayload = payload || (actionType.startsWith("add_") ? actionType.replace("add_", "") : actionType);
-
-    // Normalize particle keys (guided steps use singular 'proton', freeBuildBuffer uses plural 'protons')
-    const particleMap = {
-        proton: "protons",
-        neutron: "neutrons",
-        electron: "electrons",
-        protons: "protons",
-        neutrons: "neutrons",
-        electrons: "electrons"
-    };
-
-    // 1. Pre-requisite check
-    const preReq = this.checkInventoryPreReq(state.buildMode);
-    if (!preReq.ready) {
-        return { accepted: false, correct: false, reason: "insufficient-inventory", message: preReq.missing };
-    }
-
-    // 2. Validate Action against expected step
-    if (effectivePayload !== expected.expectedPayload) {
-        if (state.buildMode === "guided-he") {
-            state.incorrectHeSelections += 1;
-            state.perfectHeEligible = false;
+        let result;
+        if (state.buildMode !== "free-build") {
+            result = this.handleGuidedAction(state, actionType, payload);
+        } else {
+            result = this.handleFreeBuildAction(state, actionType, payload);
         }
 
-        SaveManager.save();
-        return {
-            accepted: true,
-            correct: false,
-            reason: "incorrect-step",
-            message: expected.prompt 
-        };
-    }
+        // Directly trigger top-level imported UI re-render with fresh status
+        if (typeof AtomCraftUI !== "undefined" && AtomCraftUI.render) {
+            AtomCraftUI.render(this.getStatus());
+        }
 
-    // 3. Process Particle Deductions & Workspace Updates
-    if (actionType === "select_element" || stepId.startsWith("select_")) {
-        this.selectElement(effectivePayload);
-    }
+        return result;
+    },
 
-    // Helper to evaluate removal success regardless of return signature
-const isSuccess = (res) => {
-    if (res === true) return true;
-    if (typeof res === "object" && res !== null) {
-        if (res.success === true) return true;
-        if (typeof res.removed === "number" && res.removed > 0) return true;
-    }
-    return false;
-};
-
-    if (["proton", "neutron", "electron", "protons", "neutrons", "electrons"].includes(effectivePayload)) {
-    // Attempt removal using singular key first, then plural
-    let deductResult = ParticleInventoryManager.removeParticle(effectivePayload, 1);
-    if (!isSuccess(deductResult)) {
-        const altKey = particleMap[effectivePayload];
-        deductResult = ParticleInventoryManager.removeParticle(altKey, 1);
-    }
-
-    if (!isSuccess(deductResult)) {
-        return { accepted: false, correct: true, reason: "inventory-error", message: "Error deducting particle." };
-    }
-    
-    // Ensure freeBuildBuffer exists with correct plural keys
-    state.freeBuildBuffer = state.freeBuildBuffer || { protons: 0, neutrons: 0, electrons: 0 };
-    const pluralKey = particleMap[effectivePayload] || "protons";
-    state.freeBuildBuffer[pluralKey] = (state.freeBuildBuffer[pluralKey] || 0) + 1;
-}
-
-    // 4. Advance Step Sequence
-    state.guidedStepIndex += 1;
-    let completedSequence = false;
-    let message = "";
-
-    if (state.guidedStepIndex >= currentSequence.length) {
-        completedSequence = true;
-        state.guidedStepIndex = 0;
-        
-        // Clear workspace build buffer upon completion
-        state.freeBuildBuffer = { targetElement: null, protons: 0, neutrons: 0, electrons: 0 };
-
-        if (state.buildMode === "guided-h") {
-            DiscoveryManager.record("atoms", "H");
-            DiscoveryManager.record("isotopes", "H1");
-
-            state.buildMode = "guided-he";
-            message = "Hydrogen synthesized! Select Helium (He) from the periodic table.";
-            QuestManager.markQuestClaimable(ACTIVITY_ID_H, Date.now());
-        } 
-        else if (state.buildMode === "guided-he") {
-            DiscoveryManager.record("atoms", "He");
-            DiscoveryManager.record("isotopes", "He4");
-
-            state.buildMode = "free-build";
-            message = "Helium synthesized! Free build mode unlocked.";
-            QuestManager.markQuestClaimable(ACTIVITY_ID_HE, Date.now());
-            
-            if (state.perfectHeEligible) {
-                this.awardPerfectHeStar();
-                message += " Perfect execution! You earned a star.";
+    handleGuidedAction(state, actionType, payload) {
+        // Handle transition button click ("continue_tutorial")
+        if (actionType === "continue_tutorial") {
+            if (state.buildMode === "interstitial-h") {
+                state.buildMode = "guided-he";
+                state.guidedStepIndex = 0;
+                SaveManager.save();
+                return {
+                    accepted: true,
+                    correct: true,
+                    reason: "mode-advanced",
+                    message: "Select Helium (He) from the periodic table.",
+                    status: this.getStatus()
+                };
+            }
+            if (state.buildMode === "interstitial-he") {
+                state.buildMode = "free-build";
+                state.guidedStepIndex = 0;
+                this.selectElement("Li");
+                SaveManager.save();
+                return {
+                    accepted: true,
+                    correct: true,
+                    reason: "mode-advanced",
+                    message: "Target: Lithium-7",
+                    status: this.getStatus()
+                };
             }
         }
-    } else {
-        // LOOKUP THE PROMPT FOR THE NEWLY ADVANCED STEP
-        const nextStepId = currentSequence[state.guidedStepIndex];
-        const nextStep = STEP_DEFINITIONS[nextStepId];
-        message = nextStep ? nextStep.prompt : "Proceed to the next step.";
-    }
 
-    const saveSucceeded = SaveManager.save();
-    
-    GameStateObserver.notify("atom-lab-action", {
-        buildMode: state.buildMode,
-        action: effectivePayload,
-        completedSequence,
-        saveSucceeded
-    });
+        const currentSequence = GUIDED_SEQUENCES[state.buildMode];
+        const stepId = currentSequence[state.guidedStepIndex];
+        const expected = STEP_DEFINITIONS[stepId];
 
-    return {
-        accepted: true,
-        correct: true,
-        reason: "step-complete",
-        message,
-        saveSucceeded,
-        status: this.getStatus()
-    };
-},
+        // Safety fallback for payload extraction
+        const effectivePayload = payload || (actionType.startsWith("add_") ? actionType.replace("add_", "") : actionType);
 
-    // #TODO added this function to screen routing when an element is pressed.
-   selectElement(symbol) {
+        // Normalize particle keys
+        const particleMap = {
+            proton: "protons",
+            neutron: "neutrons",
+            electron: "electrons",
+            protons: "protons",
+            neutrons: "neutrons",
+            electrons: "electrons"
+        };
+
+        // 1. Pre-requisite check
+        const preReq = this.checkInventoryPreReq(state.buildMode);
+        if (!preReq.ready) {
+            return { accepted: false, correct: false, reason: "insufficient-inventory", message: preReq.missing };
+        }
+
+        // 2. Validate Action against expected step
+        if (effectivePayload !== expected.expectedPayload) {
+            if (state.buildMode === "guided-he") {
+                state.incorrectHeSelections += 1;
+                state.perfectHeEligible = false;
+            }
+
+            SaveManager.save();
+            return {
+                accepted: true,
+                correct: false,
+                reason: "incorrect-step",
+                message: expected.prompt 
+            };
+        }
+
+        // 3. Process Particle Deductions & Workspace Updates
+        if (actionType === "select_element" || stepId.startsWith("select_")) {
+            this.selectElement(effectivePayload);
+        }
+
+        const isSuccess = (res) => {
+            if (res === true) return true;
+            if (typeof res === "object" && res !== null) {
+                if (res.success === true) return true;
+                if (typeof res.removed === "number" && res.removed > 0) return true;
+            }
+            return false;
+        };
+
+        if (["proton", "neutron", "electron", "protons", "neutrons", "electrons"].includes(effectivePayload)) {
+            let deductResult = ParticleInventoryManager.removeParticle(effectivePayload, 1);
+            if (!isSuccess(deductResult)) {
+                const altKey = particleMap[effectivePayload];
+                deductResult = ParticleInventoryManager.removeParticle(altKey, 1);
+            }
+
+            if (!isSuccess(deductResult)) {
+                return { accepted: false, correct: false, reason: "inventory-error", message: "Error deducting particle." };
+            }
+            
+            state.freeBuildBuffer = state.freeBuildBuffer || { protons: 0, neutrons: 0, electrons: 0 };
+            const pluralKey = particleMap[effectivePayload] || "protons";
+            state.freeBuildBuffer[pluralKey] = (state.freeBuildBuffer[pluralKey] || 0) + 1;
+        }
+
+        // 4. Advance Step Sequence
+        state.guidedStepIndex += 1;
+        let completedSequence = false;
+        let message = "";
+
+        if (state.guidedStepIndex >= currentSequence.length) {
+            completedSequence = true;
+            state.guidedStepIndex = 0;
+            
+            // Clear workspace build buffer upon completion
+            state.freeBuildBuffer = { targetElement: null, protons: 0, neutrons: 0, electrons: 0 };
+
+            if (state.buildMode === "guided-h") {
+                DiscoveryManager.record("atoms", "H");
+                DiscoveryManager.record("isotopes", "H1");
+
+                state.buildMode = "interstitial-h";
+                message = "Hydrogen-1 synthesized! Inspecting atomic structure...";
+                
+                QuestManager.markQuestClaimable(ACTIVITY_ID_H, Date.now());
+                if (QuestManager.progressObjective) {
+                    QuestManager.progressObjective("atom-synthesis", "H", 1);
+                }
+            } 
+            else if (state.buildMode === "guided-he") {
+                DiscoveryManager.record("atoms", "He");
+                DiscoveryManager.record("isotopes", "He4");
+
+                state.buildMode = "interstitial-he";
+                message = "Helium-4 synthesized! Ready to attempt Lithium?";
+                
+                QuestManager.markQuestClaimable(ACTIVITY_ID_HE, Date.now());
+                if (QuestManager.progressObjective) {
+                    QuestManager.progressObjective("atom-synthesis", "He", 1);
+                }
+                
+                if (state.perfectHeEligible) {
+                    this.awardPerfectHeStar();
+                    message += " Perfect execution! You earned a star.";
+                }
+            }
+        } else {
+            const nextStepId = currentSequence[state.guidedStepIndex];
+            const nextStep = STEP_DEFINITIONS[nextStepId];
+            message = nextStep ? nextStep.prompt : "Proceed to the next step.";
+        }
+
+        const saveSucceeded = SaveManager.save();
+        
+        GameStateObserver.notify("atom-lab-action", {
+            buildMode: state.buildMode,
+            action: effectivePayload,
+            completedSequence,
+            saveSucceeded
+        });
+
+        return {
+            accepted: true,
+            correct: true,
+            reason: "step-complete",
+            message,
+            saveSucceeded,
+            status: this.getStatus()
+        };
+    },
+
+selectElement(symbol) {
     const state = this.ensureState();
-
     const isotopes = this.getIsotopesForElement(symbol);
+
     if (!isotopes.length) {
         return { accepted: false, message: `Unknown element symbol: ${symbol}` };
     }
 
-    const isDiscovered = GameStateManager?.hasDiscovery(symbol);
-    const isotopeModeUnlocked = Boolean(GameStateManager?.hasDiscovery("isotope_mode"));
+    const isotopeModeUnlocked = Boolean(GameStateManager?.hasFeature("isotope_mode"));
     const representative = this.getRepresentativeIsotope(symbol);
+    const displayName = this.getIsotopeDisplayName(symbol);
 
     state.selectedElement = symbol;
-    state.activeTargetIsotope = representative.id;
-    state.availableIsotopes = (isotopeModeUnlocked && representative.p >= 6) 
+    state.targetElement = symbol;
+    state.activeTargetIsotope = representative?.id || symbol;
+    state.nextPrompt = `Synthesize ${displayName}`;
+    state.availableIsotopes = (isotopeModeUnlocked && representative?.p >= 6) 
         ? isotopes 
-        : [representative];
+        : (representative ? [representative] : []);
 
     return {
         accepted: true,
-        message: `Selected ${representative.name} (${symbol}). Isotope Mode: ${isotopeModeUnlocked ? "Active" : "Locked"}.`
+        prompt: state.nextPrompt,
+        message: `Selected ${displayName}. Isotope Mode: ${isotopeModeUnlocked ? "Active" : "Locked"}.`
     };
 },
 
-getIsotopeSynthesisStatus(symbol) {
-    const isotopes = this.getIsotopesForElement(symbol);
-    if (!isotopes.length) return null;
+    getIsotopeSynthesisStatus(symbol) {
+        const isotopes = this.getIsotopesForElement(symbol);
+        if (!isotopes.length) return null;
 
-    const hasDiscovery = (id) => GameStateManager?.hasDiscovery(id);
-    const isotopeModeUnlocked = Boolean(hasDiscovery("isotope_mode"));
+        const hasDiscovery = (id) => GameStateManager?.hasDiscovery(id);
+        const isotopeModeUnlocked = Boolean(hasDiscovery("isotope_mode"));
 
-    const isotopeStatusList = isotopes.map(iso => ({
-        id: iso.id,
-        name: iso.name,
-        symbol: iso.symbol,
-        protons: iso.p,
-        neutrons: iso.n,
-        electrons: iso.e,
-        abundance: iso.a,
-        isSynthesized: Boolean(hasDiscovery(iso.id))
-    }));
+        const isotopeStatusList = isotopes.map(iso => ({
+            id: iso.id,
+            name: iso.name,
+            symbol: iso.symbol,
+            protons: iso.p,
+            neutrons: iso.n,
+            electrons: iso.e,
+            abundance: iso.a,
+            isSynthesized: Boolean(hasDiscovery(iso.id))
+        }));
 
-    const isFullyComplete = isotopeStatusList.length > 0 && isotopeStatusList.every(iso => iso.isSynthesized);
+        const isFullyComplete = isotopeStatusList.length > 0 && isotopeStatusList.every(iso => iso.isSynthesized);
 
-    return {
-        symbol,
-        isFullyComplete,
-        isotopeModeUnlocked,
-        isotopes: isotopeStatusList
-    };
-},
-
-// Helper: Retrieve all isotope variants for an element symbol (e.g. "C")
-getIsotopesForElement(symbol) {
-    return Object.entries(elementLibrary)
-        .filter(([id, data]) => data.symbol === symbol)
-        .map(([id, data]) => ({ id, ...data }));
-},
-
-// Helper: Get representative (highest abundance) isotope
-getRepresentativeIsotope(symbol) {
-    const isotopes = this.getIsotopesForElement(symbol);
-    if (!isotopes.length) return null;
-    return isotopes.reduce((max, iso) => (iso.a > max.a ? iso : max), isotopes[0]);
-},
-
-
-
-
-
-handleFreeBuildAction(state, actionType, payload) {
-    const buffer = state.freeBuildBuffer;
-
-    // 1. View Discovered Element (Dynamic lookup via ElementLibrary & Discoveries)
-    if (actionType === "view_element") {
-        buffer.targetElement = payload;
-        
-        // Dynamically populate workspace counts for the discovered isotope
-        const counts = GameStateManager.getParticleCountsForElement(payload);
-        buffer.protons = counts.protons;
-        buffer.neutrons = counts.neutrons;
-        buffer.electrons = counts.electrons;
-
-        SaveManager.save();
-        
         return {
-            accepted: true,
-            reason: "element-viewed",
-            message: `Viewing structure for ${payload}.`,
-            buffer: state.freeBuildBuffer
+            symbol,
+            isFullyComplete,
+            isotopeModeUnlocked,
+            isotopes: isotopeStatusList
         };
+    },
+
+    // Helper: Retrieve all isotope variants for an element symbol (e.g. "C")
+    getIsotopesForElement(symbol) {
+        return Object.entries(elementLibrary)
+            .filter(([id, data]) => data.symbol === symbol)
+            .map(([id, data]) => ({ id, ...data }));
+    },
+
+    // Helper: Get representative (highest abundance) isotope
+    getRepresentativeIsotope(symbol) {
+        const isotopes = this.getIsotopesForElement(symbol);
+        if (!isotopes.length) return null;
+        return isotopes.reduce((max, iso) => (iso.a > max.a ? iso : max), isotopes[0]);
+    },
+
+    // Helper: Safe display name resolution using elementLibrary data
+getIsotopeDisplayName(identifier) {
+    if (!identifier) return "";
+
+    // 1. If identifier is already an isotope object
+    let iso = (typeof identifier === "object") ? identifier : null;
+
+    // 2. If identifier is a specific isotope ID in elementLibrary (e.g., "Li7")
+    if (!iso && elementLibrary[identifier]) {
+        iso = { id: identifier, ...elementLibrary[identifier] };
     }
 
-    // 2. Select Element for New Build (Clears workspace)
-    if (["select_element", "set_target_element", "set_target"].includes(actionType)) {
-        buffer.targetElement = payload;
-        buffer.protons = 0;
-        buffer.neutrons = 0;
-        buffer.electrons = 0;
-        
-        SaveManager.save();
-        
-        return {
-            accepted: true,
-            reason: "element-selected",
-            message: `Target element set to ${payload}.`,
-            buffer: state.freeBuildBuffer
-        };
+    // 3. If identifier is an element symbol (e.g., "Li", "H"), find representative
+    if (!iso && typeof identifier === "string") {
+        iso = this.getRepresentativeIsotope(identifier);
     }
 
-    // 3. Particle Addition (Normalizes "add_proton" and "proton")
-    const particleType = actionType.replace("add_", "");
+    if (iso) {
+        if (iso.name) return iso.name; // e.g., "Lithium-7"
+        
+        // Dynamic fallback: compute mass from protons + neutrons
+        const mass = (iso.p ?? 0) + (iso.n ?? 0);
+        const nameOrSymbol = iso.elementName || iso.symbol || identifier;
+        return mass > 0 ? `${nameOrSymbol}-${mass}` : nameOrSymbol;
+    }
+
+    return identifier;
+},
+
+    handleFreeBuildAction(state, actionType, payload) {
+        const buffer = state.freeBuildBuffer;
+
+        // 1. View Discovered Element
+        // 1. View Discovered Element Structure
+if (actionType === "view_element") {
+    buffer.targetElement = payload;
     
-    if (["proton", "neutron", "electron"].includes(particleType)) {
-        const deductResult = ParticleInventoryManager.removeParticle(particleType, 1);
-        
-        if (!deductResult.success) {
-            return {
-                accepted: false,
-                correct: true,
-                reason: "inventory-error",
-                message: `Not enough ${particleType}s in inventory.`,
-                buffer: state.freeBuildBuffer
-            };
-        }
-        
-        buffer[`${particleType}s`] = (buffer[`${particleType}s`] || 0) + 1;
-        SaveManager.save();
-        
-        return {
-            accepted: true,
-            reason: "particle-added",
-            message: `Added 1 ${particleType}.`,
-            buffer: state.freeBuildBuffer
-        };
-    }
+    const counts = GameStateManager.getParticleCountsForElement(payload);
+    buffer.protons = counts.protons;
+    buffer.neutrons = counts.neutrons;
+    buffer.electrons = counts.electrons;
 
-    // 4. Workspace Reset
-    if (actionType === "reset") {
-        buffer.protons = 0;
-        buffer.neutrons = 0;
-        buffer.electrons = 0;
-        buffer.targetElement = null;
-        SaveManager.save();
+    const displayName = this.getIsotopeDisplayName(payload);
 
-        return {
-            accepted: true,
-            reason: "reset-complete",
-            message: "Workspace cleared.",
-            buffer: state.freeBuildBuffer
-        };
-    }
+    state.selectedElement = payload;
+    state.targetElement = payload;
+    state.nextPrompt = `Viewing Structure: ${displayName}`;
 
-    // 5. Synthesis Validation
-    if (actionType === "synthesize") {
-        const isSynthesisValid = buffer.targetElement !== null && buffer.protons > 0; 
-
-        if (isSynthesisValid) {
-            const atomId = buffer.targetElement;
-            const massNumber = buffer.protons + buffer.neutrons;
-            const isotopeId = atomId + massNumber;
-
-            DiscoveryManager.record("atoms", atomId);
-            DiscoveryManager.record("isotopes", isotopeId);
-
-            state.freeBuildBuffer = { targetElement: null, protons: 0, neutrons: 0, electrons: 0 };
-            const saveSucceeded = SaveManager.save();
-
-            return {
-                accepted: true,
-                correct: true,
-                reason: "synthesis-success",
-                message: `Successfully synthesized ${isotopeId}!`,
-                saveSucceeded,
-                buffer: state.freeBuildBuffer
-            };
-        } else {
-            return {
-                accepted: true,
-                correct: false,
-                reason: "synthesis-failed",
-                message: "The current configuration does not form a valid, stable atom.",
-                buffer: state.freeBuildBuffer
-            };
-        }
-    }
-
+    SaveManager.save();
+    
     return {
-        accepted: false,
-        reason: "unknown-action",
-        message: `Free build action not recognized: ${actionType}.`,
+        accepted: true,
+        reason: "element-viewed",
+        message: `Viewing structure for ${displayName}.`,
+        prompt: state.nextPrompt,
         buffer: state.freeBuildBuffer
     };
 }
+
+        // 2. Select Element for New Build (Clears workspace & updates target prompt)
+        if (["select_element", "set_target_element", "set_target"].includes(actionType)) {
+            const selectResult = this.selectElement(payload);
+
+            buffer.targetElement = payload;
+            buffer.protons = 0;
+            buffer.neutrons = 0;
+            buffer.electrons = 0;
+            
+            SaveManager.save();
+            
+            return {
+                ...selectResult,
+                reason: "element-selected",
+                buffer: state.freeBuildBuffer
+            };
+        }
+
+        // 3. Particle Addition
+        const particleType = actionType.replace("add_", "");
+        
+        if (["proton", "neutron", "electron"].includes(particleType)) {
+            const deductResult = ParticleInventoryManager.removeParticle(particleType, 1);
+            
+            if (!deductResult.success) {
+                return {
+                    accepted: false,
+                    correct: true,
+                    reason: "inventory-error",
+                    message: `Not enough ${particleType}s in inventory.`,
+                    buffer: state.freeBuildBuffer
+                };
+            }
+            
+            buffer[`${particleType}s`] = (buffer[`${particleType}s`] || 0) + 1;
+            SaveManager.save();
+            
+            return {
+                accepted: true,
+                reason: "particle-added",
+                message: `Added 1 ${particleType}.`,
+                buffer: state.freeBuildBuffer
+            };
+        }
+
+        // 4. Workspace Reset
+        if (actionType === "reset") {
+            buffer.protons = 0;
+            buffer.neutrons = 0;
+            buffer.electrons = 0;
+            buffer.targetElement = null;
+            SaveManager.save();
+
+            return {
+                accepted: true,
+                reason: "reset-complete",
+                message: "Workspace cleared.",
+                buffer: state.freeBuildBuffer
+            };
+        }
+
+        // 5. Synthesis Validation & Milestone Triggers
+        if (actionType === "synthesize") {
+            const isSynthesisValid = buffer.targetElement !== null && buffer.protons > 0; 
+
+            if (isSynthesisValid) {
+                const atomId = buffer.targetElement;
+                const massNumber = buffer.protons + buffer.neutrons;
+                const isotopeId = atomId + massNumber;
+
+                // Record discoveries & update synthesis tracking
+                DiscoveryManager.record("atoms", atomId);
+                DiscoveryManager.record("isotopes", isotopeId);
+                GameStateManager?.markElementSynthesized?.(atomId, massNumber);
+
+                // Notify observers so quest objectives auto-advance
+                GameStateObserver?.notify?.("atom-synthesis-changed", {
+                    elementId: atomId,
+                    massNumber: massNumber,
+                    atomicNumber: buffer.protons,
+                    timestamp: Date.now()
+                });
+
+                // Reconcile quest progress
+                if (typeof QuestManager !== "undefined") {
+                    if (QuestManager.progressObjective) {
+                        QuestManager.progressObjective("atom-synthesis", atomId, 1);
+                    }
+                    QuestManager.reconcileAll?.();
+                }
+
+                let message = `Successfully synthesized ${isotopeId}!`;
+                if (atomId === "C") {
+                    message = "Carbon-12 Synthesized! Claim quest to unlock Isotope Mode.";
+                } else if (atomId === "O") {
+                    message = "Oxygen-16 Synthesized! Claim quest to unlock Free Build Sandbox.";
+                }
+
+                state.freeBuildBuffer = { targetElement: null, protons: 0, neutrons: 0, electrons: 0 };
+                const saveSucceeded = SaveManager.save();
+
+                return {
+                    accepted: true,
+                    correct: true,
+                    reason: "synthesis-success",
+                    message,
+                    saveSucceeded,
+                    buffer: state.freeBuildBuffer
+                };
+            } else {
+                return {
+                    accepted: true,
+                    correct: false,
+                    reason: "synthesis-failed",
+                    message: "The current configuration does not form a valid, stable atom.",
+                    buffer: state.freeBuildBuffer
+                };
+            }
+        }
+
+        return {
+            accepted: false,
+            reason: "unknown-action",
+            message: `Free build action not recognized: ${actionType}.`,
+            buffer: state.freeBuildBuffer
+        };
+    }
 };
 
 export default AtomLabManager;

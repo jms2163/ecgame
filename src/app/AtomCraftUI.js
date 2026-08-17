@@ -505,24 +505,28 @@ const AtomCraftUI = {
         }
     },
 
+    renderIsotopeControls(state) {
+    const isotopeContainer = this.container.querySelector("#isotope-select-container");
+    if (!isotopeContainer) return;
+
+    if (!state.isIsotopeUnlocked) {
+        isotopeContainer.style.display = "none";
+    } else {
+        isotopeContainer.style.display = "block";
+    }
+},
+
     // --------------------------------------------------
     // Top-Down Decoupled Render Loop
     // --------------------------------------------------
     render(state = AtomLabManager?.getStatus()) {
         if (!this.container || !state) return;
 
-        // 1. Live Banner Prompt Update
-        const promptTextEl = this.container.querySelector("#craft-prompt-text");
-        const promptBannerEl = this.container.querySelector("#craft-prompt-banner");
+        this.renderBanner(state);
+        this.renderIsotopeControls(state); // Toggle Isotope UI visibility
 
-        if (promptTextEl && promptBannerEl) {
-            if (state.mode === "free-build" || !state.nextPrompt) {
-                promptBannerEl.style.display = "none";
-            } else {
-                promptBannerEl.style.display = "block";
-                promptTextEl.textContent = state.nextPrompt;
-            }
-        } 
+        // 1. Refactored Banner & Interstitial CTA Update
+        this.renderBanner(state);
 
         // 2. Workspace Build Counts & Nucleus SVG
         const workspace = state.freeBuildBuffer || {};
@@ -568,6 +572,62 @@ const AtomCraftUI = {
         if (invN) invN.textContent = `${inventory.neutron ?? 0} / ${cap}`;
         if (invE) invE.textContent = `${inventory.electron ?? 0} / ${cap}`;
     },
+
+renderBanner(state) {
+    const promptBannerEl = this.container.querySelector("#craft-prompt-banner");
+    const promptTextEl = this.container.querySelector("#craft-prompt-text");
+    if (!promptBannerEl || !promptTextEl) return;
+
+    const targetSymbol = state.targetElement || state.selectedElement;
+
+    // Default target mass lookup for sequential free build
+    const defaultIsotopes = {
+        Li: "Lithium-7",
+        Be: "Beryllium-9",
+        B:  "Boron-11",
+        C:  "Carbon-12",
+        N:  "Nitrogen-14",
+        O:  "Oxygen-16"
+    };
+
+    // Determine prompt text prioritize tutorial prompts, then element targets
+    let promptText = state.nextPrompt || "";
+    if (!promptText && targetSymbol && defaultIsotopes[targetSymbol]) {
+        promptText = `Target: Synthesize ${defaultIsotopes[targetSymbol]}`;
+    }
+
+    // 1. Hide banner in free-build if there is no active prompt or target element
+    if (state.buildMode === "free-build" && !promptText) {
+        promptBannerEl.style.display = "none";
+        return;
+    }
+
+    // 2. Show banner and set prompt text
+    promptBannerEl.style.display = "flex";
+    promptTextEl.textContent = promptText;
+
+    // 3. Render or toggle [ Continue → ] button during interstitial states
+    let continueBtn = promptBannerEl.querySelector("#btn-continue-tutorial");
+
+    if (state.isInterstitial) {
+        if (!continueBtn) {
+            continueBtn = this.createElement("button", {
+                id: "btn-continue-tutorial",
+                className: "craft-btn continue-btn",
+                textContent: "Continue →"
+            });
+            
+            continueBtn.addEventListener("click", () => {
+                this.handleAction("continue_tutorial");
+            });
+
+            promptBannerEl.appendChild(continueBtn);
+        }
+        continueBtn.style.display = "inline-block";
+    } else if (continueBtn) {
+        continueBtn.style.display = "none";
+    }
+},
 
     updateInventoryDisplay(status = ParticleInventoryManager?.getStatus()) {
         if (!status) return;

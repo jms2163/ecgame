@@ -127,6 +127,10 @@ const gameState = {
     // scientific subject can never be revisited.
     // --------------------------------------------------
     zones: {
+        features: {
+                isotope_mode: false,
+                sandbox_mode: false
+            },
 
         pond: {
             unlocked: true,
@@ -223,6 +227,7 @@ const gameState = {
         atomLab: {
             unlocked: false,
             completed: false,
+            
             state: {
                 // Modes: "guided-h", "guided-he", "free-build"
                 buildMode: "guided-h",

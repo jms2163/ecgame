@@ -9,6 +9,7 @@ import GameStateObserver
     from "./GameStateObserver.js";
 import XPManager from "./XPManager.js";
 import { elementLibrary } from "../data/elementLibrary.js";
+import DiscoveryManager from "./DiscoveryManager.js";
 
 
 const GameStateManager = {
@@ -586,6 +587,29 @@ const GameStateManager = {
         return false;
 
     },
+
+    // GameStateManager.js
+
+unlockFeature(featureId) {
+    if (!gameState.features) {
+        gameState.features = {};
+    }
+
+    gameState.features[featureId] = true;
+    console.log(`[GameStateManager] Feature unlocked: ${featureId}`);
+
+    // Trigger save via namespace fallback
+    const saver = window.ECGame?.SaveManager || (typeof SaveManager !== "undefined" ? SaveManager : null);
+    if (saver && typeof saver.save === "function") {
+        saver.save();
+    }
+
+    return true;
+},
+
+hasFeature(featureId) {
+    return Boolean(gameState.features?.[featureId]);
+},
 
     addJournalEntry(entry) {
 
