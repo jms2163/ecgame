@@ -13,6 +13,7 @@ import SaveManager from "./SaveManager.js";
 // element and isotopic data
 import { elementLibrary } from "../data/elementLibrary.js";
 import DiscoveryManager from "./DiscoveryManager.js";
+import AtomCraftUI from "./AtomCraftUI.js";
 
 const ACTIVITY_ID_H = "guided_hydrogen";
 const ACTIVITY_ID_HE = "guided_helium";
@@ -262,8 +263,8 @@ const isSuccess = (res) => {
 
     // 4. Advance Step Sequence
     state.guidedStepIndex += 1;
-    let message = "Correct.";
     let completedSequence = false;
+    let message = "";
 
     if (state.guidedStepIndex >= currentSequence.length) {
         completedSequence = true;
@@ -277,7 +278,7 @@ const isSuccess = (res) => {
             DiscoveryManager.record("isotopes", "H1");
 
             state.buildMode = "guided-he";
-            message = "Hydrogen synthesized! Now, let's build Helium.";
+            message = "Hydrogen synthesized! Select Helium (He) from the periodic table.";
             QuestManager.markQuestClaimable(ACTIVITY_ID_H, Date.now());
         } 
         else if (state.buildMode === "guided-he") {
@@ -293,6 +294,11 @@ const isSuccess = (res) => {
                 message += " Perfect execution! You earned a star.";
             }
         }
+    } else {
+        // LOOKUP THE PROMPT FOR THE NEWLY ADVANCED STEP
+        const nextStepId = currentSequence[state.guidedStepIndex];
+        const nextStep = STEP_DEFINITIONS[nextStepId];
+        message = nextStep ? nextStep.prompt : "Proceed to the next step.";
     }
 
     const saveSucceeded = SaveManager.save();
