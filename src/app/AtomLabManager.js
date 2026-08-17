@@ -14,6 +14,7 @@ import SaveManager from "./SaveManager.js";
 import { elementLibrary } from "../data/elementLibrary.js";
 import DiscoveryManager from "./DiscoveryManager.js";
 import AtomCraftUI from "./AtomCraftUI.js";
+import PeriodicTableUI from "./PeriodicTableUI.js";
 
 const ACTIVITY_ID_H = "guided_hydrogen";
 const ACTIVITY_ID_HE = "guided_helium";
@@ -68,7 +69,7 @@ const AtomLabManager = {
         GameStars.initialize();
 
         const state = this.ensureState();
-        const gsm = window.ECGame?.GameStateManager;
+        const gsm = GameStateManager;
 
         // Check discovery state to assign correct starting build mode
         if (gsm) {
@@ -197,22 +198,29 @@ const AtomLabManager = {
 
     // Main entry point from the UI for any action (clicking elements, adding particles, synthesizing)
     processAction(actionType, payload) {
-        const state = this.ensureState();
+    const state = this.ensureState();
 
-        let result;
-        if (state.buildMode !== "free-build") {
-            result = this.handleGuidedAction(state, actionType, payload);
-        } else {
-            result = this.handleFreeBuildAction(state, actionType, payload);
-        }
+    let result;
+    if (state.buildMode !== "free-build") {
+        result = this.handleGuidedAction(state, actionType, payload);
+    } else {
+        result = this.handleFreeBuildAction(state, actionType, payload);
+    }
 
-        // Directly trigger top-level imported UI re-render with fresh status
-        if (typeof AtomCraftUI !== "undefined" && AtomCraftUI.render) {
-            AtomCraftUI.render(this.getStatus());
-        }
+    // Re-render Crafting UI banner
+    if (typeof AtomCraftUI !== "undefined" && AtomCraftUI.render) {
+        AtomCraftUI.render(this.getStatus());
+    }
 
-        return result;
-    },
+    // Re-render Periodic Table UI to refresh unlocked elements (e.g. Be)
+    if (typeof PeriodicTableUI !== "undefined" && PeriodicTableUI.render) {
+        PeriodicTableUI.render();
+    } else if (PeriodicTableUI?.render) {
+        PeriodicTableUI.render();
+    }
+
+    return result;
+},
 
     handleGuidedAction(state, actionType, payload) {
         // Handle transition button click ("continue_tutorial")
@@ -525,32 +533,52 @@ if (actionType === "view_element") {
             };
         }
 
-        // 3. Particle Addition
-        const particleType = actionType.replace("add_", "");
-        
-        if (["proton", "neutron", "electron"].includes(particleType)) {
-            const deductResult = ParticleInventoryManager.removeParticle(particleType, 1);
-            
-            if (!deductResult.success) {
-                return {
-                    accepted: false,
-                    correct: true,
-                    reason: "inventory-error",
-                    message: `Not enough ${particleType}s in inventory.`,
-                    buffer: state.freeBuildBuffer
-                };
-            }
-            
-            buffer[`${particleType}s`] = (buffer[`${particleType}s`] || 0) + 1;
-            SaveManager.save();
-            
-            return {
-                accepted: true,
-                reason: "particle-added",
-                message: `Added 1 ${particleType}.`,
-                buffer: state.freeBuildBuffer
-            };
+        // 3. Particle Addition (Normalizes "add_proton", "proton", "protons")
+const particleType = actionType.replace("add_", "");
+
+if (["proton", "neutron", "electron"].includes(particleType)) {
+    const particleMap = {
+        proton: "protons",
+        neutron: "neutrons",
+        electron: "electrons"
+    };
+    const pluralKey = particleMap[particleType] || `${particleType}s`;
+
+    const isSuccess = (res) => {
+        if (res === true) return true;
+        if (typeof res === "object" && res !== null) {
+            if (res.success === true) return true;
+            if (typeof res.removed === "number" && res.removed > 0) return true;
         }
+        return false;
+    };
+
+    // Try singular key first, then plural key fallback
+    let deductResult = ParticleInventoryManager.removeParticle(particleType, 1);
+    if (!isSuccess(deductResult)) {
+        deductResult = ParticleInventoryManager.removeParticle(pluralKey, 1);
+    }
+
+    if (!isSuccess(deductResult)) {
+        return {
+            accepted: false,
+            correct: true,
+            reason: "inventory-error",
+            message: `Not enough ${particleType}s in inventory.`,
+            buffer: state.freeBuildBuffer
+        };
+    }
+    
+    buffer[pluralKey] = (buffer[pluralKey] || 0) + 1;
+    SaveManager.save();
+    
+    return {
+        accepted: true,
+        reason: "particle-added",
+        message: `Added 1 ${particleType}.`,
+        buffer: state.freeBuildBuffer
+    };
+}
 
         // 4. Workspace Reset
         if (actionType === "reset") {
@@ -569,63 +597,102 @@ if (actionType === "view_element") {
         }
 
         // 5. Synthesis Validation & Milestone Triggers
-        if (actionType === "synthesize") {
-            const isSynthesisValid = buffer.targetElement !== null && buffer.protons > 0; 
 
-            if (isSynthesisValid) {
-                const atomId = buffer.targetElement;
-                const massNumber = buffer.protons + buffer.neutrons;
-                const isotopeId = atomId + massNumber;
+// 5. Synthesis Validation & Milestone Triggers
+if (actionType === "synthesize") {
+    const targetSymbol = buffer.targetElement || state.targetElement;
+    
+    // Resolve target isotope directly from elementLibrary / AtomLabManager
+    const activeIsoId = state.activeTargetIsotope;
+    const targetIsotope = (activeIsoId && elementLibrary[activeIsoId]) 
+        ? elementLibrary[activeIsoId] 
+        : this.getRepresentativeIsotope(targetSymbol);
 
-                // Record discoveries & update synthesis tracking
-                DiscoveryManager.record("atoms", atomId);
-                DiscoveryManager.record("isotopes", isotopeId);
-                GameStateManager?.markElementSynthesized?.(atomId, massNumber);
+    let isValid = false;
+    let atomId = targetSymbol || targetIsotope?.symbol;
+    let massNumber = buffer.protons + buffer.neutrons;
 
-                // Notify observers so quest objectives auto-advance
-                GameStateObserver?.notify?.("atom-synthesis-changed", {
-                    elementId: atomId,
-                    massNumber: massNumber,
-                    atomicNumber: buffer.protons,
-                    timestamp: Date.now()
-                });
+    if (targetIsotope) {
+        const expectedP = targetIsotope.p;
+        const expectedN = targetIsotope.n;
+        const expectedE = targetIsotope.e ?? targetIsotope.p;
 
-                // Reconcile quest progress
-                if (typeof QuestManager !== "undefined") {
-                    if (QuestManager.progressObjective) {
-                        QuestManager.progressObjective("atom-synthesis", atomId, 1);
-                    }
-                    QuestManager.reconcileAll?.();
-                }
+        isValid = (buffer.protons === expectedP &&
+                   buffer.neutrons === expectedN &&
+                   buffer.electrons === expectedE);
+    } else if (buffer.protons > 0 && buffer.protons === buffer.electrons) {
+        isValid = true;
+    }
 
-                let message = `Successfully synthesized ${isotopeId}!`;
-                if (atomId === "C") {
-                    message = "Carbon-12 Synthesized! Claim quest to unlock Isotope Mode.";
-                } else if (atomId === "O") {
-                    message = "Oxygen-16 Synthesized! Claim quest to unlock Free Build Sandbox.";
-                }
+    if (isValid && atomId) {
+        const isotopeId = targetIsotope?.id || `${atomId}${massNumber}`;
+        const displayName = this.getIsotopeDisplayName(isotopeId);
 
-                state.freeBuildBuffer = { targetElement: null, protons: 0, neutrons: 0, electrons: 0 };
-                const saveSucceeded = SaveManager.save();
+        // Record discoveries
+        DiscoveryManager.record("atoms", atomId);
+        DiscoveryManager.record("isotopes", isotopeId);
+        GameStateManager?.markElementSynthesized?.(atomId, massNumber);
 
-                return {
-                    accepted: true,
-                    correct: true,
-                    reason: "synthesis-success",
-                    message,
-                    saveSucceeded,
-                    buffer: state.freeBuildBuffer
-                };
-            } else {
-                return {
-                    accepted: true,
-                    correct: false,
-                    reason: "synthesis-failed",
-                    message: "The current configuration does not form a valid, stable atom.",
-                    buffer: state.freeBuildBuffer
-                };
+        // Update banner prompt and retain workspace state
+        state.selectedElement = atomId;
+        state.targetElement = atomId;
+        state.nextPrompt = `Viewing Structure: ${displayName}`;
+
+        state.freeBuildBuffer = {
+            targetElement: atomId,
+            protons: buffer.protons,
+            neutrons: buffer.neutrons,
+            electrons: buffer.electrons
+        };
+
+        // Notify observers to unlock the next tile in PeriodicTableUI
+        GameStateObserver?.notify?.("atom-synthesis-changed", {
+            elementId: atomId,
+            massNumber: massNumber,
+            atomicNumber: buffer.protons,
+            timestamp: Date.now()
+        });
+
+        if (typeof QuestManager !== "undefined") {
+            if (QuestManager.progressObjective) {
+                QuestManager.progressObjective("atom-synthesis", atomId, 1);
             }
+            QuestManager.reconcileAll?.();
         }
+
+        let message = `Successfully synthesized ${displayName}!`;
+        if (atomId === "C") {
+            message = "Carbon-12 Synthesized! Claim quest to unlock Isotope Mode.";
+        } else if (atomId === "O") {
+            message = "Oxygen-16 Synthesized! Claim quest to unlock Free Build Sandbox.";
+        }
+
+        const saveSucceeded = SaveManager.save();
+
+        return {
+            accepted: true,
+            correct: true,
+            reason: "synthesis-success",
+            message,
+            prompt: state.nextPrompt,
+            saveSucceeded,
+            buffer: state.freeBuildBuffer
+        };
+    } else {
+        // Universal failure response
+        state.nextPrompt = "Incorrect. Reset and try again.";
+        SaveManager.save();
+
+        return {
+            accepted: true,
+            correct: false,
+            reason: "synthesis-failed",
+            message: "Incorrect. Reset and try again.",
+            prompt: state.nextPrompt,
+            buffer: state.freeBuildBuffer
+        };
+    }
+}
 
         return {
             accepted: false,

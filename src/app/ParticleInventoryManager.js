@@ -352,6 +352,12 @@ const ParticleInventoryManager = {
 
     },
 
+    increaseCapacity(amount = 2) {
+    const particles = this.ensureState();
+    const currentCapacity = particles.capacity || DEFAULT_CAPACITY;
+    return this.setCapacity(currentCapacity + amount);
+},
+
     // Used by transactional reward rollback.
     setCapacity(capacity) {
 
