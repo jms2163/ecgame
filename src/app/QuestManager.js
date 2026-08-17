@@ -801,6 +801,7 @@ const QuestManager = {
                 payload
             );
 
+
             return {
                 claimed: true,
                 questId,

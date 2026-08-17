@@ -175,6 +175,8 @@ RewardRegistry.register("xp", {
         };
     },
 
+    
+
     revert({ previousXP }) {
         XPManager.setXP(previousXP);
     }
@@ -389,83 +391,6 @@ RewardRegistry.register(
 
             QuantumAutoCollectorManager
                 .reconcileZoneCompletion();
-        }
-    }
-);
-
-// --------------------------------------------------
-// Feature unlocks (e.g., atom_lab, isotope_mode, sandbox_mode)
-// --------------------------------------------------
-
-RewardRegistry.register(
-    "featureUnlocks",
-    {
-        apply(featureIds) {
-            const list =
-                Array.isArray(featureIds)
-                    ? featureIds
-                    : [featureIds];
-
-            const previous =
-                Object.fromEntries(
-                    list.map(featureId => [
-                        featureId,
-                        GameStateManager
-                            .hasFeature(
-                                featureId
-                            )
-                    ])
-                );
-
-            try {
-                list.forEach(
-                    featureId => {
-                        const success =
-                            GameStateManager
-                                .unlockFeature(
-                                    featureId
-                                );
-
-                        if (success === false) {
-                            throw new Error(
-                                `RewardRegistry: feature unlock was rejected for "${featureId}"`
-                            );
-                        }
-                    }
-                );
-            } catch (error) {
-                this.revert({ previous });
-                throw error;
-            }
-
-            return {
-                snapshot: { previous },
-                result: {
-                    unlocked: [...list]
-                }
-            };
-        },
-
-        revert({ previous }) {
-            Object.entries(previous)
-                .forEach(
-                    ([featureId, wasUnlocked]) => {
-                        if (wasUnlocked) {
-                            GameStateManager
-                                .unlockFeature(
-                                    featureId
-                                );
-                        } else if (
-                            GameStateManager
-                                .lockFeature
-                        ) {
-                            GameStateManager
-                                .lockFeature(
-                                    featureId
-                                );
-                        }
-                    }
-                );
         }
     }
 );

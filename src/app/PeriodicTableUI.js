@@ -22,11 +22,49 @@ const PeriodicTableUI = {
         return el;
     },
 
+    updateElementTiles(status = AtomLabManager?.getStatus()) {
+    if (!status) return;
+
+    const isSandbox = status.isSandboxUnlocked;
+    const mode = status.mode;
+
+    // Track synthesized progression (defaults to 2 if Helium was completed)
+    const highestZ = GameStateManager?.getHighestSynthesizedZ?.() ?? 2;
+    const nextTargetZ = highestZ + 1;
+
+    // Progression atomic numbers (Z)
+    const elementZMap = { H: 1, He: 2, Li: 3, Be: 4, B: 5, C: 6, N: 7, O: 8 };
+
+    this.buttons.forEach((tile, symbol) => {
+        const z = elementZMap[symbol] ?? 99;
+        let isEnabled = false;
+        let isNextTarget = false;
+
+        if (isSandbox) {
+            isEnabled = true;
+        } else if (mode === "guided-h" || mode === "interstitial-h") {
+            isEnabled = (symbol === "H");
+            isNextTarget = (symbol === "H");
+        } else if (mode === "guided-he" || mode === "interstitial-he") {
+            isEnabled = (symbol === "H" || symbol === "He");
+            isNextTarget = (symbol === "He");
+        } else {
+            // Sequential free build: strictly unlock up to nextTargetZ (capped at Oxygen / Z=8)
+            isEnabled = z <= nextTargetZ && z <= 8;
+            isNextTarget = (z === nextTargetZ && z <= 8);
+        }
+
+        tile.classList.toggle("locked-tile", !isEnabled);
+        tile.classList.toggle("glowing", isNextTarget);
+        tile.disabled = !isEnabled;
+    });
+},
+
     // --------------------------------------------------
     // Build Component Interface
     // --------------------------------------------------
     build() {
-        // Clean root grid container (No duplicate Library header)
+        // Clean root grid container
         this.container = this.createElement("div", { id: "periodic-table" });
         this.gridEl = this.createElement("div", { className: "pt-grid" });
         this.buttons.clear();
@@ -58,10 +96,10 @@ const PeriodicTableUI = {
             this.gridEl.appendChild(button);
         });
 
-        // Event Delegation: Single click listener on the grid wrapper
+        // Event Delegation: Single click listener on grid wrapper
         this.gridEl.addEventListener("click", (e) => {
             const btn = e.target.closest(".element-box[data-symbol]");
-            if (!btn) return;
+            if (!btn || btn.disabled) return;
             this.handleElementClick(btn.dataset.symbol);
         });
 
@@ -72,10 +110,12 @@ const PeriodicTableUI = {
         this.gridEl.append(lanthanideLabel, actinideLabel);
         this.container.appendChild(this.gridEl);
 
+        // Initial render pass
+        this.render();
+
         return this.container;
     },
 
-    // Helper for non-interactive series gap markers
     createSeriesLabel(text, col, row, ariaLabel) {
         const label = this.createElement("div", { className: "element-box series-label" });
         label.style.gridColumn = col;
@@ -85,7 +125,6 @@ const PeriodicTableUI = {
         return label;
     },
 
-    // Action Dispatcher
     handleElementClick(symbol) {
         const isDiscovered = GameStateManager?.hasDiscovery?.(symbol);
 
@@ -99,7 +138,6 @@ const PeriodicTableUI = {
             }
         }
 
-        // Request UI refresh via global event dispatch or direct status check
         this.render(AtomLabManager.getStatus());
     },
 
@@ -109,7 +147,10 @@ const PeriodicTableUI = {
     render(state = AtomLabManager?.getStatus()) {
         if (!this.container || !state) return;
 
-        // Synchronize visual state for each element button
+        // 1. Update element lock/enable states
+        this.updateElementTiles(state);
+
+        // 2. Synchronize visual selection/discovery state
         this.buttons.forEach((button, symbol) => {
             const isDiscovered = GameStateManager?.hasDiscovery?.(symbol);
             const isSelected = state.targetElement === symbol || state.selectedElement === symbol;

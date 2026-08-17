@@ -82,6 +82,95 @@ const QuestCatalog = {
         }
     },
 
+    // Helium Quest (Unlocks Carbon milestone target)
+    q3_helium: {
+        id: "q3_helium",
+        title: "Noble Beginnings: Helium",
+        category: "main",
+        releaseState: "configured",
+
+        description:
+            "Construct a stable Helium-4 atom using protons, neutrons, and electrons in the Atom Lab.",
+
+        prerequisites: ["q2_hydrogen"],
+
+        objectives: [
+            {
+                type: "atom-synthesis",
+                atomId: "He",
+                label: "Helium atoms built",
+                target: 1
+            }
+        ],
+
+        rewards: {
+            xp: 150,
+            particleCapacity: 0,
+            zoneUnlocks: [],
+            collectorUnlocks: []
+        }
+    },
+
+    // Carbon Quest (Triggers Isotope Mode Unlock)
+    q4_carbon: {
+        id: "q4_carbon",
+        title: "Building Block: Carbon",
+        category: "main",
+        releaseState: "configured",
+
+        description:
+            "Synthesize Carbon-12 to unlock advanced Isotope Mode.",
+
+        prerequisites: ["q3_helium"],
+
+        objectives: [
+            {
+                type: "atom-synthesis",
+                atomId: "C",
+                label: "Carbon atoms built",
+                target: 1
+            }
+        ],
+
+        rewards: {
+            xp: 250,
+            featureUnlocks: ["isotope_mode"],
+            particleCapacity: 0,
+            zoneUnlocks: [],
+            collectorUnlocks: []
+        }
+    },
+
+    // Oxygen Quest (Triggers Free Build Sandbox Unlock)
+    q5_oxygen: {
+        id: "q5_oxygen",
+        title: "Breath of Life: Oxygen",
+        category: "main",
+        releaseState: "configured",
+
+        description:
+            "Synthesize Oxygen-16 to complete core training and unlock the full Periodic Table Sandbox.",
+
+        prerequisites: ["q4_carbon"],
+
+        objectives: [
+            {
+                type: "atom-synthesis",
+                atomId: "O",
+                label: "Oxygen atoms built",
+                target: 1
+            }
+        ],
+
+        rewards: {
+            xp: 400,
+            featureUnlocks: ["sandbox_mode"],
+            particleCapacity: 0,
+            zoneUnlocks: [],
+            collectorUnlocks: []
+        }
+    },
+
     q7_proton_collector: {
         id: "q7_proton_collector",
         title: "Proton Autocollector",
