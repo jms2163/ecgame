@@ -20,6 +20,7 @@ import QuestDrawerUI
 import QuantumAutoCollectorManager
     from "./QuantumAutoCollectorManager.js";
 import AtomizerManager from "./AtomizerManager.js";
+import AtomizerUI from "./AtomizerUI.js"
 
 
 const Bootstrap = {
@@ -48,6 +49,7 @@ const Bootstrap = {
         NavigationUI.initialize();
         QuestDrawerUI.initialize();
         AtomizerManager.initialize();
+        AtomizerUI.initialize();
 
         const requestedZoneId =
             GameStateManager
