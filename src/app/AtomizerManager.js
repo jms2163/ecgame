@@ -5,6 +5,9 @@
 
 import gameState from "./GameState.js";
 import GameStateObserver from "./GameStateObserver.js";
+import AtomizerUI from "./AtomizerUI.js";
+
+
 
 const AtomizerManager = {
     isSubscribed: false,
@@ -17,6 +20,24 @@ const AtomizerManager = {
         this.subscribe();
         return true;
     },
+    // Inside AtomizerManager object:
+activate() {
+    // 1. Build and subscribe UI if not already done
+    AtomizerUI.initialize();
+
+    // 2. Unhide zone container
+    const zoneEl = document.getElementById("atomizer-zone");
+    if (zoneEl) zoneEl.classList.remove("hidden");
+
+    // 3. Perform an immediate initial render pass
+    AtomizerUI.renderAll(this.getStatus());
+},
+
+deactivate() {
+    // Hide zone container when switching away
+    const zoneEl = document.getElementById("atomizer-zone");
+    if (zoneEl) zoneEl.classList.add("hidden");
+},
 
     /**
      * Ensures gameState structure exists for atoms.

@@ -74,6 +74,7 @@ import AtomCraftUI
 import TimeManager from "./TimeManager.js";
 import AtomizerManager from "./AtomizerManager.js";
 import GameStateObserver from "./GameStateObserver.js";
+import AtomizerUI from "./AtomizerUI.js";
 
 const DevConsole = {
 
@@ -123,7 +124,8 @@ const DevConsole = {
             AtomCraftUI,
             AtomizerManager,
             TimeManager,
-            GameStateObserver
+            GameStateObserver,
+            AtomizerUI
         };
 
         console.log(
