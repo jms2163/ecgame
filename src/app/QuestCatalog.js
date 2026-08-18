@@ -66,7 +66,7 @@ const QuestCatalog = {
 
         rewards: {
             xp: 100,
-            zoneUnlocks: [],
+            zoneUnlocks: ["atomizer"],
             collectorUnlocks: []
         }
     },

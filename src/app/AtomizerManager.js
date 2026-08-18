@@ -8,27 +8,43 @@ import AtomizerUI from "./AtomizerUI.js";
 import GameStateManager from "./GameStateManager.js";
 
 const AtomizerManager = {
+    active: false,
     isSubscribed: false,
     state: null,
 
     initialize() {
         this.ensureState();
+        GameStateManager.syncAtomizerUnlocks();
         this.subscribe();
         return true;
     },
 
     activate() {
+        this.active = true;
         this.ensureState();
+
+        // 1. Sync global discoveries with local atomizer unlock state
+        GameStateManager.syncAtomizerUnlocks();
+
+        // 2. Ensure live state reference is up to date
+        this.state = GameStateManager.getZoneSnapshot("atomizer")?.state;
+
         this.processOfflineGeneration();
-        AtomizerUI.initialize();
+        
+        if (typeof AtomizerUI !== "undefined") {
+            AtomizerUI.initialize();
+        }
 
         const zoneEl = document.getElementById("atomizer-zone");
         if (zoneEl) zoneEl.classList.remove("hidden");
 
-        AtomizerUI.renderAll(this.state);
+        if (typeof AtomizerUI !== "undefined") {
+            AtomizerUI.renderAll(this.state);
+        }
     },
 
     deactivate() {
+        this.active = false;
         const zoneEl = document.getElementById("atomizer-zone");
         if (zoneEl) zoneEl.classList.add("hidden");
     },
@@ -135,10 +151,25 @@ getSkillPointData() {
     },
 
     subscribe() {
-        if (this.isSubscribed) return;
-        GameStateObserver.on("game-tick", ({ deltaSec }) => this.tick(deltaSec));
-        this.isSubscribed = true;
-    },
+    if (this.isSubscribed) return;
+
+    // 1. Existing tick listener for atom generation
+    GameStateObserver.on("game-tick", ({ deltaSec }) => this.tick(deltaSec));
+
+    // 2. Listener for atom synthesis unlocks (C, N, O, P, S)
+    GameStateObserver.on("discovery-made", (payload) => {
+        if (payload?.category === "atoms" && payload?.symbol) {
+            GameStateManager.unlockAtomizerAtom(payload.symbol);
+
+            // Re-render UI if Atomizer zone is currently active
+            if (this.active && typeof AtomizerUI !== "undefined") {
+                AtomizerUI.render();
+            }
+        }
+    });
+
+    this.isSubscribed = true;
+},
 
 // 2. Update tick event emit line inside tick()
 tick(deltaSec) {
