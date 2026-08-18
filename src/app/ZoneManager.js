@@ -7,6 +7,7 @@ import Pond from "./Pond.js";
 import QuantumZone from "./QuantumZone.js";
 import TestZone from "./TestZone.js";
 import AtomLab from "./AtomLab.js";
+import AtomizerManager from "./AtomizerManager.js";
 import GameStateManager
     from "./GameStateManager.js";
 import GameStateObserver
@@ -32,10 +33,18 @@ const ZONE_REGISTRY = new Map([
         }
     ],
     [
-        "atomLab", // #TODO CAUTION
+        "atomLab",
         {
             module: AtomLab,        // your AtomLab.js controller
             rootId: "atomlab-zone", // the DOM root
+            persistCurrentZone: true
+        }
+    ],
+    [
+        "atomizer",
+        {
+            module: AtomizerManager,
+            rootId: "atomizer-zone",
             persistCurrentZone: true
         }
     ],

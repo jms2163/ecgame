@@ -40,11 +40,10 @@ const ZONE_DEFINITIONS = Object.freeze([
     Object.freeze({
         id: "atomizer",
         label: "Atomizer",
-        releaseState: RELEASE_STATE.COMING_SOON,
+        releaseState: RELEASE_STATE.PLAYABLE,
         lockedMessage:
             "Discover Hydrogen in the Atom Lab first.",
-        comingSoonMessage:
-            "Automated atom production is not yet available."
+        comingSoonMessage: ""
     }),
 
     Object.freeze({

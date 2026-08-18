@@ -71,6 +71,9 @@ import DiscoveryManager
     from "./DiscoveryManager.js";
 import AtomCraftUI
     from "./AtomCraftUI.js";
+import TimeManager from "./TimeManager.js";
+import AtomizerManager from "./AtomizerManager.js";
+import GameStateObserver from "./GameStateObserver.js";
 
 const DevConsole = {
 
@@ -117,7 +120,10 @@ const DevConsole = {
             AtomLabUI,
             AtomLabManager,
             DiscoveryManager,
-            AtomCraftUI
+            AtomCraftUI,
+            AtomizerManager,
+            TimeManager,
+            GameStateObserver
         };
 
         console.log(
