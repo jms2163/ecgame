@@ -51,6 +51,14 @@ const gameState = {
                     neutron: 0,
                     electron: 0
                 }
+            },
+            atoms: {
+                H: { count: 0, cap: 10, progress: 0, unlocked: false, boost: 0, baseRate: 30.0 },
+                C: { count: 0, cap: 10, progress: 0, unlocked: false, boost: 0, baseRate: 270.0 },
+                N: { count: 0, cap: 10, progress: 0, unlocked: false, boost: 0, baseRate: 315.0 },
+                O: { count: 0, cap: 10, progress: 0, unlocked: false, boost: 0, baseRate: 360.0 },
+                P: { count: 0, cap: 10, progress: 0, unlocked: false, boost: 0, baseRate: 690.0 },
+                S: { count: 0, cap: 10, progress: 0, unlocked: false, boost: 0, baseRate: 720.0 }
             }
         },
 
@@ -252,7 +260,14 @@ const gameState = {
         atomizer: {
             unlocked: false,
             completed: false,
-            state: {}
+
+            state: {
+                audio: {
+                    enabled: true
+                },
+                // Zone-wide modifiers or automation settings
+                globalBoost: 0
+            }
         },
 
         molecularizer: {

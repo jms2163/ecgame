@@ -3,6 +3,7 @@
 // Initializes ECGame in dependency order
 // --------------------------------------------------
 
+import TimeManager from "./TimeManager.js";
 import GameStateManager
     from "./GameStateManager.js";
 import DataLoader from "./DataLoader.js";
@@ -18,6 +19,8 @@ import QuestDrawerUI
     from "./QuestDrawerUI.js";
 import QuantumAutoCollectorManager
     from "./QuantumAutoCollectorManager.js";
+import AtomizerManager from "./AtomizerManager.js";
+
 
 const Bootstrap = {
 
@@ -38,11 +41,13 @@ const Bootstrap = {
         // game is open.
         QuantumAutoCollectorManager
             .initialize();
+        TimeManager.start();
         QuestManager.initialize();
 
         ZoneManager.initialize();
         NavigationUI.initialize();
         QuestDrawerUI.initialize();
+        AtomizerManager.initialize();
 
         const requestedZoneId =
             GameStateManager
