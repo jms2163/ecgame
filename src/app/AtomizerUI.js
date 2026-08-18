@@ -4,15 +4,14 @@
 // --------------------------------------------------
 
 import GameStateObserver from "./GameStateObserver.js";
+import AtomizerManager from "./AtomizerManager.js";
 
 const ELEMENTS = ['H', 'C', 'N', 'O', 'P', 'S'];
 
 const AtomizerUI = {
+    isSpendMode: false,
     isInitialized: false,
 
-    /**
-     * Injects base components and sets up reactive event listeners.
-     */
     initialize() {
         this.buildUI();
 
@@ -22,13 +21,6 @@ const AtomizerUI = {
         }
     },
 
-    // ==================================================
-    // COMPONENT BUILDERS
-    // ==================================================
-
-    /**
-     * Builds the Header Panel Component HTML
-     */
     createHeaderPanel() {
         return `
             <div class="header-left">
@@ -38,9 +30,20 @@ const AtomizerUI = {
         `;
     },
 
-    /**
-     * Builds the Resource Sidebar Component HTML
-     */
+    createSkillboxComponent() {
+        return `
+            <div class="atomizer-skill-box">
+                <h3 class="skill-title">Skill Points</h3>
+                <div class="skill-subtitle">(1 sp per 5 elements)</div>
+                <div class="skill-count">Available: <span id="sp-count-val" class="stat-value">0</span></div>
+                <div class="skill-btn-group">
+                    <button id="btn-sp-spend" class="sp-btn">Spend</button>
+                    <button id="btn-sp-reset" class="sp-btn">Reset</button>
+                </div>
+            </div>
+        `;
+    },
+
     createSidebarComponent() {
         const rowsHTML = ELEMENTS.map(sym => `
             <div class="stat-row">
@@ -53,15 +56,12 @@ const AtomizerUI = {
                 <h3>RESOURCES</h3>
                 ${rowsHTML}
             </div>
+            ${this.createSkillboxComponent()}
         `;
     },
 
-    /**
-     * Builds an individual Atom Card Component HTML
-     */
     createAtomCardComponent(symbol) {
         const lower = symbol.toLowerCase();
-
         return `
             <div class="atomizer-unit locked" id="unit-${lower}">
                 <div class="rate-label" id="rate-${lower}">? ${symbol}/s</div>
@@ -74,23 +74,10 @@ const AtomizerUI = {
         `;
     },
 
-    /**
-     * Builds the Atom Cards Grid Component HTML
-     */
-    /**
- * Builds the Atom Cards Grid Component HTML
- */
-createGridComponent() {
-    return ELEMENTS.map(sym => this.createAtomCardComponent(sym)).join('');
-},
+    createGridComponent() {
+        return ELEMENTS.map(sym => this.createAtomCardComponent(sym)).join('');
+    },
 
-    // ==================================================
-    // MASTER ASSEMBLY & RENDER PASS
-    // ==================================================
-
-    /**
-     * Assembles and injects all UI components into container elements
-     */
     buildUI() {
         const headerEl = document.getElementById("atomizer-header");
         const statsEl = document.getElementById("atomizer-stats");
@@ -110,19 +97,72 @@ createGridComponent() {
             gridEl.className = "atomizer-grid";
             gridEl.innerHTML = this.createGridComponent();
         }
+
+        this.attachEventListeners();
     },
 
-    // ==================================================
-    // REACTIVE OBSERVER & ANIMATION UPDATES
-    // ==================================================
+    attachEventListeners() {
+        const spendBtn = document.getElementById("btn-sp-spend");
+        const resetBtn = document.getElementById("btn-sp-reset");
+        const gridEl = document.getElementById("atomizer-grid");
+
+        if (spendBtn && !spendBtn.dataset.bound) {
+            spendBtn.dataset.bound = "true";
+            spendBtn.addEventListener("click", () => {
+                const spData = AtomizerManager.getSkillPointData();
+                if (spData.available <= 0) {
+                    alert("No Skill Points available! Discover 5 elements to earn 1 SP.");
+                    return;
+                }
+                this.isSpendMode = !this.isSpendMode;
+                spendBtn.classList.toggle("active", this.isSpendMode);
+                gridEl?.classList.toggle("spend-mode-active", this.isSpendMode);
+            });
+        }
+
+        if (resetBtn && !resetBtn.dataset.bound) {
+            resetBtn.dataset.bound = "true";
+            resetBtn.addEventListener("click", () => {
+                if (confirm("Reset all allocated Skill Points? This will cost 10 ATP.")) {
+                    const result = AtomizerManager.resetSkillPoints();
+                    if (!result.success) {
+                        alert(result.reason);
+                    }
+                }
+            });
+        }
+
+        if (gridEl && !gridEl.dataset.bound) {
+            gridEl.dataset.bound = "true";
+            gridEl.addEventListener("click", (e) => {
+                if (!this.isSpendMode) return;
+                const card = e.target.closest(".atomizer-unit");
+                if (card && !card.classList.contains("locked")) {
+                    const symbol = card.id.replace("unit-", "").toUpperCase();
+                    if (AtomizerManager.spendSkillPoint(symbol)) {
+                        this.isSpendMode = false;
+                        spendBtn?.classList.remove("active");
+                        gridEl.classList.remove("spend-mode-active");
+                    }
+                }
+            });
+        }
+    },
 
     subscribe() {
-        GameStateObserver.on("atom-inventory-changed", (atoms) => this.renderAll(atoms));
+        GameStateObserver.on("atom-inventory-changed", (state) => this.renderAll(state));
         GameStateObserver.on("atom-synthesized", ({ symbol }) => this.triggerFlash(symbol));
     },
 
-    renderAll(atoms) {
-        if (!atoms) return;
+    renderAll(state) {
+        if (!state) return;
+        const atoms = state.atoms || state;
+
+        const spValEl = document.getElementById("sp-count-val");
+        if (spValEl) {
+            const spData = AtomizerManager.getSkillPointData();
+            spValEl.textContent = spData.available;
+        }
 
         ELEMENTS.forEach((symbol) => {
             const data = atoms[symbol];
@@ -130,20 +170,19 @@ createGridComponent() {
 
             const lower = symbol.toLowerCase();
 
-            // Update Sidebar Inventory (White Numbers)
             const sideEl = document.getElementById(`res-${lower}`);
             if (sideEl) {
                 sideEl.textContent = `${Math.floor(data.count)} / ${data.cap}`;
             }
 
-            // Update Card State & Rates
             const cardEl = document.getElementById(`unit-${lower}`);
             if (!cardEl) return;
 
             if (data.unlocked) {
                 cardEl.classList.remove("locked");
 
-                const speedMult = 1 + (data.boost || 0);
+                const spBoost = (state.spAllocated?.[symbol] || 0) * 0.10;
+                const speedMult = 1 + (data.boost || 0) + spBoost;
                 const effectiveInterval = Math.round(data.baseRate / speedMult);
 
                 const rateEl = document.getElementById(`rate-${lower}`);
@@ -153,7 +192,7 @@ createGridComponent() {
 
                 const boostEl = document.getElementById(`boost-${lower}`);
                 if (boostEl) {
-                    const boostPercent = Math.round((data.boost || 0) * 100);
+                    const boostPercent = Math.round(((data.boost || 0) + spBoost) * 100);
                     boostEl.textContent = `Boost: +${boostPercent}%`;
                 }
             } else {

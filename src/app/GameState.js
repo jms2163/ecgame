@@ -52,14 +52,15 @@ const gameState = {
                     electron: 0
                 }
             },
-            atoms: {
-                H: { count: 0, cap: 10, progress: 0, unlocked: false, boost: 0, baseRate: 30.0 },
-                C: { count: 0, cap: 10, progress: 0, unlocked: false, boost: 0, baseRate: 270.0 },
-                N: { count: 0, cap: 10, progress: 0, unlocked: false, boost: 0, baseRate: 315.0 },
-                O: { count: 0, cap: 10, progress: 0, unlocked: false, boost: 0, baseRate: 360.0 },
-                P: { count: 0, cap: 10, progress: 0, unlocked: false, boost: 0, baseRate: 690.0 },
-                S: { count: 0, cap: 10, progress: 0, unlocked: false, boost: 0, baseRate: 720.0 }
-            }
+            // AFTER
+atoms: {
+    H: { count: 0, cap: 100, progress: 0, unlocked: true,  boost: 0, baseRate: 30.0 },
+    C: { count: 0, cap: 100, progress: 0, unlocked: false, boost: 0, baseRate: 270.0 },
+    N: { count: 0, cap: 50,  progress: 0, unlocked: false, boost: 0, baseRate: 315.0 },
+    O: { count: 0, cap: 50,  progress: 0, unlocked: false, boost: 0, baseRate: 360.0 },
+    P: { count: 0, cap: 25,  progress: 0, unlocked: false, boost: 0, baseRate: 690.0 },
+    S: { count: 0, cap: 25,  progress: 0, unlocked: false, boost: 0, baseRate: 720.0 }
+}
         },
 
         inventory: [],
@@ -257,18 +258,29 @@ const gameState = {
             }
         },
 
-        atomizer: {
-            unlocked: false,
-            completed: false,
+        // AFTER
+atomizer: {
+    unlocked: false,
+    completed: false,
 
-            state: {
-                audio: {
-                    enabled: true
-                },
-                // Zone-wide modifiers or automation settings
-                globalBoost: 0
-            }
+    state: {
+        audio: {
+            enabled: true
         },
+        globalBoost: 0,
+        spAllocated: { H: 0, C: 0, N: 0, O: 0, P: 0, S: 0 },
+        lastActiveTimestamp: Date.now(),
+        totalDiscoveries: 0,
+        atoms: {
+            H: { count: 0, cap: 100, progress: 0, unlocked: true,  boost: 0, baseRate: 30.0 },
+            C: { count: 0, cap: 100, progress: 0, unlocked: false, boost: 0, baseRate: 270.0 },
+            N: { count: 0, cap: 50,  progress: 0, unlocked: false, boost: 0, baseRate: 315.0 },
+            O: { count: 0, cap: 50,  progress: 0, unlocked: false, boost: 0, baseRate: 360.0 },
+            P: { count: 0, cap: 25,  progress: 0, unlocked: false, boost: 0, baseRate: 690.0 },
+            S: { count: 0, cap: 25,  progress: 0, unlocked: false, boost: 0, baseRate: 720.0 }
+        }
+    }
+},
 
         molecularizer: {
             unlocked: false,
