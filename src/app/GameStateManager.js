@@ -522,6 +522,36 @@ const GameStateManager = {
 
     },
 
+    /**
+ * Unlocks a specific atom card in the Atomizer zone.
+ */
+unlockAtomizerAtom(symbol) {
+    const atomizerAtoms = gameState.zones?.atomizer?.state?.atoms;
+    if (atomizerAtoms?.[symbol]) {
+        atomizerAtoms[symbol].unlocked = true;
+        return true;
+    }
+    return false;
+},
+
+/**
+ * Reconciles all Atomizer atom cards against global discovery records.
+ */
+syncAtomizerUnlocks() {
+    const discoveries = gameState.discoveries?.atoms || {};
+    const atomizerAtoms = gameState.zones?.atomizer?.state?.atoms;
+    if (!atomizerAtoms) return false;
+
+    let updated = false;
+    Object.keys(atomizerAtoms).forEach(symbol => {
+        if (discoveries[symbol] && !atomizerAtoms[symbol].unlocked) {
+            atomizerAtoms[symbol].unlocked = true;
+            updated = true;
+        }
+    });
+    return updated;
+},
+
     getCurrentZoneId() {
 
         return gameState.player

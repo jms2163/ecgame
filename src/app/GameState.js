@@ -35,33 +35,24 @@ const gameState = {
     registry: {
 
         resources: {
-            atp: {
-                current: 50,
-                maximum: 50
-            },
+    atp: {
+        current: 50,
+        maximum: 50
+    },
 
-            particles: {
-                capacity: 5,
-                proton: 0,
-                neutron: 0,
-                electron: 0,
+    particles: {
+        capacity: 5,
+        proton: 0,
+        neutron: 0,
+        electron: 0,
 
-                lifetimeCollected: {
-                    proton: 0,
-                    neutron: 0,
-                    electron: 0
-                }
-            },
-            // AFTER
-atoms: {
-    H: { count: 0, cap: 100, progress: 0, unlocked: true,  boost: 0, baseRate: 30.0 },
-    C: { count: 0, cap: 100, progress: 0, unlocked: false, boost: 0, baseRate: 270.0 },
-    N: { count: 0, cap: 50,  progress: 0, unlocked: false, boost: 0, baseRate: 315.0 },
-    O: { count: 0, cap: 50,  progress: 0, unlocked: false, boost: 0, baseRate: 360.0 },
-    P: { count: 0, cap: 25,  progress: 0, unlocked: false, boost: 0, baseRate: 690.0 },
-    S: { count: 0, cap: 25,  progress: 0, unlocked: false, boost: 0, baseRate: 720.0 }
-}
-        },
+        lifetimeCollected: {
+            proton: 0,
+            neutron: 0,
+            electron: 0
+        }
+    }
+},
 
         inventory: [],
 
