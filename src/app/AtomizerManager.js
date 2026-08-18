@@ -3,165 +3,185 @@
 // Domain manager and zone controller for automated atom production
 // --------------------------------------------------
 
-import gameState from "./GameState.js";
 import GameStateObserver from "./GameStateObserver.js";
 import AtomizerUI from "./AtomizerUI.js";
-
-
+import GameStateManager from "./GameStateManager.js";
 
 const AtomizerManager = {
     isSubscribed: false,
+    state: null,
 
-    /**
-     * Initializes manager state and hooks into global game ticks.
-     */
     initialize() {
         this.ensureState();
         this.subscribe();
         return true;
     },
-    // Inside AtomizerManager object:
-activate() {
-    // 1. Build and subscribe UI if not already done
-    AtomizerUI.initialize();
 
-    // 2. Unhide zone container
-    const zoneEl = document.getElementById("atomizer-zone");
-    if (zoneEl) zoneEl.classList.remove("hidden");
+    activate() {
+        this.ensureState();
+        this.processOfflineGeneration();
+        AtomizerUI.initialize();
 
-    // 3. Perform an immediate initial render pass
-    AtomizerUI.renderAll(this.getStatus());
-},
+        const zoneEl = document.getElementById("atomizer-zone");
+        if (zoneEl) zoneEl.classList.remove("hidden");
 
-deactivate() {
-    // Hide zone container when switching away
-    const zoneEl = document.getElementById("atomizer-zone");
-    if (zoneEl) zoneEl.classList.add("hidden");
-},
-
-    /**
-     * Ensures gameState structure exists for atoms.
-     */
-    ensureState() {
-        gameState.registry ??= {};
-        gameState.registry.resources ??= {};
-        
-        // Fallback default definitions if not already initialized
-        gameState.registry.resources.atoms ??= {
-            H: { count: 0, cap: 10, progress: 0, unlocked: false, boost: 0, baseRate: 30.0 },
-            C: { count: 0, cap: 10, progress: 0, unlocked: false, boost: 0, baseRate: 270.0 },
-            N: { count: 0, cap: 10, progress: 0, unlocked: false, boost: 0, baseRate: 315.0 },
-            O: { count: 0, cap: 10, progress: 0, unlocked: false, boost: 0, baseRate: 360.0 },
-            P: { count: 0, cap: 10, progress: 0, unlocked: false, boost: 0, baseRate: 690.0 },
-            S: { count: 0, cap: 10, progress: 0, unlocked: false, boost: 0, baseRate: 720.0 }
-        };
-
-        return gameState.registry.resources.atoms;
+        AtomizerUI.renderAll(this.state);
     },
 
-    /**
-     * Connects to the global tick observer.
-     */
+    deactivate() {
+        const zoneEl = document.getElementById("atomizer-zone");
+        if (zoneEl) zoneEl.classList.add("hidden");
+    },
+
+/**
+ * Retrieves the central GameState reference for the Atomizer zone
+ */
+/**
+ * Retrieves the central GameState reference for the Atomizer zone
+ */
+ensureState() {
+    const snapshot = typeof GameStateManager.getZoneSnapshot === 'function'
+        ? GameStateManager.getZoneSnapshot('atomizer')
+        : null;
+
+    const state = snapshot?.state;
+
+    if (!state) {
+        throw new Error("AtomizerManager: Atomizer zone state is missing from GameStateManager");
+    }
+
+    this.state = state;
+    return this.state;
+},
+
+getStatus() {
+    this.ensureState();
+    return this.state;
+},
+
+notifyStateChange() {
+    GameStateObserver.notify("atom-inventory-changed", this.state);
+},
+
+/**
+ * Calculates Skill Points directly against global discoveries in GameStateManager
+ */
+getSkillPointData() {
+    if (!this.state) this.ensureState();
+
+    // Query global discoveries registered across the entire game
+    const discoveriesState = typeof GameStateManager.getState === 'function'
+        ? GameStateManager.getState('discoveries')
+        : (GameStateManager.state && GameStateManager.state.discoveries);
+
+    const totalDiscoveries = discoveriesState 
+        ? Object.keys(discoveriesState).length 
+        : (this.state?.totalDiscoveries || 0);
+
+    const totalSP = Math.floor(totalDiscoveries / 5);
+    const spentSP = Object.values(this.state?.spAllocated || {}).reduce((a, b) => a + b, 0);
+
+    return {
+        total: totalSP,
+        spent: spentSP,
+        available: Math.max(0, totalSP - spentSP)
+    };
+},
+
+    processOfflineGeneration() {
+        if (!this.state || !this.state.atoms) return;
+
+        const now = Date.now();
+        const elapsedSeconds = Math.min((now - (this.state.lastActiveTimestamp || now)) / 1000, 86400);
+
+        if (elapsedSeconds >= 5) {
+            Object.keys(this.state.atoms).forEach(symbol => {
+                const atom = this.state.atoms[symbol];
+                if (atom.unlocked) {
+                    const spBoost = (this.state.spAllocated?.[symbol] || 0) * 0.10;
+                    const speedMult = 1 + (atom.boost || 0) + spBoost;
+                    const effectiveInterval = Math.max(1, atom.baseRate / speedMult);
+                    const generated = elapsedSeconds / effectiveInterval;
+
+                    atom.count = Math.min(atom.cap, atom.count + generated);
+                }
+            });
+        }
+
+        this.state.lastActiveTimestamp = now;
+        this.notifyStateChange();
+    },
+
+    spendSkillPoint(symbol) {
+        const spData = this.getSkillPointData();
+        const atom = this.state.atoms[symbol];
+
+        if (spData.available <= 0 || !atom || !atom.unlocked) return false;
+
+        this.state.spAllocated[symbol] = (this.state.spAllocated[symbol] || 0) + 1;
+        this.notifyStateChange();
+        return true;
+    },
+
+    resetSkillPoints() {
+        if ((this.state.atp || 0) < 10) {
+            return { success: false, reason: "Insufficient ATP (Requires 10 ATP)." };
+        }
+
+        this.state.atp -= 10;
+        Object.keys(this.state.spAllocated).forEach(sym => this.state.spAllocated[sym] = 0);
+        this.notifyStateChange();
+        return { success: true };
+    },
+
     subscribe() {
         if (this.isSubscribed) return;
         GameStateObserver.on("game-tick", ({ deltaSec }) => this.tick(deltaSec));
         this.isSubscribed = true;
     },
 
-    /**
-     * Core update handler called on every frame tick.
-     * @param {number} deltaSec - Time elapsed in seconds since last tick
-     */
-    tick(deltaSec) {
-        if (!deltaSec || deltaSec <= 0) return;
+// 2. Update tick event emit line inside tick()
+tick(deltaSec) {
+    if (!this.state || !this.state.atoms) return;
 
-        const atoms = this.ensureState();
-        let stateChanged = false;
+    Object.entries(this.state.atoms).forEach(([symbol, atom]) => {
+        if (!atom.unlocked) return;
 
-        Object.entries(atoms).forEach(([symbol, atom]) => {
-            // Process synthesis only for unlocked elements
-            if (!atom.unlocked) return;
+        const spBoost = (this.state.spAllocated?.[symbol] || 0) * 0.10;
+        const speedMult = 1 + (atom.boost || 0) + spBoost;
+        const effectiveInterval = Math.max(1, atom.baseRate / speedMult);
 
-            // Stop progress accumulation if capacity is reached
-            if (atom.count >= atom.cap) {
-                if (atom.progress !== 0) {
-                    atom.progress = 0;
-                    stateChanged = true;
-                }
-                return;
-            }
+        atom.progress = (atom.progress || 0) + deltaSec;
 
-            // Calculate effective progression speed multiplier (e.g. 0% boost = 1.0x, 50% boost = 1.5x)
-            const speedMultiplier = 1 + (atom.boost || 0);
-            atom.progress += deltaSec * speedMultiplier;
-            stateChanged = true;
+        if (atom.progress >= effectiveInterval) {
+            const generated = Math.floor(atom.progress / effectiveInterval);
+            atom.count = Math.min(atom.cap, atom.count + generated);
+            atom.progress %= effectiveInterval;
 
-            // Check for cycle completion
-            if (atom.progress >= atom.baseRate) {
-                const completedCycles = Math.floor(atom.progress / atom.baseRate);
-                const spaceAvailable = atom.cap - atom.count;
-                const actualAdds = Math.min(completedCycles, spaceAvailable);
-
-                atom.count += actualAdds;
-                atom.progress = (atom.count >= atom.cap) 
-                    ? 0 
-                    : atom.progress % atom.baseRate;
-
-                // Fire event for individual element synthesis animation
-                GameStateObserver.notify("atom-synthesized", {
-                    symbol,
-                    added: actualAdds,
-                    count: atom.count,
-                    cap: atom.cap
-                });
-            }
-        });
-
-        if (stateChanged) {
-            GameStateObserver.notify("atom-inventory-changed", atoms);
+            // Updated from .emit to .notify
+            GameStateObserver.notify("atom-synthesized", { symbol });
         }
-    },
+    });
 
-    /**
-     * Unlocks a specific element for automated synthesis.
-     * @param {string} symbol - Element symbol (e.g., 'H', 'C')
-     */
+    this.notifyStateChange();
+},
+
     unlockAtom(symbol) {
-        const atoms = this.ensureState();
-        if (atoms[symbol] && !atoms[symbol].unlocked) {
-            atoms[symbol].unlocked = true;
-            GameStateObserver.notify("atom-inventory-changed", atoms);
+        this.ensureState();
+        if (this.state.atoms[symbol] && !this.state.atoms[symbol].unlocked) {
+            this.state.atoms[symbol].unlocked = true;
+            this.notifyStateChange();
             return true;
         }
         return false;
     },
 
-    /**
-     * Applies a production speed boost percentage to an element.
-     * @param {string} symbol - Element symbol
-     * @param {number} boostPercent - Boost value as decimal (e.g., 0.50 for 50%)
-     */
     setBoost(symbol, boostPercent) {
-        const atoms = this.ensureState();
-        if (atoms[symbol]) {
-            atoms[symbol].boost = Math.max(0, boostPercent);
-            GameStateObserver.notify("atom-inventory-changed", atoms);
+        this.ensureState();
+        if (this.state.atoms[symbol]) {
+            this.state.atoms[symbol].boost = Math.max(0, boostPercent);
+            this.notifyStateChange();
         }
-    },
-
-    /**
-     * Returns current state for all atom resources.
-     */
-    getStatus() {
-        return this.ensureState();
-    },
-
-    mount(rootEl) {
-        // Reserved for Zone UI initialization in Milestone 3
-    },
-
-    unmount() {
-        // Logic continues running globally via TimeManager
     }
 };
 

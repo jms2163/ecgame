@@ -7,7 +7,7 @@ import Pond from "./Pond.js";
 import QuantumZone from "./QuantumZone.js";
 import TestZone from "./TestZone.js";
 import AtomLab from "./AtomLab.js";
-import AtomizerManager from "./AtomizerManager.js";
+import Atomizer from "./Atomizer.js";
 import GameStateManager
     from "./GameStateManager.js";
 import GameStateObserver
@@ -43,7 +43,7 @@ const ZONE_REGISTRY = new Map([
     [
         "atomizer",
         {
-            module: AtomizerManager,
+            module: Atomizer,
             rootId: "atomizer-zone",
             persistCurrentZone: true
         }
