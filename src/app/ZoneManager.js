@@ -8,7 +8,7 @@ import QuantumZone from "./QuantumZone.js";
 import TestZone from "./TestZone.js";
 import AtomLab from "./AtomLab.js";
 import Atomizer from "./Atomizer.js";
-import MolecularLabManager from "./MolecularLabManager.js";
+import MoleculeLabManager from "./MoleculeLabManager.js";
 import GameStateManager
     from "./GameStateManager.js";
 import GameStateObserver
@@ -52,7 +52,7 @@ const ZONE_REGISTRY = new Map([
     [
     "moleculeLab",
     {
-        module: MolecularLabManager,
+        module: MoleculeLabManager,
         rootId: "molecule-lab-zone",
         persistCurrentZone: true
     }

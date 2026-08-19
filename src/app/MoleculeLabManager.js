@@ -1,5 +1,5 @@
 // --------------------------------------------------
-// MolecularLabManager.js
+// MoleculeLabManager.js
 // Central coordinator for the Molecule Lab UI, Tech Tree,
 // and synthesis workflows.
 // --------------------------------------------------
@@ -18,29 +18,35 @@ import { lipidLibrary } from "../data/lipidLibrary.js";
 // Merged master lookup dictionary built on initialization
 let masterLibraryCache = null;
 
-const MolecularLabManager = {
+const MoleculeLabManager = {
     /**
      * Module initialization entry point
      */
     initialize() {
         this.buildMasterLibrary();
-        console.log("[MolecularLabManager] Data libraries bound and master cache built successfully.");
+        console.log("[MoleculeLabManager] Data libraries bound and master cache built successfully.");
     },
 
     activate() {
-        this.active = true;
+    this.active = true;
 
-        // 1. Reveal the UI element
-        const zoneEl = document.getElementById("molecule-lab-zone");
-        if (zoneEl) {
-            zoneEl.classList.remove("hidden");
-        }
+    // 1. Ensure UI skeleton & panels are initialized
+    if (typeof MoleculeLabUI !== "undefined") {
+        MoleculeLabUI.initialize();
+    }
 
-        // 2. Render or refresh the UI state
-        if (typeof MolecularLabUI !== "undefined" && MolecularLabUI.render) {
-            MolecularLabUI.render();
-        }
-    },
+    // 2. Reveal the zone container
+    const zoneEl = document.getElementById("molecule-lab-zone");
+    if (zoneEl) {
+        zoneEl.classList.remove("hidden");
+    }
+
+    // 3. Render live data using manager's status getter
+    if (typeof MoleculeLabUI !== "undefined" && MoleculeLabUI.render) {
+        const state = typeof this.getStatus === "function" ? this.getStatus() : this.state;
+        MoleculeLabUI.render(state);
+    }
+},
 
     deactivate() {
         this.active = false;
@@ -177,7 +183,7 @@ const MolecularLabManager = {
     consumeAtom(symbol) {
         const atom = gameState.zones?.atomizer?.state?.atoms?.[symbol];
         if (!atom || atom.count <= 0) {
-            console.warn(`[MolecularLabManager] Insufficient atom count for symbol: ${symbol}`);
+            console.warn(`[MoleculeLabManager] Insufficient atom count for symbol: ${symbol}`);
             return false;
         }
 
@@ -193,6 +199,6 @@ const MolecularLabManager = {
 
 // Expose to global namespace for DevConsole testing
 window.ECGame = window.ECGame || {};
-window.ECGame.MolecularLabManager = MolecularLabManager;
+window.ECGame.MoleculeLabManager = MoleculeLabManager;
 
-export default MolecularLabManager;
+export default MoleculeLabManager;
