@@ -73,6 +73,32 @@ const QuestCatalog = {
         }
     },
 
+unlock_molecule_lab: {
+    id: "unlock_molecule_lab",
+    title: "Molecular Foundations",
+    category: "main", // Thematic category line
+    releaseState: "playable",
+
+    description: "Harvest 2 Hydrogen atoms from the Atomizer to unlock the Molecular Laboratory.",
+
+    prerequisites: ["q2_hydrogen"],
+
+    objectives: [
+        {
+            type: "atom-harvest",
+            atomId: "H",
+            label: "Hydrogen harvested",
+            target: 2
+        }
+    ],
+
+    rewards: {
+        xp: 150,
+        zoneUnlocks: ["moleculeLab"],
+        collectorUnlocks: []
+    }
+},
+
     q3_helium: {
         id: "q3_helium",
         title: "Noble Beginnings: Helium",
