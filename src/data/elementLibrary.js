@@ -1,5 +1,4 @@
-export const elementLibrary = 
-{
+export const elementLibrary = Object.freeze({
 	"H1": { "name": "Hydrogen-1", "symbol": "H", "p": 1, "n": 0, "e": 1, "v": 1, "a": 99.9885, "r": 0, "class": "major", "group": 1, "period": 1, category: "reactive_nonmetal" },
 	"H2": { "name": "Deuterium", "symbol": "H", "p": 1, "n": 1, "e": 1, "v": 1, "a": 0.0115, "r": 0, "class": "major" },
 	"H3": { "name": "Tritium", "symbol": "H", "p": 1, "n": 2, "e": 1, "v": 1, "a": 0.0, "r": 1, "class": "major" },
@@ -362,4 +361,4 @@ export const elementLibrary =
 	"Og294": { "name": "Oganesson-294", "symbol": "Og", "p": 118, "n": 176, "e": 118, "v": 8, "a": 0.0, "r": 1, "group": 18, "period": 7 },
 	"E119": { "name": "Element-119", "symbol": " Uue ", "p": 119, "n": 176, "e": 119, "v": 1, "a": 0.0, "r": 1, "group": 1, "period": 8 },
 	"E120": { "name": "Element-120", "symbol": " Ubn ", "p": 120, "n": 178, "e": 120, "v": 2, "a": 0.0, "r": 1, "group": 2, "period": 8 }
-};
+});

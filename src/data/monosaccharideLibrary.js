@@ -1,7 +1,7 @@
 /**
  * MONOSACCHARIDES & AMINO SUGARS DATASTORE
  */
-export const monosaccharides = {
+ export const monosaccharideLibrary =  Object.freeze({
   // --- C3 Sugars ---
   G3P: { Name: "Glyceraldehyde-3-phosphate", Type: "C3", C: 3, H: 7, O: 6, P: 1, Notes: "Glyceraldehyde-3-phosphate" },
   DHAP: { Name: "Dihydroxyacetone phosphate", Type: "C3", C: 3, H: 7, O: 6, P: 1, Notes: "Dihydroxyacetone phosphate" },
@@ -95,6 +95,5 @@ export const monosaccharides = {
   Glucosamine: { Name: "Glucosamine", Type: "C6", C: 6, H: 13, N: 1, O: 5 },
   NAcetylglucosamine: { Name: "N-Acetylglucosamine", Type: "C8", C: 8, H: 15, N: 1, O: 6 },
   NAcetylmuramicAcid: { Name: "N-Acetylmuramic Acid", Type: "C11", C: 11, H: 19, N: 1, O: 8 }
-};
+});
 
-export default monosaccharides;

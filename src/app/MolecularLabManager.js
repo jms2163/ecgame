@@ -8,12 +8,35 @@ import gameState from "./GameState.js";
 import DiscoveryManager from "./DiscoveryManager.js";
 import GameStateManager from "./GameStateManager.js";
 
+// Static Data Imports
+import { techTreeData } from "../data/techTree.js";
+import { moleculeLibrary } from "../data/moleculeLibrary.js";
+import { aminoAcids } from "../data/aminoAcids.js";
+import { monosaccharideLibrary } from "../data/monosaccharideLibrary.js";
+import { lipidLibrary } from "../data/lipidLibrary.js";
+
+// Private module-level data cache
+const rawLibraries = {
+    standard: moleculeLibrary,
+    aminoAcids: aminoAcids,
+    monosaccharides: monosaccharideLibrary,
+    lipids: lipidLibrary
+};
+
 const MolecularLabManager = {
     /**
-     * Module initialization shell
+     * Module initialization entry point
      */
     initialize() {
-        console.log("[MolecularLabManager] Shell initialized.");
+        console.log("[MolecularLabManager] Data libraries bound successfully.");
+    },
+
+    /**
+     * Getter for tech tree data structure
+     * @returns {Object} Tech tree layout configuration
+     */
+    getTechTree() {
+        return techTreeData;
     },
 
     /**
@@ -27,7 +50,7 @@ const MolecularLabManager = {
 
     /**
      * Gets a list of all discovered molecule IDs from DiscoveryManager state.
-     * @returns {string[]} Array of discovered molecule IDs (e.g., ["H2O", "CO2"])
+     * @returns {string[]} Array of discovered molecule IDs
      */
     getDiscoveredMolecules() {
         return Object.keys(gameState.discoveries?.molecules || {});
@@ -66,7 +89,6 @@ const MolecularLabManager = {
 
         atom.count -= 1;
 
-        // Persist update via GameStateManager if save/notification handling is needed
         if (GameStateManager && typeof GameStateManager.save === "function") {
             GameStateManager.save();
         }

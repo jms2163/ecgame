@@ -2,7 +2,8 @@
  * MOLECULE / TECH TREE LIBRARY DATASTORE
  * Direct ES Module export — frozen to prevent runtime mutations.
  */
-export const moleculeLibrary =  Object.freeze({
+export const techTreeData = Object.freeze(
+{
   H2: {
     name: "Hydrogen",
     icon: "H<sub>2</sub>",
