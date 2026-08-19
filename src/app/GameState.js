@@ -259,6 +259,7 @@ atomizer: {
             enabled: true
         },
         globalBoost: 0,
+        availableSp: 0,
         spAllocated: { H: 0, C: 0, N: 0, O: 0, P: 0, S: 0 },
         lastActiveTimestamp: Date.now(),
         totalDiscoveries: 0,

@@ -3,6 +3,8 @@
 // Plain quest data only
 // --------------------------------------------------
 
+import { AtomizerQuestCatalog } from "./AtomizerQuestCatalog.js";
+
 const QuestCatalog = {
 
     q1_particles: {
@@ -233,7 +235,9 @@ const QuestCatalog = {
             zoneUnlocks: [],
             collectorUnlocks: ["electron"]
         }
-    }
+    },
+    // Merge Atomizer quests (a1 through a24) directly into the catalog
+    ...AtomizerQuestCatalog
 
 };
 

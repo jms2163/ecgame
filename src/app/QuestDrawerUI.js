@@ -485,6 +485,14 @@ const QuestDrawerUI = {
             );
         }
 
+        if (quest.rewards.sp) {
+            rewardParts.push(
+                `${quest.rewards.sp} SP`
+            );
+        }
+
+
+
         if (
             quest.rewards
                 .particleCapacity

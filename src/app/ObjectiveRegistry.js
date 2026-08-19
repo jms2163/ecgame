@@ -171,6 +171,72 @@ const ObjectiveRegistry = {
 
 };
 
+
+ObjectiveRegistry.register(
+    "atom-discovery-count",
+    {
+        events: [
+            "discovery-made"
+        ],
+
+        captureBaseline({
+            objective,
+            objectiveIndex,
+            record
+        }) {
+            const key =
+                createBaselineKey(
+                    objective,
+                    objectiveIndex
+                );
+            const currentCount =
+                Object.keys(
+                    gameState.discoveries?.atoms || {}
+                ).length;
+
+            record.objectiveBaselines[key] =
+                currentCount;
+        },
+
+        evaluate({
+            objective,
+            objectiveIndex,
+            record
+        }) {
+            const key =
+                createBaselineKey(
+                    objective,
+                    objectiveIndex
+                );
+            const baseline =
+                record?.objectiveBaselines?.[
+                    key
+                ];
+            const currentCount =
+                Object.keys(
+                    gameState.discoveries?.atoms || {}
+                ).length;
+
+            const progress =
+                normalizeProgress(
+                    Number.isFinite(baseline)
+                        ? currentCount - baseline
+                        : currentCount,
+                    objective.target
+                );
+
+            return {
+                ...progress,
+                baseline:
+                    Number.isFinite(baseline)
+                        ? baseline
+                        : null,
+                currentCount
+            };
+        }
+    }
+);
+
 // --------------------------------------------------
 // Guided Quantum identification
 // --------------------------------------------------

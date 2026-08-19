@@ -10,6 +10,7 @@ import ParticleInventoryManager
 import QuantumAutoCollectorManager
     from "./QuantumAutoCollectorManager.js";
 import XPManager from "./XPManager.js";
+import SPManager from "./SPManager.js";
 
 const handlers = new Map();
 
@@ -177,6 +178,37 @@ RewardRegistry.register("xp", {
 
     revert({ previousXP }) {
         XPManager.setXP(previousXP);
+    }
+});
+
+// --------------------------------------------------
+// Skill points
+// --------------------------------------------------
+
+RewardRegistry.register("sp", {
+    apply(amount) {
+        const previousSP =
+            SPManager.getSP();
+        const updatedSP =
+            SPManager.addSP(amount);
+
+        if (updatedSP === false) {
+            throw new Error(
+                "RewardRegistry: SP reward was rejected"
+            );
+        }
+
+        return {
+            snapshot: { previousSP },
+            result: {
+                awarded: amount,
+                updatedSP
+            }
+        };
+    },
+
+    revert({ previousSP }) {
+        SPManager.setSP(previousSP);
     }
 });
 

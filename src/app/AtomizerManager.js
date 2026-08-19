@@ -6,6 +6,9 @@
 import GameStateObserver from "./GameStateObserver.js";
 import AtomizerUI from "./AtomizerUI.js";
 import GameStateManager from "./GameStateManager.js";
+import SaveManager from "./SaveManager.js";
+import ResourceManager from "./ResourceManager.js";
+import SPManager from "./SPManager.js";
 
 const AtomizerManager = {
     active: false,
@@ -19,29 +22,28 @@ const AtomizerManager = {
         return true;
     },
 
-    activate() {
-        this.active = true;
-        this.ensureState();
+activate() {
+    this.active = true;
+    this.ensureState(); // Directly hooks into live GameStateManager state
 
-        // 1. Sync global discoveries with local atomizer unlock state
-        GameStateManager.syncAtomizerUnlocks();
+    // 1. Sync global discoveries with local atomizer unlock state
+    GameStateManager.syncAtomizerUnlocks();
 
-        // 2. Ensure live state reference is up to date
-        this.state = GameStateManager.getZoneSnapshot("atomizer")?.state;
+    // 2. Process offline generation using live state
+    this.processOfflineGeneration();
+    
+    // 3. Initialize and render UI
+    if (typeof AtomizerUI !== "undefined") {
+        AtomizerUI.initialize();
+    }
 
-        this.processOfflineGeneration();
-        
-        if (typeof AtomizerUI !== "undefined") {
-            AtomizerUI.initialize();
-        }
+    const zoneEl = document.getElementById("atomizer-zone");
+    if (zoneEl) zoneEl.classList.remove("hidden");
 
-        const zoneEl = document.getElementById("atomizer-zone");
-        if (zoneEl) zoneEl.classList.remove("hidden");
-
-        if (typeof AtomizerUI !== "undefined") {
-            AtomizerUI.renderAll(this.state);
-        }
-    },
+    if (typeof AtomizerUI !== "undefined") {
+        AtomizerUI.renderAll(this.state);
+    }
+},
 
     deactivate() {
         this.active = false;
@@ -49,24 +51,17 @@ const AtomizerManager = {
         if (zoneEl) zoneEl.classList.add("hidden");
     },
 
-/**
- * Retrieves the central GameState reference for the Atomizer zone
- */
-/**
- * Retrieves the central GameState reference for the Atomizer zone
- */
+
+
+
 ensureState() {
-    const snapshot = typeof GameStateManager.getZoneSnapshot === 'function'
-        ? GameStateManager.getZoneSnapshot('atomizer')
-        : null;
+    const liveState = GameStateManager.getZoneState('atomizer');
 
-    const state = snapshot?.state;
-
-    if (!state) {
-        throw new Error("AtomizerManager: Atomizer zone state is missing from GameStateManager");
+    if (!liveState) {
+        throw new Error("AtomizerManager: Atomizer zone state missing from GameStateManager");
     }
 
-    this.state = state;
+    this.state = liveState;
     return this.state;
 },
 
@@ -80,27 +75,26 @@ notifyStateChange() {
 },
 
 /**
- * Calculates Skill Points directly against global discoveries in GameStateManager
+ * Calculates Skill Points using SPManager / Atomizer state
  */
 getSkillPointData() {
     if (!this.state) this.ensureState();
 
-    // Query global discoveries registered across the entire game
-    const discoveriesState = typeof GameStateManager.getState === 'function'
-        ? GameStateManager.getState('discoveries')
-        : (GameStateManager.state && GameStateManager.state.discoveries);
+    // 1. Read available SP directly from state / SPManager
+    const availableSP = typeof SPManager !== 'undefined'
+        ? SPManager.getSP()
+        : (this.state?.availableSp || 0);
 
-    const totalDiscoveries = discoveriesState 
-        ? Object.keys(discoveriesState).length 
-        : (this.state?.totalDiscoveries || 0);
-
-    const totalSP = Math.floor(totalDiscoveries / 5);
+    // 2. Calculate SP already spent on upgrades
     const spentSP = Object.values(this.state?.spAllocated || {}).reduce((a, b) => a + b, 0);
+
+    // 3. Total SP earned is available + spent
+    const totalSP = availableSP + spentSP;
 
     return {
         total: totalSP,
         spent: spentSP,
-        available: Math.max(0, totalSP - spentSP)
+        available: availableSP
     };
 },
 
@@ -128,27 +122,78 @@ getSkillPointData() {
         this.notifyStateChange();
     },
 
-    spendSkillPoint(symbol) {
-        const spData = this.getSkillPointData();
-        const atom = this.state.atoms[symbol];
+/**
+ * Allocates 1 available Skill Point to an atom element
+ */
+spendSkillPoint(symbol) {
+    const state = this.ensureState();
+    const availableSp = SPManager.getSP();
+    const atom = state?.atoms?.[symbol];
 
-        if (spData.available <= 0 || !atom || !atom.unlocked) return false;
+    if (availableSp <= 0 || !atom || !atom.unlocked) {
+        return false;
+    }
 
-        this.state.spAllocated[symbol] = (this.state.spAllocated[symbol] || 0) + 1;
-        this.notifyStateChange();
-        return true;
-    },
+    // 1. Deduct 1 SP via SPManager (updates live state & notifies "sp-changed")
+    SPManager.setSP(availableSp - 1);
 
-    resetSkillPoints() {
-        if ((this.state.atp || 0) < 10) {
+    // 2. Increment allocation on the exact same live state reference
+    if (!state.spAllocated) state.spAllocated = {};
+    state.spAllocated[symbol] = (state.spAllocated[symbol] || 0) + 1;
+
+    // 3. Notify zone observer & trigger SaveManager
+    this.notifyStateChange();
+    if (typeof SaveManager !== "undefined" && SaveManager.save) {
+        SaveManager.save();
+    }
+
+    return true;
+},
+
+syncBoostsFromSP() {
+    // No-op: SP boost is calculated dynamically on-the-fly in AtomizerUI 
+    // and tick() via spAllocated to prevent double-counting in atom.boost.
+},
+
+/**
+ * Resets all allocated Skill Points back to available balance for 10 ATP
+ */
+resetSkillPoints() {
+    const state = this.ensureState();
+    const rm = typeof ResourceManager !== "undefined" ? ResourceManager : window.ECGame?.ResourceManager;
+
+    // 1. Check ATP cost
+    if (rm && typeof rm.canSpendATP === "function") {
+        if (!rm.canSpendATP(10)) {
             return { success: false, reason: "Insufficient ATP (Requires 10 ATP)." };
         }
+    }
 
-        this.state.atp -= 10;
-        Object.keys(this.state.spAllocated).forEach(sym => this.state.spAllocated[sym] = 0);
-        this.notifyStateChange();
-        return { success: true };
-    },
+    // 2. Calculate refund amount from live allocations
+    const totalAllocated = Object.values(state.spAllocated || {}).reduce((a, b) => a + b, 0);
+
+    // 3. Deduct ATP
+    if (rm && typeof rm.spendATP === "function") {
+        rm.spendATP(10);
+    }
+
+    // 4. Refund points to live state via SPManager
+    const currentSp = SPManager.getSP();
+    SPManager.setSP(currentSp + totalAllocated);
+
+    // 5. Reset allocations on live state
+    Object.keys(state.spAllocated || {}).forEach((sym) => {
+        state.spAllocated[sym] = 0;
+    });
+
+    // 6. Notify zone observer & save
+    this.notifyStateChange();
+    if (typeof SaveManager !== "undefined" && SaveManager.save) {
+        SaveManager.save();
+    }
+
+    return { success: true };
+},
 
     subscribe() {
     if (this.isSubscribed) return;
