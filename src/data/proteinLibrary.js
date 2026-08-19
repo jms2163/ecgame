@@ -1,4 +1,4 @@
-export const proteinLibrary = {
+export const proteinLibrary =  Object.freeze({
   "Aquaporin": {
     "PPC": "HLHLHLHLHLHLHLH",
     "Recipe": {"H": 8, "L": 7},
@@ -389,4 +389,4 @@ export const proteinLibrary = {
     "Models": {},
     "Info": "Small regulatory protein tag attached to target proteins to signal cellular degradation and recycling machinery."
   }
-};
+});

@@ -2,7 +2,7 @@
  * MOTIF LIBRARY DATASTORE
  * Direct ES Module export — frozen against accidental runtime mutations.
  */
-export const motifLibrary = Object.freeze({
+ export const motifLibrary =  Object.freeze({
   H_helix: Object.freeze({
     name: "Alpha Helix Motif",
     category: "motifs",
