@@ -4,6 +4,7 @@
 // --------------------------------------------------
 
 import gameState from "./GameState.js";
+import GameStateObserver from "./GameStateObserver.js";
 
 const XPManager = {
 
@@ -44,6 +45,11 @@ const XPManager = {
         gameState.player.xp =
             updatedXP;
 
+        GameStateObserver.notify(
+            "xp-changed",
+            { xp: updatedXP }
+        );
+
         return updatedXP;
 
     },
@@ -59,6 +65,11 @@ const XPManager = {
         }
 
         gameState.player.xp = amount;
+
+        GameStateObserver.notify(
+            "xp-changed",
+            { xp: amount }
+        );
 
         return gameState.player.xp;
 

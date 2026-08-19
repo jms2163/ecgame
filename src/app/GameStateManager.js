@@ -480,6 +480,20 @@ const GameStateManager = {
 
     },
 
+    // GameStateManager.js
+
+/**
+ * Returns the live, mutable state object for a given zone.
+ * Used by zone controllers (e.g. AtomizerManager) that perform state mutations.
+ */
+getZoneState(zoneId) {
+    const zone = gameState.zones?.[zoneId];
+    if (!zone) return null;
+
+    // Return the inner .state object, or the zone itself if state is top-level
+    return zone.state || zone;
+},
+
     setZoneCompleted(zoneId, completed) {
 
         const zone =
@@ -594,6 +608,16 @@ syncAtomizerUnlocks() {
         return true;
 
     },
+
+    /**
+ * Returns the live, mutable state object for a zone.
+ */
+getZoneState(zoneId) {
+    const zone = gameState.zones?.[zoneId];
+    if (!zone) return null;
+
+    return zone.state || zone;
+},
 
     // --------------------------------------------------
     // Quests, journal, and settings
