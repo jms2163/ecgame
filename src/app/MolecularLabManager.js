@@ -15,20 +15,74 @@ import { aminoAcids } from "../data/aminoAcids.js";
 import { monosaccharideLibrary } from "../data/monosaccharideLibrary.js";
 import { lipidLibrary } from "../data/lipidLibrary.js";
 
-// Private module-level data cache
-const rawLibraries = {
-    standard: moleculeLibrary,
-    aminoAcids: aminoAcids,
-    monosaccharides: monosaccharideLibrary,
-    lipids: lipidLibrary
-};
+// Merged master lookup dictionary built on initialization
+let masterLibraryCache = null;
 
 const MolecularLabManager = {
     /**
      * Module initialization entry point
      */
     initialize() {
-        console.log("[MolecularLabManager] Data libraries bound successfully.");
+        this.buildMasterLibrary();
+        console.log("[MolecularLabManager] Data libraries bound and master cache built successfully.");
+    },
+
+    /**
+     * Combines all individual sub-libraries into a single master dictionary
+     */
+    buildMasterLibrary() {
+        masterLibraryCache = {
+            ...(moleculeLibrary || {}),
+            ...(aminoAcids || {}),
+            ...(monosaccharideLibrary || {}),
+            ...(lipidLibrary || {})
+        };
+    },
+
+    /**
+     * Getter for complete merged library
+     * @returns {Object} Master molecule dictionary indexed by ID
+     */
+    getAllMolecules() {
+        if (!masterLibraryCache) this.buildMasterLibrary();
+        return masterLibraryCache;
+    },
+
+    /**
+     * Retrieves static definition details for a specific molecule ID
+     * @param {string} moleculeId - e.g., "H2O", "GLUCOSE"
+     * @returns {Object|null} Molecule definition object or null if not found
+     */
+    getMoleculeDetails(moleculeId) {
+        const library = this.getAllMolecules();
+        return library[moleculeId] || null;
+    },
+
+    /**
+     * Finds a molecule ID matching an exact target atom formula composition
+     * @param {Object} formula - e.g., { H: 2, O: 1 }
+     * @returns {string|null} Matching molecule ID or null
+     */
+    findMoleculeByFormula(formula) {
+        if (!formula || typeof formula !== "object") return null;
+
+        const library = this.getAllMolecules();
+        const targetKeys = Object.keys(formula).sort();
+
+        for (const [id, def] of Object.entries(library)) {
+            const recipeFormula = def.formula || {};
+            const recipeKeys = Object.keys(recipeFormula).sort();
+
+            if (targetKeys.length !== recipeKeys.length) continue;
+
+            const matchesKeys = targetKeys.every((key, idx) => key === recipeKeys[idx]);
+            if (!matchesKeys) continue;
+
+            const matchesCounts = targetKeys.every(key => formula[key] === recipeFormula[key]);
+            if (matchesCounts) return id;
+        }
+
+        return null;
     },
 
     /**
@@ -97,6 +151,8 @@ const MolecularLabManager = {
     }
 };
 
-
+// Expose to global namespace for DevConsole testing
+window.ECGame = window.ECGame || {};
+window.ECGame.MolecularLabManager = MolecularLabManager;
 
 export default MolecularLabManager;
