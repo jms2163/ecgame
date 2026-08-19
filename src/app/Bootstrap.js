@@ -17,8 +17,9 @@ import QuestDrawerUI from "./QuestDrawerUI.js";
 import QuantumAutoCollectorManager from "./QuantumAutoCollectorManager.js";
 import AtomizerManager from "./AtomizerManager.js";
 import AtomizerUI from "./AtomizerUI.js";
-import MolecularLabUI from "./MolecularLabUI.js"; // <-- ADDED
-import MolecularLabManager from "./MolecularLabManager.js";
+import MoleculeLabUI from "./MoleculeLabUI.js"; // <-- ADDED
+import MoleculeLabManager from "./MoleculeLabManager.js";
+import MoleculeLab from "./MoleculeLab.js";
 
 
 const Bootstrap = {
@@ -47,8 +48,8 @@ const Bootstrap = {
         QuestDrawerUI.initialize();
         AtomizerManager.initialize();
         AtomizerUI.initialize();
-        MolecularLabManager.initialize();
-        MolecularLabUI.initialize(); // <-- ADDED
+        MoleculeLabManager.initialize();
+        MoleculeLabUI.initialize(); // <-- ADDED
 
         const requestedZoneId =
             GameStateManager.getCurrentZoneId();

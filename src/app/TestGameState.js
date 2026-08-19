@@ -39,7 +39,7 @@ const testGameState = {
             state: {}
         },
 
-        molecularizer: {
+        moleculeLab: {
             unlocked: false,
             state: {}
         },

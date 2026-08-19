@@ -38,6 +38,7 @@
     <link rel="stylesheet" href="./public/css/atom-lab/periodic-table.css">
     <link rel="stylesheet" href="./public/css/atom-lab/atom-craft.css">
     <link rel="stylesheet" href="./public/css/atomizer/atomizer.css">
+    <link rel="stylesheet" href="./public/css/molecule-lab/tabs-panel.css">
 </head>
 
 <body>
@@ -655,6 +656,31 @@
     <div class="atomizer-layout">
         <aside id="atomizer-stats"></aside>
         <main id="atomizer-grid"></main>
+    </div>
+</section>
+
+<!-- MOLECULE LAB ZONE -->
+<section id="molecule-lab-zone" class="zone hidden">
+    <header id="molecule-lab-header"></header>
+
+    <div class="molecule-lab-layout">
+        <!-- Vertical Tab Rail (M, C, P, L) -->
+        <nav id="molecule-lab-tabs"></nav>
+
+        <!-- Main Workspace Grid -->
+        <div class="molecule-lab-workspace">
+            <!-- Panel 1: Compound / Recipe Drawer -->
+            <aside id="molecule-lab-recipe-drawer"></aside>
+
+            <!-- Panel 2: Synthesis Chamber & Reactor -->
+            <main id="molecule-lab-synthesis-canvas"></main>
+
+            <!-- Panel 3: Molecule Inspector & Property Stats -->
+            <aside id="molecule-lab-inspector"></aside>
+
+            <!-- Panel 4: Chemical Bonding Reference -->
+            <aside id="molecule-lab-reference"></aside>
+        </div>
     </div>
 </section>
 

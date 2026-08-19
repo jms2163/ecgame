@@ -76,9 +76,9 @@ import AtomizerManager from "./AtomizerManager.js";
 import GameStateObserver from "./GameStateObserver.js";
 import AtomizerUI from "./AtomizerUI.js";
 import SPManager from "./SPManager.js";
-import MolecularLabManager from "./MolecularLabManager.js";
-import MolecularLab from "./MolecularLab.js";
-import MolecularLabUI from "./MolecularLabUI.js";
+import MoleculeLabManager from "./MoleculeLabManager.js";
+import MoleculeLab from "./MoleculeLab.js";
+import MoleculeLabUI from "./MoleculeLabUI.js";
 
 const DevConsole = {
 
@@ -131,9 +131,9 @@ const DevConsole = {
             GameStateObserver,
             AtomizerUI,
             SPManager,
-            MolecularLabManager,
-            MolecularLab,
-            MolecularLabUI,
+            MoleculeLabManager,
+            MoleculeLab,
+            MoleculeLabUI,
             
         };
 

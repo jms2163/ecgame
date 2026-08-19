@@ -1,48 +1,48 @@
 // --------------------------------------------------
-// MolecularLab.js
-// Zone controller shell for Molecular Lab
+// MoleculeLab.js
+// Zone controller shell for Molecule Lab
 // --------------------------------------------------
 
-import MolecularLabUI from "./MolecularLabUI.js";
-import MolecularLabManager from "./MolecularLabManager.js";
+import MoleculeLabUI from "./MoleculeLabUI.js";
+import MoleculeLabManager from "./MoleculeLabManager.js";
 
-const MolecularLab = {
+const MoleculeLab = {
 
     initialized: false,
     active: false,
 
     // --------------------------------------------------
-    // Initialize Molecular Lab
+    // Initialize Molecule Lab
     // --------------------------------------------------
     initialize() {
         if (this.initialized) {
             return true;
         }
 
-        MolecularLabManager.initialize();
-        MolecularLabUI.initialize();
+        MoleculeLabManager.initialize();
+        MoleculeLabUI.initialize();
 
-        console.log("MolecularLab.initialize() called");
+        console.log("MoleculeLab.initialize() called");
 
         this.initialized = true;
         return true;
     },
 
     // --------------------------------------------------
-    // Activate Molecular Lab
+    // Activate Molecule Lab
     // --------------------------------------------------
     activate() {
         if (this.active) {
-            console.log("MolecularLab already active");
+            console.log("MoleculeLab already active");
             return;
         }
 
         this.active = true;
-        console.log("MolecularLab.activate() called");
+        console.log("MoleculeLab.activate() called");
     },
 
     // --------------------------------------------------
-    // Deactivate Molecular Lab
+    // Deactivate Molecule Lab
     // --------------------------------------------------
     deactivate() {
         if (!this.active) {
@@ -50,11 +50,11 @@ const MolecularLab = {
         }
 
         this.active = false;
-        console.log("MolecularLab.deactivate() called");
+        console.log("MoleculeLab.deactivate() called");
     }
 };
 
 window.ECGame = window.ECGame || {};
-window.ECGame.MolecularLab = MolecularLab;
+window.ECGame.MoleculeLab = MoleculeLab;
 
-export default MolecularLab;
+export default MoleculeLab;
