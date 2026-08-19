@@ -274,7 +274,7 @@ atomizer: {
     }
 },
 
-        molecularizer: {
+        moleculeLab: {
             unlocked: false,
             completed: false,
             state: {}

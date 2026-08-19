@@ -4,23 +4,20 @@
 // --------------------------------------------------
 
 import TimeManager from "./TimeManager.js";
-import GameStateManager
-    from "./GameStateManager.js";
+import GameStateManager from "./GameStateManager.js";
 import DataLoader from "./DataLoader.js";
 import SaveManager from "./SaveManager.js";
 import ZoneManager from "./ZoneManager.js";
 import NavigationUI from "./NavigationUI.js";
 import ZoneCatalog from "./ZoneCatalog.js";
 import DevConsole from "./DevConsole.js";
-import ResourceManager
-    from "./ResourceManager.js";
+import ResourceManager from "./ResourceManager.js";
 import QuestManager from "./QuestManager.js";
-import QuestDrawerUI
-    from "./QuestDrawerUI.js";
-import QuantumAutoCollectorManager
-    from "./QuantumAutoCollectorManager.js";
+import QuestDrawerUI from "./QuestDrawerUI.js";
+import QuantumAutoCollectorManager from "./QuantumAutoCollectorManager.js";
 import AtomizerManager from "./AtomizerManager.js";
-import AtomizerUI from "./AtomizerUI.js"
+import AtomizerUI from "./AtomizerUI.js";
+import MolecularLabUI from "./MolecularLabUI.js"; // <-- ADDED
 import MolecularLabManager from "./MolecularLabManager.js";
 
 
@@ -41,8 +38,7 @@ const Bootstrap = {
         // Global initialization keeps enabled Quantum
         // autocollectors running in every zone while the
         // game is open.
-        QuantumAutoCollectorManager
-            .initialize();
+        QuantumAutoCollectorManager.initialize();
         TimeManager.start();
         QuestManager.initialize();
 
@@ -52,10 +48,10 @@ const Bootstrap = {
         AtomizerManager.initialize();
         AtomizerUI.initialize();
         MolecularLabManager.initialize();
+        MolecularLabUI.initialize(); // <-- ADDED
 
         const requestedZoneId =
-            GameStateManager
-                .getCurrentZoneId();
+            GameStateManager.getCurrentZoneId();
 
         const initialResult =
             ZoneManager.enterZone(
@@ -64,8 +60,7 @@ const Bootstrap = {
 
         if (!initialResult.entered) {
             const fallbackZoneId =
-                ZoneCatalog
-                    .getDefaultZoneId();
+                ZoneCatalog.getDefaultZoneId();
 
             const fallbackResult =
                 ZoneManager.enterZone(

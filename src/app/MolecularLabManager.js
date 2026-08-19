@@ -27,6 +27,31 @@ const MolecularLabManager = {
         console.log("[MolecularLabManager] Data libraries bound and master cache built successfully.");
     },
 
+    activate() {
+        this.active = true;
+
+        // 1. Reveal the UI element
+        const zoneEl = document.getElementById("molecule-lab-zone");
+        if (zoneEl) {
+            zoneEl.classList.remove("hidden");
+        }
+
+        // 2. Render or refresh the UI state
+        if (typeof MolecularLabUI !== "undefined" && MolecularLabUI.render) {
+            MolecularLabUI.render();
+        }
+    },
+
+    deactivate() {
+        this.active = false;
+
+        // Hide the zone container when switching to another zone
+        const zoneEl = document.getElementById("molecule-lab-zone");
+        if (zoneEl) {
+            zoneEl.classList.add("hidden");
+        }
+    },
+
     /**
      * Combines all individual sub-libraries into a single master dictionary
      */

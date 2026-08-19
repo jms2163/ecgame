@@ -133,7 +133,8 @@ const DevConsole = {
             SPManager,
             MolecularLabManager,
             MolecularLab,
-            MolecularLabUI
+            MolecularLabUI,
+            
         };
 
         console.log(

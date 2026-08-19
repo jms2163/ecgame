@@ -4,8 +4,7 @@
 // --------------------------------------------------
 
 import gameState from "./GameState.js";
-import ParticleInventoryManager
-    from "./ParticleInventoryManager.js";
+import ParticleInventoryManager from "./ParticleInventoryManager.js";
 
 const handlers = new Map();
 
@@ -171,6 +170,71 @@ const ObjectiveRegistry = {
 
 };
 
+// --------------------------------------------------
+// Atom Harvest (Atomizer State)
+// --------------------------------------------------
+
+ObjectiveRegistry.register(
+    "atom-harvest",
+    {
+        events: [
+            "atom-harvested",
+            "atomizer-produce",
+            "inventory-updated",
+            "atomizer-updated"
+        ],
+
+        captureBaseline({
+            objective,
+            objectiveIndex,
+            record
+        }) {
+            const key = createBaselineKey(objective, objectiveIndex);
+            const targetAtom = objective.atomId || "H";
+
+            const rawCount =
+                gameState.zones?.atomizer?.state?.atoms?.[targetAtom]?.count ??
+                gameState.inventory?.atoms?.[targetAtom] ??
+                0;
+
+            record.objectiveBaselines[key] = Math.floor(rawCount);
+        },
+
+        evaluate({
+            objective,
+            objectiveIndex,
+            record
+        }) {
+            const key = createBaselineKey(objective, objectiveIndex);
+            const baseline = record?.objectiveBaselines?.[key]; // <-- Retreive baseline from record
+            const targetAtom = objective.atomId || "H";
+
+            const rawCount =
+                gameState.zones?.atomizer?.state?.atoms?.[targetAtom]?.count ??
+                gameState.inventory?.atoms?.[targetAtom] ??
+                0;
+
+            const currentCount = Math.floor(rawCount);
+
+            const progress = normalizeProgress(
+                Number.isFinite(baseline)
+                    ? Math.max(0, currentCount - baseline)
+                    : currentCount,
+                objective.target
+            );
+
+            return {
+                ...progress,
+                baseline: Number.isFinite(baseline) ? baseline : null,
+                currentCount
+            };
+        }
+    }
+);
+
+// --------------------------------------------------
+// Atom Discovery Count
+// --------------------------------------------------
 
 ObjectiveRegistry.register(
     "atom-discovery-count",
@@ -238,7 +302,7 @@ ObjectiveRegistry.register(
 );
 
 // --------------------------------------------------
-// Guided Quantum identification
+// Guided Quantum Identification
 // --------------------------------------------------
 
 ObjectiveRegistry.register(
@@ -266,7 +330,7 @@ ObjectiveRegistry.register(
 );
 
 // --------------------------------------------------
-// Particle collection after quest activation
+// Particle Collection After Quest Activation
 // --------------------------------------------------
 
 ObjectiveRegistry.register(
@@ -338,11 +402,7 @@ ObjectiveRegistry.register(
 );
 
 // --------------------------------------------------
-// Future Atom Lab synthesis objective
-//
-// Q2 is configured but unreleased. When Atom Lab records
-// completed syntheses, update only this handler; the quest
-// data and QuestManager do not need to change.
+// Atom Lab Synthesis Objective
 // --------------------------------------------------
 
 ObjectiveRegistry.register(

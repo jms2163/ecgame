@@ -234,8 +234,8 @@ tick(deltaSec) {
             atom.count = Math.min(atom.cap, atom.count + generated);
             atom.progress %= effectiveInterval;
 
-            // Updated from .emit to .notify
-            GameStateObserver.notify("atom-synthesized", { symbol });
+            // Notify QuestManager/ObjectiveRegistry that atomizer counts updated:
+            GameStateObserver.notify("atomizer-updated", { symbol, count: atom.count });
         }
     });
 
