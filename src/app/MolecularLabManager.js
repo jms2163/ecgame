@@ -5,6 +5,8 @@
 // --------------------------------------------------
 
 import gameState from "./GameState.js";
+import DiscoveryManager from "./DiscoveryManager.js";
+import GameStateManager from "./GameStateManager.js";
 
 const MolecularLabManager = {
     /**
@@ -38,11 +40,41 @@ const MolecularLabManager = {
      */
     isMoleculeDiscovered(moleculeId) {
         return !!gameState.discoveries?.molecules?.[moleculeId];
+    },
+
+    /**
+     * Records a newly discovered molecule using DiscoveryManager authority.
+     * @param {string} moleculeId - e.g., "H2O"
+     * @returns {boolean} Success status of the recording
+     */
+    recordMoleculeDiscovery(moleculeId) {
+        if (!moleculeId) return false;
+        return DiscoveryManager.record("molecules", moleculeId);
+    },
+
+    /**
+     * Consumes one atom of the specified symbol from the Atomizer inventory.
+     * @param {string} symbol - e.g., "H", "O"
+     * @returns {boolean} True if successfully consumed, false if insufficient resources
+     */
+    consumeAtom(symbol) {
+        const atom = gameState.zones?.atomizer?.state?.atoms?.[symbol];
+        if (!atom || atom.count <= 0) {
+            console.warn(`[MolecularLabManager] Insufficient atom count for symbol: ${symbol}`);
+            return false;
+        }
+
+        atom.count -= 1;
+
+        // Persist update via GameStateManager if save/notification handling is needed
+        if (GameStateManager && typeof GameStateManager.save === "function") {
+            GameStateManager.save();
+        }
+
+        return true;
     }
 };
 
-// Expose to global namespace for DevConsole testing
-window.ECGame = window.ECGame || {};
-window.ECGame.MolecularLabManager = MolecularLabManager;
+
 
 export default MolecularLabManager;
