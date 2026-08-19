@@ -81,3 +81,11 @@
     letter-spacing: -0.5px;
     color: var(--color-atomlab-series-text);
 }
+
+/* Only turn text black when the tile is DISCOVERED */
+.element-box.discovered,
+.element-box.discovered .element-atomic-num,
+.element-box.discovered .element-symbol {
+    font-weight: 800; /* Extra bold */
+    color: #111111;
+}

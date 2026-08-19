@@ -1,13 +1,13 @@
 export const elementLibrary = 
 {
-	"H1": { "name": "Hydrogen-1", "symbol": "H", "p": 1, "n": 0, "e": 1, "v": 1, "a": 99.9885, "r": 0, "class": "major", "group": 1, "period": 1 },
+	"H1": { "name": "Hydrogen-1", "symbol": "H", "p": 1, "n": 0, "e": 1, "v": 1, "a": 99.9885, "r": 0, "class": "major", "group": 1, "period": 1, category: "reactive_nonmetal" },
 	"H2": { "name": "Deuterium", "symbol": "H", "p": 1, "n": 1, "e": 1, "v": 1, "a": 0.0115, "r": 0, "class": "major" },
 	"H3": { "name": "Tritium", "symbol": "H", "p": 1, "n": 2, "e": 1, "v": 1, "a": 0.0, "r": 1, "class": "major" },
 	"He3": { "name": "Helium-3", "symbol": "He", "p": 2, "n": 1, "e": 2, "v": 0, "a": 0.0001, "r": 0, "class": "non-essential" },
 	"He4": { "name": "Helium-4", "symbol": "He", "p": 2, "n": 2, "e": 2, "v": 0, "a": 99.9999, "r": 0, "class": "non-essential", "group": 18, "period": 1 },
 	"Li6": { "name": "Lithium-6", "symbol": "Li", "p": 3, "n": 3, "e": 3, "v": 1, "a": 7.5, "r": 0, "class": "trace" },
 	"Li7": { "name": "Lithium-7", "symbol": "Li", "p": 3, "n": 4, "e": 3, "v": 1, "a": 92.5, "r": 0, "class": "trace", "group": 1, "period": 2 },
-	"Be9": { "name": "Beryllium-9", "symbol": "Be", "p": 4, "n": 5, "e": 4, "v": 2, "a": 100.0, "r": 0, "class": "non-essential", "group": 2, "period": 2 },
+	"Be9": { "name": "Beryllium-9", "symbol": "Be", "p": 4, "n": 5, "e": 4, "v": 2, "a": 100.0, "r": 0, "class": "non-essential", "group": 2, "period": 2, category: "alkaline_earth" },
 	"B10": { "name": "Boron-10", "symbol": "B", "p": 5, "n": 5, "e": 5, "v": 3, "a": 19.9, "r": 0, "class": "trace" },
 	"B11": { "name": "Boron-11", "symbol": "B", "p": 5, "n": 6, "e": 5, "v": 3, "a": 80.1, "r": 0, "class": "trace", "group": 13, "period": 2 },
 	"C12": { "name": "Carbon-12", "symbol": "C", "p": 6, "n": 6, "e": 6, "v": 4, "a": 98.93, "r": 0, "class": "major", "group": 14, "period": 2 },

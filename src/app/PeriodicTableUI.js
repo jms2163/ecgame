@@ -7,6 +7,20 @@ import { elementLibrary } from "../data/elementLibrary.js";
 import AtomLabManager from "./AtomLabManager.js";
 import GameStateManager from "./GameStateManager.js";
 
+const CATEGORY_COLORS = {
+    alkali_metal: "rgb(60, 63, 50)",
+    alkaline_earth: "rgb(237, 241, 83)",
+    lanthanoid: "rgb(60, 63, 50)",
+    actinide: "rgb(60, 63, 50)",
+    transition_metal: "rgb(60, 63, 50)",
+    post_transition_metal: "rgb(60, 63, 50)",
+    metalloid: "rgb(60, 63, 50)",
+    reactive_nonmetal: "rgb(125, 238, 122)",
+    noble_gas: "rgb(60, 63, 50)",
+    unknown: "rgb(200, 63, 50)",
+    special: "rgb(60, 63, 50)"
+};
+
 const PeriodicTableUI = {
 
     container: null,
@@ -77,6 +91,8 @@ const PeriodicTableUI = {
                 className: "element-box"
             });
             button.dataset.symbol = elementData.symbol;
+            // Add colored elements background feature
+            button.dataset.category = elementData.category || "unknown"; // Store category
 
             // Grid Placement
             button.style.gridColumn = elementData.group;
@@ -145,20 +161,32 @@ const PeriodicTableUI = {
     // Top-Down Render Loop
     // --------------------------------------------------
     render(state = AtomLabManager?.getStatus()) {
-        if (!this.container || !state) return;
+    if (!this.container || !state) return;
 
-        // 1. Update element lock/enable states
-        this.updateElementTiles(state);
+    // 1. Update element lock/enable states
+    this.updateElementTiles(state);
 
-        // 2. Synchronize visual selection/discovery state
-        this.buttons.forEach((button, symbol) => {
-            const isDiscovered = GameStateManager?.hasDiscovery?.(symbol);
-            const isSelected = state.targetElement === symbol || state.selectedElement === symbol;
+    // 2. Synchronize visual selection/discovery state & category colors
+    // 2. Synchronize visual selection/discovery state & category colors
+    this.buttons.forEach((button, symbol) => {
+        const isDiscovered = Boolean(GameStateManager?.hasDiscovery?.(symbol));
+        const isSelected = state.targetElement === symbol || state.selectedElement === symbol;
 
-            button.classList.toggle("discovered", !!isDiscovered);
-            button.classList.toggle("selected", !!isSelected);
-        });
-    }
+        button.classList.toggle("discovered", isDiscovered);
+        button.classList.toggle("selected", isSelected);
+
+        // 3. Dynamic Category Background & Text Color
+        const category = button.dataset.category;
+
+        if (isDiscovered && CATEGORY_COLORS[category]) {
+            button.style.backgroundColor = CATEGORY_COLORS[category];
+            button.style.color = "#111111"; // Black text for contrast against colored background
+        } else {
+            button.style.backgroundColor = "";
+            button.style.color = ""; // Reset to default CSS theme when locked/undiscovered
+        }
+    });
+}
 };
 
 export default PeriodicTableUI;
