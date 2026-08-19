@@ -130,6 +130,21 @@ const MolecularLabManager = {
     },
 
     /**
+     * Aggregates current status summary for UI rendering
+     * @returns {Object} State payload
+     */
+    getStatus() {
+        const discovered = this.getDiscoveredMolecules();
+        const allMolecules = this.getAllMolecules();
+
+        return {
+            discoveredCount: discovered.length,
+            totalMoleculesCount: Object.keys(allMolecules).length,
+            discoveredMolecules: discovered
+        };
+    },
+
+    /**
      * Consumes one atom of the specified symbol from the Atomizer inventory.
      * @param {string} symbol - e.g., "H", "O"
      * @returns {boolean} True if successfully consumed, false if insufficient resources
