@@ -21,6 +21,7 @@ import QuantumAutoCollectorManager
     from "./QuantumAutoCollectorManager.js";
 import AtomizerManager from "./AtomizerManager.js";
 import AtomizerUI from "./AtomizerUI.js"
+import MolecularLabManager from "./MolecularLabManager.js";
 
 
 const Bootstrap = {
@@ -50,6 +51,7 @@ const Bootstrap = {
         QuestDrawerUI.initialize();
         AtomizerManager.initialize();
         AtomizerUI.initialize();
+        MolecularLabManager.initialize();
 
         const requestedZoneId =
             GameStateManager

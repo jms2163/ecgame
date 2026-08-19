@@ -47,14 +47,14 @@ const ZONE_DEFINITIONS = Object.freeze([
     }),
 
     Object.freeze({
-        id: "molecularizer",
-        label: "Molecularizer",
-        releaseState: RELEASE_STATE.COMING_SOON,
-        lockedMessage:
-            "Complete the required Atomic activities first.",
-        comingSoonMessage:
-            "Molecule construction is not yet available."
-    }),
+    id: "moleculeLab",
+    label: "Molecule Lab",
+    releaseState: RELEASE_STATE.PLAYABLE,
+    lockedMessage:
+        "Collect two Hydrogen Atoms and claim its reward in the Quests drawer first.",
+    comingSoonMessage:
+        "Molecular synthesis is the next activity planned after claiming the Hydrogen collection reward."
+}),
 
     Object.freeze({
         id: "macromolecularizer",

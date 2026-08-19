@@ -93,6 +93,7 @@ const PeriodicTableUI = {
             button.dataset.symbol = elementData.symbol;
             // Add colored elements background feature
             button.dataset.category = elementData.category || "unknown"; // Store category
+            // #TODO Stars Here.
 
             // Grid Placement
             button.style.gridColumn = elementData.group;
