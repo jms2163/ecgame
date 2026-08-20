@@ -31,9 +31,11 @@ const MoleculeLabManager = {
     active: false,
     subscribed: false,
     lastProgressEventAtMs: 0,
+    atomInventorySignature: null,
 
     initialize() {
         this.ensureState();
+        this.atomInventorySignature = this.createAtomInventorySignature();
         this.subscribe();
         this.reconcileSynthesis();
         this.initialized = true;
@@ -110,6 +112,38 @@ const MoleculeLabManager = {
 
     getAtomCount(symbol) {
         return this.getAtomInventory()[symbol]?.count ?? 0;
+    },
+
+    /**
+     * Creates a stable snapshot of the atom data that can affect Molecule Lab.
+     * Fractional generator progress is deliberately excluded because recipes,
+     * affordability, and the inventory panel all use whole atoms.
+     */
+    createAtomInventorySignature() {
+        const inventory = this.getAtomInventory();
+        return Object.keys(inventory)
+            .sort()
+            .map(symbol => {
+                const atom = inventory[symbol];
+                return [
+                    symbol,
+                    atom.count,
+                    atom.cap,
+                    atom.unlocked ? 1 : 0
+                ].join(":");
+            })
+            .join("|");
+    },
+
+    /**
+     * Returns true only when atom inventory data visible to Molecule Lab has
+     * actually changed since the previous accepted notification.
+     */
+    acceptAtomInventoryChange() {
+        const nextSignature = this.createAtomInventorySignature();
+        if (nextSignature === this.atomInventorySignature) return false;
+        this.atomInventorySignature = nextSignature;
+        return true;
     },
 
     hasMoleculeDiscovery(moleculeId) {
@@ -215,6 +249,9 @@ const MoleculeLabManager = {
             dipoleMeasurement: cloneRecord(
                 state.measurements.dipole[moleculeId]
             ),
+            waterInteractionMeasurement: cloneRecord(
+                state.measurements.waterInteraction[moleculeId]
+            ),
             synthesis: activeSynthesis?.moleculeId === moleculeId
                 ? this.getActiveSynthesisProgress()
                 : null
@@ -260,6 +297,9 @@ const MoleculeLabManager = {
             (total, record) => total + safeInteger(record?.count),
             0
         );
+        const measuredPropertiesCount =
+            Object.keys(state.measurements.dipole).length +
+            Object.keys(state.measurements.waterInteraction).length;
 
         return {
             active: this.active,
@@ -275,6 +315,7 @@ const MoleculeLabManager = {
                 node.definition.type !== "link" && node.definition.implemented
             ).length,
             investigatedCount: Object.keys(state.investigated).length,
+            measuredPropertiesCount,
             activeSynthesis: this.getActiveSynthesisProgress()
         };
     },
@@ -529,6 +570,58 @@ const MoleculeLabManager = {
         };
     },
 
+    recordWaterInteractionMeasurement(moleculeId) {
+        const definition = MoleculeRecipeCatalog.get(moleculeId);
+        const model = definition?.waterInteractionModel;
+
+        if (!definition || !this.hasMoleculeDiscovery(moleculeId)) {
+            return {
+                success: false,
+                reason: "molecule-not-synthesized",
+                message: "Synthesize this molecule before measuring it."
+            };
+        }
+
+        if (!model) {
+            return {
+                success: false,
+                reason: "water-interaction-model-unavailable",
+                message: "Water-interaction data is unavailable for this molecule."
+            };
+        }
+
+        const measuredAtMs = Date.now();
+        const measurement = {
+            moleculeId,
+            hydrophilicScore: model.hydrophilicScore,
+            hydrophobicScore: model.hydrophobicScore,
+            affinityIndex: model.affinityIndex,
+            interactionType: model.interactionType,
+            interactionLabel: model.interactionLabel,
+            conclusion: model.conclusion,
+            metricLabel: model.metricLabel,
+            hydrogenBondPotential: Boolean(model.hydrogenBondPotential),
+            measuredAtMs
+        };
+
+        const state = this.ensureState();
+        state.measurements.waterInteraction[moleculeId] = measurement;
+        state.investigated[moleculeId] ??= {};
+        state.investigated[moleculeId].waterInteractionMeasuredAtMs =
+            measuredAtMs;
+
+        SaveManager.save();
+        this.notifyStateChange("water-interaction-measured", {
+            moleculeId,
+            measurement: cloneRecord(measurement)
+        });
+
+        return {
+            success: true,
+            measurement: cloneRecord(measurement)
+        };
+    },
+
     notifyStateChange(reason, detail = {}) {
         GameStateObserver.notify("molecule-lab-state-changed", {
             reason,
@@ -543,11 +636,16 @@ const MoleculeLabManager = {
         });
         GameStateObserver.on("game-state-loaded", () => {
             this.ensureState();
+            this.atomInventorySignature = this.createAtomInventorySignature();
             this.reconcileSynthesis();
             this.notifyStateChange("state-loaded");
         });
         GameStateObserver.on("atom-inventory-changed", payload => {
-            if (payload?.source !== ZONE_ID) {
+            // Always advance the snapshot, including Molecule Lab's own atom
+            // spending. Its own workflow publishes a more specific state event,
+            // so only external changes need an additional inventory render.
+            const inventoryChanged = this.acceptAtomInventoryChange();
+            if (payload?.source !== ZONE_ID && inventoryChanged) {
                 this.notifyStateChange("inventory-changed");
             }
         });

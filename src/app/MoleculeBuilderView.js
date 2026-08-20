@@ -17,6 +17,14 @@ const ELEMENT_COLORS = Object.freeze({
     DEFAULT: 0x94a3b8
 });
 
+// Ghost targets use unlit, high-contrast colors. Carbon is intentionally
+// lighter than its solid model so its wireframe remains legible against the
+// chamber background on a wide range of displays and WebGL implementations.
+const GHOST_ELEMENT_COLORS = Object.freeze({
+    ...ELEMENT_COLORS,
+    C: 0x94a3b8
+});
+
 // Dragging and snapping are intentionally screen-plane friendly. The target
 // may rotate toward or away from the camera without making the player chase
 // its Z depth.
@@ -24,6 +32,8 @@ const DRAG_PICK_RADIUS_PX = 34;
 const SNAP_AXIS_TOLERANCE = 1.25;
 const ROTATION_RADIANS_PER_SECOND = 0.36;
 const DIPOLE_ROTATION_RADIANS_PER_SECOND = 0.42;
+const WATER_PROBE_DROP_RADIUS = 3.0;
+const WATER_PROBE_GLIDE_MS = 720;
 
 const MoleculeBuilderView = {
     initialized: false,
@@ -36,12 +46,20 @@ const MoleculeBuilderView = {
     moleculeGroup: null,
     analysisGroup: null,
     atomMeshes: [],
+    waterProbeGroup: null,
+    waterProbeHitMeshes: [],
+    waterProbeHome: new THREE.Vector3(-3.15, -2.35, 0.35),
+    waterProbeDragging: false,
+    waterProbeGlide: null,
+    waterInteractionReady: false,
     draggables: [],
     targetPoints: [],
     selected: null,
     raycaster: new THREE.Raycaster(),
     pointer: new THREE.Vector2(),
     dragPlane: new THREE.Plane(new THREE.Vector3(0, 0, 1), 0),
+    waterProbeDragPlane:
+        new THREE.Plane(new THREE.Vector3(0, 0, 1), -0.35),
     animationFrameId: null,
     lastAnimationTimeMs: null,
     analysisMode: null,
@@ -52,6 +70,7 @@ const MoleculeBuilderView = {
     placedSlots: new Set(),
     onPlacementRequest: null,
     onAssemblyComplete: null,
+    onWaterProbePlaced: null,
     onFeedback: null,
 
     initialize({
@@ -59,6 +78,7 @@ const MoleculeBuilderView = {
         canvas,
         onPlacementRequest,
         onAssemblyComplete,
+        onWaterProbePlaced,
         onFeedback
     }) {
         if (this.initialized) {
@@ -66,6 +86,8 @@ const MoleculeBuilderView = {
             this.canvas = canvas ?? this.canvas;
             this.onPlacementRequest = onPlacementRequest ?? this.onPlacementRequest;
             this.onAssemblyComplete = onAssemblyComplete ?? this.onAssemblyComplete;
+            this.onWaterProbePlaced =
+                onWaterProbePlaced ?? this.onWaterProbePlaced;
             this.onFeedback = onFeedback ?? this.onFeedback;
             return true;
         }
@@ -79,6 +101,7 @@ const MoleculeBuilderView = {
         this.canvas = canvas;
         this.onPlacementRequest = onPlacementRequest;
         this.onAssemblyComplete = onAssemblyComplete;
+        this.onWaterProbePlaced = onWaterProbePlaced;
         this.onFeedback = onFeedback;
 
         this.scene = new THREE.Scene();
@@ -159,17 +182,47 @@ const MoleculeBuilderView = {
     startAnimation() {
         if (this.animationFrameId || !this.renderer) return;
 
+        // The first animation callback must come from requestAnimationFrame so
+        // it always receives a valid high-resolution timestamp. Calling the
+        // callback directly would make the second frame subtract `undefined`,
+        // turning the molecule's rotation into NaN and removing it from view.
+        this.lastAnimationTimeMs = null;
+
         const animate = timeMs => {
-            this.animationFrameId = requestAnimationFrame(animate);
             if (!this.active) {
-                this.lastAnimationTimeMs = timeMs;
+                this.lastAnimationTimeMs = Number.isFinite(timeMs)
+                    ? timeMs
+                    : null;
+                this.animationFrameId = requestAnimationFrame(animate);
                 return;
             }
 
-            const deltaSeconds = this.lastAnimationTimeMs === null
-                ? 0
-                : Math.min(0.05, (timeMs - this.lastAnimationTimeMs) / 1000);
-            this.lastAnimationTimeMs = timeMs;
+            const hasValidFrameTimes =
+                Number.isFinite(timeMs) &&
+                Number.isFinite(this.lastAnimationTimeMs);
+            const deltaSeconds = hasValidFrameTimes
+                ? Math.min(
+                    0.05,
+                    Math.max(
+                        0,
+                        (timeMs - this.lastAnimationTimeMs) / 1000
+                    )
+                )
+                : 0;
+            this.lastAnimationTimeMs = Number.isFinite(timeMs)
+                ? timeMs
+                : null;
+
+            // Recover safely if a stale page session or earlier animation-loop
+            // bug ever left a non-finite transform on the live group.
+            if (this.moleculeGroup) {
+                if (!Number.isFinite(this.moleculeGroup.rotation.y)) {
+                    this.moleculeGroup.rotation.y = 0;
+                }
+                if (!Number.isFinite(this.moleculeGroup.rotation.z)) {
+                    this.moleculeGroup.rotation.z = 0;
+                }
+            }
 
             if (
                 this.moleculeGroup &&
@@ -181,6 +234,10 @@ const MoleculeBuilderView = {
             } else if (this.moleculeGroup && !this.analysisMode) {
                 this.moleculeGroup.rotation.y +=
                     ROTATION_RADIANS_PER_SECOND * deltaSeconds;
+            }
+
+            if (this.waterProbeGlide) {
+                this.updateWaterProbeGlide(timeMs);
             }
 
             if (this.analysisGroup) {
@@ -195,9 +252,10 @@ const MoleculeBuilderView = {
             }
 
             this.renderer.render(this.scene, this.camera);
+            this.animationFrameId = requestAnimationFrame(animate);
         };
 
-        animate();
+        this.animationFrameId = requestAnimationFrame(animate);
     },
 
     stopAnimation() {
@@ -208,7 +266,7 @@ const MoleculeBuilderView = {
     },
 
     clearScene() {
-        this.endDipoleMeasurement();
+        this.endAnalysis();
 
         if (this.moleculeGroup) {
             this.disposeObject(this.moleculeGroup);
@@ -258,7 +316,8 @@ const MoleculeBuilderView = {
 
         const preservedRotationY =
             this.moleculeGroup &&
-            this.currentDefinition?.id === definition.id
+            this.currentDefinition?.id === definition.id &&
+            Number.isFinite(this.moleculeGroup.rotation.y)
                 ? this.moleculeGroup.rotation.y
                 : 0;
 
@@ -341,7 +400,8 @@ const MoleculeBuilderView = {
 
         const preservedRotationY =
             this.moleculeGroup &&
-            this.currentDefinition?.id === definition.id
+            this.currentDefinition?.id === definition.id &&
+            Number.isFinite(this.moleculeGroup.rotation.y)
                 ? this.moleculeGroup.rotation.y
                 : 0;
 
@@ -383,15 +443,24 @@ const MoleculeBuilderView = {
     },
 
     createGhostAtom(symbol) {
-        const geometry = new THREE.WireframeGeometry(
-            new THREE.SphereGeometry(0.42, 18, 18)
-        );
-        const material = new THREE.LineBasicMaterial({
-            color: ELEMENT_COLORS[symbol] ?? ELEMENT_COLORS.DEFAULT,
-            transparent: true,
-            opacity: 0.55
+        // MeshBasicMaterial in wireframe mode is more consistently rendered
+        // than transparent LineSegments on Chromium/WebGL combinations. The
+        // ghost remains visually distinct because it has no filled surface.
+        const geometry = new THREE.SphereGeometry(0.42, 18, 18);
+        const material = new THREE.MeshBasicMaterial({
+            color:
+                GHOST_ELEMENT_COLORS[symbol] ??
+                GHOST_ELEMENT_COLORS.DEFAULT,
+            wireframe: true,
+            transparent: false,
+            depthTest: false,
+            depthWrite: false,
+            toneMapped: false
         });
-        return new THREE.LineSegments(geometry, material);
+        const ghost = new THREE.Mesh(geometry, material);
+        ghost.renderOrder = 10;
+        ghost.userData.isGhostTarget = true;
+        return ghost;
     },
 
     createSolidAtom(symbol, radius = 0.38) {
@@ -414,13 +483,25 @@ const MoleculeBuilderView = {
             direction.length(),
             10
         );
-        const material = new THREE.MeshPhongMaterial({
-            color: ghost ? 0x456272 : 0x94a3b8,
-            transparent: ghost,
-            opacity: ghost ? 0.45 : 0.9,
-            wireframe: ghost
-        });
+        const material = ghost
+            ? new THREE.MeshBasicMaterial({
+                color: 0x7dd3fc,
+                wireframe: true,
+                transparent: false,
+                depthTest: false,
+                depthWrite: false,
+                toneMapped: false
+            })
+            : new THREE.MeshPhongMaterial({
+                color: 0x94a3b8,
+                transparent: false,
+                opacity: 0.9
+            });
         const mesh = new THREE.Mesh(geometry, material);
+        if (ghost) {
+            mesh.renderOrder = 9;
+            mesh.userData.isGhostBond = true;
+        }
         mesh.position.copy(
             new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5)
         );
@@ -462,7 +543,7 @@ const MoleculeBuilderView = {
         const group = new THREE.Group();
         const plateGeometry = new THREE.BoxGeometry(0.5, 5.35, 0.18);
         const plateDefinitions = [
-            { x: -3.55, sign: "âˆ’", color: 0x38bdf8 },
+            { x: -3.55, sign: "−", color: 0x38bdf8 },
             { x: 3.55, sign: "+", color: 0xfb7185 }
         ];
 
@@ -482,7 +563,7 @@ const MoleculeBuilderView = {
             [-2, -1.2, -0.4, 0.4, 1.2, 2].forEach(y => {
                 const charge = this.createTextSprite(
                     sign,
-                    sign === "âˆ’" ? "#e0f2fe" : "#ffe4e6",
+                    sign === "−" ? "#e0f2fe" : "#ffe4e6",
                     0.42
                 );
                 charge.position.set(x, y, 0.05);
@@ -558,8 +639,8 @@ const MoleculeBuilderView = {
             });
         };
 
-        addLabels(model.negativeAtomIndexes, "Î´âˆ’", "#7dd3fc");
-        addLabels(model.positiveAtomIndexes, "Î´+", "#fda4af");
+        addLabels(model.negativeAtomIndexes, "δ−", "#7dd3fc");
+        addLabels(model.positiveAtomIndexes, "δ+", "#fda4af");
         return true;
     },
 
@@ -628,8 +709,261 @@ const MoleculeBuilderView = {
     },
 
     endDipoleMeasurement() {
+        return this.endAnalysis();
+    },
+
+    createWaterProbe() {
+        const group = new THREE.Group();
+        const oxygenPosition = new THREE.Vector3(0, 0, 0);
+        const donorHydrogenPosition = new THREE.Vector3(0.58, 0.28, 0);
+        const secondHydrogenPosition = new THREE.Vector3(-0.35, 0.55, 0);
+
+        const oxygen = this.createSolidAtom("O", 0.4);
+        oxygen.position.copy(oxygenPosition);
+        oxygen.userData.waterProbeAtom = true;
+        group.add(oxygen);
+
+        [donorHydrogenPosition, secondHydrogenPosition].forEach(
+            (position, index) => {
+                const hydrogen = this.createSolidAtom("H", 0.27);
+                hydrogen.position.copy(position);
+                hydrogen.userData.waterProbeAtom = true;
+                hydrogen.userData.waterProbeHydrogenDonor = index === 0;
+                group.add(hydrogen);
+            }
+        );
+
+        group.add(this.createBond(
+            oxygenPosition,
+            donorHydrogenPosition,
+            false,
+            1
+        ));
+        group.add(this.createBond(
+            oxygenPosition,
+            secondHydrogenPosition,
+            false,
+            1
+        ));
+
+        const hitTarget = new THREE.Mesh(
+            new THREE.SphereGeometry(0.92, 16, 16),
+            new THREE.MeshBasicMaterial({
+                transparent: true,
+                opacity: 0.001,
+                depthWrite: false
+            })
+        );
+        hitTarget.userData.waterProbeHitTarget = true;
+        group.add(hitTarget);
+
+        group.position.copy(this.waterProbeHome);
+        group.userData.waterProbe = true;
+        return group;
+    },
+
+    startWaterInteraction(definition) {
+        if (
+            !this.initialized ||
+            !this.moleculeGroup ||
+            this.currentDefinition?.id !== definition?.id ||
+            !definition?.waterInteractionModel
+        ) {
+            return false;
+        }
+
+        this.endAnalysis();
+        this.analysisMode = "water-interaction";
+        this.waterProbeDragging = false;
+        this.waterProbeGlide = null;
+        this.waterInteractionReady = false;
+
+        // The molecule remains fixed throughout this investigation.
+        this.moleculeGroup.rotation.set(0, 0, 0);
+        this.analysisGroup = new THREE.Group();
+        this.scene.add(this.analysisGroup);
+
+        this.waterProbeGroup = this.createWaterProbe();
+        this.waterProbeHitMeshes = [];
+        this.waterProbeGroup.traverse(child => {
+            if (child.isMesh) this.waterProbeHitMeshes.push(child);
+        });
+        this.scene.add(this.waterProbeGroup);
+        this.camera.position.z = Math.max(this.camera.position.z, 9.5);
+        return true;
+    },
+
+    getWaterInteractionTargetWorldPosition() {
+        const model = this.currentDefinition?.waterInteractionModel;
+        const atom = this.atomMeshes[model?.targetAtomIndex];
+        if (!atom) return new THREE.Vector3(0, 0, 0);
+
+        const position = new THREE.Vector3();
+        atom.getWorldPosition(position);
+        return position;
+    },
+
+    findWaterProbeAtPointer(event) {
+        if (!this.waterProbeGroup) return false;
+        this.updatePointer(event);
+        this.raycaster.setFromCamera(this.pointer, this.camera);
+        if (this.raycaster.intersectObjects(this.waterProbeHitMeshes, false)[0]) {
+            return true;
+        }
+
+        const rect = this.canvas.getBoundingClientRect();
+        const projected = new THREE.Vector3();
+        this.waterProbeGroup.getWorldPosition(projected);
+        projected.project(this.camera);
+        const screenX = rect.left + (projected.x + 1) * rect.width / 2;
+        const screenY = rect.top + (1 - projected.y) * rect.height / 2;
+        return Math.hypot(
+            event.clientX - screenX,
+            event.clientY - screenY
+        ) <= 68;
+    },
+
+    isWaterProbeNearMolecule() {
+        if (!this.waterProbeGroup) return false;
+        const target = this.getWaterInteractionTargetWorldPosition();
+        return Math.hypot(
+            this.waterProbeGroup.position.x - target.x,
+            this.waterProbeGroup.position.y - target.y
+        ) <= WATER_PROBE_DROP_RADIUS;
+    },
+
+    getWaterProbeDestination() {
+        const model = this.currentDefinition?.waterInteractionModel;
+        const target = this.getWaterInteractionTargetWorldPosition();
+        const outward = target.clone();
+        outward.z = 0;
+        if (outward.lengthSq() < 0.08) outward.set(-1, 0.15, 0);
+        outward.normalize();
+
+        const distance = model?.interactionType === "hydrogen-bond"
+            ? 1.22
+            : model?.interactionType === "dipole-dipole"
+                ? 1.62
+                : 2.35;
+        const destination = target.clone().add(
+            outward.clone().multiplyScalar(distance)
+        );
+        destination.z = 0.35;
+
+        const directionToTarget = outward.multiplyScalar(-1);
+        const donorHydrogenAngle = Math.atan2(0.28, 0.58);
+        const rotationZ = Math.atan2(
+            directionToTarget.y,
+            directionToTarget.x
+        ) - donorHydrogenAngle;
+
+        return { destination, rotationZ };
+    },
+
+    glideWaterProbeToInteraction() {
+        if (
+            this.analysisMode !== "water-interaction" ||
+            !this.waterProbeGroup ||
+            this.waterProbeGlide
+        ) {
+            return false;
+        }
+
+        const { destination, rotationZ } = this.getWaterProbeDestination();
+        this.waterProbeGlide = {
+            startedAtMs: performance.now(),
+            durationMs: WATER_PROBE_GLIDE_MS,
+            startPosition: this.waterProbeGroup.position.clone(),
+            endPosition: destination,
+            startRotationZ: this.waterProbeGroup.rotation.z,
+            endRotationZ: rotationZ
+        };
+        this.onFeedback?.("Water is approaching the fixed molecule.");
+        return true;
+    },
+
+    updateWaterProbeGlide(timeMs) {
+        const glide = this.waterProbeGlide;
+        if (!glide || !this.waterProbeGroup) return;
+
+        const progress = Math.min(
+            1,
+            Math.max(0, (timeMs - glide.startedAtMs) / glide.durationMs)
+        );
+        const eased = progress < 0.5
+            ? 2 * progress * progress
+            : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+        this.waterProbeGroup.position.lerpVectors(
+            glide.startPosition,
+            glide.endPosition,
+            eased
+        );
+        this.waterProbeGroup.rotation.z = THREE.MathUtils.lerp(
+            glide.startRotationZ,
+            glide.endRotationZ,
+            eased
+        );
+
+        if (progress < 1) return;
+        this.waterProbeGlide = null;
+        this.waterInteractionReady = true;
+        this.createWaterInteractionVisualization();
+
+        const model = this.currentDefinition?.waterInteractionModel;
+        this.onWaterProbePlaced?.({
+            interactionType: model?.interactionType,
+            interactionLabel: model?.interactionLabel
+        });
+    },
+
+    createWaterInteractionVisualization() {
+        const model = this.currentDefinition?.waterInteractionModel;
+        if (!model || !this.analysisGroup || !this.waterProbeGroup) return false;
+
+        [...this.analysisGroup.children].forEach(child => {
+            this.analysisGroup.remove(child);
+            this.disposeObject(child);
+        });
+
+        if (model.interactionType !== "hydrogen-bond") return true;
+
+        const donorHydrogen = this.waterProbeGroup.children.find(
+            child => child.userData?.waterProbeHydrogenDonor
+        );
+        if (!donorHydrogen) return false;
+
+        const hydrogenPosition = new THREE.Vector3();
+        donorHydrogen.getWorldPosition(hydrogenPosition);
+        const targetPosition = this.getWaterInteractionTargetWorldPosition();
+        const geometry = new THREE.BufferGeometry().setFromPoints([
+            hydrogenPosition,
+            targetPosition
+        ]);
+        const material = new THREE.LineDashedMaterial({
+            color: 0x7dd3fc,
+            dashSize: 0.11,
+            gapSize: 0.09,
+            transparent: true,
+            opacity: 0.95
+        });
+        const dottedLine = new THREE.Line(geometry, material);
+        dottedLine.computeLineDistances();
+        dottedLine.userData.waterHydrogenBond = true;
+        this.analysisGroup.add(dottedLine);
+        return true;
+    },
+
+    endWaterInteraction() {
+        return this.endAnalysis();
+    },
+
+    endAnalysis() {
         this.dipoleRotationActive = false;
         this.dipoleMeasurementFlashActive = false;
+        this.waterProbeDragging = false;
+        this.waterProbeGlide = null;
+        this.waterInteractionReady = false;
         this.analysisMode = null;
 
         if (this.moleculeGroup) {
@@ -646,6 +980,13 @@ const MoleculeBuilderView = {
             this.scene?.remove(this.analysisGroup);
             this.analysisGroup = null;
         }
+
+        if (this.waterProbeGroup) {
+            this.disposeObject(this.waterProbeGroup);
+            this.scene?.remove(this.waterProbeGroup);
+            this.waterProbeGroup = null;
+        }
+        this.waterProbeHitMeshes = [];
         return true;
     },
 
@@ -697,6 +1038,19 @@ const MoleculeBuilderView = {
         if (!view.active || !view.renderer) return;
         if (event.pointerType === "mouse" && event.button !== 0) return;
 
+        if (
+            view.analysisMode === "water-interaction" &&
+            !view.waterInteractionReady &&
+            !view.waterProbeGlide &&
+            view.findWaterProbeAtPointer(event)
+        ) {
+            view.waterProbeDragging = true;
+            view.canvas.setPointerCapture?.(event.pointerId);
+            view.canvas.classList.add("is-dragging");
+            event.preventDefault();
+            return;
+        }
+
         const draggable = view.findDraggableAtPointer(event);
         if (!draggable) return;
 
@@ -708,6 +1062,26 @@ const MoleculeBuilderView = {
 
     handlePointerMove(event) {
         const view = MoleculeBuilderView;
+        if (view.waterProbeDragging && view.waterProbeGroup) {
+            view.updatePointer(event);
+            view.raycaster.setFromCamera(view.pointer, view.camera);
+            const worldPosition = new THREE.Vector3();
+            if (
+                view.raycaster.ray.intersectPlane(
+                    view.waterProbeDragPlane,
+                    worldPosition
+                )
+            ) {
+                view.waterProbeGroup.position.set(
+                    THREE.MathUtils.clamp(worldPosition.x, -4.5, 4.5),
+                    THREE.MathUtils.clamp(worldPosition.y, -3.1, 3.1),
+                    0.35
+                );
+            }
+            event.preventDefault();
+            return;
+        }
+
         if (!view.selected) return;
         view.updatePointer(event);
         view.raycaster.setFromCamera(view.pointer, view.camera);
@@ -720,6 +1094,24 @@ const MoleculeBuilderView = {
 
     handlePointerUp(event) {
         const view = MoleculeBuilderView;
+        if (view.waterProbeDragging) {
+            view.waterProbeDragging = false;
+            view.canvas.releasePointerCapture?.(event.pointerId);
+            view.canvas.classList.remove("is-dragging");
+
+            if (view.isWaterProbeNearMolecule()) {
+                view.glideWaterProbeToInteraction();
+            } else if (view.waterProbeGroup) {
+                view.waterProbeGroup.position.copy(view.waterProbeHome);
+                view.waterProbeGroup.rotation.set(0, 0, 0);
+                view.onFeedback?.(
+                    "Move the water molecule closer to the fixed molecule."
+                );
+            }
+            event.preventDefault();
+            return;
+        }
+
         if (!view.selected) return;
 
         const selected = view.selected;
@@ -808,7 +1200,11 @@ const MoleculeBuilderView = {
 
     rotate(deltaRadians) {
         if (!this.moleculeGroup) return false;
-        this.moleculeGroup.rotation.y += deltaRadians;
+        const currentRotationY = Number.isFinite(this.moleculeGroup.rotation.y)
+            ? this.moleculeGroup.rotation.y
+            : 0;
+        const safeDelta = Number.isFinite(deltaRadians) ? deltaRadians : 0;
+        this.moleculeGroup.rotation.y = currentRotationY + safeDelta;
         return true;
     },
 
@@ -853,6 +1249,7 @@ const MoleculeBuilderView = {
         this.camera = null;
         this.renderer = null;
         this.currentDefinition = null;
+        this.onWaterProbePlaced = null;
         this.initialized = false;
     }
 };

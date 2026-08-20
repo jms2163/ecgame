@@ -79,6 +79,7 @@ import SPManager from "./SPManager.js";
 import MoleculeLabManager from "./MoleculeLabManager.js";
 import MoleculeLab from "./MoleculeLab.js";
 import MoleculeLabUI from "./MoleculeLabUI.js";
+import MoleculeBuilderView from "./MoleculeBuilderView.js";
 
 const DevConsole = {
 
@@ -134,6 +135,7 @@ const DevConsole = {
             MoleculeLabManager,
             MoleculeLab,
             MoleculeLabUI,
+            MoleculeBuilderView
             
         };
 
