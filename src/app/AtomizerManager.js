@@ -10,6 +10,12 @@ import SaveManager from "./SaveManager.js";
 import ResourceManager from "./ResourceManager.js";
 import SPManager from "./SPManager.js";
 
+function safeDisplayedCount(value) {
+    return Number.isFinite(Number(value))
+        ? Math.max(0, Math.floor(Number(value)))
+        : 0;
+}
+
 const AtomizerManager = {
     active: false,
     isSubscribed: false,
@@ -70,8 +76,15 @@ getStatus() {
     return this.state;
 },
 
-notifyStateChange() {
-    GameStateObserver.notify("atom-inventory-changed", this.state);
+notifyStateChange(reason = "state-changed", detail = {}) {
+    // Keep the historical top-level state shape expected by AtomizerUI while
+    // identifying the producer for other zone managers.
+    GameStateObserver.notify("atom-inventory-changed", {
+        ...this.state,
+        source: "atomizer",
+        reason,
+        ...detail
+    });
 },
 
 /**
@@ -103,23 +116,37 @@ getSkillPointData() {
 
         const now = Date.now();
         const elapsedSeconds = Math.min((now - (this.state.lastActiveTimestamp || now)) / 1000, 86400);
+        const changedSymbols = [];
 
         if (elapsedSeconds >= 5) {
             Object.keys(this.state.atoms).forEach(symbol => {
                 const atom = this.state.atoms[symbol];
                 if (atom.unlocked) {
+                    const previousDisplayedCount = safeDisplayedCount(atom.count);
                     const spBoost = (this.state.spAllocated?.[symbol] || 0) * 0.10;
                     const speedMult = 1 + (atom.boost || 0) + spBoost;
                     const effectiveInterval = Math.max(1, atom.baseRate / speedMult);
                     const generated = elapsedSeconds / effectiveInterval;
 
                     atom.count = Math.min(atom.cap, atom.count + generated);
+                    if (safeDisplayedCount(atom.count) !== previousDisplayedCount) {
+                        changedSymbols.push(symbol);
+                    }
                 }
             });
         }
 
         this.state.lastActiveTimestamp = now;
-        this.notifyStateChange();
+        if (changedSymbols.length > 0) {
+            changedSymbols.forEach(symbol => {
+                GameStateObserver.notify("atomizer-updated", {
+                    symbol,
+                    count: this.state.atoms[symbol].count,
+                    source: "offline-generation"
+                });
+            });
+            this.notifyStateChange("offline-generation", { changedSymbols });
+        }
     },
 
 /**
@@ -142,7 +169,7 @@ spendSkillPoint(symbol) {
     state.spAllocated[symbol] = (state.spAllocated[symbol] || 0) + 1;
 
     // 3. Notify zone observer & trigger SaveManager
-    this.notifyStateChange();
+    this.notifyStateChange("skill-point-spent", { symbol });
     if (typeof SaveManager !== "undefined" && SaveManager.save) {
         SaveManager.save();
     }
@@ -187,7 +214,7 @@ resetSkillPoints() {
     });
 
     // 6. Notify zone observer & save
-    this.notifyStateChange();
+    this.notifyStateChange("skill-points-reset");
     if (typeof SaveManager !== "undefined" && SaveManager.save) {
         SaveManager.save();
     }
@@ -220,6 +247,8 @@ resetSkillPoints() {
 tick(deltaSec) {
     if (!this.state || !this.state.atoms) return;
 
+    const changedSymbols = [];
+
     Object.entries(this.state.atoms).forEach(([symbol, atom]) => {
         if (!atom.unlocked) return;
 
@@ -231,22 +260,34 @@ tick(deltaSec) {
 
         if (atom.progress >= effectiveInterval) {
             const generated = Math.floor(atom.progress / effectiveInterval);
+            const previousDisplayedCount = safeDisplayedCount(atom.count);
             atom.count = Math.min(atom.cap, atom.count + generated);
             atom.progress %= effectiveInterval;
 
-            // Notify QuestManager/ObjectiveRegistry that atomizer counts updated:
-            GameStateObserver.notify("atomizer-updated", { symbol, count: atom.count });
+            // Counts are displayed and consumed as whole atoms. Only publish
+            // when that observable integer quantity changes. Progress still
+            // advances every tick, including while the Atomizer is off-screen.
+            if (safeDisplayedCount(atom.count) !== previousDisplayedCount) {
+                changedSymbols.push(symbol);
+                GameStateObserver.notify("atomizer-updated", {
+                    symbol,
+                    count: atom.count,
+                    source: "timed-generation"
+                });
+            }
         }
     });
 
-    this.notifyStateChange();
+    if (changedSymbols.length > 0) {
+        this.notifyStateChange("timed-generation", { changedSymbols });
+    }
 },
 
     unlockAtom(symbol) {
         this.ensureState();
         if (this.state.atoms[symbol] && !this.state.atoms[symbol].unlocked) {
             this.state.atoms[symbol].unlocked = true;
-            this.notifyStateChange();
+            this.notifyStateChange("atom-unlocked", { symbol });
             return true;
         }
         return false;
@@ -256,7 +297,7 @@ tick(deltaSec) {
         this.ensureState();
         if (this.state.atoms[symbol]) {
             this.state.atoms[symbol].boost = Math.max(0, boostPercent);
-            this.notifyStateChange();
+            this.notifyStateChange("boost-changed", { symbol });
         }
     }
 };

@@ -13,6 +13,7 @@ const MoleculeLabUI = {
     active: false,
     subscribed: false,
     renderFrameId: null,
+    forceBuilderOnNextRender: false,
     builderSignature: null,
     expandedPropertiesId: null,
     rootElement: null,
@@ -22,6 +23,8 @@ const MoleculeLabUI = {
     dispatchingZonePointerClick: false,
     dipoleSession: null,
     dipoleMeasurementTimerId: null,
+    waterInteractionSession: null,
+    waterInteractionTimerId: null,
 
     initialize() {
         if (this.initialized) return true;
@@ -42,6 +45,8 @@ const MoleculeLabUI = {
             onPlacementRequest: (moleculeId, slotIndex) =>
                 MoleculeLabManager.placeAtom(moleculeId, slotIndex),
             onAssemblyComplete: () => this.scheduleRender(),
+            onWaterProbePlaced: detail =>
+                this.handleWaterProbePlaced(detail),
             onFeedback: message => this.setFeedback(message)
         });
 
@@ -92,7 +97,7 @@ const MoleculeLabUI = {
         this.elements.header.className = "molecule-lab-header-panel";
         this.elements.header.innerHTML = `
             <div class="molecule-lab-title-group">
-                <p class="molecule-lab-eyebrow">Molecule Lab Â· Chemical Bonding Zone</p>
+                <p class="molecule-lab-eyebrow">Molecule Lab · Chemical Bonding Zone</p>
                 <h1 class="molecule-lab-title">Molecular Synthesis</h1>
             </div>
             <div class="molecule-lab-stats-group" aria-label="Molecule library statistics">
@@ -102,7 +107,7 @@ const MoleculeLabUI = {
                     <strong id="stat-synthesized-molecules">0</strong>
                 </div>
                 <div class="molecule-lab-stat-row">
-                    Properties investigated:
+                    Properties measured:
                     <strong id="stat-properties-investigated">0</strong>
                 </div>
             </div>`;
@@ -120,10 +125,10 @@ const MoleculeLabUI = {
                     <h2>Synthesis Chamber</h2>
                 </div>
                 <div class="molecule-builder-toolbar" aria-label="Builder view controls">
-                    <button type="button" data-builder-action="rotate-left" title="Rotate left">â†¶</button>
-                    <button type="button" data-builder-action="rotate-right" title="Rotate right">â†·</button>
-                    <button type="button" data-builder-action="zoom-in" title="Zoom in">ï¼‹</button>
-                    <button type="button" data-builder-action="zoom-out" title="Zoom out">âˆ’</button>
+                    <button type="button" data-builder-action="rotate-left" title="Rotate left">↶</button>
+                    <button type="button" data-builder-action="rotate-right" title="Rotate right">↷</button>
+                    <button type="button" data-builder-action="zoom-in" title="Zoom in">＋</button>
+                    <button type="button" data-builder-action="zoom-out" title="Zoom out">−</button>
                 </div>
             </div>
             <div id="molecule-lab-builder-viewport" class="molecule-lab-builder-viewport">
@@ -268,6 +273,18 @@ const MoleculeLabUI = {
             if (control.dataset.moleculeAction === "exit-dipole") {
                 this.endDipoleMeasurementSession();
             }
+
+            if (control.dataset.moleculeAction === "measure-water-interaction") {
+                this.beginWaterInteractionMeasurement();
+            }
+
+            if (control.dataset.moleculeAction === "measure-water-affinity") {
+                this.measureWaterInteraction();
+            }
+
+            if (control.dataset.moleculeAction === "exit-water-interaction") {
+                this.endWaterInteractionSession();
+            }
         }, true);
 
         this.renderReferencePanel();
@@ -362,7 +379,14 @@ const MoleculeLabUI = {
 
         this.dispatchingZonePointerClick = true;
         try {
-            button.click();
+            // Tree-card pointer gestures restore the normal builder directly.
+            // This avoids depending on a synthesized click reaching the
+            // delegated drawer listener through a frequently rebuilt tree.
+            if (button.dataset.moleculeId) {
+                this.activateTreeCard(button.dataset.moleculeId);
+            } else {
+                button.click();
+            }
         } finally {
             this.dispatchingZonePointerClick = false;
         }
@@ -423,6 +447,7 @@ const MoleculeLabUI = {
     deactivate() {
         this.active = false;
         this.endDipoleMeasurementSession(false);
+        this.endWaterInteractionSession(false);
         MoleculeBuilderView.deactivate();
         return true;
     },
@@ -437,11 +462,18 @@ const MoleculeLabUI = {
         ) {
             this.endDipoleMeasurementSession(false);
         }
+        if (
+            this.waterInteractionSession &&
+            this.waterInteractionSession.moleculeId !==
+                status.selectedMoleculeId
+        ) {
+            this.endWaterInteractionSession(false);
+        }
 
         this.rootElement.querySelector("#stat-synthesized-molecules")
             .textContent = String(status.synthesizedCount);
         this.rootElement.querySelector("#stat-properties-investigated")
-            .textContent = String(status.investigatedCount);
+            .textContent = String(status.measuredPropertiesCount);
 
         this.renderTabs(status);
         this.renderTree(status);
@@ -592,11 +624,13 @@ const MoleculeLabUI = {
 
 
     activateTreeCard(moleculeId) {
-        if (
-            this.dipoleSession &&
-            this.dipoleSession.moleculeId !== moleculeId
-        ) {
+        // Selecting any tech-tree card means "return to the normal builder,"
+        // including reselecting the molecule currently under measurement.
+        if (this.dipoleSession) {
             this.endDipoleMeasurementSession(false);
+        }
+        if (this.waterInteractionSession) {
+            this.endWaterInteractionSession(false);
         }
 
         const result =
@@ -610,7 +644,7 @@ const MoleculeLabUI = {
             this.builderSignature = null;
         }
 
-        this.scheduleRender();
+        this.scheduleRender(true);
     },
 
     renderInspector(status) {
@@ -622,22 +656,27 @@ const MoleculeLabUI = {
 
         const formula = Object.entries(node.definition.formula)
             .map(([symbol, count]) => `${symbol}${count > 1 ? count : ""}`)
-            .join(" ") || "â€”";
+            .join(" ") || "—";
         const inventoryRows = Object.entries(node.definition.formula)
             .map(([symbol, required]) => {
                 const owned = status.atomInventory[symbol]?.count ?? 0;
-                return `<li><span>${symbol}</span><strong>${owned} owned Â· ${required} total</strong></li>`;
+                return `<li><span>${symbol}</span><strong>${owned} owned · ${required} total</strong></li>`;
             }).join("");
 
         const isComplete = node.phase === "complete";
         const activeDipoleSession =
             this.dipoleSession?.moleculeId === node.id;
+        const activeWaterInteractionSession =
+            this.waterInteractionSession?.moleculeId === node.id;
+        const measuredPropertyCount =
+            Number(Boolean(node.dipoleMeasurement)) +
+            Number(Boolean(node.waterInteractionMeasurement));
         const dipoleRecordMarkup = node.dipoleMeasurement
             ? `
                 <div class="molecule-property-measurement measured">
                     <strong>Dipole Measured</strong>
                     <span>
-                        ${node.dipoleMeasurement.displayValue} D Â·
+                        ${node.dipoleMeasurement.displayValue} D ·
                         ${node.dipoleMeasurement.classification}
                     </span>
                     ${node.dipoleMeasurement.ionicProxy
@@ -648,9 +687,26 @@ const MoleculeLabUI = {
                 <div class="molecule-property-measurement unknown">
                     <strong>Dipole Unknown</strong>
                 </div>`;
+        const waterInteractionRecordMarkup = node.waterInteractionMeasurement
+            ? `
+                <div class="molecule-property-measurement measured">
+                    <strong>Water Interaction Measured</strong>
+                    <span>${node.waterInteractionMeasurement.conclusion}</span>
+                    <small>
+                        ${node.waterInteractionMeasurement.interactionLabel} ·
+                        Hydrophilic ${node.waterInteractionMeasurement.hydrophilicScore}/100 ·
+                        Hydrophobic ${node.waterInteractionMeasurement.hydrophobicScore}/100
+                    </small>
+                </div>`
+            : `
+                <div class="molecule-property-measurement unknown">
+                    <strong>Water Interaction Unknown</strong>
+                </div>`;
 
         const actionMarkup = isComplete && activeDipoleSession
             ? this.renderDipoleSessionMarkup(node)
+            : isComplete && activeWaterInteractionSession
+                ? this.renderWaterInteractionSessionMarkup(node)
             : isComplete
                 ? `
                 <div class="molecule-inspector-actions">
@@ -674,15 +730,29 @@ const MoleculeLabUI = {
                             ? "Measure Dipole Again"
                             : "Measure Dipole"}
                     </button>
-                    <button type="button" class="molecule-analysis-action">
-                        Measure Water Interaction
+                    <button
+                        type="button"
+                        class="molecule-analysis-action"
+                        data-molecule-action="measure-water-interaction"
+                        ${node.definition.waterInteractionModel ? "" : "disabled"}
+                        title="${node.definition.waterInteractionModel
+                            ? "Open the water-interaction activity"
+                            : "Water-interaction data is unavailable for this molecule"}"
+                    >
+                        ${node.waterInteractionMeasurement
+                            ? "Measure Water Interaction Again"
+                            : "Measure Water Interaction"}
                     </button>
                 </div>
                 <div id="molecule-property-notes" class="${
                     this.expandedPropertiesId === node.id ? "" : "hidden"
                 }">
+                    <div class="molecule-property-total">
+                        Measured properties: <strong>${measuredPropertyCount}/2</strong>
+                    </div>
                     ${node.definition.info}
                     ${dipoleRecordMarkup}
+                    ${waterInteractionRecordMarkup}
                 </div>`
                 : `
                 <div class="molecule-inspector-actions">
@@ -741,7 +811,7 @@ const MoleculeLabUI = {
                     type="button"
                     data-molecule-action="rotate-dipole"
                     ${session.rotating ? "disabled" : ""}
-                >${session.rotating ? "Rotating Slowlyâ€¦" : "Rotate Slowly"}</button>
+                >${session.rotating ? "Rotating Slowly…" : "Rotate Slowly"}</button>
                 <button
                     type="button"
                     data-molecule-action="pause-dipole"
@@ -750,7 +820,7 @@ const MoleculeLabUI = {
         } else if (session.stage === "measuring") {
             controls = `
                 <div class="molecule-dipole-measuring" role="status">
-                    Measuringâ€¦
+                    Measuring…
                 </div>`;
         } else if (session.stage === "result") {
             controls = `
@@ -769,7 +839,7 @@ const MoleculeLabUI = {
                 <h3>Measure Dipole</h3>
                 <p>
                     Position the molecule, if possible, with its desired
-                    orientation. Place the Î´+ end toward the negative plate.
+                    orientation. Place the δ+ end toward the negative plate.
                 </p>
                 <p class="molecule-dipole-status" role="status" aria-live="polite">
                     ${session.message}
@@ -782,6 +852,86 @@ const MoleculeLabUI = {
                         type="button"
                         class="molecule-dipole-exit"
                         data-molecule-action="exit-dipole"
+                    >Exit Measurement</button>`
+                    : ""}
+            </section>`;
+    },
+
+    renderWaterInteractionSessionMarkup(node) {
+        const session = this.waterInteractionSession;
+        const model = node.definition.waterInteractionModel;
+        if (!session || session.moleculeId !== node.id || !model) return "";
+
+        let controls = "";
+        if (session.stage === "interaction-ready") {
+            controls = `
+                <button
+                    type="button"
+                    data-molecule-action="measure-water-affinity"
+                >Measure Water Interaction</button>`;
+        } else if (session.stage === "measuring") {
+            controls = `
+                <div class="molecule-water-measuring" role="status">
+                    Measuring…
+                </div>`;
+        } else if (session.stage === "result") {
+            controls = `
+                <div class="molecule-water-result" role="status">
+                    <strong>${session.result.conclusion}</strong>
+                    <span>${session.result.interactionLabel}</span>
+                </div>
+                <button
+                    type="button"
+                    data-molecule-action="exit-water-interaction"
+                >Return to Molecular Properties</button>`;
+        }
+
+        return `
+            <section
+                class="molecule-water-activity"
+                aria-label="Water-interaction measurement"
+            >
+                <p class="molecule-lab-panel-kicker">Water probe experiment</p>
+                <h3>Measure Water Interaction</h3>
+                <div class="molecule-water-metrics ${
+                    session.stage === "measuring" ? "is-measuring" : ""
+                }" aria-label="Classroom water-affinity bars">
+                    <div class="molecule-water-metric hydrophobic">
+                        <span>Hydrophobic</span>
+                        <div
+                            class="molecule-water-bar"
+                            role="progressbar"
+                            aria-label="Hydrophobic classroom score"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                            aria-valuenow="${model.hydrophobicScore}"
+                        ><i style="width:${model.hydrophobicScore}%"></i></div>
+                    </div>
+                    <div class="molecule-water-metric hydrophilic">
+                        <span>Hydrophilic</span>
+                        <div
+                            class="molecule-water-bar"
+                            role="progressbar"
+                            aria-label="Hydrophilic classroom score"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                            aria-valuenow="${model.hydrophilicScore}"
+                        ><i style="width:${model.hydrophilicScore}%"></i></div>
+                    </div>
+                </div>
+                <p>Drag a water molecule in to see how it interacts.</p>
+                <p class="molecule-water-status" role="status" aria-live="polite">
+                    ${session.message}
+                </p>
+                <div class="molecule-water-controls">
+                    ${controls}
+                </div>
+                ${session.stage === "drag-water" ||
+                    session.stage === "interaction-ready"
+                    ? `<button
+                        type="button"
+                        class="molecule-water-exit"
+                        data-molecule-action="exit-water-interaction"
                     >Exit Measurement</button>`
                     : ""}
             </section>`;
@@ -811,6 +961,8 @@ const MoleculeLabUI = {
     beginDipoleMeasurement() {
         const node = MoleculeLabManager.getStatus().selectedNode;
         if (!node || node.phase !== "complete") return;
+
+        this.endWaterInteractionSession(false);
 
         if (!node.definition.dipoleModel) {
             this.setFeedback(
@@ -859,7 +1011,7 @@ const MoleculeLabUI = {
         MoleculeBuilderView.showDipolePartialCharges();
         this.dipoleSession.stage = "charges-shown";
         this.dipoleSession.message =
-            "Rotate slowly, then pause with Î´+ toward the negative plate if possible.";
+            "Rotate slowly, then pause with δ+ toward the negative plate if possible.";
         this.setFeedback(this.dipoleSession.message);
         this.renderInspector(MoleculeLabManager.getStatus());
     },
@@ -894,16 +1046,16 @@ const MoleculeLabUI = {
 
         if (orientation?.required && !orientation.aligned) {
             this.dipoleSession.message =
-                "The Î´+ end is not facing the negative plate. Rotate and pause again.";
+                "The δ+ end is not facing the negative plate. Rotate and pause again.";
             this.setFeedback(this.dipoleSession.message);
             this.renderInspector(MoleculeLabManager.getStatus());
             return;
         }
 
         this.dipoleSession.stage = "measuring";
-        this.dipoleSession.message = "Measuringâ€¦";
+        this.dipoleSession.message = "Measuring…";
         MoleculeBuilderView.setDipoleMeasurementFlash(true);
-        this.setFeedback("Measuring dipole momentâ€¦");
+        this.setFeedback("Measuring dipole moment…");
         this.renderInspector(MoleculeLabManager.getStatus());
 
         clearTimeout(this.dipoleMeasurementTimerId);
@@ -925,7 +1077,7 @@ const MoleculeLabUI = {
                 this.dipoleSession.stage = "result";
                 this.dipoleSession.result = result.measurement;
                 this.dipoleSession.message =
-                    `Dipole measured: ${result.measurement.displayValue} D â€” ` +
+                    `Dipole measured: ${result.measurement.displayValue} D — ` +
                     result.measurement.classification;
                 this.setFeedback(this.dipoleSession.message);
             }
@@ -935,10 +1087,115 @@ const MoleculeLabUI = {
     },
 
     endDipoleMeasurementSession(renderInspector = true) {
+        const hadSession = Boolean(this.dipoleSession);
         clearTimeout(this.dipoleMeasurementTimerId);
         this.dipoleMeasurementTimerId = null;
-        MoleculeBuilderView.endDipoleMeasurement();
+        if (hadSession) MoleculeBuilderView.endDipoleMeasurement();
         this.dipoleSession = null;
+
+        if (renderInspector && this.initialized) {
+            const status = MoleculeLabManager.getStatus();
+            this.renderInspector(status);
+            this.setFeedback(
+                `${status.selectedNode?.definition.name ?? "Molecule"} is available for inspection.`
+            );
+        }
+    },
+
+    beginWaterInteractionMeasurement() {
+        const node = MoleculeLabManager.getStatus().selectedNode;
+        if (!node || node.phase !== "complete") return;
+
+        this.endDipoleMeasurementSession(false);
+
+        if (!node.definition.waterInteractionModel) {
+            this.setFeedback(
+                "Water-interaction data is unavailable for this molecule."
+            );
+            return;
+        }
+
+        if (!MoleculeBuilderView.startWaterInteraction(node.definition)) {
+            this.setFeedback(
+                "The completed molecule is not ready in the modeling window."
+            );
+            return;
+        }
+
+        this.expandedPropertiesId = null;
+        this.waterInteractionSession = {
+            moleculeId: node.id,
+            stage: "drag-water",
+            message: "Drag the water molecule toward the fixed molecule.",
+            interactionLabel: null,
+            result: null
+        };
+        this.setFeedback(
+            "Drag a water molecule in to see how it interacts."
+        );
+        this.renderInspector(MoleculeLabManager.getStatus());
+    },
+
+    handleWaterProbePlaced(detail = {}) {
+        const session = this.waterInteractionSession;
+        if (!session || session.stage !== "drag-water") return;
+
+        session.stage = "interaction-ready";
+        session.interactionLabel = detail.interactionLabel;
+        session.message = ({
+            "hydrogen-bond":
+                "A dotted line marks the hydrogen-bonding interaction.",
+            "dipole-dipole": "Dipole interactions form.",
+            unfavorable: "Unfavorable interactions are observed."
+        })[detail.interactionType] ?? "The water probe is in position.";
+        this.setFeedback(session.message);
+        this.renderInspector(MoleculeLabManager.getStatus());
+    },
+
+    measureWaterInteraction() {
+        const session = this.waterInteractionSession;
+        if (!session || session.stage !== "interaction-ready") return;
+
+        session.stage = "measuring";
+        session.message = "Measuring…";
+        this.setFeedback("Measuring water interaction…");
+        this.renderInspector(MoleculeLabManager.getStatus());
+
+        clearTimeout(this.waterInteractionTimerId);
+        const moleculeId = session.moleculeId;
+        this.waterInteractionTimerId = setTimeout(() => {
+            if (
+                this.waterInteractionSession?.moleculeId !== moleculeId ||
+                this.waterInteractionSession.stage !== "measuring"
+            ) {
+                return;
+            }
+
+            const result = MoleculeLabManager
+                .recordWaterInteractionMeasurement(moleculeId);
+            if (!result.success) {
+                this.waterInteractionSession.stage = "interaction-ready";
+                this.waterInteractionSession.message = result.message;
+                this.setFeedback(result.message);
+            } else {
+                this.waterInteractionSession.stage = "result";
+                this.waterInteractionSession.result = result.measurement;
+                this.waterInteractionSession.message =
+                    `${result.measurement.conclusion} — ` +
+                    result.measurement.interactionLabel;
+                this.setFeedback(this.waterInteractionSession.message);
+            }
+
+            this.renderInspector(MoleculeLabManager.getStatus());
+        }, 1800);
+    },
+
+    endWaterInteractionSession(renderInspector = true) {
+        const hadSession = Boolean(this.waterInteractionSession);
+        clearTimeout(this.waterInteractionTimerId);
+        this.waterInteractionTimerId = null;
+        if (hadSession) MoleculeBuilderView.endWaterInteraction();
+        this.waterInteractionSession = null;
 
         if (renderInspector && this.initialized) {
             const status = MoleculeLabManager.getStatus();
@@ -959,7 +1216,11 @@ const MoleculeLabUI = {
         // A completed molecule renders inspection actions instead of this
         // button, so there is intentionally nothing to update here.
         if (!button) {
-            if (node.phase === "complete" && !this.dipoleSession) {
+            if (
+                node.phase === "complete" &&
+                !this.dipoleSession &&
+                !this.waterInteractionSession
+            ) {
                 this.setFeedback(
                     `${node.definition.name} is available for inspection.`
                 );
@@ -993,7 +1254,7 @@ const MoleculeLabUI = {
         if (!progress) return;
         const seconds = Math.ceil(progress.remainingMs / 1000);
         if (this.elements.startSynthesis) {
-            this.elements.startSynthesis.textContent = `Synthesizing Â· ${seconds}s`;
+            this.elements.startSynthesis.textContent = `Synthesizing · ${seconds}s`;
         }
         this.setFeedback(`Synthesis in progress: ${seconds} seconds remaining.`);
         const cardFill = this.rootElement.querySelector(
@@ -1005,6 +1266,8 @@ const MoleculeLabUI = {
     },
 
     syncBuilder(status, force = false) {
+        if (this.dipoleSession || this.waterInteractionSession) return;
+
         const node = status.selectedNode;
         if (!node || node.phase === "locked" || !node.definition.atoms.length) {
             if (force || this.builderSignature !== "empty") {
@@ -1046,11 +1309,14 @@ const MoleculeLabUI = {
         }
     },
 
-    scheduleRender() {
+    scheduleRender(forceBuilder = false) {
+        if (forceBuilder) this.forceBuilderOnNextRender = true;
         if (!this.active || this.renderFrameId) return;
         this.renderFrameId = requestAnimationFrame(() => {
             this.renderFrameId = null;
-            this.render();
+            const shouldForceBuilder = this.forceBuilderOnNextRender;
+            this.forceBuilderOnNextRender = false;
+            this.render(shouldForceBuilder);
         });
     },
 

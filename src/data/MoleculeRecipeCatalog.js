@@ -11,6 +11,8 @@ import { monosaccharideLibrary }
     from "./monosaccharideLibrary.js";
 import MoleculeDipoleCatalog
     from "./MoleculeDipoleCatalog.js";
+import MoleculeWaterInteractionCatalog
+    from "./MoleculeWaterInteractionCatalog.js";
 
 const STANDARD_STRUCTURES = {
     H2: {
@@ -203,6 +205,19 @@ function structureFor(id) {
 
 function createDefinition(id, metadata) {
     const structure = structureFor(id);
+    const formula = { ...(structure?.formula ?? {}) };
+    const atoms = (structure?.atoms ?? []).map(atom => ({
+        type: atom.type,
+        position: [...atom.position]
+    }));
+    const bonds = (structure?.bonds ?? []).map(bond => ({ ...bond }));
+    const dipoleModel = MoleculeDipoleCatalog.get(id);
+    const waterInteractionModel = MoleculeWaterInteractionCatalog.create(id, {
+        formula,
+        atoms,
+        bonds,
+        dipoleModel
+    });
 
     return Object.freeze({
         id,
@@ -219,12 +234,12 @@ function createDefinition(id, metadata) {
             Math.max(1, metadata.researchTime ?? 10) * 1000,
         description: metadata.desc ?? "",
         info: metadata.info ?? metadata.desc ?? "",
-        formula: Object.freeze({ ...(structure?.formula ?? {}) }),
+        formula: Object.freeze(formula),
         requiredDiscoveries: Object.freeze([
             ...(structure?.requiredDiscoveries ?? [])
         ]),
         atoms: Object.freeze(
-            (structure?.atoms ?? []).map(atom =>
+            atoms.map(atom =>
                 Object.freeze({
                     type: atom.type,
                     position: Object.freeze([...atom.position])
@@ -232,11 +247,12 @@ function createDefinition(id, metadata) {
             )
         ),
         bonds: Object.freeze(
-            (structure?.bonds ?? []).map(bond =>
+            bonds.map(bond =>
                 Object.freeze({ ...bond })
             )
         ),
-        dipoleModel: MoleculeDipoleCatalog.get(id),
+        dipoleModel,
+        waterInteractionModel,
         implemented:
             metadata.type === "link" ||
             Boolean(structure?.atoms?.length)

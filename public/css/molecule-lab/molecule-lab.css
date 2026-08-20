@@ -734,6 +734,156 @@
     }
 }
 
+.molecule-property-total {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding-bottom: 9px;
+    color: var(--mol-muted);
+    border-bottom: 1px solid var(--mol-border);
+}
+
+.molecule-property-total strong {
+    color: var(--mol-green);
+}
+
+.molecule-water-activity {
+    margin-top: 10px;
+    padding: 14px;
+    border: 1px solid rgba(56, 189, 248, 0.34);
+    border-radius: 9px;
+    background: rgba(14, 116, 144, 0.08);
+}
+
+.molecule-water-activity h3 {
+    margin: 5px 0 10px;
+    color: var(--mol-text);
+    font: 700 1rem "Oxanium", sans-serif;
+    text-transform: none;
+}
+
+.molecule-water-metrics {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding: 11px;
+    border: 1px solid var(--mol-border);
+    border-radius: 8px;
+    background: rgba(2, 8, 15, 0.62);
+}
+
+.molecule-water-metrics.is-measuring {
+    animation: molecule-water-meter-flash 360ms ease-in-out infinite alternate;
+}
+
+.molecule-water-metric {
+    display: grid;
+    grid-template-columns: 82px minmax(0, 1fr);
+    align-items: center;
+    gap: 9px;
+    color: #cbd5e1;
+    font: 700 0.68rem "Oxanium", sans-serif;
+}
+
+.molecule-water-bar {
+    position: relative;
+    height: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(148, 163, 184, 0.32);
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.1);
+}
+
+.molecule-water-bar i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    transition: width 300ms ease;
+}
+
+.molecule-water-metric.hydrophobic .molecule-water-bar i {
+    background: linear-gradient(90deg, #f59e0b, #fb7185);
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+}
+
+.molecule-water-metric.hydrophilic .molecule-water-bar i {
+    background: linear-gradient(90deg, #38bdf8, #22d3ee);
+    box-shadow: 0 0 10px rgba(34, 211, 238, 0.45);
+}
+
+.molecule-water-status {
+    min-height: 42px;
+    padding: 9px;
+    border-left: 3px solid #38bdf8;
+    background: rgba(56, 189, 248, 0.07);
+}
+
+.molecule-water-controls {
+    display: grid;
+    gap: 8px;
+}
+
+.molecule-water-controls button,
+.molecule-water-exit {
+    min-height: 38px;
+    padding: 8px 10px;
+    color: #001017;
+    border: 1px solid #38bdf8;
+    border-radius: 7px;
+    background: #38bdf8;
+    font-weight: 800;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.molecule-water-exit {
+    width: 100%;
+    margin-top: 8px;
+    color: var(--mol-muted);
+    border-color: var(--mol-border);
+    background: transparent;
+}
+
+.molecule-water-measuring,
+.molecule-water-result {
+    padding: 14px;
+    border: 1px solid #38bdf8;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.molecule-water-measuring {
+    color: #7dd3fc;
+    animation: molecule-dipole-flash 420ms ease-in-out infinite alternate;
+}
+
+.molecule-water-result {
+    display: grid;
+    gap: 5px;
+    color: var(--mol-green);
+    border-color: var(--mol-green);
+}
+
+.molecule-water-result strong {
+    font: 700 1.05rem "Oxanium", sans-serif;
+}
+
+@keyframes molecule-water-meter-flash {
+    from {
+        border-color: rgba(56, 189, 248, 0.35);
+        box-shadow: 0 0 0 rgba(56, 189, 248, 0);
+        transform: translateY(0);
+    }
+    to {
+        border-color: rgba(34, 211, 238, 0.95);
+        box-shadow:
+            0 0 18px rgba(56, 189, 248, 0.35),
+            inset 0 0 12px rgba(34, 211, 238, 0.12);
+        transform: translateY(-1px);
+    }
+}
+
 @media (max-width: 1180px) {
     .molecule-lab-workspace {
         grid-template-columns: minmax(280px, 0.8fr) minmax(420px, 1.2fr);
