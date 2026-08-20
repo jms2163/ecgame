@@ -1,0 +1,82 @@
+/* Header Outer Box */
+.molecule-lab-header-panel {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto 1.5rem auto;
+    padding: 1rem 1.5rem;
+    background-color: #000000;
+    border: 2px solid #00d2ff;
+    border-radius: 12px;
+    box-shadow: none;
+    box-sizing: border-box;
+}
+
+/* Left Section Container */
+.molecule-lab-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+/* Eyebrow Subtitle */
+.molecule-lab-eyebrow {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #00d2ff;
+}
+
+/* Title Row & H1 */
+.molecule-lab-title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.molecule-lab-title {
+    margin: 0;
+    color: var(--molecule-text, #f0f4f8);
+    font-family: "Oxanium", sans-serif;
+    font-size: clamp(32px, 4vw, 44px);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+/* Right Stats Display */
+.molecule-lab-stats-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+}
+
+/* Library Label above counters */
+.molecule-lab-library-title {
+    margin-bottom: 0.15rem;
+    font-family: "Oxanium", sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #00d2ff;
+}
+
+/* Stat Rows & Counter Typography */
+.molecule-lab-stat-row {
+    font-size: 0.875rem;
+    color: #8c96a5;
+}
+
+.molecule-lab-stat-row strong {
+    margin-left: 0.25rem;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #00d2ff;
+}
