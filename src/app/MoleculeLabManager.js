@@ -67,6 +67,9 @@ const MoleculeLabManager = {
         state.activeSynthesis ??= null;
         state.synthesized ??= {};
         state.investigated ??= {};
+        state.measurements ??= {};
+        state.measurements.dipole ??= {};
+        state.measurements.waterInteraction ??= {};
 
         if (!MoleculeRecipeCatalog.categories.some(
             category => category.id === state.activeCategory
@@ -209,6 +212,9 @@ const MoleculeLabManager = {
             missingDiscoveries,
             missingAtoms,
             canAffordRemaining: Object.keys(missingAtoms).length === 0,
+            dipoleMeasurement: cloneRecord(
+                state.measurements.dipole[moleculeId]
+            ),
             synthesis: activeSynthesis?.moleculeId === moleculeId
                 ? this.getActiveSynthesisProgress()
                 : null
@@ -463,11 +469,64 @@ const MoleculeLabManager = {
     recordInvestigation(moleculeId) {
         if (!MoleculeRecipeCatalog.has(moleculeId)) return false;
         const state = this.ensureState();
-        if (state.investigated[moleculeId]) return true;
-        state.investigated[moleculeId] = { investigatedAtMs: Date.now() };
+        state.investigated[moleculeId] ??= {};
+        state.investigated[moleculeId].investigatedAtMs ??= Date.now();
         SaveManager.save();
         this.notifyStateChange("molecule-investigated", { moleculeId });
         return true;
+    },
+
+    recordDipoleMeasurement(moleculeId, orientation = {}) {
+        const definition = MoleculeRecipeCatalog.get(moleculeId);
+        const model = definition?.dipoleModel;
+
+        if (!definition || !this.hasMoleculeDiscovery(moleculeId)) {
+            return {
+                success: false,
+                reason: "molecule-not-synthesized",
+                message: "Synthesize this molecule before measuring it."
+            };
+        }
+
+        if (!model || !Number.isFinite(model.momentDebye)) {
+            return {
+                success: false,
+                reason: "dipole-model-unavailable",
+                message: "Dipole data has not been calibrated for this molecule."
+            };
+        }
+
+        const measuredAtMs = Date.now();
+        const measurement = {
+            moleculeId,
+            momentDebye: model.momentDebye,
+            displayValue:
+                model.displayValue ?? model.momentDebye.toFixed(2),
+            classification: model.classification,
+            ionicProxy: Boolean(model.ionicProxy),
+            orientationRequired: Boolean(model.orientationRequired),
+            orientationAligned:
+                model.orientationRequired
+                    ? Boolean(orientation.aligned)
+                    : null,
+            measuredAtMs
+        };
+
+        const state = this.ensureState();
+        state.measurements.dipole[moleculeId] = measurement;
+        state.investigated[moleculeId] ??= {};
+        state.investigated[moleculeId].dipoleMeasuredAtMs = measuredAtMs;
+
+        SaveManager.save();
+        this.notifyStateChange("dipole-measured", {
+            moleculeId,
+            measurement: cloneRecord(measurement)
+        });
+
+        return {
+            success: true,
+            measurement: cloneRecord(measurement)
+        };
     },
 
     notifyStateChange(reason, detail = {}) {

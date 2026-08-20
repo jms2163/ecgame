@@ -296,7 +296,14 @@ atomizer: {
                 // Per-molecule completion and investigation
                 // records support library totals and review UI.
                 synthesized: {},
-                investigated: {}
+                investigated: {},
+
+                // Property measurements are stored separately
+                // from synthesis/discovery progress.
+                measurements: {
+                    dipole: {},
+                    waterInteraction: {}
+                }
             }
         },
 

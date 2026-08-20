@@ -23,6 +23,7 @@ const ELEMENT_COLORS = Object.freeze({
 const DRAG_PICK_RADIUS_PX = 34;
 const SNAP_AXIS_TOLERANCE = 1.25;
 const ROTATION_RADIANS_PER_SECOND = 0.36;
+const DIPOLE_ROTATION_RADIANS_PER_SECOND = 0.42;
 
 const MoleculeBuilderView = {
     initialized: false,
@@ -33,6 +34,8 @@ const MoleculeBuilderView = {
     camera: null,
     renderer: null,
     moleculeGroup: null,
+    analysisGroup: null,
+    atomMeshes: [],
     draggables: [],
     targetPoints: [],
     selected: null,
@@ -41,6 +44,9 @@ const MoleculeBuilderView = {
     dragPlane: new THREE.Plane(new THREE.Vector3(0, 0, 1), 0),
     animationFrameId: null,
     lastAnimationTimeMs: null,
+    analysisMode: null,
+    dipoleRotationActive: false,
+    dipoleMeasurementFlashActive: false,
     resizeObserver: null,
     currentDefinition: null,
     placedSlots: new Set(),
@@ -165,9 +171,27 @@ const MoleculeBuilderView = {
                 : Math.min(0.05, (timeMs - this.lastAnimationTimeMs) / 1000);
             this.lastAnimationTimeMs = timeMs;
 
-            if (this.moleculeGroup) {
+            if (
+                this.moleculeGroup &&
+                this.analysisMode === "dipole" &&
+                this.dipoleRotationActive
+            ) {
+                this.moleculeGroup.rotation.z -=
+                    DIPOLE_ROTATION_RADIANS_PER_SECOND * deltaSeconds;
+            } else if (this.moleculeGroup && !this.analysisMode) {
                 this.moleculeGroup.rotation.y +=
                     ROTATION_RADIANS_PER_SECOND * deltaSeconds;
+            }
+
+            if (this.analysisGroup) {
+                const flashOpacity = this.dipoleMeasurementFlashActive
+                    ? 0.58 + 0.32 * Math.abs(Math.sin(timeMs * 0.018))
+                    : 0.78;
+                this.analysisGroup.traverse(child => {
+                    if (child.userData?.dipolePlate && child.material) {
+                        child.material.opacity = flashOpacity;
+                    }
+                });
             }
 
             this.renderer.render(this.scene, this.camera);
@@ -184,6 +208,8 @@ const MoleculeBuilderView = {
     },
 
     clearScene() {
+        this.endDipoleMeasurement();
+
         if (this.moleculeGroup) {
             this.disposeObject(this.moleculeGroup);
             this.scene.remove(this.moleculeGroup);
@@ -195,6 +221,7 @@ const MoleculeBuilderView = {
         });
 
         this.moleculeGroup = null;
+        this.atomMeshes = [];
         this.draggables = [];
         this.targetPoints = [];
         this.selected = null;
@@ -325,10 +352,13 @@ const MoleculeBuilderView = {
         this.scene.add(this.moleculeGroup);
 
         const atoms = this.normalizeAtoms(definition.atoms);
-        atoms.forEach(atom => {
+        this.atomMeshes = [];
+        atoms.forEach((atom, atomIndex) => {
             const solid = this.createSolidAtom(atom.type, 0.42);
             solid.position.copy(atom.vector);
+            solid.userData.atomIndex = atomIndex;
             this.moleculeGroup.add(solid);
+            this.atomMeshes[atomIndex] = solid;
         });
         definition.bonds.forEach(bond => {
             const start = atoms[bond.a]?.vector;
@@ -400,6 +430,223 @@ const MoleculeBuilderView = {
         );
         mesh.userData.bondOrder = order ?? 1;
         return mesh;
+    },
+
+    createTextSprite(text, color, scale = 0.54) {
+        const canvas = document.createElement("canvas");
+        canvas.width = 192;
+        canvas.height = 192;
+        const context = canvas.getContext("2d");
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.fillStyle = color;
+        context.font = "700 96px Oxanium, Arial, sans-serif";
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+        context.fillText(text, canvas.width / 2, canvas.height / 2);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        const material = new THREE.SpriteMaterial({
+            map: texture,
+            transparent: true,
+            depthTest: false,
+            depthWrite: false
+        });
+        const sprite = new THREE.Sprite(material);
+        sprite.scale.set(scale, scale, 1);
+        sprite.renderOrder = 20;
+        return sprite;
+    },
+
+    createDipolePlateAssembly() {
+        const group = new THREE.Group();
+        const plateGeometry = new THREE.BoxGeometry(0.5, 5.35, 0.18);
+        const plateDefinitions = [
+            { x: -3.55, sign: "âˆ’", color: 0x38bdf8 },
+            { x: 3.55, sign: "+", color: 0xfb7185 }
+        ];
+
+        plateDefinitions.forEach(({ x, sign, color }) => {
+            const material = new THREE.MeshPhongMaterial({
+                color,
+                transparent: true,
+                opacity: 0.78,
+                emissive: color,
+                emissiveIntensity: 0.22
+            });
+            const plate = new THREE.Mesh(plateGeometry.clone(), material);
+            plate.position.set(x, 0, -0.45);
+            plate.userData.dipolePlate = true;
+            group.add(plate);
+
+            [-2, -1.2, -0.4, 0.4, 1.2, 2].forEach(y => {
+                const charge = this.createTextSprite(
+                    sign,
+                    sign === "âˆ’" ? "#e0f2fe" : "#ffe4e6",
+                    0.42
+                );
+                charge.position.set(x, y, 0.05);
+                charge.visible = false;
+                charge.userData.dipolePlateCharge = true;
+                group.add(charge);
+            });
+        });
+
+        plateGeometry.dispose();
+        return group;
+    },
+
+    startDipoleMeasurement(definition) {
+        if (
+            !this.initialized ||
+            !this.moleculeGroup ||
+            this.currentDefinition?.id !== definition?.id ||
+            !definition?.dipoleModel
+        ) {
+            return false;
+        }
+
+        this.endDipoleMeasurement();
+        this.analysisMode = "dipole";
+        this.dipoleRotationActive = false;
+        this.dipoleMeasurementFlashActive = false;
+
+        // Begin from a readable calibration plane. Rotation during the
+        // activity occurs around Z so the dipole direction crosses the
+        // left/right plate axis visibly.
+        this.moleculeGroup.rotation.set(0, 0, 0);
+        this.analysisGroup = this.createDipolePlateAssembly();
+        this.scene.add(this.analysisGroup);
+        this.camera.position.z = Math.max(this.camera.position.z, 9.5);
+        return true;
+    },
+
+    setDipolePlateChargesVisible(visible = true) {
+        if (this.analysisMode !== "dipole" || !this.analysisGroup) return false;
+        this.analysisGroup.traverse(child => {
+            if (child.userData?.dipolePlateCharge) {
+                child.visible = Boolean(visible);
+            }
+        });
+        return true;
+    },
+
+    showDipolePartialCharges() {
+        const model = this.currentDefinition?.dipoleModel;
+        if (this.analysisMode !== "dipole" || !model || !this.moleculeGroup) {
+            return false;
+        }
+
+        this.moleculeGroup.children
+            .filter(child => child.userData?.dipolePartialCharge)
+            .forEach(child => {
+                this.moleculeGroup.remove(child);
+                this.disposeObject(child);
+            });
+
+        const addLabels = (indexes, text, color) => {
+            indexes.forEach(atomIndex => {
+                const atom = this.atomMeshes[atomIndex];
+                if (!atom) return;
+                const label = this.createTextSprite(text, color, 0.58);
+                label.position.copy(atom.position);
+                label.position.y += 0.58;
+                label.position.z += 0.28;
+                label.userData.dipolePartialCharge = true;
+                label.userData.atomIndex = atomIndex;
+                this.moleculeGroup.add(label);
+            });
+        };
+
+        addLabels(model.negativeAtomIndexes, "Î´âˆ’", "#7dd3fc");
+        addLabels(model.positiveAtomIndexes, "Î´+", "#fda4af");
+        return true;
+    },
+
+    rotateDipoleSlowly() {
+        if (this.analysisMode !== "dipole") return false;
+        this.dipoleRotationActive = true;
+        return true;
+    },
+
+    averageAtomWorldPosition(indexes) {
+        if (!indexes?.length) return null;
+        const total = new THREE.Vector3();
+        const worldPosition = new THREE.Vector3();
+        let count = 0;
+
+        indexes.forEach(atomIndex => {
+            const atom = this.atomMeshes[atomIndex];
+            if (!atom) return;
+            atom.getWorldPosition(worldPosition);
+            total.add(worldPosition);
+            count += 1;
+        });
+
+        return count ? total.multiplyScalar(1 / count) : null;
+    },
+
+    getDipoleOrientationStatus() {
+        const model = this.currentDefinition?.dipoleModel;
+        if (!model) {
+            return { required: false, aligned: false, deltaX: 0 };
+        }
+
+        if (!model.orientationRequired) {
+            return { required: false, aligned: true, deltaX: 0 };
+        }
+
+        const negativeCenter = this.averageAtomWorldPosition(
+            model.negativeAtomIndexes
+        );
+        const positiveCenter = this.averageAtomWorldPosition(
+            model.positiveAtomIndexes
+        );
+        if (!negativeCenter || !positiveCenter) {
+            return { required: true, aligned: false, deltaX: 0 };
+        }
+
+        // The negative plate is on the left. Alignment is correct when the
+        // molecule's partial-positive center is left of its negative center.
+        const deltaX = negativeCenter.x - positiveCenter.x;
+        return {
+            required: true,
+            aligned: deltaX >= 0.18,
+            deltaX
+        };
+    },
+
+    pauseDipoleRotation() {
+        if (this.analysisMode !== "dipole") return null;
+        this.dipoleRotationActive = false;
+        return this.getDipoleOrientationStatus();
+    },
+
+    setDipoleMeasurementFlash(active) {
+        this.dipoleMeasurementFlashActive = Boolean(active);
+        return true;
+    },
+
+    endDipoleMeasurement() {
+        this.dipoleRotationActive = false;
+        this.dipoleMeasurementFlashActive = false;
+        this.analysisMode = null;
+
+        if (this.moleculeGroup) {
+            this.moleculeGroup.children
+                .filter(child => child.userData?.dipolePartialCharge)
+                .forEach(child => {
+                    this.moleculeGroup.remove(child);
+                    this.disposeObject(child);
+                });
+        }
+
+        if (this.analysisGroup) {
+            this.disposeObject(this.analysisGroup);
+            this.scene?.remove(this.analysisGroup);
+            this.analysisGroup = null;
+        }
+        return true;
     },
 
     updatePointer(event) {
@@ -579,8 +826,12 @@ const MoleculeBuilderView = {
         object.traverse?.(child => {
             child.geometry?.dispose?.();
             if (Array.isArray(child.material)) {
-                child.material.forEach(material => material.dispose?.());
+                child.material.forEach(material => {
+                    material.map?.dispose?.();
+                    material.dispose?.();
+                });
             } else {
+                child.material?.map?.dispose?.();
                 child.material?.dispose?.();
             }
         });
