@@ -277,7 +277,27 @@ atomizer: {
         moleculeLab: {
             unlocked: false,
             completed: false,
-            state: {}
+            state: {
+                // UI navigation is persisted so reloads return
+                // students to the same branch and molecule.
+                activeCategory: "molecules",
+                selectedMoleculeId: "H2",
+
+                // Assembly atoms are consumed only after a
+                // successful snap. placedSlots makes that work
+                // safely across saves and reloads.
+                assemblies: {},
+
+                // Only one synthesis chamber is available in
+                // this release. Completion is derived from the
+                // persisted wall-clock timestamps.
+                activeSynthesis: null,
+
+                // Per-molecule completion and investigation
+                // records support library totals and review UI.
+                synthesized: {},
+                investigated: {}
+            }
         },
 
         macromolecularizer: {

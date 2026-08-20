@@ -9,7 +9,7 @@ import GameStateObserver
     from "./GameStateObserver.js";
 import XPManager from "./XPManager.js";
 import { elementLibrary } from "../data/elementLibrary.js";
-import DiscoveryManager from "./DiscoveryManager.js";
+import SaveManager from "./SaveManager.js";
 
 
 const GameStateManager = {
@@ -113,6 +113,39 @@ const GameStateManager = {
         discoveries[id] // Fallback for legacy flat records
     );
 },
+
+    /**
+     * Category-specific discovery lookup. This avoids ID collisions
+     * such as H2 meaning Deuterium in isotopes and Hydrogen gas in
+     * molecules.
+     */
+    hasDiscoveryInCategory(category, id) {
+
+        if (
+            !["atoms", "isotopes", "molecules"].includes(category) ||
+            typeof id !== "string" ||
+            id.trim() === ""
+        ) {
+            return false;
+        }
+
+        return Boolean(
+            gameState.discoveries?.[category]?.[id]
+        );
+
+    },
+
+    getDiscoveryRecord(category, id) {
+
+        if (!this.hasDiscoveryInCategory(category, id)) {
+            return null;
+        }
+
+        return structuredClone(
+            gameState.discoveries[category][id]
+        );
+
+    },
 
     addDiscovery(discoveryId) {
 
@@ -609,16 +642,6 @@ syncAtomizerUnlocks() {
 
     },
 
-    /**
- * Returns the live, mutable state object for a zone.
- */
-getZoneState(zoneId) {
-    const zone = gameState.zones?.[zoneId];
-    if (!zone) return null;
-
-    return zone.state || zone;
-},
-
     // --------------------------------------------------
     // Quests, journal, and settings
     // --------------------------------------------------
@@ -665,9 +688,8 @@ unlockFeature(featureId) {
     }
 
     // 3. Save state updates
-    const saver = typeof SaveManager !== "undefined" ? SaveManager : window.SaveManager;
-    if (saver?.save) {
-        saver.save();
+    if (SaveManager?.save) {
+        SaveManager.save();
     }
 
     return true;
@@ -765,4 +787,3 @@ getParticleCountsForElement(symbol) {
 };
 
 export default GameStateManager;
-

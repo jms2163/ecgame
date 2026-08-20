@@ -1,18 +1,25 @@
 .molecule-lab-tabs-panel {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start; /* Flushes contents to the left edge */
+    justify-content: flex-start;
     gap: 1.25rem;
-    padding: 1rem 0.75rem;
+    padding: 1rem 0.5rem 1rem 0; /* Removes left padding for direct edge contact */
     background-color: #08090a;
     border-right: 1px solid rgba(255, 255, 255, 0.08);
     height: 100%;
+    width: 64px;
+    box-sizing: border-box;
+
+    /* Temporary Debug Outline */
+    border: 2px solid #00ff00 !important;
 }
 
 .molecule-lab-tab-btn {
     width: 52px;
     height: 52px;
-    border-radius: 14px;
+    margin-left: 0;
+    border-radius: 0 12px 12px 0; /* Flat on the left edge, rounded on the right */
     background-color: #121316;
     border: 2px solid transparent;
     color: #a0a5b1;
@@ -39,6 +46,7 @@
 .molecule-lab-tab-btn.active {
     background-color: #0b1e28;
     border-color: #00d8ff;
+    border-left: none; /* Blends cleanly into the left wall */
     color: #00d8ff;
-    box-shadow: 0 0 12px rgba(0, 216, 255, 0.25);
+    box-shadow: 4px 0 12px rgba(0, 216, 255, 0.25);
 }

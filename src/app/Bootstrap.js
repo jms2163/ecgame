@@ -17,9 +17,7 @@ import QuestDrawerUI from "./QuestDrawerUI.js";
 import QuantumAutoCollectorManager from "./QuantumAutoCollectorManager.js";
 import AtomizerManager from "./AtomizerManager.js";
 import AtomizerUI from "./AtomizerUI.js";
-import MoleculeLabUI from "./MoleculeLabUI.js"; // <-- ADDED
 import MoleculeLabManager from "./MoleculeLabManager.js";
-import MoleculeLab from "./MoleculeLab.js";
 
 
 const Bootstrap = {
@@ -48,8 +46,9 @@ const Bootstrap = {
         QuestDrawerUI.initialize();
         AtomizerManager.initialize();
         AtomizerUI.initialize();
+        // Domain initialization is global so timestamp-based
+        // synthesis can reconcile even before the zone is opened.
         MoleculeLabManager.initialize();
-        MoleculeLabUI.initialize(); // <-- ADDED
 
         const requestedZoneId =
             GameStateManager.getCurrentZoneId();

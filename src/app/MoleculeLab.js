@@ -1,56 +1,57 @@
 // --------------------------------------------------
 // MoleculeLab.js
-// Zone controller shell for Molecule Lab
+// Zone lifecycle controller for Molecule Lab.
 // --------------------------------------------------
 
-import MoleculeLabUI from "./MoleculeLabUI.js";
 import MoleculeLabManager from "./MoleculeLabManager.js";
+import MoleculeLabUI from "./MoleculeLabUI.js";
 
 const MoleculeLab = {
-
     initialized: false,
     active: false,
 
-    // --------------------------------------------------
-    // Initialize Molecule Lab
-    // --------------------------------------------------
     initialize() {
-        if (this.initialized) {
-            return true;
-        }
+        if (this.initialized) return true;
 
         MoleculeLabManager.initialize();
-        MoleculeLabUI.initialize();
 
-        console.log("MoleculeLab.initialize() called");
+        if (!MoleculeLabUI.initialize()) {
+            return false;
+        }
+
+        const root = document.getElementById("molecule-lab-zone");
+        if (root && !this.active) root.classList.add("hidden");
 
         this.initialized = true;
+        console.log("MoleculeLab.initialize() called");
         return true;
     },
 
-    // --------------------------------------------------
-    // Activate Molecule Lab
-    // --------------------------------------------------
     activate() {
-        if (this.active) {
-            console.log("MoleculeLab already active");
-            return;
+        if (!this.initialized && !this.initialize()) {
+            throw new Error("MoleculeLab could not initialize");
         }
+        if (this.active) return true;
 
         this.active = true;
+        MoleculeLabManager.activate();
+        MoleculeLabUI.activate();
         console.log("MoleculeLab.activate() called");
+        return true;
     },
 
-    // --------------------------------------------------
-    // Deactivate Molecule Lab
-    // --------------------------------------------------
     deactivate() {
-        if (!this.active) {
-            return;
-        }
+        if (!this.active) return true;
 
         this.active = false;
+        MoleculeLabUI.deactivate();
+        MoleculeLabManager.deactivate();
         console.log("MoleculeLab.deactivate() called");
+        return true;
+    },
+
+    showView() {
+        return false;
     }
 };
 

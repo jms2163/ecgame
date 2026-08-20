@@ -1,0 +1,67 @@
+.molecule-lab-reference-panel {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: rgba(15, 23, 42, 0.6);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.molecule-lab-reference-panel h2 {
+    margin: 0 0 1rem 0;
+    font-family: "Oxanium", sans-serif;
+    font-size: 1.25rem;
+    color: #00d2ff;
+}
+
+.molecule-lab-reference-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.molecule-lab-reference-card {
+    background: rgba(30, 41, 59, 0.8);
+    padding: 1rem;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.molecule-lab-reference-card h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #f0f4f8;
+}
+
+/* Formula Badge Component */
+.molecule-lab-formula-badge {
+    display: inline-block;
+    align-self: flex-start;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #00d2ff;
+    background: rgba(0, 210, 255, 0.1);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 210, 255, 0.25);
+}
+
+.molecule-lab-reference-card p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #8c96a5;
+    line-height: 1.4;
+}
+
+/* Example Image Placeholder */
+.molecule-lab-example-img {
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin-top: 0.25rem;
+    object-fit: contain;
+}
