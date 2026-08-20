@@ -9,6 +9,8 @@ import { techTreeData } from "./techTree.js";
 import { aminoAcids } from "./aminoAcids.js";
 import { monosaccharideLibrary }
     from "./monosaccharideLibrary.js";
+import MoleculeDipoleCatalog
+    from "./MoleculeDipoleCatalog.js";
 
 const STANDARD_STRUCTURES = {
     H2: {
@@ -234,6 +236,7 @@ function createDefinition(id, metadata) {
                 Object.freeze({ ...bond })
             )
         ),
+        dipoleModel: MoleculeDipoleCatalog.get(id),
         implemented:
             metadata.type === "link" ||
             Boolean(structure?.atoms?.length)

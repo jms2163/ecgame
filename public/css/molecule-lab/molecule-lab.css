@@ -588,6 +588,11 @@
     border-color: var(--mol-border);
 }
 
+.molecule-analysis-action:disabled {
+    opacity: 0.42;
+    cursor: not-allowed;
+}
+
 .molecule-analysis-action:hover,
 .molecule-analysis-action:focus-visible,
 #molecule-review-properties:hover,
@@ -605,6 +610,128 @@
     border-radius: 8px;
     font-size: 0.8rem;
     line-height: 1.55;
+}
+
+.molecule-property-measurement {
+    display: grid;
+    gap: 4px;
+    margin-top: 14px;
+    padding: 10px;
+    border: 1px solid var(--mol-border);
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.035);
+}
+
+.molecule-property-measurement.measured {
+    border-color: rgba(40, 230, 154, 0.55);
+}
+
+.molecule-property-measurement.measured strong {
+    color: var(--mol-green);
+}
+
+.molecule-property-measurement.unknown strong {
+    color: var(--mol-muted);
+}
+
+.molecule-property-measurement small {
+    color: var(--mol-amber);
+}
+
+.molecule-dipole-activity {
+    margin-top: 10px;
+    padding: 14px;
+    border: 1px solid rgba(0, 216, 255, 0.34);
+    border-radius: 9px;
+    background: rgba(0, 216, 255, 0.045);
+}
+
+.molecule-dipole-activity h3 {
+    margin: 5px 0 8px;
+    color: var(--mol-text);
+    font: 700 1rem "Oxanium", sans-serif;
+    text-transform: none;
+}
+
+.molecule-dipole-status {
+    min-height: 42px;
+    padding: 9px;
+    border-left: 3px solid var(--mol-cyan);
+    background: rgba(0, 216, 255, 0.06);
+}
+
+.molecule-dipole-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.molecule-dipole-controls > :only-child {
+    grid-column: 1 / -1;
+}
+
+.molecule-dipole-controls button,
+.molecule-dipole-exit {
+    min-height: 38px;
+    padding: 8px 10px;
+    color: #001017;
+    border: 1px solid var(--mol-cyan);
+    border-radius: 7px;
+    background: var(--mol-cyan);
+    font-weight: 800;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.molecule-dipole-controls button:disabled {
+    color: #80909e;
+    border-color: rgba(128, 144, 158, 0.22);
+    background: rgba(128, 144, 158, 0.1);
+    cursor: not-allowed;
+}
+
+.molecule-dipole-exit {
+    width: 100%;
+    margin-top: 8px;
+    color: var(--mol-muted);
+    border-color: var(--mol-border);
+    background: transparent;
+}
+
+.molecule-dipole-measuring,
+.molecule-dipole-result {
+    grid-column: 1 / -1;
+    padding: 14px;
+    border: 1px solid var(--mol-cyan);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.molecule-dipole-measuring {
+    color: var(--mol-cyan);
+    animation: molecule-dipole-flash 420ms ease-in-out infinite alternate;
+}
+
+.molecule-dipole-result {
+    display: grid;
+    gap: 5px;
+    color: var(--mol-green);
+    border-color: var(--mol-green);
+}
+
+.molecule-dipole-result strong {
+    font: 700 1.2rem "Oxanium", sans-serif;
+}
+
+@keyframes molecule-dipole-flash {
+    from {
+        background: rgba(0, 216, 255, 0.04);
+        box-shadow: 0 0 0 rgba(0, 216, 255, 0);
+    }
+    to {
+        background: rgba(0, 216, 255, 0.16);
+        box-shadow: 0 0 18px rgba(0, 216, 255, 0.28);
+    }
 }
 
 @media (max-width: 1180px) {

@@ -20,6 +20,8 @@ const MoleculeLabUI = {
     zoneButtonPointerGesture: null,
     lastZoneButtonActivation: null,
     dispatchingZonePointerClick: false,
+    dipoleSession: null,
+    dipoleMeasurementTimerId: null,
 
     initialize() {
         if (this.initialized) return true;
@@ -90,7 +92,7 @@ const MoleculeLabUI = {
         this.elements.header.className = "molecule-lab-header-panel";
         this.elements.header.innerHTML = `
             <div class="molecule-lab-title-group">
-                <p class="molecule-lab-eyebrow">Molecule Lab · Chemical Bonding Zone</p>
+                <p class="molecule-lab-eyebrow">Molecule Lab Â· Chemical Bonding Zone</p>
                 <h1 class="molecule-lab-title">Molecular Synthesis</h1>
             </div>
             <div class="molecule-lab-stats-group" aria-label="Molecule library statistics">
@@ -118,10 +120,10 @@ const MoleculeLabUI = {
                     <h2>Synthesis Chamber</h2>
                 </div>
                 <div class="molecule-builder-toolbar" aria-label="Builder view controls">
-                    <button type="button" data-builder-action="rotate-left" title="Rotate left">↶</button>
-                    <button type="button" data-builder-action="rotate-right" title="Rotate right">↷</button>
-                    <button type="button" data-builder-action="zoom-in" title="Zoom in">＋</button>
-                    <button type="button" data-builder-action="zoom-out" title="Zoom out">−</button>
+                    <button type="button" data-builder-action="rotate-left" title="Rotate left">â†¶</button>
+                    <button type="button" data-builder-action="rotate-right" title="Rotate right">â†·</button>
+                    <button type="button" data-builder-action="zoom-in" title="Zoom in">ï¼‹</button>
+                    <button type="button" data-builder-action="zoom-out" title="Zoom out">âˆ’</button>
                 </div>
             </div>
             <div id="molecule-lab-builder-viewport" class="molecule-lab-builder-viewport">
@@ -241,6 +243,30 @@ const MoleculeLabUI = {
 
             if (control.dataset.moleculeAction === "review-properties") {
                 this.reviewSelectedProperties();
+            }
+
+            if (control.dataset.moleculeAction === "measure-dipole") {
+                this.beginDipoleMeasurement();
+            }
+
+            if (control.dataset.moleculeAction === "charge-dipole-plates") {
+                this.chargeDipolePlates();
+            }
+
+            if (control.dataset.moleculeAction === "show-partial-charges") {
+                this.showDipolePartialCharges();
+            }
+
+            if (control.dataset.moleculeAction === "rotate-dipole") {
+                this.rotateDipoleSlowly();
+            }
+
+            if (control.dataset.moleculeAction === "pause-dipole") {
+                this.pauseAndMeasureDipole();
+            }
+
+            if (control.dataset.moleculeAction === "exit-dipole") {
+                this.endDipoleMeasurementSession();
             }
         }, true);
 
@@ -396,6 +422,7 @@ const MoleculeLabUI = {
 
     deactivate() {
         this.active = false;
+        this.endDipoleMeasurementSession(false);
         MoleculeBuilderView.deactivate();
         return true;
     },
@@ -403,6 +430,13 @@ const MoleculeLabUI = {
     render(forceBuilder = false) {
         if (!this.initialized) return false;
         const status = MoleculeLabManager.getStatus();
+
+        if (
+            this.dipoleSession &&
+            this.dipoleSession.moleculeId !== status.selectedMoleculeId
+        ) {
+            this.endDipoleMeasurementSession(false);
+        }
 
         this.rootElement.querySelector("#stat-synthesized-molecules")
             .textContent = String(status.synthesizedCount);
@@ -558,6 +592,13 @@ const MoleculeLabUI = {
 
 
     activateTreeCard(moleculeId) {
+        if (
+            this.dipoleSession &&
+            this.dipoleSession.moleculeId !== moleculeId
+        ) {
+            this.endDipoleMeasurementSession(false);
+        }
+
         const result =
             MoleculeLabManager.selectMolecule(moleculeId);
 
@@ -581,16 +622,37 @@ const MoleculeLabUI = {
 
         const formula = Object.entries(node.definition.formula)
             .map(([symbol, count]) => `${symbol}${count > 1 ? count : ""}`)
-            .join(" ") || "—";
+            .join(" ") || "â€”";
         const inventoryRows = Object.entries(node.definition.formula)
             .map(([symbol, required]) => {
                 const owned = status.atomInventory[symbol]?.count ?? 0;
-                return `<li><span>${symbol}</span><strong>${owned} owned · ${required} total</strong></li>`;
+                return `<li><span>${symbol}</span><strong>${owned} owned Â· ${required} total</strong></li>`;
             }).join("");
 
         const isComplete = node.phase === "complete";
-        const actionMarkup = isComplete
+        const activeDipoleSession =
+            this.dipoleSession?.moleculeId === node.id;
+        const dipoleRecordMarkup = node.dipoleMeasurement
             ? `
+                <div class="molecule-property-measurement measured">
+                    <strong>Dipole Measured</strong>
+                    <span>
+                        ${node.dipoleMeasurement.displayValue} D Â·
+                        ${node.dipoleMeasurement.classification}
+                    </span>
+                    ${node.dipoleMeasurement.ionicProxy
+                        ? "<small>Educational ionic-range reading</small>"
+                        : ""}
+                </div>`
+            : `
+                <div class="molecule-property-measurement unknown">
+                    <strong>Dipole Unknown</strong>
+                </div>`;
+
+        const actionMarkup = isComplete && activeDipoleSession
+            ? this.renderDipoleSessionMarkup(node)
+            : isComplete
+                ? `
                 <div class="molecule-inspector-actions">
                     <button
                         type="button"
@@ -599,8 +661,18 @@ const MoleculeLabUI = {
                     >
                         Review Molecular Properties
                     </button>
-                    <button type="button" class="molecule-analysis-action">
-                        Measure Dipole
+                    <button
+                        type="button"
+                        class="molecule-analysis-action"
+                        data-molecule-action="measure-dipole"
+                        ${node.definition.dipoleModel ? "" : "disabled"}
+                        title="${node.definition.dipoleModel
+                            ? "Open the electric-plate dipole activity"
+                            : "Dipole data has not been calibrated for this molecule"}"
+                    >
+                        ${node.dipoleMeasurement
+                            ? "Measure Dipole Again"
+                            : "Measure Dipole"}
                     </button>
                     <button type="button" class="molecule-analysis-action">
                         Measure Water Interaction
@@ -610,8 +682,9 @@ const MoleculeLabUI = {
                     this.expandedPropertiesId === node.id ? "" : "hidden"
                 }">
                     ${node.definition.info}
+                    ${dipoleRecordMarkup}
                 </div>`
-            : `
+                : `
                 <div class="molecule-inspector-actions">
                     <button
                         type="button"
@@ -645,6 +718,75 @@ const MoleculeLabUI = {
         );
     },
 
+    renderDipoleSessionMarkup(node) {
+        const session = this.dipoleSession;
+        if (!session || session.moleculeId !== node.id) return "";
+
+        let controls = "";
+        if (session.stage === "setup") {
+            controls = `
+                <button
+                    type="button"
+                    data-molecule-action="charge-dipole-plates"
+                >Charge Up the Plates</button>`;
+        } else if (session.stage === "plates-charged") {
+            controls = `
+                <button
+                    type="button"
+                    data-molecule-action="show-partial-charges"
+                >Show Partial Charges</button>`;
+        } else if (session.stage === "charges-shown") {
+            controls = `
+                <button
+                    type="button"
+                    data-molecule-action="rotate-dipole"
+                    ${session.rotating ? "disabled" : ""}
+                >${session.rotating ? "Rotating Slowlyâ€¦" : "Rotate Slowly"}</button>
+                <button
+                    type="button"
+                    data-molecule-action="pause-dipole"
+                    ${session.rotating ? "" : "disabled"}
+                >Pause</button>`;
+        } else if (session.stage === "measuring") {
+            controls = `
+                <div class="molecule-dipole-measuring" role="status">
+                    Measuringâ€¦
+                </div>`;
+        } else if (session.stage === "result") {
+            controls = `
+                <div class="molecule-dipole-result" role="status">
+                    <strong>${session.result.displayValue} D</strong>
+                    <span>${session.result.classification}</span>
+                </div>
+                <button type="button" data-molecule-action="exit-dipole">
+                    Return to Molecular Properties
+                </button>`;
+        }
+
+        return `
+            <section class="molecule-dipole-activity" aria-label="Dipole measurement">
+                <p class="molecule-lab-panel-kicker">Electric plate experiment</p>
+                <h3>Measure Dipole</h3>
+                <p>
+                    Position the molecule, if possible, with its desired
+                    orientation. Place the Î´+ end toward the negative plate.
+                </p>
+                <p class="molecule-dipole-status" role="status" aria-live="polite">
+                    ${session.message}
+                </p>
+                <div class="molecule-dipole-controls">
+                    ${controls}
+                </div>
+                ${session.stage !== "measuring" && session.stage !== "result"
+                    ? `<button
+                        type="button"
+                        class="molecule-dipole-exit"
+                        data-molecule-action="exit-dipole"
+                    >Exit Measurement</button>`
+                    : ""}
+            </section>`;
+    },
+
     startSelectedSynthesis() {
         const moleculeId = MoleculeLabManager.getStatus().selectedMoleculeId;
         const result = MoleculeLabManager.startSynthesis(moleculeId);
@@ -666,6 +808,147 @@ const MoleculeLabUI = {
         MoleculeLabManager.recordInvestigation(node.id);
     },
 
+    beginDipoleMeasurement() {
+        const node = MoleculeLabManager.getStatus().selectedNode;
+        if (!node || node.phase !== "complete") return;
+
+        if (!node.definition.dipoleModel) {
+            this.setFeedback(
+                "Dipole data has not been calibrated for this molecule."
+            );
+            return;
+        }
+
+        if (!MoleculeBuilderView.startDipoleMeasurement(node.definition)) {
+            this.setFeedback(
+                "The completed molecule is not ready in the modeling window."
+            );
+            return;
+        }
+
+        this.expandedPropertiesId = null;
+        this.dipoleSession = {
+            moleculeId: node.id,
+            stage: "setup",
+            rotating: false,
+            message: "Charge the plates to create an electric field.",
+            result: null
+        };
+        this.setFeedback("Dipole experiment ready. Charge up the plates.");
+        this.renderInspector(MoleculeLabManager.getStatus());
+    },
+
+    chargeDipolePlates() {
+        if (!this.dipoleSession || this.dipoleSession.stage !== "setup") return;
+        MoleculeBuilderView.setDipolePlateChargesVisible(true);
+        this.dipoleSession.stage = "plates-charged";
+        this.dipoleSession.message =
+            "The left plate is negative and the right plate is positive.";
+        this.setFeedback(this.dipoleSession.message);
+        this.renderInspector(MoleculeLabManager.getStatus());
+    },
+
+    showDipolePartialCharges() {
+        if (
+            !this.dipoleSession ||
+            this.dipoleSession.stage !== "plates-charged"
+        ) {
+            return;
+        }
+
+        MoleculeBuilderView.showDipolePartialCharges();
+        this.dipoleSession.stage = "charges-shown";
+        this.dipoleSession.message =
+            "Rotate slowly, then pause with Î´+ toward the negative plate if possible.";
+        this.setFeedback(this.dipoleSession.message);
+        this.renderInspector(MoleculeLabManager.getStatus());
+    },
+
+    rotateDipoleSlowly() {
+        if (
+            !this.dipoleSession ||
+            this.dipoleSession.stage !== "charges-shown"
+        ) {
+            return;
+        }
+
+        MoleculeBuilderView.rotateDipoleSlowly();
+        this.dipoleSession.rotating = true;
+        this.dipoleSession.message =
+            "The molecule is rotating. Pause at the desired orientation.";
+        this.setFeedback(this.dipoleSession.message);
+        this.renderInspector(MoleculeLabManager.getStatus());
+    },
+
+    pauseAndMeasureDipole() {
+        if (
+            !this.dipoleSession ||
+            this.dipoleSession.stage !== "charges-shown" ||
+            !this.dipoleSession.rotating
+        ) {
+            return;
+        }
+
+        const orientation = MoleculeBuilderView.pauseDipoleRotation();
+        this.dipoleSession.rotating = false;
+
+        if (orientation?.required && !orientation.aligned) {
+            this.dipoleSession.message =
+                "The Î´+ end is not facing the negative plate. Rotate and pause again.";
+            this.setFeedback(this.dipoleSession.message);
+            this.renderInspector(MoleculeLabManager.getStatus());
+            return;
+        }
+
+        this.dipoleSession.stage = "measuring";
+        this.dipoleSession.message = "Measuringâ€¦";
+        MoleculeBuilderView.setDipoleMeasurementFlash(true);
+        this.setFeedback("Measuring dipole momentâ€¦");
+        this.renderInspector(MoleculeLabManager.getStatus());
+
+        clearTimeout(this.dipoleMeasurementTimerId);
+        const moleculeId = this.dipoleSession.moleculeId;
+        this.dipoleMeasurementTimerId = setTimeout(() => {
+            if (this.dipoleSession?.moleculeId !== moleculeId) return;
+
+            MoleculeBuilderView.setDipoleMeasurementFlash(false);
+            const result = MoleculeLabManager.recordDipoleMeasurement(
+                moleculeId,
+                orientation
+            );
+
+            if (!result.success) {
+                this.dipoleSession.stage = "charges-shown";
+                this.dipoleSession.message = result.message;
+                this.setFeedback(result.message);
+            } else {
+                this.dipoleSession.stage = "result";
+                this.dipoleSession.result = result.measurement;
+                this.dipoleSession.message =
+                    `Dipole measured: ${result.measurement.displayValue} D â€” ` +
+                    result.measurement.classification;
+                this.setFeedback(this.dipoleSession.message);
+            }
+
+            this.renderInspector(MoleculeLabManager.getStatus());
+        }, 1800);
+    },
+
+    endDipoleMeasurementSession(renderInspector = true) {
+        clearTimeout(this.dipoleMeasurementTimerId);
+        this.dipoleMeasurementTimerId = null;
+        MoleculeBuilderView.endDipoleMeasurement();
+        this.dipoleSession = null;
+
+        if (renderInspector && this.initialized) {
+            const status = MoleculeLabManager.getStatus();
+            this.renderInspector(status);
+            this.setFeedback(
+                `${status.selectedNode?.definition.name ?? "Molecule"} is available for inspection.`
+            );
+        }
+    },
+
     renderSynthesisControls(status) {
         const node = status.selectedNode;
         const button = this.elements.startSynthesis;
@@ -676,7 +959,7 @@ const MoleculeLabUI = {
         // A completed molecule renders inspection actions instead of this
         // button, so there is intentionally nothing to update here.
         if (!button) {
-            if (node.phase === "complete") {
+            if (node.phase === "complete" && !this.dipoleSession) {
                 this.setFeedback(
                     `${node.definition.name} is available for inspection.`
                 );
@@ -710,7 +993,7 @@ const MoleculeLabUI = {
         if (!progress) return;
         const seconds = Math.ceil(progress.remainingMs / 1000);
         if (this.elements.startSynthesis) {
-            this.elements.startSynthesis.textContent = `Synthesizing · ${seconds}s`;
+            this.elements.startSynthesis.textContent = `Synthesizing Â· ${seconds}s`;
         }
         this.setFeedback(`Synthesis in progress: ${seconds} seconds remaining.`);
         const cardFill = this.rootElement.querySelector(
