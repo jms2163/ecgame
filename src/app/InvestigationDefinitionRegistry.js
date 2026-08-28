@@ -27,6 +27,57 @@ const InvestigationDefinitionRegistry = {
             );
         }
 
+        if (
+            !Array.isArray(
+                definition?.trait?.phenotypes
+            ) ||
+            definition.trait.phenotypes.length < 2
+        ) {
+            errors.push(
+                "Investigation definition requires at least two trait phenotypes."
+            );
+        }
+
+        if (
+            !Number.isInteger(
+                definition?.population
+                    ?.carryingCapacity
+            ) ||
+            definition.population
+                .carryingCapacity <= 0
+        ) {
+            errors.push(
+                "Investigation population requires a positive carryingCapacity."
+            );
+        }
+
+        if (
+            definition?.selectivePressure
+                ?.strategyId ===
+                "student_visual_predation" &&
+            (
+                !Number.isInteger(
+                    definition?.population
+                        ?.successfulCapturesPerGeneration
+                ) ||
+                definition.population
+                    .successfulCapturesPerGeneration <= 0
+            )
+        ) {
+            errors.push(
+                "Visual-predation investigations require a positive successfulCapturesPerGeneration."
+            );
+        }
+
+        if (
+            !definition?.population
+                ?.reproductionStrategy
+        ) {
+            errors.push(
+                "Investigation population requires a reproductionStrategy."
+            );
+        }
+
         if (!Array.isArray(definition?.parameters)) {
             errors.push(
                 "Investigation definition requires a parameters array."
