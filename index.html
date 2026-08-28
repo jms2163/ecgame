@@ -67,21 +67,21 @@
                     id="btn-pond-grid"
                     class="pond-zoom-tab active"
                     data-level="0">
-                    🌐 Microbiome
+                    &#127760; Microbiome
                 </button>
 
                 <button
                     id="btn-cell"
                     class="pond-zoom-tab"
                     data-level="1">
-                    🦠 Cell View
+                    &#129440; Cell View
                 </button>
 
                 <button
                     id="btn-organelle"
                     class="pond-zoom-tab"
                     data-level="2">
-                    🔬 Organelle Lab
+                    &#128300; Organelle Lab
                 </button>
 
                 <button
@@ -89,7 +89,7 @@
                     class="pond-zoom-tab"
                     data-activity-id="natural-selection"
                     aria-pressed="false">
-                    🧬 Natural Selection
+                    &#129516; Natural Selection
                 </button>
 
             </nav>
@@ -682,10 +682,19 @@
                             Investigation Setup
                         </h2>
 
-                        <p>
-                            Background, starting phenotype frequency,
-                            and generation choices will appear here.
+                        <p class="natural-selection-panel-introduction">
+                            Choose the conditions for this investigation.
+                            The recommended settings support the primary
+                            class comparison.
                         </p>
+
+                        <form id="natural-selection-setup-form">
+
+                            <div
+                                id="natural-selection-parameter-fields">
+                            </div>
+
+                        </form>
 
                     </section>
 
@@ -697,9 +706,27 @@
                             Predation Study
                         </h2>
 
-                        <p>
-                            The Dileptus-like predator and amoeba
-                            population will be added in a later milestone.
+                        <p class="natural-selection-panel-introduction">
+                            Review the selected conditions before the
+                            population model is added.
+                        </p>
+
+                        <div
+                            id="natural-selection-setup-preview"
+                            aria-live="polite">
+                        </div>
+
+                        <button
+                            id="btn-begin-natural-selection"
+                            class="natural-selection-primary-action"
+                            type="button"
+                            disabled>
+                            Begin Investigation
+                        </button>
+
+                        <p class="natural-selection-future-note">
+                            Population generation and predation begin in
+                            the next milestone.
                         </p>
 
                     </section>
@@ -713,8 +740,10 @@
                         </h2>
 
                         <p>
-                            Generation data, graph, and scientific-method
-                            responses will appear here.
+                            No attempt has started. Generation data,
+                            graph, and scientific-method responses will
+                            appear here after the population engine is
+                            connected.
                         </p>
 
                     </aside>

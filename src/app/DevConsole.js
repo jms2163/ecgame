@@ -81,6 +81,7 @@ import MoleculeLab from "./MoleculeLab.js";
 import MoleculeLabUI from "./MoleculeLabUI.js";
 import MoleculeBuilderView from "./MoleculeBuilderView.js";
 
+
 const DevConsole = {
 
     initialize() {
