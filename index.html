@@ -707,14 +707,21 @@
                         </h2>
 
                         <p class="natural-selection-panel-introduction">
-                            Review the selected conditions before the
-                            population model is added.
+                            Review the selected conditions, then lock the
+                            Generation 0 population for this attempt.
                         </p>
 
                         <div
                             id="natural-selection-setup-preview"
                             aria-live="polite">
                         </div>
+
+                        <section
+                            id="natural-selection-session-status"
+                            class="natural-selection-session-status"
+                            aria-live="polite"
+                            hidden>
+                        </section>
 
                         <button
                             id="btn-begin-natural-selection"
@@ -724,9 +731,16 @@
                             Begin Investigation
                         </button>
 
+                        <button
+                            id="btn-restart-natural-selection"
+                            class="natural-selection-secondary-action"
+                            type="button"
+                            hidden>
+                            Restart Setup
+                        </button>
+
                         <p class="natural-selection-future-note">
-                            Population generation and predation begin in
-                            the next milestone.
+                            Visual predation controls arrive in Milestone 4.
                         </p>
 
                     </section>
@@ -739,11 +753,11 @@
                             Investigation Record
                         </h2>
 
-                        <p>
-                            No attempt has started. Generation data,
-                            graph, and scientific-method responses will
-                            appear here after the population engine is
-                            connected.
+                        <p
+                            id="natural-selection-record-status"
+                            aria-live="polite">
+                            No attempt has started. Choose a complete
+                            setup, then begin the investigation.
                         </p>
 
                     </aside>

@@ -18,6 +18,9 @@ const NaturalSelectionSetupPanel = {
     selection: null,
     fieldsElement: null,
     previewElement: null,
+    locked: false,
+    selectionChangedCallbacks:
+        new Set(),
 
     initialize() {
 
@@ -91,6 +94,7 @@ const NaturalSelectionSetupPanel = {
         ] = input.value;
 
         this.renderPreview();
+        this.notifySelectionChanged();
 
     },
 
@@ -179,6 +183,7 @@ const NaturalSelectionSetupPanel = {
             this.selection[
                 parameter.id
             ] === option.id;
+        input.disabled = this.locked;
 
         const copy =
             document.createElement(
@@ -297,6 +302,28 @@ const NaturalSelectionSetupPanel = {
             modelVersion:
                 this.definition.modelVersion,
 
+            selectivePressure: {
+                ...this.definition
+                    .selectivePressure
+            },
+
+            trait: {
+                id:
+                    this.definition.trait.id,
+                label:
+                    this.definition.trait.label,
+                phenotypes:
+                    structuredClone(
+                        this.definition.trait
+                            .phenotypes
+                    ),
+                inheritance:
+                    structuredClone(
+                        this.definition.trait
+                            .inheritance
+                    )
+            },
+
             parameters: {
                 background:
                     background.id,
@@ -310,6 +337,20 @@ const NaturalSelectionSetupPanel = {
                 carryingCapacity:
                     this.definition.population
                         .carryingCapacity,
+                phenotypeOrder:
+                    this.definition.trait
+                        .phenotypes.map(
+                            phenotype =>
+                                phenotype.id
+                        ),
+                phenotypeCounts: {
+                    pigmented:
+                        startingFrequency
+                            .pigmentedCount,
+                    non_pigmented:
+                        startingFrequency
+                            .nonPigmentedCount
+                },
                 pigmentedCount:
                     startingFrequency
                         .pigmentedCount,
@@ -318,7 +359,10 @@ const NaturalSelectionSetupPanel = {
                         .nonPigmentedCount,
                 successfulCapturesPerGeneration:
                     this.definition.population
-                        .successfulCapturesPerGeneration
+                        .successfulCapturesPerGeneration,
+                reproductionStrategy:
+                    this.definition.population
+                        .reproductionStrategy
             },
 
             visualCalibration: {
@@ -414,6 +458,64 @@ const NaturalSelectionSetupPanel = {
         this.previewElement.append(
             list
         );
+
+    },
+
+    subscribeToSelectionChanges(
+        callback
+    ) {
+
+        if (typeof callback !== "function") {
+            throw new TypeError(
+                "Selection-change subscriber must be a function."
+            );
+        }
+
+        this.selectionChangedCallbacks.add(
+            callback
+        );
+
+        return () => {
+            this.selectionChangedCallbacks
+                .delete(callback);
+        };
+
+    },
+
+    notifySelectionChanged() {
+
+        const snapshot =
+            this.getSetupSnapshot();
+
+        this.selectionChangedCallbacks
+            .forEach(
+                callback => {
+                    callback(snapshot);
+                }
+            );
+
+    },
+
+    setLocked(locked) {
+
+        const nextLocked =
+            Boolean(locked);
+
+        if (this.locked === nextLocked) {
+            return;
+        }
+
+        this.locked = nextLocked;
+
+        if (this.initialized) {
+            this.renderParameterFields();
+        }
+
+    },
+
+    isLocked() {
+
+        return this.locked;
 
     }
 

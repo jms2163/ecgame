@@ -7,6 +7,8 @@ import NaturalSelectionSetupPanel
     from "./NaturalSelectionSetupPanel.js";
 import NaturalSelectionPrototypeConfig
     from "./NaturalSelectionPrototypeConfig.js";
+import NaturalSelectionSessionPanel
+    from "./NaturalSelectionSessionPanel.js";
 
 const NaturalSelectionView = {
 
@@ -51,6 +53,15 @@ const NaturalSelectionView = {
             return;
         }
 
+        if (
+            !NaturalSelectionSessionPanel
+                .initialize()
+        ) {
+            return;
+        }
+
+        // Temporary prototype diagnostics only. Keep the
+        // population/session engine module-private.
         globalThis.ECGame ??= {};
         globalThis.ECGame.NaturalSelection ??= {};
 
@@ -96,6 +107,7 @@ const NaturalSelectionView = {
         this.active = true;
 
         NaturalSelectionSetupPanel.render();
+        NaturalSelectionSessionPanel.render();
 
         console.log(
             "NaturalSelectionView.activate() called"
@@ -133,4 +145,3 @@ const NaturalSelectionView = {
 };
 
 export default NaturalSelectionView;
-i
