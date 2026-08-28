@@ -3,6 +3,11 @@
 // Pond activity shell for selection investigations
 // --------------------------------------------------
 
+import NaturalSelectionSetupPanel
+    from "./NaturalSelectionSetupPanel.js";
+import NaturalSelectionPrototypeConfig
+    from "./NaturalSelectionPrototypeConfig.js";
+
 const NaturalSelectionView = {
 
     active: false,
@@ -39,6 +44,29 @@ const NaturalSelectionView = {
             "display"
         );
 
+        if (
+            !NaturalSelectionSetupPanel
+                .initialize()
+        ) {
+            return;
+        }
+
+        globalThis.ECGame ??= {};
+        globalThis.ECGame.NaturalSelection ??= {};
+
+        globalThis.ECGame.NaturalSelection
+            .prototypeConfig =
+                NaturalSelectionPrototypeConfig;
+
+        globalThis.ECGame.NaturalSelection
+            .getSetupSnapshot =
+                () => this.getSetupSnapshot();
+
+        globalThis.ECGame.NaturalSelection
+            .refreshSetup =
+                () => NaturalSelectionSetupPanel
+                    .render();
+
         this.initialized = true;
 
         console.log(
@@ -67,9 +95,21 @@ const NaturalSelectionView = {
 
         this.active = true;
 
+        NaturalSelectionSetupPanel.render();
+
         console.log(
             "NaturalSelectionView.activate() called"
         );
+
+    },
+
+    // --------------------------------------------------
+    // Read the currently selected investigation setup
+    // --------------------------------------------------
+    getSetupSnapshot() {
+
+        return NaturalSelectionSetupPanel
+            .getSetupSnapshot();
 
     },
 
@@ -93,3 +133,4 @@ const NaturalSelectionView = {
 };
 
 export default NaturalSelectionView;
+i
