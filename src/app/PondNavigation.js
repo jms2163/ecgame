@@ -1,12 +1,17 @@
 // --------------------------------------------------
 // PondNavigation.js
-// Controls navigation between Pond semantic views
+// Controls navigation between Pond semantic views and activities
 // --------------------------------------------------
 
 import PondGridView from "./PondGridView.js";
 import CellView from "./CellView.js";
 import OrganelleView from "./OrganelleView.js";
+import NaturalSelectionView
+    from "./NaturalSelectionView.js";
 import GameStateManager from "./GameStateManager.js";
+
+const NATURAL_SELECTION_ACTIVITY_ID =
+    "natural-selection";
 
 const PondNavigation = {
 
@@ -37,7 +42,7 @@ const PondNavigation = {
     },
 
     // --------------------------------------------------
-    // Bind semantic zoom buttons
+    // Bind Pond navigation buttons
     // --------------------------------------------------
     bindButtons() {
 
@@ -77,6 +82,28 @@ const PondNavigation = {
                     }
                 );
 
+            }
+        );
+
+        const naturalSelectionButton =
+            document.getElementById(
+                "btn-natural-selection"
+            );
+
+        if (!naturalSelectionButton) {
+            console.warn(
+                "PondNavigation: Natural Selection button not found"
+            );
+
+            return;
+        }
+
+        naturalSelectionButton.addEventListener(
+            "click",
+            () => {
+                this.showActivity(
+                    NATURAL_SELECTION_ACTIVITY_ID
+                );
             }
         );
 
@@ -126,31 +153,29 @@ const PondNavigation = {
 
             case 1:
 
-                case 1:
+                nextView = CellView;
 
-    nextView = CellView;
+                options = {
+                    ...options,
 
-    options = {
-        ...options,
+                    onFeatureSelected: feature => {
 
-        onFeatureSelected: feature => {
+                        if (!feature?.labFocusId) {
+                            console.warn(
+                                "PondNavigation: selected Cell Map feature has no lab focus ID"
+                            );
 
-            if (!feature?.labFocusId) {
-                console.warn(
-                    "PondNavigation: selected Cell Map feature has no lab focus ID"
-                );
+                            return;
+                        }
 
-                return;
-            }
+                        this.showOrganelle(
+                            feature.labFocusId
+                        );
 
-            this.showOrganelle(
-                feature.labFocusId
-            );
+                    }
+                };
 
-        }
-    };
-
-    break;
+                break;
 
             case 2:
 
@@ -214,9 +239,51 @@ const PondNavigation = {
     },
 
     // --------------------------------------------------
+    // Show one named Pond activity
+    // --------------------------------------------------
+    showActivity(activityId) {
+
+        if (
+            activityId !==
+            NATURAL_SELECTION_ACTIVITY_ID
+        ) {
+            console.warn(
+                `PondNavigation: unknown activity "${activityId}"`
+            );
+
+            return false;
+        }
+
+        if (this.currentView) {
+            this.currentView.deactivate();
+        }
+
+        this.updateVisibleLayer(
+            NATURAL_SELECTION_ACTIVITY_ID
+        );
+
+        NaturalSelectionView.initialize();
+        NaturalSelectionView.activate();
+
+        this.updateButtons(
+            NATURAL_SELECTION_ACTIVITY_ID
+        );
+
+        this.currentView =
+            NaturalSelectionView;
+
+        console.log(
+            "PondNavigation: Natural Selection activity is now active"
+        );
+
+        return true;
+
+    },
+
+    // --------------------------------------------------
     // Synchronize breadcrumb button state
     // --------------------------------------------------
-    updateButtons(activeLevel) {
+    updateButtons(activeRoute) {
 
         const buttons = {
             0: document.getElementById(
@@ -229,22 +296,33 @@ const PondNavigation = {
 
             2: document.getElementById(
                 "btn-organelle"
-            )
+            ),
+
+            [NATURAL_SELECTION_ACTIVITY_ID]:
+                document.getElementById(
+                    "btn-natural-selection"
+                )
         };
 
         Object.entries(buttons).forEach(
-            ([level, button]) => {
+            ([route, button]) => {
 
                 if (!button) {
                     return;
                 }
 
                 const isActive =
-                    Number(level) === activeLevel;
+                    String(route) ===
+                    String(activeRoute);
 
                 button.classList.toggle(
                     "active",
                     isActive
+                );
+
+                button.setAttribute(
+                    "aria-pressed",
+                    String(isActive)
                 );
 
             }
@@ -253,18 +331,20 @@ const PondNavigation = {
     },
 
     // --------------------------------------------------
-    // Show one Pond semantic-view layer
+    // Show one Pond view or activity layer
     // --------------------------------------------------
-    updateVisibleLayer(activeLevel) {
+    updateVisibleLayer(activeRoute) {
 
         const viewLayers = {
             0: "pond-grid-view",
             1: "cell-view",
-            2: "organelle-view"
+            2: "organelle-view",
+            [NATURAL_SELECTION_ACTIVITY_ID]:
+                "natural-selection-view"
         };
 
         Object.entries(viewLayers).forEach(
-            ([level, layerId]) => {
+            ([route, layerId]) => {
 
                 const layer =
                     document.getElementById(
@@ -280,7 +360,8 @@ const PondNavigation = {
                 }
 
                 const isActive =
-                    Number(level) === activeLevel;
+                    String(route) ===
+                    String(activeRoute);
 
                 layer.classList.toggle(
                     "hidden",
