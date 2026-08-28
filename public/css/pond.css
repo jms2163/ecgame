@@ -426,6 +426,76 @@
 }
 
 /* --------------------------------------------------
+   Natural Selection investigation shell
+   -------------------------------------------------- */
+
+#natural-selection-view {
+    min-height: 640px;
+    box-sizing: border-box;
+    padding: 24px;
+    color: #f7efff;
+}
+
+.natural-selection-header {
+    margin-bottom: 20px;
+}
+
+.natural-selection-eyebrow {
+    margin: 0 0 6px;
+    color: #79e6c4;
+    font-family: monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.natural-selection-summary {
+    max-width: 760px;
+    margin: 8px 0 0;
+    color: #c9b3e6;
+    line-height: 1.6;
+}
+
+#natural-selection-workspace {
+    display: grid;
+    grid-template-columns: 260px minmax(420px, 1fr) 280px;
+    gap: 18px;
+    align-items: stretch;
+}
+
+.natural-selection-panel {
+    min-height: 360px;
+    box-sizing: border-box;
+    padding: 18px;
+    background: #0f041c;
+    border: 2px solid #310d54;
+    border-radius: 8px;
+    box-shadow: 0 0 14px rgba(114, 77, 166, 0.16);
+}
+
+.natural-selection-panel h2 {
+    margin: 0 0 12px;
+    color: #f7efff;
+    font-size: 18px;
+}
+
+.natural-selection-panel p {
+    margin: 0;
+    color: #c9b3e6;
+    line-height: 1.6;
+}
+
+.natural-selection-stage {
+    border-color: #724da6;
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(69, 19, 125, 0.2),
+            #0f041c 68%
+        );
+}
+
+/* --------------------------------------------------
    Amoeba visual placeholder
    -------------------------------------------------- */
 
@@ -932,4 +1002,3 @@
     color: #cdbfd8;
     text-align: center;
 }
-
