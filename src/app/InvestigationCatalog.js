@@ -176,6 +176,8 @@ const InvestigationCatalog = {
                 "startingPigmentedFrequency",
                 "finalGeneration",
                 "visualCalibrationProfileId",
+                "pigmentationLevel",
+                "brownBackgroundLevel",
                 "interactionMode"
             ]
         },

@@ -200,6 +200,23 @@ const createInvestigationSessionManager = ({
 } = {}) => {
 
     let activeSession = null;
+    let startedSessionCount = 0;
+    let restartCount = 0;
+    const subscribers = new Set();
+
+    const notifySubscribers = () => {
+
+        subscribers.forEach(
+            callback => {
+                callback(
+                    activeSession
+                        ? clone(activeSession)
+                        : null
+                );
+            }
+        );
+
+    };
 
     const requireActiveSession = () => {
 
@@ -355,6 +372,8 @@ const createInvestigationSessionManager = ({
                     setup
                 );
 
+            startedSessionCount += 1;
+
             activeSession = {
                 sessionId:
                     sessionIdFactory(),
@@ -366,6 +385,10 @@ const createInvestigationSessionManager = ({
                     setup.definitionVersion,
                 modelVersion:
                     setup.modelVersion,
+                attemptNumber:
+                    startedSessionCount,
+                priorRestartCount:
+                    restartCount,
                 status: "running",
                 phase:
                     "selection_interaction",
@@ -389,7 +412,12 @@ const createInvestigationSessionManager = ({
                 ]
             };
 
-            return this.getSnapshot();
+            const snapshot =
+                this.getSnapshot();
+
+            notifySubscribers();
+
+            return snapshot;
 
         },
 
@@ -529,7 +557,12 @@ const createInvestigationSessionManager = ({
                 });
             }
 
-            return this.getSnapshot();
+            const snapshot =
+                this.getSnapshot();
+
+            notifySubscribers();
+
+            return snapshot;
 
         },
 
@@ -552,11 +585,16 @@ const createInvestigationSessionManager = ({
             events = null
         }) {
 
-            return completeSelectionPhase({
-                survivorPopulation,
-                outcomeSummary,
-                events
-            });
+            const snapshot =
+                completeSelectionPhase({
+                    survivorPopulation,
+                    outcomeSummary,
+                    events
+                });
+
+            notifySubscribers();
+
+            return snapshot;
 
         },
 
@@ -636,7 +674,12 @@ const createInvestigationSessionManager = ({
                     "selection_interaction";
             }
 
-            return this.getSnapshot();
+            const snapshot =
+                this.getSnapshot();
+
+            notifySubscribers();
+
+            return snapshot;
 
         },
 
@@ -654,9 +697,30 @@ const createInvestigationSessionManager = ({
 
         },
 
+        subscribe(callback) {
+
+            if (typeof callback !== "function") {
+                throw new TypeError(
+                    "Session subscriber must be a function."
+                );
+            }
+
+            subscribers.add(callback);
+
+            return () => {
+                subscribers.delete(callback);
+            };
+
+        },
+
         resetSession() {
 
+            if (activeSession) {
+                restartCount += 1;
+            }
+
             activeSession = null;
+            notifySubscribers();
 
         }
 

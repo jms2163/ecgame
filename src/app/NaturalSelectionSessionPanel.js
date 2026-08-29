@@ -1,6 +1,6 @@
 // --------------------------------------------------
 // NaturalSelectionSessionPanel.js
-// Setup-to-session handoff for the Pond investigation
+// Setup, generation, and survivor-review controls
 // --------------------------------------------------
 
 import InvestigationSessionManager
@@ -8,11 +8,26 @@ import InvestigationSessionManager
 import NaturalSelectionSetupPanel
     from "./NaturalSelectionSetupPanel.js";
 
+const getPopulationTotal = population =>
+    population.phenotypeOrder.reduce(
+        (
+            total,
+            phenotypeId
+        ) =>
+            total +
+            population.phenotypeCounts[
+                phenotypeId
+            ],
+        0
+    );
+
 const NaturalSelectionSessionPanel = {
 
     initialized: false,
     beginButton: null,
+    advanceButton: null,
     restartButton: null,
+    setupPreviewElement: null,
     sessionStatusElement: null,
     recordStatusElement: null,
 
@@ -27,9 +42,19 @@ const NaturalSelectionSessionPanel = {
                 "btn-begin-natural-selection"
             );
 
+        this.advanceButton =
+            document.getElementById(
+                "btn-advance-natural-selection"
+            );
+
         this.restartButton =
             document.getElementById(
                 "btn-restart-natural-selection"
+            );
+
+        this.setupPreviewElement =
+            document.getElementById(
+                "natural-selection-setup-preview"
             );
 
         this.sessionStatusElement =
@@ -44,7 +69,9 @@ const NaturalSelectionSessionPanel = {
 
         if (
             !this.beginButton ||
+            !this.advanceButton ||
             !this.restartButton ||
+            !this.setupPreviewElement ||
             !this.sessionStatusElement ||
             !this.recordStatusElement
         ) {
@@ -62,6 +89,13 @@ const NaturalSelectionSessionPanel = {
             }
         );
 
+        this.advanceButton.addEventListener(
+            "click",
+            () => {
+                this.advanceGeneration();
+            }
+        );
+
         this.restartButton.addEventListener(
             "click",
             () => {
@@ -71,6 +105,13 @@ const NaturalSelectionSessionPanel = {
 
         NaturalSelectionSetupPanel
             .subscribeToSelectionChanges(
+                () => {
+                    this.render();
+                }
+            );
+
+        InvestigationSessionManager
+            .subscribe(
                 () => {
                     this.render();
                 }
@@ -99,10 +140,25 @@ const NaturalSelectionSessionPanel = {
         InvestigationSessionManager
             .startSession(setup);
 
-        NaturalSelectionSetupPanel
-            .setLocked(true);
+        return true;
 
-        this.render();
+    },
+
+    advanceGeneration() {
+
+        const session =
+            InvestigationSessionManager
+                .getSnapshot();
+
+        if (
+            session?.phase !==
+            "survivor_review"
+        ) {
+            return false;
+        }
+
+        InvestigationSessionManager
+            .advanceGeneration();
 
         return true;
 
@@ -112,11 +168,6 @@ const NaturalSelectionSessionPanel = {
 
         InvestigationSessionManager
             .resetSession();
-
-        NaturalSelectionSetupPanel
-            .setLocked(false);
-
-        this.render();
 
     },
 
@@ -140,9 +191,11 @@ const NaturalSelectionSessionPanel = {
 
             this.beginButton.disabled =
                 setup === null;
-
             this.beginButton.hidden = false;
+            this.advanceButton.hidden = true;
             this.restartButton.hidden = true;
+            this.setupPreviewElement.hidden =
+                false;
             this.sessionStatusElement.hidden =
                 true;
 
@@ -158,15 +211,34 @@ const NaturalSelectionSessionPanel = {
         this.beginButton.disabled = true;
         this.beginButton.hidden = true;
         this.restartButton.hidden = false;
+        this.setupPreviewElement.hidden = true;
         this.sessionStatusElement.hidden =
             false;
+
+        const canAdvance =
+            session.phase ===
+            "survivor_review";
+
+        this.advanceButton.hidden =
+            !canAdvance;
+
+        if (canAdvance) {
+            const nextGeneration =
+                session.currentGeneration + 1;
+
+            this.advanceButton.textContent =
+                nextGeneration ===
+                session.finalGeneration
+                    ? "Reproduce Final Generation"
+                    : `Reproduce Generation ${nextGeneration}`;
+        }
 
         this.renderSessionStatus(
             session
         );
-
-        this.recordStatusElement.textContent =
-            "Generation 0 has been recorded. Capture data will appear here when visual predation is added in Milestone 4.";
+        this.renderRecordStatus(
+            session
+        );
 
         return true;
 
@@ -174,31 +246,68 @@ const NaturalSelectionSessionPanel = {
 
     renderSessionStatus(session) {
 
-        const counts =
-            session.currentPopulation
-                .phenotypeCounts;
+        const generationRecord =
+            session.generationRecords
+                .at(-1);
+        const metrics =
+            generationRecord.selection
+                ?.strategyMetrics;
+
+        let headingText;
+        let stateText;
+        let populationText;
+
+        if (
+            session.phase ===
+            "selection_interaction"
+        ) {
+            headingText =
+                `Generation ${session.currentGeneration} hunt`;
+            stateText =
+                "Hunting in progress";
+            populationText =
+                `${getPopulationTotal(session.currentPopulation)} amoebas remain`;
+        } else if (
+            session.phase ===
+            "survivor_review"
+        ) {
+            headingText =
+                `Generation ${session.currentGeneration} survivors`;
+            stateText =
+                "Ready for reproduction";
+            populationText =
+                `${session.currentPopulation.phenotypeCounts.pigmented} pigmented / ${session.currentPopulation.phenotypeCounts.non_pigmented} non-pigmented`;
+        } else {
+            headingText =
+                `Generation ${session.finalGeneration} final population`;
+            stateText =
+                "Population run complete";
+            populationText =
+                `${session.currentPopulation.phenotypeCounts.pigmented} pigmented / ${session.currentPopulation.phenotypeCounts.non_pigmented} non-pigmented`;
+        }
 
         const rows = [
             [
                 "Session state",
-                "Ready for predation"
-            ],
-            [
-                "Current generation",
-                String(
-                    session.currentGeneration
-                )
+                stateText
             ],
             [
                 "Population",
-                `${counts.pigmented} pigmented / ${counts.non_pigmented} non-pigmented`
+                populationText
             ],
             [
-                "Successful captures required",
-                String(
-                    session.setup.population
-                        .successfulCapturesPerGeneration
-                )
+                "Successful captures",
+                metrics
+                    ? `${metrics.successfulCaptures} of ${generationRecord.selection.targetSuccessfulOutcomes}`
+                    : "Complete"
+            ],
+            [
+                "Capture attempts",
+                metrics
+                    ? String(
+                        metrics.captureAttempts
+                    )
+                    : "—"
             ],
             [
                 "Final observation",
@@ -212,7 +321,7 @@ const NaturalSelectionSessionPanel = {
             );
 
         heading.textContent =
-            "Generation 0 population locked";
+            headingText;
 
         const list =
             document.createElement(
@@ -251,6 +360,50 @@ const NaturalSelectionSessionPanel = {
                 heading,
                 list
             );
+
+    },
+
+    renderRecordStatus(session) {
+
+        const generationRecord =
+            session.generationRecords
+                .at(-1);
+
+        if (
+            session.phase ===
+            "selection_interaction"
+        ) {
+            this.recordStatusElement.textContent =
+                `Generation ${session.currentGeneration} is in progress. Phenotype-specific results remain hidden until all required captures are complete.`;
+
+            return;
+        }
+
+        if (
+            session.phase ===
+            "survivor_review"
+        ) {
+            const captured =
+                generationRecord.selection
+                    .strategyMetrics
+                    .capturedByPhenotype;
+
+            this.recordStatusElement.textContent =
+                `Generation ${session.currentGeneration}: captured ${captured.pigmented} pigmented and ${captured.non_pigmented} non-pigmented. Record the survivor counts, then reproduce.`;
+
+            return;
+        }
+
+        const initial =
+            session.generationRecords[0]
+                .startPopulation
+                .phenotypeCounts;
+        const finalCounts =
+            session.currentPopulation
+                .phenotypeCounts;
+
+        this.recordStatusElement.textContent =
+            `Population run complete. Generation 0 began with ${initial.pigmented} pigmented and ${initial.non_pigmented} non-pigmented; Generation ${session.finalGeneration} has ${finalCounts.pigmented} pigmented and ${finalCounts.non_pigmented} non-pigmented. The data table and graph are added in Milestone 5.`;
 
     }
 

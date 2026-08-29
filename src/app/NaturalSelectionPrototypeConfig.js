@@ -17,7 +17,7 @@ const NaturalSelectionPrototypeConfig = {
         "natural-selection-pigmentation",
 
     definitionVersion:
-        "0.3.0",
+        "0.4.0",
 
     modelVersion:
         "pigmentation-selection-v1",
@@ -27,7 +27,28 @@ const NaturalSelectionPrototypeConfig = {
             "camouflage-contrast-v1",
 
         pigmentationLevel: 70,
-        brownBackgroundLevel: 65
+        brownBackgroundLevel: 65,
+
+        pigmentColor: "#7a4b2c",
+        whiteBackgroundColor: "#f3efe6",
+        brownBackgroundLightColor: "#d7c19c",
+        brownBackgroundDarkColor: "#6c452d"
+    },
+
+    visualPredation: {
+        amoebaSpritePath:
+            "./public/assets/pond/amoeba/amoeba-trophozoite-stationary.png",
+
+        fieldWidth: 720,
+        fieldHeight: 440,
+        amoebaDisplaySize: 46,
+        amoebaHitRadius: 23,
+        minimumCenterDistance: 52,
+        movementSpeedPixelsPerSecond: 12,
+        maximumFramesPerSecond: 30,
+        keyboardPredatorStep: 18,
+        mixedBackgroundColumns: 6,
+        mixedBackgroundRows: 4
     },
 
     classComparison: {
