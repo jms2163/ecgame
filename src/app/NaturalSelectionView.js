@@ -159,4 +159,3 @@ const NaturalSelectionView = {
 };
 
 export default NaturalSelectionView;
-i
