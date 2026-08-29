@@ -627,6 +627,15 @@
     background: #5d1ca1;
 }
 
+.natural-selection-primary-action +
+.natural-selection-primary-action,
+.natural-selection-primary-action +
+.natural-selection-secondary-action,
+.natural-selection-secondary-action +
+.natural-selection-primary-action {
+    margin-top: 10px;
+}
+
 .natural-selection-primary-action:focus-visible,
 .natural-selection-secondary-action:focus-visible {
     outline: 2px solid #79e6c4;
@@ -651,13 +660,49 @@
 }
 
 .natural-selection-session-status {
-    min-height: 218px;
+    min-height: 164px;
     box-sizing: border-box;
     margin: 0 0 18px;
     padding: 16px;
     background: rgba(27, 10, 48, 0.88);
     border: 1px solid #79e6c4;
     border-radius: 8px;
+}
+
+#natural-selection-predation-area {
+    margin-bottom: 16px;
+}
+
+.natural-selection-hunt-instructions {
+    margin-bottom: 10px !important;
+    color: #d9caec !important;
+    font-size: 12px;
+}
+
+#natural-selection-predation-canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 18 / 11;
+    box-sizing: border-box;
+    background: #f3efe6;
+    border: 2px solid #79e6c4;
+    border-radius: 8px;
+    cursor: crosshair;
+    touch-action: none;
+}
+
+#natural-selection-predation-canvas:focus-visible {
+    outline: 3px solid #df80ff;
+    outline-offset: 3px;
+}
+
+.natural-selection-hunt-status {
+    min-height: 2.8em;
+    margin-top: 9px !important;
+    color: #79e6c4 !important;
+    font-size: 12px;
+    font-weight: bold;
 }
 
 .natural-selection-session-status h3 {
