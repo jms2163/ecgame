@@ -8,16 +8,16 @@
 // 0 = no added pigmentation / brown coloration
 // 100 = maximum prototype pigmentation / brown coloration
 //
-// A completed attempt will eventually store a snapshot of
-// these values so trials from different visual profiles are
-// never combined accidentally.
+// Every attempt stores a setup snapshot containing these
+// values so trials from different visual profiles are never
+// combined accidentally.
 const NaturalSelectionPrototypeConfig = {
 
     activityId:
         "natural-selection-pigmentation",
 
     definitionVersion:
-        "0.4.0",
+        "0.5.0",
 
     modelVersion:
         "pigmentation-selection-v1",

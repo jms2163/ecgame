@@ -365,6 +365,12 @@ const NaturalSelectionSetupPanel = {
                         .reproductionStrategy
             },
 
+            dataPresentation:
+                structuredClone(
+                    this.definition
+                        .dataPresentation ?? {}
+                ),
+
             visualCalibration: {
                 ...NaturalSelectionPrototypeConfig
                     .visualCalibration

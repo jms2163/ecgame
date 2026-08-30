@@ -746,6 +746,207 @@
 }
 
 /* --------------------------------------------------
+   Natural Selection data table and frequency graph
+   -------------------------------------------------- */
+
+.natural-selection-data-panel {
+    grid-column: 1 / -1;
+    min-height: 0;
+}
+
+.natural-selection-data-panel[hidden] {
+    display: none;
+}
+
+.natural-selection-data-status {
+    margin-bottom: 16px !important;
+    color: #79e6c4 !important;
+    font-weight: bold;
+}
+
+.natural-selection-frequency-summary {
+    margin-bottom: 18px;
+    padding: 14px 16px;
+    background: rgba(27, 10, 48, 0.88);
+    border: 1px solid #724da6;
+    border-radius: 8px;
+}
+
+.natural-selection-frequency-summary h3 {
+    margin: 0 0 10px;
+    color: #f7efff;
+    font-size: 15px;
+}
+
+.natural-selection-frequency-summary-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 20px;
+    margin: 0;
+    padding-left: 20px;
+    color: #e7dcf5;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.natural-selection-data-interpretation-note {
+    margin-top: 10px !important;
+    color: #aa92ca !important;
+    font-size: 12px;
+}
+
+.natural-selection-data-layout {
+    display: grid;
+    grid-template-columns:
+        minmax(520px, 1.15fr)
+        minmax(420px, 0.85fr);
+    gap: 18px;
+    align-items: start;
+}
+
+.natural-selection-table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+    border: 1px solid #724da6;
+    border-radius: 8px;
+}
+
+.natural-selection-table-scroll:focus-visible {
+    outline: 3px solid #79e6c4;
+    outline-offset: 3px;
+}
+
+.natural-selection-generation-table {
+    width: 100%;
+    min-width: 980px;
+    border-collapse: collapse;
+    background: #090211;
+    color: #f7efff;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.natural-selection-generation-table caption {
+    padding: 12px 14px;
+    color: #f7efff;
+    background: #1b0a30;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: left;
+}
+
+.natural-selection-generation-table th,
+.natural-selection-generation-table td {
+    padding: 9px 10px;
+    border: 1px solid #310d54;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.natural-selection-generation-table thead tr:first-child th {
+    color: #79e6c4;
+    background: #24103a;
+}
+
+.natural-selection-generation-table thead tr:last-child th {
+    color: #e5d4f5;
+    background: #160725;
+    font-size: 11px;
+}
+
+.natural-selection-generation-table tbody th {
+    color: #79e6c4;
+    background: #160725;
+}
+
+.natural-selection-generation-table tbody tr:nth-child(even) td {
+    background: rgba(69, 19, 125, 0.17);
+}
+
+.natural-selection-frequency-figure {
+    margin: 0;
+    padding: 12px;
+    background: #090211;
+    border: 1px solid #724da6;
+    border-radius: 8px;
+}
+
+.natural-selection-frequency-figure figcaption {
+    margin-bottom: 8px;
+    color: #f7efff;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.natural-selection-frequency-graph svg {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.natural-selection-graph-grid-line {
+    stroke: rgba(170, 146, 202, 0.25);
+    stroke-width: 1;
+}
+
+.natural-selection-graph-axis-line {
+    stroke: #c9b3e6;
+    stroke-width: 1.5;
+}
+
+.natural-selection-graph-axis-label,
+.natural-selection-graph-axis-title {
+    fill: #c9b3e6;
+    font-family: monospace;
+    font-size: 12px;
+}
+
+.natural-selection-graph-axis-title {
+    fill: #f7efff;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.natural-selection-frequency-line,
+.natural-selection-frequency-marker {
+    vector-effect: non-scaling-stroke;
+}
+
+.natural-selection-graph-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 20px;
+    margin: 8px 0 0;
+    padding: 0;
+    color: #e7dcf5;
+    font-size: 12px;
+    list-style: none;
+}
+
+.natural-selection-graph-legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.natural-selection-graph-swatch {
+    display: inline-block;
+    width: 11px;
+    height: 11px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.natural-selection-graph-swatch--circle {
+    border-radius: 50%;
+}
+
+@media (max-width: 1180px) {
+    .natural-selection-data-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* --------------------------------------------------
    Amoeba visual placeholder
    -------------------------------------------------- */
 

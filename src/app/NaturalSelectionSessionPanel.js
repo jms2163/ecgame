@@ -374,7 +374,7 @@ const NaturalSelectionSessionPanel = {
             "selection_interaction"
         ) {
             this.recordStatusElement.textContent =
-                `Generation ${session.currentGeneration} is in progress. Phenotype-specific results remain hidden until all required captures are complete.`;
+                `Generation ${session.currentGeneration} is in progress. Starting counts and frequencies are recorded automatically; captured phenotypes remain hidden until all required captures are complete.`;
 
             return;
         }
@@ -389,7 +389,7 @@ const NaturalSelectionSessionPanel = {
                     .capturedByPhenotype;
 
             this.recordStatusElement.textContent =
-                `Generation ${session.currentGeneration}: captured ${captured.pigmented} pigmented and ${captured.non_pigmented} non-pigmented. Record the survivor counts, then reproduce.`;
+                `Generation ${session.currentGeneration}: captured ${captured.pigmented} pigmented and ${captured.non_pigmented} non-pigmented. Review the automatic record, then reproduce.`;
 
             return;
         }
@@ -403,7 +403,7 @@ const NaturalSelectionSessionPanel = {
                 .phenotypeCounts;
 
         this.recordStatusElement.textContent =
-            `Population run complete. Generation 0 began with ${initial.pigmented} pigmented and ${initial.non_pigmented} non-pigmented; Generation ${session.finalGeneration} has ${finalCounts.pigmented} pigmented and ${finalCounts.non_pigmented} non-pigmented. The data table and graph are added in Milestone 5.`;
+            `Population run complete. Generation 0 began with ${initial.pigmented} pigmented and ${initial.non_pigmented} non-pigmented; Generation ${session.finalGeneration} has ${finalCounts.pigmented} pigmented and ${finalCounts.non_pigmented} non-pigmented. Use the completed table and graph below as evidence for your later conclusion.`;
 
     }
 
