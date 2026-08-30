@@ -260,6 +260,74 @@ const InvestigationCatalog = {
             }
         },
 
+        postInvestigationAnalysis: {
+            schemaVersion:
+                "investigation-analysis-v1",
+
+            estimatedMinutes: {
+                minimum: 8,
+                maximum: 12
+            },
+
+            hypothesisEvaluation: {
+                prompt:
+                    "How do your results relate to your original hypothesis?",
+                explanationPrompt:
+                    "Explain how the observed phenotype frequencies support your evaluation.",
+                options: [
+                    {
+                        id: "supported",
+                        title:
+                            "Supported by this trial",
+                        description:
+                            "The observed trend is consistent with the prediction."
+                    },
+                    {
+                        id: "not_supported",
+                        title:
+                            "Not supported by this trial",
+                        description:
+                            "The observed trend differs from the prediction."
+                    },
+                    {
+                        id: "inconclusive",
+                        title:
+                            "Inconclusive",
+                        description:
+                            "This trial does not provide a clear directional result."
+                    }
+                ]
+            },
+
+            cer: {
+                claimPrompt:
+                    "Make a population-level claim about how the selected habitat affected pigmentation frequencies across generations.",
+                evidencePrompt:
+                    "Cite specific generation data, counts, frequencies, or percentage-point changes that support your claim.",
+                reasoningPrompt:
+                    "Explain how visibility, differential survival, heredity, and reproduction connect your evidence to the claim."
+            },
+
+            reflection: {
+                limitationPrompt:
+                    "Identify one limitation of this investigation or simplified model.",
+                variationPrompt:
+                    "Identify one source of variation, including predator choices, visual search behavior, or random reproduction sampling.",
+                improvementPrompt:
+                    "Describe one change that would improve the investigation or strengthen the evidence."
+            },
+
+            minimumResponseLengths: {
+                hypothesisExplanation: 35,
+                claim: 35,
+                evidence: 50,
+                reasoning: 50,
+                limitation: 35,
+                variation: 35,
+                improvement: 35
+            }
+        },
+
         parameters: [
             {
                 id: "background",

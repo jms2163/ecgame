@@ -326,7 +326,7 @@ const NaturalSelectionSessionPanel = {
                 `Generation ${session.currentGeneration} complete — review the Investigation Record, then reproduce.`;
         } else {
             message =
-                "Investigation complete — use the table and graph below as evidence.";
+                "Investigation complete — use the table and graph as evidence, then complete Analyze Your Results below.";
         }
 
         const cue = document.createElement("p");

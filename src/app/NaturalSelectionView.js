@@ -15,6 +15,10 @@ import NaturalSelectionDataPanel
     from "./NaturalSelectionDataPanel.js";
 import NaturalSelectionPlanPanel
     from "./NaturalSelectionPlanPanel.js";
+import NaturalSelectionAnalysisPanel
+    from "./NaturalSelectionAnalysisPanel.js";
+import NaturalSelectionReportPanel
+    from "./NaturalSelectionReportPanel.js";
 
 const NaturalSelectionView = {
 
@@ -87,6 +91,20 @@ const NaturalSelectionView = {
             return;
         }
 
+        if (
+            !NaturalSelectionAnalysisPanel
+                .initialize()
+        ) {
+            return;
+        }
+
+        if (
+            !NaturalSelectionReportPanel
+                .initialize()
+        ) {
+            return;
+        }
+
         // Temporary prototype diagnostics only. Keep the
         // population/session engine module-private.
         globalThis.ECGame ??= {};
@@ -137,6 +155,8 @@ const NaturalSelectionView = {
         NaturalSelectionPlanPanel.render();
         NaturalSelectionSessionPanel.render();
         NaturalSelectionDataPanel.render();
+        NaturalSelectionAnalysisPanel.render();
+        NaturalSelectionReportPanel.render();
         NaturalSelectionPredationStage
             .activate();
 
