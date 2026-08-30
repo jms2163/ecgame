@@ -84,6 +84,163 @@ const InvestigationCatalog = {
                 "Phenotype Frequency Across Generations"
         },
 
+        investigationPlan: {
+            schemaVersion:
+                "investigation-plan-v1",
+
+            estimatedMinutes: {
+                minimum: 3,
+                maximum: 5
+            },
+
+            classResearchQuestion:
+                "How does habitat background affect the frequencies of pigmented and non-pigmented amoebas across generations under visual predation?",
+
+            individualQuestionPrompt:
+                "In your selected habitat, what measurable population change will you investigate?",
+
+            individualQuestionStarter:
+                "In a ______ habitat, how do the frequencies of ______ change across generations under visual predation?",
+
+            questionChecklist: [
+                {
+                    id: "environment",
+                    label:
+                        "My question identifies the environmental condition."
+                },
+                {
+                    id: "measurable_outcome",
+                    label:
+                        "My question identifies a measurable outcome."
+                },
+                {
+                    id: "generations",
+                    label:
+                        "My question asks about population change across generations."
+                },
+                {
+                    id: "question_form",
+                    label:
+                        "My question is written as a question."
+                }
+            ],
+
+            hypothesis: {
+                predictionPrompt:
+                    "Before seeing the results, what population-level trend do you predict?",
+
+                rationalePrompt:
+                    "Explain how the background might affect which amoebas the predator notices and how that could influence the next generation.",
+
+                options: [
+                    {
+                        id:
+                            "pigmented_increases",
+                        label:
+                            "Pigmented amoebas will become more common."
+                    },
+                    {
+                        id:
+                            "non_pigmented_increases",
+                        label:
+                            "Non-pigmented amoebas will become more common."
+                    },
+                    {
+                        id:
+                            "no_consistent_advantage",
+                        label:
+                            "Neither phenotype will have a consistent advantage."
+                    },
+                    {
+                        id:
+                            "direction_uncertain",
+                        label:
+                            "The frequencies may change, but I cannot predict a direction."
+                    }
+                ]
+            },
+
+            variableRoles: [
+                {
+                    id: "independent",
+                    label:
+                        "Independent variable"
+                },
+                {
+                    id: "dependent",
+                    label:
+                        "Dependent variable"
+                },
+                {
+                    id: "controlled",
+                    label:
+                        "Controlled condition"
+                }
+            ],
+
+            variableItems: [
+                {
+                    id:
+                        "habitat_background",
+                    label:
+                        "Habitat background: white, brown, or mixed",
+                    correctRoleId:
+                        "independent",
+                    correctiveFeedback:
+                        "This is the condition compared across the class. Your trial tests one level of it."
+                },
+                {
+                    id:
+                        "phenotype_frequency",
+                    label:
+                        "Frequency of each phenotype per generation",
+                    correctRoleId:
+                        "dependent",
+                    correctiveFeedback:
+                        "This is the measured population outcome that can change across generations."
+                },
+                {
+                    id:
+                        "starting_population",
+                    label:
+                        "Starting population size and starting phenotype ratio",
+                    correctRoleId:
+                        "controlled",
+                    correctiveFeedback:
+                        "Matching trials keep the starting population and ratio consistent."
+                },
+                {
+                    id:
+                        "predation_rules",
+                    label:
+                        "Eight successful captures and identical movement rules",
+                    correctRoleId:
+                        "controlled",
+                    correctiveFeedback:
+                        "These rules are held consistent so trials remain comparable."
+                },
+                {
+                    id:
+                        "inheritance_reproduction",
+                    label:
+                        "Clonal reproduction to 32 with mutation disabled",
+                    correctRoleId:
+                        "controlled",
+                    correctiveFeedback:
+                        "The same inheritance and reproduction rules apply to every trial."
+                }
+            ],
+
+            controlsExplanationPrompt:
+                "Why must the starting population, predation rules, and reproduction rules remain consistent when results are compared?",
+
+            minimumResponseLengths: {
+                researchQuestion: 25,
+                hypothesisRationale: 25,
+                controlsExplanation: 25
+            }
+        },
+
         parameters: [
             {
                 id: "background",

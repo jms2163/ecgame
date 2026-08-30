@@ -746,6 +746,280 @@
 }
 
 /* --------------------------------------------------
+   Natural Selection investigation plan
+   -------------------------------------------------- */
+
+.natural-selection-plan-panel {
+    grid-column: 1 / -1;
+    min-height: 0;
+}
+
+.natural-selection-plan-panel[hidden] {
+    display: none;
+}
+
+.natural-selection-plan-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #310d54;
+}
+
+.natural-selection-plan-header h2 {
+    margin-bottom: 0;
+}
+
+.natural-selection-plan-eyebrow {
+    margin-bottom: 5px !important;
+    color: #79e6c4 !important;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.natural-selection-plan-time {
+    flex: 0 0 auto;
+    padding: 7px 10px;
+    color: #040108 !important;
+    background: #79e6c4;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+#natural-selection-plan-content {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.natural-selection-plan-callout,
+.natural-selection-plan-section,
+.natural-selection-plan-actions,
+.natural-selection-plan-locked {
+    box-sizing: border-box;
+    padding: 16px;
+    background: rgba(27, 10, 48, 0.88);
+    border: 1px solid #724da6;
+    border-radius: 8px;
+}
+
+.natural-selection-plan-callout,
+.natural-selection-plan-section:nth-of-type(4),
+.natural-selection-plan-actions,
+.natural-selection-plan-locked {
+    grid-column: 1 / -1;
+}
+
+.natural-selection-plan-callout h3,
+.natural-selection-plan-section h3 {
+    margin: 0 0 10px;
+    color: #79e6c4;
+    font-size: 15px;
+}
+
+.natural-selection-class-question {
+    color: #f7efff !important;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.natural-selection-plan-scenario {
+    margin-top: 10px !important;
+    color: #79e6c4 !important;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.natural-selection-plan-note {
+    margin-top: 9px !important;
+    color: #aa92ca !important;
+    font-size: 12px;
+}
+
+.natural-selection-plan-prompt {
+    margin-bottom: 10px !important;
+    color: #e7dcf5 !important;
+    font-size: 13px;
+}
+
+.natural-selection-plan-label {
+    display: block;
+    margin: 12px 0 6px;
+    color: #f7efff;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.natural-selection-plan-textarea,
+.natural-selection-variable-select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 9px 10px;
+    background: #090211;
+    border: 1px solid #724da6;
+    border-radius: 6px;
+    color: #f7efff;
+    font: inherit;
+    font-size: 13px;
+}
+
+.natural-selection-plan-textarea {
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.natural-selection-plan-textarea:focus-visible,
+.natural-selection-variable-select:focus-visible,
+.natural-selection-plan-check input:focus-visible,
+.natural-selection-plan-option input:focus-visible {
+    outline: 2px solid #79e6c4;
+    outline-offset: 2px;
+}
+
+.natural-selection-plan-textarea:disabled,
+.natural-selection-variable-select:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.natural-selection-plan-help {
+    margin-top: 6px !important;
+    color: #8d75ac !important;
+    font-size: 11px;
+}
+
+.natural-selection-plan-checklist,
+.natural-selection-plan-options {
+    display: grid;
+    gap: 8px;
+    margin: 14px 0 0;
+    padding: 12px;
+    border: 1px solid #310d54;
+    border-radius: 6px;
+}
+
+.natural-selection-plan-checklist legend,
+.natural-selection-plan-options legend {
+    padding: 0 5px;
+    color: #c9b3e6;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.natural-selection-plan-check,
+.natural-selection-plan-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    color: #e7dcf5;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.natural-selection-plan-check input,
+.natural-selection-plan-option input {
+    flex: 0 0 auto;
+    margin-top: 2px;
+    accent-color: #df80ff;
+}
+
+.natural-selection-variable-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin: 14px 0;
+}
+
+.natural-selection-variable-card {
+    padding: 11px;
+    background: #090211;
+    border: 1px solid #310d54;
+    border-radius: 6px;
+}
+
+.natural-selection-variable-card:last-child {
+    grid-column: 1 / -1;
+}
+
+.natural-selection-variable-card
+.natural-selection-plan-label {
+    min-height: 2.8em;
+    margin-top: 0;
+}
+
+.natural-selection-variable-feedback {
+    min-height: 2.8em;
+    margin-top: 7px !important;
+    font-size: 11px;
+}
+
+.natural-selection-variable-feedback.is-correct {
+    color: #79e6c4 !important;
+}
+
+.natural-selection-variable-feedback.is-incorrect {
+    color: #ffb58f !important;
+}
+
+.natural-selection-plan-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 0.4fr);
+    gap: 16px;
+    align-items: center;
+}
+
+.natural-selection-plan-status {
+    color: #c9b3e6 !important;
+    font-size: 12px;
+}
+
+.natural-selection-plan-locked summary {
+    color: #79e6c4;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.natural-selection-plan-summary-list {
+    display: grid;
+    grid-template-columns: minmax(210px, 0.45fr) minmax(0, 1fr);
+    gap: 8px 16px;
+    margin: 16px 0 0;
+}
+
+.natural-selection-plan-summary-list dt {
+    color: #aa92ca;
+    font-size: 12px;
+}
+
+.natural-selection-plan-summary-list dd {
+    margin: 0;
+    color: #f7efff;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+@media (max-width: 1180px) {
+    #natural-selection-plan-content,
+    .natural-selection-variable-grid,
+    .natural-selection-plan-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .natural-selection-plan-callout,
+    .natural-selection-plan-section:nth-of-type(4),
+    .natural-selection-plan-actions,
+    .natural-selection-plan-locked,
+    .natural-selection-variable-card:last-child {
+        grid-column: 1;
+    }
+}
+
+/* --------------------------------------------------
    Natural Selection data table and frequency graph
    -------------------------------------------------- */
 

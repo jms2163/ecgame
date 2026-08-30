@@ -7,6 +7,8 @@ import InvestigationSessionManager
     from "./InvestigationSessionManager.js";
 import NaturalSelectionSetupPanel
     from "./NaturalSelectionSetupPanel.js";
+import NaturalSelectionPlanPanel
+    from "./NaturalSelectionPlanPanel.js";
 
 const getPopulationTotal = population =>
     population.phenotypeOrder.reduce(
@@ -117,6 +119,13 @@ const NaturalSelectionSessionPanel = {
                 }
             );
 
+        NaturalSelectionPlanPanel
+            .subscribe(
+                () => {
+                    this.render();
+                }
+            );
+
         this.initialized = true;
 
         return true;
@@ -131,14 +140,23 @@ const NaturalSelectionSessionPanel = {
 
         if (
             !setup ||
+            !NaturalSelectionPlanPanel
+                .isReady(setup) ||
             InvestigationSessionManager
                 .hasActiveSession()
         ) {
             return false;
         }
 
+        const investigationPlan =
+            NaturalSelectionPlanPanel
+                .getPlanSnapshot(setup);
+
         InvestigationSessionManager
-            .startSession(setup);
+            .startSession({
+                ...setup,
+                investigationPlan
+            });
 
         return true;
 
@@ -188,9 +206,13 @@ const NaturalSelectionSessionPanel = {
 
             NaturalSelectionSetupPanel
                 .setLocked(false);
+            NaturalSelectionPlanPanel
+                .setLocked(false);
 
             this.beginButton.disabled =
-                setup === null;
+                setup === null ||
+                !NaturalSelectionPlanPanel
+                    .isReady(setup);
             this.beginButton.hidden = false;
             this.advanceButton.hidden = true;
             this.restartButton.hidden = true;
@@ -207,6 +229,12 @@ const NaturalSelectionSessionPanel = {
 
         NaturalSelectionSetupPanel
             .setLocked(true);
+        NaturalSelectionPlanPanel
+            .setLocked(
+                true,
+                session.setup
+                    .investigationPlan
+            );
 
         this.beginButton.disabled = true;
         this.beginButton.hidden = true;
