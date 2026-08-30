@@ -1020,6 +1020,691 @@
 }
 
 /* --------------------------------------------------
+   Natural Selection guided tutorial (Milestone 6B)
+   -------------------------------------------------- */
+
+.natural-selection-guided-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin: 0 0 18px;
+    padding: 14px 18px;
+    background: #120722;
+    border: 2px solid #724da6;
+    border-radius: 10px;
+}
+
+.natural-selection-guided-header[hidden],
+.natural-selection-stage[hidden],
+.natural-selection-record-panel[hidden] {
+    display: none;
+}
+
+#natural-selection-guided-progress {
+    display: grid;
+    flex: 1 1 auto;
+    grid-template-columns: repeat(4, minmax(120px, 1fr));
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+#natural-selection-guided-progress li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 38px;
+    padding: 6px 10px;
+    color: #ffffff;
+    background: #221137;
+    border: 1px solid #8f72b3;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+#natural-selection-guided-progress li span {
+    display: inline-grid;
+    width: 24px;
+    height: 24px;
+    place-items: center;
+    color: #ffffff;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+}
+
+#natural-selection-guided-progress .is-current {
+    background: #45137d;
+    border-color: #ffffff;
+    box-shadow: 0 0 0 2px rgba(121, 230, 196, 0.35);
+}
+
+#natural-selection-guided-progress .is-complete {
+    color: #ffffff;
+    background: #175846;
+    border-color: #79e6c4;
+}
+
+#natural-selection-guided-progress .is-complete span {
+    color: #06130f;
+    background: #79e6c4;
+    border-color: #79e6c4;
+}
+
+#natural-selection-guided-progress .is-locked {
+    color: #e7dcf5;
+    background: #171020;
+    border-style: dashed;
+}
+
+.natural-selection-setup-panel {
+    grid-column: 1 / -1;
+    min-height: 0;
+}
+
+.natural-selection-setup-step,
+.natural-selection-confirmed-scenario,
+.natural-selection-confirmed-plan {
+    color: #ffffff;
+}
+
+.natural-selection-step-eyebrow,
+.natural-selection-micro-label {
+    margin-bottom: 5px !important;
+    color: #79e6c4 !important;
+    font-family: monospace;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+.natural-selection-step-title {
+    margin: 0 0 8px;
+    color: #ffffff;
+    font-size: 20px;
+}
+
+.natural-selection-step-explanation,
+.natural-selection-card-description,
+.natural-selection-plan-help,
+.natural-selection-scenario-note,
+.natural-selection-live-response,
+.natural-selection-success-message {
+    color: #f7efff !important;
+}
+
+.natural-selection-step-explanation {
+    max-width: 780px;
+    margin-bottom: 16px !important;
+}
+
+.natural-selection-card-grid,
+.natural-selection-hypothesis-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    min-width: 0;
+    margin: 18px 0;
+    padding: 0;
+    border: 0;
+}
+
+.natural-selection-choice-card,
+.natural-selection-hypothesis-card {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: 10px;
+    min-height: 210px;
+    box-sizing: border-box;
+    padding: 14px;
+    color: #ffffff;
+    background: #1b0a30;
+    border: 2px solid #8f72b3;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.natural-selection-choice-card:hover,
+.natural-selection-hypothesis-card:hover {
+    border-color: #ffffff;
+}
+
+.natural-selection-choice-card.is-selected,
+.natural-selection-hypothesis-card.is-selected {
+    background: #351060;
+    border-color: #79e6c4;
+    box-shadow: 0 0 0 3px rgba(121, 230, 196, 0.25);
+}
+
+.natural-selection-choice-card input,
+.natural-selection-hypothesis-card input {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 20px;
+    height: 20px;
+    accent-color: #79e6c4;
+}
+
+.natural-selection-choice-card input:focus-visible,
+.natural-selection-hypothesis-card input:focus-visible {
+    outline: 3px solid #ffffff;
+    outline-offset: 3px;
+}
+
+.natural-selection-card-visual {
+    display: flex;
+    min-height: 108px;
+    overflow: hidden;
+    border: 2px solid #ffffff;
+    border-radius: 8px;
+}
+
+.natural-selection-card-visual.habitat-white {
+    background: #f4f1e9;
+}
+
+.natural-selection-card-visual.habitat-brown {
+    background: #7a4b2b;
+}
+
+.natural-selection-card-visual.habitat-mixed {
+    background:
+        linear-gradient(
+            135deg,
+            #f4f1e9 0 25%,
+            #7a4b2b 25% 50%,
+            #f4f1e9 50% 75%,
+            #7a4b2b 75% 100%
+        );
+    background-size: 64px 64px;
+}
+
+.natural-selection-card-copy {
+    display: grid;
+    gap: 6px;
+}
+
+.natural-selection-card-title {
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.natural-selection-card-description {
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.natural-selection-card-state {
+    align-self: end;
+    width: max-content;
+    padding: 4px 8px;
+    color: #ffffff;
+    background: #3d2b51;
+    border: 1px solid #ffffff;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.is-selected > .natural-selection-card-state {
+    color: #06130f;
+    background: #79e6c4;
+    border-color: #79e6c4;
+}
+
+.amoeba-cluster {
+    display: flex;
+    flex: 1 1 50%;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 6px;
+}
+
+.amoeba-cluster + .amoeba-cluster {
+    border-left: 2px dashed rgba(20, 8, 30, 0.7);
+}
+
+.amoeba-token {
+    width: 18px;
+    height: 18px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+
+.amoeba-cluster.pigmented .amoeba-token {
+    filter: sepia(1) saturate(2.2) hue-rotate(340deg) brightness(0.62);
+}
+
+.amoeba-cluster.non-pigmented .amoeba-token {
+    filter: grayscale(0.35) brightness(1.35);
+}
+
+.generation-timeline {
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 12px;
+    background: #090211;
+}
+
+.generation-marker {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    width: 28px;
+    height: 28px;
+    place-items: center;
+    color: #06130f;
+    background: #79e6c4;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.generation-marker:not(:last-child)::after {
+    position: absolute;
+    z-index: -1;
+    left: 100%;
+    width: 48px;
+    height: 3px;
+    content: "";
+    background: #ffffff;
+}
+
+.natural-selection-step-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.natural-selection-step-actions .natural-selection-primary-action,
+.natural-selection-step-actions .natural-selection-secondary-action {
+    width: auto;
+    min-width: 180px;
+    margin-top: 0;
+}
+
+.natural-selection-scenario-card,
+.natural-selection-question-starter,
+.natural-selection-live-preview,
+.natural-selection-guided-input,
+.natural-selection-confirmed-plan {
+    margin: 16px 0;
+    padding: 16px;
+    color: #ffffff;
+    background: #1b0a30;
+    border: 2px solid #8f72b3;
+    border-radius: 10px;
+}
+
+.natural-selection-scenario-card {
+    border-color: #79e6c4;
+}
+
+.natural-selection-scenario-card.compact {
+    margin: 14px 0 18px;
+}
+
+.natural-selection-scenario-title {
+    margin: 0 0 12px;
+    color: #ffffff;
+    font-size: 17px;
+}
+
+.natural-selection-scenario-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(140px, 1fr));
+    gap: 6px 20px;
+    margin: 0;
+}
+
+.natural-selection-scenario-list dt,
+.natural-selection-plan-summary-list dt {
+    color: #e7dcf5;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.natural-selection-scenario-list dd,
+.natural-selection-plan-summary-list dd {
+    margin: 0 0 9px;
+    color: #ffffff;
+    font-size: 13px;
+}
+
+.natural-selection-scenario-note {
+    margin-top: 8px !important;
+    font-style: italic;
+}
+
+#natural-selection-plan-content {
+    display: block;
+}
+
+.natural-selection-tutorial-stage-header {
+    padding-bottom: 12px;
+    border-bottom: 1px solid #8f72b3;
+}
+
+.natural-selection-question-starter {
+    background: #221137;
+}
+
+.natural-selection-suggested-question {
+    margin-bottom: 12px !important;
+    color: #ffffff !important;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.natural-selection-guided-input .natural-selection-plan-label,
+.natural-selection-hypothesis-grid > legend {
+    margin: 0 0 8px;
+    color: #ffffff;
+    font-size: 14px;
+}
+
+.natural-selection-plan-textarea {
+    min-height: 104px;
+    color: #ffffff;
+    background: #07010d;
+    border: 2px solid #a98bc9;
+}
+
+.natural-selection-plan-textarea::placeholder {
+    color: #d8cae8;
+    opacity: 1;
+}
+
+.natural-selection-plan-help {
+    margin-top: 7px !important;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.natural-selection-live-preview {
+    border-style: dashed;
+}
+
+.natural-selection-hypothesis-card {
+    min-height: 230px;
+}
+
+.hypothesis-trend {
+    display: flex;
+    align-items: end;
+    justify-content: center;
+    gap: 12px;
+    min-height: 92px;
+    padding: 8px;
+    background: #090211;
+    border: 1px solid #a98bc9;
+    border-radius: 7px;
+}
+
+.trend-bar {
+    width: 40px;
+    height: 40px;
+    background: #79e6c4;
+    border: 2px solid #ffffff;
+}
+
+.trend-arrow {
+    align-self: center;
+    color: #ffffff;
+    font-size: 24px;
+}
+
+.trend-1 .trend-bar.end,
+.trend-2 .trend-bar.end {
+    height: 72px;
+}
+
+.trend-3 .trend-bar.end {
+    height: 44px;
+}
+
+.natural-selection-variable-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.natural-selection-variable-card,
+.natural-selection-variable-card:last-child {
+    grid-column: auto;
+    min-height: 150px;
+    padding: 14px;
+    color: #ffffff;
+    background: #1b0a30;
+    border: 2px solid #8f72b3;
+    border-radius: 9px;
+}
+
+.natural-selection-role-badge {
+    display: inline-block;
+    margin: 0 0 10px !important;
+    padding: 4px 8px;
+    color: #07100d !important;
+    background: #79e6c4;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.natural-selection-variable-title {
+    margin: 0 0 8px;
+    color: #ffffff;
+    font-size: 15px;
+}
+
+.natural-selection-review-alert {
+    margin-top: 10px !important;
+    padding: 9px 11px;
+    color: #ffffff !important;
+    background: #6b300c;
+    border: 2px solid #ffcb8a;
+    border-radius: 6px;
+    font-weight: bold;
+}
+
+.natural-selection-success-message {
+    margin: 8px 0 14px !important;
+    padding: 10px 12px;
+    background: #175846;
+    border: 1px solid #79e6c4;
+    border-radius: 6px;
+    font-weight: bold;
+}
+
+.natural-selection-confirmed-plan
+.natural-selection-plan-summary-list {
+    grid-template-columns: minmax(180px, 0.3fr) 1fr;
+}
+
+.natural-selection-plan-panel[data-plan-state="confirmed"],
+.natural-selection-plan-panel[data-plan-state="locked"] {
+    padding: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+}
+
+.natural-selection-plan-panel[data-plan-state="confirmed"]
+.natural-selection-plan-header,
+.natural-selection-plan-panel[data-plan-state="locked"]
+.natural-selection-plan-header {
+    display: none;
+}
+
+.natural-selection-plan-disclosure {
+    color: #ffffff;
+    background: #120722;
+    border: 2px solid #724da6;
+    border-radius: 9px;
+}
+
+.natural-selection-plan-disclosure-summary {
+    padding: 14px 18px;
+    color: #ffffff;
+    background: #1b0a30;
+    border-radius: 7px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.natural-selection-plan-disclosure-summary::marker {
+    color: #79e6c4;
+}
+
+.natural-selection-plan-disclosure-summary:focus-visible {
+    outline: 3px solid #79e6c4;
+    outline-offset: 3px;
+}
+
+.natural-selection-plan-disclosure[open]
+.natural-selection-plan-disclosure-summary {
+    border-bottom: 1px solid #724da6;
+    border-radius: 7px 7px 0 0;
+}
+
+.natural-selection-plan-disclosure
+.natural-selection-confirmed-plan {
+    margin: 0;
+    background: #0f041c;
+    border: 0;
+    border-radius: 0 0 7px 7px;
+}
+
+.natural-selection-session-status {
+    min-height: 0;
+    margin-bottom: 12px;
+    padding: 10px 12px;
+}
+
+.natural-selection-session-cue {
+    color: #ffffff !important;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.natural-selection-record-panel {
+    align-self: start;
+    min-height: 0;
+}
+
+#natural-selection-record-status h3 {
+    margin: 0 0 14px;
+    color: #79e6c4;
+    font-size: 15px;
+}
+
+.natural-selection-record-list {
+    display: grid;
+    gap: 5px;
+    margin: 0;
+}
+
+.natural-selection-record-list dt {
+    margin-top: 7px;
+    color: #e7dcf5;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.natural-selection-record-list dd {
+    margin: 0;
+    color: #ffffff;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.natural-selection-record-note {
+    margin-top: 16px !important;
+    padding-top: 12px;
+    color: #ffffff !important;
+    border-top: 1px solid #724da6;
+    font-size: 12px;
+}
+
+.natural-selection-visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    clip-path: inset(50%) !important;
+    white-space: nowrap !important;
+}
+
+#natural-selection-view :is(
+    .natural-selection-summary,
+    .natural-selection-panel-introduction,
+    .natural-selection-option-description,
+    .natural-selection-preview-list dt,
+    .natural-selection-session-list dt,
+    .natural-selection-future-note,
+    .natural-selection-plan-note,
+    .natural-selection-plan-help,
+    .natural-selection-plan-status,
+    .natural-selection-data-interpretation-note
+) {
+    color: #f7efff !important;
+}
+
+.natural-selection-stage {
+    grid-column: 1 / 3;
+}
+
+.natural-selection-record-panel {
+    grid-column: 3;
+}
+
+@media (max-width: 1180px) {
+    .natural-selection-guided-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    #natural-selection-guided-progress,
+    .natural-selection-card-grid,
+    .natural-selection-hypothesis-grid,
+    .natural-selection-variable-grid,
+    .natural-selection-scenario-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .natural-selection-stage,
+    .natural-selection-record-panel {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .natural-selection-choice-card,
+    .natural-selection-hypothesis-card,
+    .natural-selection-primary-action,
+    .natural-selection-secondary-action {
+        transition: none !important;
+    }
+}
+
+/* --------------------------------------------------
    Natural Selection data table and frequency graph
    -------------------------------------------------- */
 

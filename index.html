@@ -672,10 +672,43 @@
 
                 </header>
 
+                <nav
+                    id="natural-selection-guided-header"
+                    class="natural-selection-guided-header"
+                    aria-label="Investigation tutorial progress"
+                    hidden>
+
+                    <ol id="natural-selection-guided-progress">
+                        <li data-guided-stage="1">
+                            <span>1</span>
+                            Scenario
+                        </li>
+                        <li data-guided-stage="2">
+                            <span>2</span>
+                            Question
+                        </li>
+                        <li data-guided-stage="3">
+                            <span>3</span>
+                            Hypothesis
+                        </li>
+                        <li data-guided-stage="4">
+                            <span>4</span>
+                            Variables
+                        </li>
+                    </ol>
+
+                    <p
+                        id="natural-selection-plan-time"
+                        class="natural-selection-plan-time">
+                    </p>
+
+                </nav>
+
                 <div id="natural-selection-workspace">
 
                     <section
-                        class="natural-selection-panel"
+                        id="natural-selection-setup-panel"
+                        class="natural-selection-panel natural-selection-setup-panel"
                         aria-labelledby="selection-setup-title">
 
                         <h2 id="selection-setup-title">
@@ -699,6 +732,7 @@
                     </section>
 
                     <section
+                        id="natural-selection-stage-panel"
                         class="natural-selection-panel natural-selection-stage"
                         aria-labelledby="selection-stage-title">
 
@@ -786,19 +820,20 @@
                     </section>
 
                     <aside
-                        class="natural-selection-panel"
+                        id="natural-selection-record-panel"
+                        class="natural-selection-panel natural-selection-record-panel"
                         aria-labelledby="selection-record-title">
 
                         <h2 id="selection-record-title">
                             Investigation Record
                         </h2>
 
-                        <p
+                        <div
                             id="natural-selection-record-status"
                             aria-live="polite">
                             No attempt has started. Choose a complete
                             setup, then begin the investigation.
-                        </p>
+                        </div>
 
                     </aside>
 
@@ -821,11 +856,6 @@
                                 </h2>
 
                             </div>
-
-                            <p
-                                id="natural-selection-plan-time"
-                                class="natural-selection-plan-time">
-                            </p>
 
                         </header>
 

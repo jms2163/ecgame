@@ -3,7 +3,7 @@
 // Central prototype settings for pigmentation trials
 // --------------------------------------------------
 
-// Milestone 6 teaching switch:
+// Milestone 6B teaching switch:
 // true  = require the pre-investigation scientific-method plan.
 // false = hide and bypass the plan while preserving a blank,
 //         pipeline-compatible investigationPlan record.
@@ -23,7 +23,7 @@ const NaturalSelectionPrototypeConfig = {
         "natural-selection-pigmentation",
 
     definitionVersion:
-        "0.6.0",
+        "0.6.1",
 
     modelVersion:
         "pigmentation-selection-v1",
