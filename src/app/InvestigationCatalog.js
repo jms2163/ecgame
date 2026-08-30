@@ -136,29 +136,38 @@ const InvestigationCatalog = {
                     {
                         id:
                             "pigmented_increases",
+                        title:
+                            "Pigmented advantage",
                         label:
-                            "Pigmented amoebas will become more common."
+                            "Pigmented amoebas will become more common.",
+                        description:
+                            "Predict an increase in the pigmented phenotype frequency."
                     },
                     {
                         id:
                             "non_pigmented_increases",
+                        title:
+                            "Non-pigmented advantage",
                         label:
-                            "Non-pigmented amoebas will become more common."
+                            "Non-pigmented amoebas will become more common.",
+                        description:
+                            "Predict an increase in the non-pigmented phenotype frequency."
                     },
                     {
                         id:
                             "no_consistent_advantage",
+                        title:
+                            "No consistent advantage",
                         label:
-                            "Neither phenotype will have a consistent advantage."
-                    },
-                    {
-                        id:
-                            "direction_uncertain",
-                        label:
-                            "The frequencies may change, but I cannot predict a direction."
+                            "Neither phenotype will consistently increase.",
+                        description:
+                            "Predict mixed or unpredictable visibility without one directional trend."
                     }
                 ]
             },
+
+            variableClassificationMode:
+                "provided_by_activity",
 
             variableRoles: [
                 {
@@ -183,9 +192,11 @@ const InvestigationCatalog = {
                     id:
                         "habitat_background",
                     label:
-                        "Habitat background: white, brown, or mixed",
+                        "Habitat Background",
                     correctRoleId:
                         "independent",
+                    explanation:
+                        "This is what changes across the class. Your investigation tests one background level.",
                     correctiveFeedback:
                         "This is the condition compared across the class. Your trial tests one level of it."
                 },
@@ -193,9 +204,11 @@ const InvestigationCatalog = {
                     id:
                         "phenotype_frequency",
                     label:
-                        "Frequency of each phenotype per generation",
+                        "Phenotype Frequencies",
                     correctRoleId:
                         "dependent",
+                    explanation:
+                        "This is what you measure during every generation.",
                     correctiveFeedback:
                         "This is the measured population outcome that can change across generations."
                 },
@@ -203,9 +216,11 @@ const InvestigationCatalog = {
                     id:
                         "starting_population",
                     label:
-                        "Starting population size and starting phenotype ratio",
+                        "Starting Population",
                     correctRoleId:
                         "controlled",
+                    explanation:
+                        "Kept the same in matching trials so comparisons are fair.",
                     correctiveFeedback:
                         "Matching trials keep the starting population and ratio consistent."
                 },
@@ -213,9 +228,11 @@ const InvestigationCatalog = {
                     id:
                         "predation_rules",
                     label:
-                        "Eight successful captures and identical movement rules",
+                        "Predation Rules",
                     correctRoleId:
                         "controlled",
+                    explanation:
+                        "Every generation uses eight captures and the same movement rules.",
                     correctiveFeedback:
                         "These rules are held consistent so trials remain comparable."
                 },
@@ -223,9 +240,11 @@ const InvestigationCatalog = {
                     id:
                         "inheritance_reproduction",
                     label:
-                        "Clonal reproduction to 32 with mutation disabled",
+                        "Reproduction Rules",
                     correctRoleId:
                         "controlled",
+                    explanation:
+                        "The population returns to 32 offspring; mutation stays off so traits do not change during the activity.",
                     correctiveFeedback:
                         "The same inheritance and reproduction rules apply to every trial."
                 }
@@ -254,19 +273,19 @@ const InvestigationCatalog = {
                         id: "white",
                         label: "White",
                         description:
-                            "Uniform light habitat"
+                            "Uniform bright background"
                     },
                     {
                         id: "brown",
                         label: "Brown",
                         description:
-                            "Uniform brown habitat"
+                            "Uniform dark background"
                     },
                     {
                         id: "mixed",
                         label: "Mixed",
                         description:
-                            "Equal white and brown mosaic"
+                            "Equal bright and dark patches"
                     }
                 ]
             },
@@ -275,22 +294,19 @@ const InvestigationCatalog = {
                 label: "Starting pigmentation",
                 role: "controlled",
                 type: "enum",
-                defaultOptionId: "50",
+                defaultOptionId: null,
+                requiresExplicitSelection: true,
                 options: [
                     {
                         id: "20",
                         label:
-                            "Approximately 20% pigmented",
-                        description:
-                            "6 pigmented / 26 non-pigmented",
+                            "20% pigmented",
                         pigmentedCount: 6,
                         nonPigmentedCount: 26
                     },
                     {
                         id: "50",
                         label: "50% pigmented",
-                        description:
-                            "16 pigmented / 16 non-pigmented",
                         pigmentedCount: 16,
                         nonPigmentedCount: 16,
                         recommended: true
@@ -298,9 +314,7 @@ const InvestigationCatalog = {
                     {
                         id: "80",
                         label:
-                            "Approximately 80% pigmented",
-                        description:
-                            "26 pigmented / 6 non-pigmented",
+                            "80% pigmented",
                         pigmentedCount: 26,
                         nonPigmentedCount: 6
                     }
@@ -311,7 +325,8 @@ const InvestigationCatalog = {
                 label: "Investigation length",
                 role: "controlled",
                 type: "enum",
-                defaultOptionId: "5",
+                defaultOptionId: null,
+                requiresExplicitSelection: true,
                 options: [
                     {
                         id: "3",

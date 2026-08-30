@@ -88,6 +88,23 @@ const InvestigationPlanModel = {
 
         const planEnabled =
             Boolean(enabled);
+        const rolesProvided =
+            planEnabled &&
+            definition
+                .variableClassificationMode ===
+                "provided_by_activity";
+        const classifications = rolesProvided
+            ? Object.fromEntries(
+                definition.variableItems.map(
+                    item => [
+                        item.id,
+                        item.correctRoleId
+                    ]
+                )
+            )
+            : createBlankClassifications(
+                definition
+            );
 
         return {
             schemaVersion:
@@ -106,6 +123,10 @@ const InvestigationPlanModel = {
                     .estimatedMinutes
             },
             researchQuestion: "",
+            researchQuestionGuidanceMode:
+                planEnabled
+                    ? "activity_scaffolded"
+                    : "bypassed",
             researchQuestionChecklist:
                 createBlankChecklist(
                     definition
@@ -116,13 +137,13 @@ const InvestigationPlanModel = {
                 rationale: ""
             },
             variables: {
-                classifications:
-                    createBlankClassifications(
-                        definition
-                    ),
+                assignmentMode: rolesProvided
+                    ? "provided_by_activity"
+                    : "student_classification",
+                classifications,
                 checkAttempts: 0,
-                checked: false,
-                allCorrect: false,
+                checked: rolesProvided,
+                allCorrect: rolesProvided,
                 feedback:
                     createBlankFeedback(
                         definition
@@ -323,14 +344,15 @@ const InvestigationPlanModel = {
             minimumLengths
                 .researchQuestion;
         const checklistComplete =
-            definition.questionChecklist
-                .every(
-                    item =>
-                        draft
-                            .researchQuestionChecklist[
-                                item.id
-                            ] === true
-                );
+            draft.researchQuestionGuidanceMode ===
+                "activity_scaffolded" ||
+            definition.questionChecklist.every(
+                item =>
+                    draft
+                        .researchQuestionChecklist[
+                            item.id
+                        ] === true
+            );
         const prediction =
             getPredictionOption(
                 definition,
@@ -346,8 +368,12 @@ const InvestigationPlanModel = {
             minimumLengths
                 .hypothesisRationale;
         const variablesComplete =
-            draft.variables.checked &&
-            draft.variables.allCorrect;
+            draft.variables.assignmentMode ===
+                "provided_by_activity" ||
+            (
+                draft.variables.checked &&
+                draft.variables.allCorrect
+            );
         const controlsExplanationComplete =
             getTrimmedLength(
                 draft.variables
