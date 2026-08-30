@@ -71,6 +71,19 @@ const InvestigationCatalog = {
                 "proportional_clonal_largest_remainder"
         },
 
+        dataPresentation: {
+            observationLabel: "Generation",
+            startingPopulationLabel:
+                "Starting population",
+            selectionOutcomeLabel:
+                "Captured by predator",
+            survivorLabel: "Survivors",
+            nextPopulationLabel:
+                "Next generation",
+            frequencyGraphTitle:
+                "Phenotype Frequency Across Generations"
+        },
+
         parameters: [
             {
                 id: "background",
