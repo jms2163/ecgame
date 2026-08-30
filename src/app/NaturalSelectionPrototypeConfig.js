@@ -3,6 +3,12 @@
 // Central prototype settings for pigmentation trials
 // --------------------------------------------------
 
+// Milestone 6 teaching switch:
+// true  = require the pre-investigation scientific-method plan.
+// false = hide and bypass the plan while preserving a blank,
+//         pipeline-compatible investigationPlan record.
+const INVESTIGATION_PLAN = true;
+
 // These two values are intentionally easy to change while
 // calibrating camouflage. They use a 0-100 scale:
 // 0 = no added pigmentation / brown coloration
@@ -17,10 +23,15 @@ const NaturalSelectionPrototypeConfig = {
         "natural-selection-pigmentation",
 
     definitionVersion:
-        "0.5.0",
+        "0.6.0",
 
     modelVersion:
         "pigmentation-selection-v1",
+
+    features: {
+        investigationPlan:
+            INVESTIGATION_PLAN
+    },
 
     visualCalibration: {
         profileId:
@@ -55,6 +66,10 @@ const NaturalSelectionPrototypeConfig = {
         minimumMatchingTrials: 3
     }
 
+};
+
+export {
+    INVESTIGATION_PLAN
 };
 
 export default NaturalSelectionPrototypeConfig;

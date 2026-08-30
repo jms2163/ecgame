@@ -13,6 +13,8 @@ import NaturalSelectionPredationStage
     from "./NaturalSelectionPredationStage.js";
 import NaturalSelectionDataPanel
     from "./NaturalSelectionDataPanel.js";
+import NaturalSelectionPlanPanel
+    from "./NaturalSelectionPlanPanel.js";
 
 const NaturalSelectionView = {
 
@@ -52,6 +54,13 @@ const NaturalSelectionView = {
 
         if (
             !NaturalSelectionSetupPanel
+                .initialize()
+        ) {
+            return;
+        }
+
+        if (
+            !NaturalSelectionPlanPanel
                 .initialize()
         ) {
             return;
@@ -125,6 +134,7 @@ const NaturalSelectionView = {
         this.active = true;
 
         NaturalSelectionSetupPanel.render();
+        NaturalSelectionPlanPanel.render();
         NaturalSelectionSessionPanel.render();
         NaturalSelectionDataPanel.render();
         NaturalSelectionPredationStage

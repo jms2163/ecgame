@@ -86,6 +86,54 @@ const InvestigationDefinitionRegistry = {
             return errors;
         }
 
+        if (definition?.investigationPlan) {
+            const plan =
+                definition.investigationPlan;
+
+            if (
+                !plan.schemaVersion ||
+                !plan.classResearchQuestion ||
+                !Number.isInteger(
+                    plan.estimatedMinutes
+                        ?.minimum
+                ) ||
+                !Number.isInteger(
+                    plan.estimatedMinutes
+                        ?.maximum
+                ) ||
+                plan.estimatedMinutes.minimum <= 0 ||
+                plan.estimatedMinutes.maximum <
+                    plan.estimatedMinutes.minimum
+            ) {
+                errors.push(
+                    "Investigation plan requires a schema version, class question, and valid time estimate."
+                );
+            }
+
+            if (
+                !Array.isArray(
+                    plan.questionChecklist
+                ) ||
+                plan.questionChecklist.length === 0 ||
+                !Array.isArray(
+                    plan.hypothesis?.options
+                ) ||
+                plan.hypothesis.options.length === 0 ||
+                !Array.isArray(
+                    plan.variableRoles
+                ) ||
+                plan.variableRoles.length === 0 ||
+                !Array.isArray(
+                    plan.variableItems
+                ) ||
+                plan.variableItems.length === 0
+            ) {
+                errors.push(
+                    "Investigation plan requires checklist, hypothesis, and variable-classification data."
+                );
+            }
+        }
+
         const parameterIds = new Set();
 
         definition.parameters.forEach(
