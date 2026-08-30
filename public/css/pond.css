@@ -1906,6 +1906,381 @@
 }
 
 /* --------------------------------------------------
+   Natural Selection post-investigation analysis
+   -------------------------------------------------- */
+
+.natural-selection-analysis-panel {
+    grid-column: 1 / -1;
+    min-height: 0;
+    color: #ffffff;
+    border-color: #79e6c4;
+}
+
+.natural-selection-analysis-panel[hidden] {
+    display: none;
+}
+
+.natural-selection-analysis-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #724da6;
+}
+
+.natural-selection-analysis-header h2 {
+    margin-bottom: 0;
+}
+
+#natural-selection-analysis-progress {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin: 0 0 18px;
+    padding: 0;
+    list-style: none;
+}
+
+#natural-selection-analysis-progress[hidden] {
+    display: none;
+}
+
+#natural-selection-analysis-progress li {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 40px;
+    padding: 7px 11px;
+    color: #ffffff;
+    background: #171020;
+    border: 1px dashed #a98bc9;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+#natural-selection-analysis-progress li span {
+    display: inline-grid;
+    width: 25px;
+    height: 25px;
+    place-items: center;
+    color: #ffffff;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+}
+
+#natural-selection-analysis-progress .is-current {
+    background: #45137d;
+    border: 2px solid #ffffff;
+}
+
+#natural-selection-analysis-progress .is-complete {
+    background: #175846;
+    border: 1px solid #79e6c4;
+}
+
+#natural-selection-analysis-progress .is-complete span {
+    color: #06130f;
+    background: #79e6c4;
+    border-color: #79e6c4;
+}
+
+.natural-selection-analysis-stage-header {
+    padding-bottom: 12px;
+    border-bottom: 1px solid #724da6;
+}
+
+.natural-selection-analysis-evidence,
+.natural-selection-analysis-original-hypothesis,
+.natural-selection-analysis-input {
+    margin: 16px 0;
+    padding: 16px;
+    color: #ffffff;
+    background: #1b0a30;
+    border: 2px solid #8f72b3;
+    border-radius: 9px;
+}
+
+.natural-selection-analysis-evidence {
+    border-color: #79e6c4;
+}
+
+.natural-selection-analysis-card-title {
+    margin: 0 0 9px;
+    color: #ffffff;
+    font-size: 16px;
+}
+
+.natural-selection-analysis-note,
+.natural-selection-analysis-prompt,
+.natural-selection-analysis-help {
+    color: #f7efff !important;
+}
+
+.natural-selection-analysis-note {
+    margin-bottom: 12px !important;
+    font-size: 12px;
+}
+
+.natural-selection-analysis-evidence-list,
+.natural-selection-analysis-summary-list {
+    display: grid;
+    grid-template-columns: minmax(180px, 0.3fr) 1fr;
+    gap: 8px 16px;
+    margin: 0;
+}
+
+.natural-selection-analysis-evidence-list dt,
+.natural-selection-analysis-summary-list dt {
+    color: #e7dcf5;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.natural-selection-analysis-evidence-list dd,
+.natural-selection-analysis-summary-list dd {
+    margin: 0;
+    color: #ffffff;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.natural-selection-analysis-option-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin: 18px 0;
+    padding: 0;
+    border: 0;
+}
+
+.natural-selection-analysis-option-grid legend {
+    grid-column: 1 / -1;
+    margin-bottom: 2px;
+}
+
+.natural-selection-analysis-option {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: 10px;
+    min-height: 150px;
+    box-sizing: border-box;
+    padding: 15px;
+    color: #ffffff;
+    background: #1b0a30;
+    border: 2px solid #8f72b3;
+    border-radius: 9px;
+    cursor: pointer;
+}
+
+.natural-selection-analysis-option:hover {
+    border-color: #ffffff;
+}
+
+.natural-selection-analysis-option.is-selected {
+    background: #351060;
+    border-color: #79e6c4;
+    box-shadow: 0 0 0 3px rgba(121, 230, 196, 0.25);
+}
+
+.natural-selection-analysis-option input {
+    width: 20px;
+    height: 20px;
+    margin: 0 0 4px;
+    accent-color: #79e6c4;
+}
+
+.natural-selection-analysis-option input:focus-visible {
+    outline: 3px solid #ffffff;
+    outline-offset: 3px;
+}
+
+.natural-selection-analysis-label {
+    display: block;
+    margin-bottom: 7px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.natural-selection-analysis-prompt {
+    margin-bottom: 10px !important;
+    font-size: 13px;
+}
+
+.natural-selection-analysis-textarea {
+    width: 100%;
+    min-height: 112px;
+    box-sizing: border-box;
+    padding: 10px 11px;
+    resize: vertical;
+    color: #ffffff;
+    background: #07010d;
+    border: 2px solid #a98bc9;
+    border-radius: 6px;
+    font: inherit;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.natural-selection-analysis-textarea::placeholder {
+    color: #d8cae8;
+    opacity: 1;
+}
+
+.natural-selection-analysis-textarea:focus-visible {
+    outline: 3px solid #79e6c4;
+    outline-offset: 3px;
+}
+
+.natural-selection-analysis-help {
+    margin-top: 7px !important;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.natural-selection-analysis-disclosure {
+    color: #ffffff;
+    background: #120722;
+    border: 2px solid #79e6c4;
+    border-radius: 9px;
+}
+
+.natural-selection-analysis-disclosure-summary {
+    padding: 14px 18px;
+    color: #ffffff;
+    background: #175846;
+    border-radius: 7px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.natural-selection-analysis-disclosure-summary::marker {
+    color: #ffffff;
+}
+
+.natural-selection-analysis-disclosure-summary:focus-visible {
+    outline: 3px solid #ffffff;
+    outline-offset: 3px;
+}
+
+.natural-selection-analysis-complete-body {
+    padding: 16px;
+}
+
+.natural-selection-analysis-complete-body
+.natural-selection-secondary-action {
+    margin-top: 16px;
+}
+
+@media (max-width: 1180px) {
+    .natural-selection-analysis-header {
+        flex-direction: column;
+    }
+
+    .natural-selection-analysis-option-grid,
+    .natural-selection-analysis-evidence-list,
+    .natural-selection-analysis-summary-list {
+        grid-template-columns: 1fr;
+    }
+
+    .natural-selection-analysis-option-grid legend {
+        grid-column: 1;
+    }
+}
+
+/* --------------------------------------------------
+   Natural Selection Canvas-ready report
+   -------------------------------------------------- */
+
+.natural-selection-report-panel {
+    grid-column: 1 / -1;
+    min-height: 0;
+    color: #ffffff;
+    border-color: #79e6c4;
+}
+
+.natural-selection-report-panel[hidden] {
+    display: none;
+}
+
+.natural-selection-report-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #724da6;
+}
+
+.natural-selection-report-header h2 {
+    margin-bottom: 0;
+    color: #ffffff;
+}
+
+.natural-selection-report-label {
+    display: block;
+    margin: 16px 0 7px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.natural-selection-report-preview {
+    width: 100%;
+    min-height: 390px;
+    box-sizing: border-box;
+    padding: 14px;
+    resize: vertical;
+    color: #ffffff;
+    background: #07010d;
+    border: 2px solid #a98bc9;
+    border-radius: 7px;
+    font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+    font-size: 12px;
+    line-height: 1.55;
+    white-space: pre;
+}
+
+.natural-selection-report-preview:focus-visible {
+    outline: 3px solid #79e6c4;
+    outline-offset: 3px;
+}
+
+.natural-selection-report-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.natural-selection-report-status,
+.natural-selection-report-privacy-note {
+    color: #ffffff !important;
+}
+
+.natural-selection-report-status {
+    min-height: 1.5em;
+    margin: 12px 0 0 !important;
+    font-weight: bold;
+}
+
+.natural-selection-report-privacy-note {
+    margin: 10px 0 0 !important;
+    padding: 10px 12px;
+    background: #171020;
+    border-left: 4px solid #79e6c4;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+/* --------------------------------------------------
    Amoeba visual placeholder
    -------------------------------------------------- */
 

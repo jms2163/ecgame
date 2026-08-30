@@ -134,6 +134,48 @@ const InvestigationDefinitionRegistry = {
             }
         }
 
+        if (definition?.postInvestigationAnalysis) {
+            const analysis =
+                definition
+                    .postInvestigationAnalysis;
+
+            if (
+                !analysis.schemaVersion ||
+                !Number.isInteger(
+                    analysis.estimatedMinutes
+                        ?.minimum
+                ) ||
+                !Number.isInteger(
+                    analysis.estimatedMinutes
+                        ?.maximum
+                ) ||
+                analysis.estimatedMinutes.minimum <= 0 ||
+                analysis.estimatedMinutes.maximum <
+                    analysis.estimatedMinutes.minimum ||
+                !Array.isArray(
+                    analysis
+                        .hypothesisEvaluation
+                        ?.options
+                ) ||
+                analysis.hypothesisEvaluation
+                    .options.length !== 3 ||
+                !analysis.cer?.claimPrompt ||
+                !analysis.cer?.evidencePrompt ||
+                !analysis.cer?.reasoningPrompt ||
+                !analysis.reflection
+                    ?.limitationPrompt ||
+                !analysis.reflection
+                    ?.variationPrompt ||
+                !analysis.reflection
+                    ?.improvementPrompt ||
+                !analysis.minimumResponseLengths
+            ) {
+                errors.push(
+                    "Post-investigation analysis requires valid timing, hypothesis-evaluation, CER, reflection, and response-length data."
+                );
+            }
+        }
+
         const parameterIds = new Set();
 
         definition.parameters.forEach(
