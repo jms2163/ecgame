@@ -243,39 +243,7 @@ ObjectiveRegistry.register(
             "discovery-made"
         ],
 
-        captureBaseline({
-            objective,
-            objectiveIndex,
-            record
-        }) {
-            const key =
-                createBaselineKey(
-                    objective,
-                    objectiveIndex
-                );
-            const currentCount =
-                Object.keys(
-                    gameState.discoveries?.atoms || {}
-                ).length;
-
-            record.objectiveBaselines[key] =
-                currentCount;
-        },
-
-        evaluate({
-            objective,
-            objectiveIndex,
-            record
-        }) {
-            const key =
-                createBaselineKey(
-                    objective,
-                    objectiveIndex
-                );
-            const baseline =
-                record?.objectiveBaselines?.[
-                    key
-                ];
+        evaluate({ objective }) {
             const currentCount =
                 Object.keys(
                     gameState.discoveries?.atoms || {}
@@ -283,18 +251,13 @@ ObjectiveRegistry.register(
 
             const progress =
                 normalizeProgress(
-                    Number.isFinite(baseline)
-                        ? currentCount - baseline
-                        : currentCount,
+                    currentCount,
                     objective.target
                 );
 
             return {
                 ...progress,
-                baseline:
-                    Number.isFinite(baseline)
-                        ? baseline
-                        : null,
+                baseline: null,
                 currentCount
             };
         }
