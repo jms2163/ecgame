@@ -9,6 +9,8 @@ import PlayerProfileManager
 import SaveManager from "./SaveManager.js";
 import GameStateObserver
     from "./GameStateObserver.js";
+import ProgressReportExporter
+    from "./ProgressReportExporter.js";
 
 const UTILITY_CONTROL_ID = "player-badge";
 const DIALOG_ID = "player-badge-drawer";
@@ -474,7 +476,8 @@ const PlayerBadgeDrawer = {
                 this.renderProfileSection(
                     profile
                 ),
-                this.renderSaveSection()
+                this.renderSaveSection(),
+                this.renderReportSection()
             );
         } else {
             body.appendChild(
@@ -1794,6 +1797,139 @@ const PlayerBadgeDrawer = {
             statusElement,
             saveButton,
             explanation,
+            details
+        );
+
+        return section;
+
+    },
+
+    renderReportSection() {
+
+        const section =
+            this.createElement(
+                "section",
+                {
+                    className:
+                        "player-drawer-section",
+                    attributes: {
+                        "aria-labelledby":
+                            "player-report-heading"
+                    }
+                }
+            );
+
+        const heading =
+            this.createElement(
+                "h3",
+                {
+                    text: "Report Progress",
+                    attributes: {
+                        id: "player-report-heading"
+                    }
+                }
+            );
+
+        const explanation =
+            this.createElement(
+                "p",
+                {
+                    className:
+                        "player-report-summary",
+                    text:
+                        "Download a progress record to upload to Canvas or email when requested."
+                }
+            );
+
+        const reportButton =
+            this.createElement(
+                "button",
+                {
+                    className:
+                        "player-drawer-primary player-report-button",
+                    text:
+                        "Download Progress Report",
+                    attributes: {
+                        type: "button",
+                        "data-report-progress": ""
+                    }
+                }
+            );
+
+        reportButton.addEventListener(
+            "click",
+            async () => {
+                reportButton.disabled = true;
+                reportButton.textContent =
+                    "Preparing Report…";
+
+                try {
+                    const result =
+                        await ProgressReportExporter
+                            .downloadReport();
+
+                    this.feedback = {
+                        tone: "success",
+                        message: result.message
+                    };
+                } catch (error) {
+                    console.error(
+                        "Progress report download failed:",
+                        error
+                    );
+
+                    this.feedback = {
+                        tone: "error",
+                        message:
+                            "The progress report could not be prepared. No download was created."
+                    };
+                }
+
+                if (this.dialog?.open) {
+                    this.renderDialog(
+                        "[data-report-progress]"
+                    );
+                }
+            }
+        );
+
+        const details =
+            this.createElement(
+                "details",
+                {
+                    className:
+                        "player-report-details"
+                }
+            );
+
+        details.append(
+            this.createElement(
+                "summary",
+                {
+                    text:
+                        "What is included in this file?"
+                }
+            ),
+            this.createElement(
+                "p",
+                {
+                    text:
+                        "The file includes your name, gamertag, internal player ID, and an approved summary of game progress. It does not include an institutional student ID, raw journal responses, or debugging data."
+                }
+            ),
+            this.createElement(
+                "p",
+                {
+                    text:
+                        "The JSON is encoded as Base64 for text transport. Base64 is not encryption and does not make the report tamper-proof."
+                }
+            )
+        );
+
+        section.append(
+            heading,
+            explanation,
+            reportButton,
             details
         );
 

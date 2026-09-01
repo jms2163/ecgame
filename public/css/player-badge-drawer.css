@@ -468,14 +468,16 @@ body.player-drawer-open {
 }
 
 .player-profile-details,
-.player-save-details {
+.player-save-details,
+.player-report-details {
     margin-top: 14px;
     color: #d8c9e1;
     font-size: 12px;
 }
 
 .player-profile-details summary,
-.player-save-details summary {
+.player-save-details summary,
+.player-report-details summary {
     min-height: 32px;
     color: #efdfff;
     font-weight: 700;
@@ -483,14 +485,16 @@ body.player-drawer-open {
 }
 
 .player-profile-details summary:focus-visible,
-.player-save-details summary:focus-visible {
+.player-save-details summary:focus-visible,
+.player-report-details summary:focus-visible {
     border-radius: 3px;
     outline: 3px solid rgba(223, 128, 255, 0.35);
     outline-offset: 2px;
 }
 
 .player-profile-details p,
-.player-save-details p {
+.player-save-details p,
+.player-report-details p {
     overflow-wrap: anywhere;
 }
 
@@ -508,9 +512,21 @@ body.player-drawer-open {
     color: #ffabb3;
 }
 
-.player-save-button {
+.player-save-button,
+.player-report-button {
     width: 100%;
     font-size: 15px;
+}
+
+.player-report-summary {
+    margin: 0 0 12px;
+    color: #d8c9e1;
+    font-size: 12px;
+}
+
+.player-report-button:disabled {
+    cursor: wait;
+    opacity: 0.68;
 }
 
 /* --------------------------------------------------
