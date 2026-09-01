@@ -19,6 +19,7 @@ import AtomizerManager from "./AtomizerManager.js";
 import AtomizerUI from "./AtomizerUI.js";
 import MoleculeLabManager from "./MoleculeLabManager.js";
 import PlayerProfileManager from "./PlayerProfileManager.js";
+import PlayerBadgeDrawer from "./PlayerBadgeDrawer.js";
 
 
 const Bootstrap = {
@@ -46,6 +47,7 @@ const Bootstrap = {
         ZoneManager.initialize();
         NavigationUI.initialize();
         QuestDrawerUI.initialize();
+        PlayerBadgeDrawer.initialize();
         AtomizerManager.initialize();
         AtomizerUI.initialize();
         // Domain initialization is global so timestamp-based
