@@ -23,7 +23,7 @@ const NaturalSelectionPrototypeConfig = {
         "natural-selection-pigmentation",
 
     definitionVersion:
-        "0.8.0",
+        "0.9.2",
 
     modelVersion:
         "pigmentation-selection-v1",

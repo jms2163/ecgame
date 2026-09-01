@@ -430,7 +430,10 @@
    -------------------------------------------------- */
 
 #natural-selection-view {
+    width: 100%;
+    max-width: 100%;
     min-height: 640px;
+    min-width: 0;
     box-sizing: border-box;
     padding: 24px;
     color: #f7efff;
@@ -458,13 +461,22 @@
 
 #natural-selection-workspace {
     display: grid;
-    grid-template-columns: 330px minmax(420px, 1fr) 280px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    grid-template-columns:
+        minmax(280px, 330px)
+        minmax(0, 1fr)
+        minmax(230px, 280px);
     gap: 18px;
     align-items: stretch;
 }
 
 .natural-selection-panel {
+    width: 100%;
+    max-width: 100%;
     min-height: 360px;
+    min-width: 0;
     box-sizing: border-box;
     padding: 18px;
     background: #0f041c;
@@ -682,6 +694,7 @@
 #natural-selection-predation-canvas {
     display: block;
     width: 100%;
+    max-width: 100%;
     height: auto;
     aspect-ratio: 18 / 11;
     box-sizing: border-box;
@@ -1756,6 +1769,9 @@
 
 .natural-selection-data-layout {
     display: grid;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     grid-template-columns:
         minmax(520px, 1.15fr)
         minmax(420px, 0.85fr);
@@ -1764,7 +1780,9 @@
 }
 
 .natural-selection-table-scroll {
+    width: 100%;
     max-width: 100%;
+    min-width: 0;
     overflow-x: auto;
     border: 1px solid #724da6;
     border-radius: 8px;
@@ -1823,6 +1841,7 @@
 }
 
 .natural-selection-frequency-figure {
+    min-width: 0;
     margin: 0;
     padding: 12px;
     background: #090211;
@@ -2278,6 +2297,397 @@
     border-left: 4px solid #79e6c4;
     font-size: 12px;
     line-height: 1.5;
+}
+
+/* --------------------------------------------------
+   Natural Selection anonymous class comparison
+   -------------------------------------------------- */
+
+.natural-selection-class-comparison-panel {
+    grid-column: 1 / -1;
+    min-height: 0;
+    color: #ffffff;
+    border-color: #f0a45d;
+}
+
+.natural-selection-class-comparison-panel[hidden] {
+    display: none;
+}
+
+.natural-selection-class-comparison-header {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #724da6;
+}
+
+.natural-selection-class-comparison-header h2 {
+    margin-bottom: 0;
+    color: #ffffff;
+}
+
+.natural-selection-class-comparison-scenario {
+    padding: 14px 16px;
+    color: #ffffff;
+    background: #171020;
+    border: 1px solid #a98bc9;
+    border-radius: 8px;
+}
+
+.natural-selection-class-scenario-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 20px;
+    margin: 0;
+    padding-left: 20px;
+    color: #ffffff;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.natural-selection-class-match-note,
+.natural-selection-class-graph-note {
+    color: #ffffff !important;
+    font-size: 12px;
+}
+
+.natural-selection-class-match-note {
+    margin-top: 10px !important;
+}
+
+.natural-selection-class-comparison-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.natural-selection-class-comparison-status {
+    min-height: 1.5em;
+    margin: 14px 0 0 !important;
+    color: #ffffff !important;
+    font-weight: bold;
+}
+
+.natural-selection-class-check-action {
+    border-color: #ffffff;
+    box-shadow: 0 0 0 2px #f0a45d;
+}
+
+.natural-selection-class-refresh-guidance {
+    margin: 12px 0 0 !important;
+    padding: 10px 12px;
+    color: #ffffff !important;
+    background: #171020;
+    border-left: 4px solid #79e6c4;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.natural-selection-class-refresh-guidance[hidden] {
+    display: none;
+}
+
+.natural-selection-class-account-help {
+    margin-top: 12px;
+    padding: 12px 14px;
+    color: #ffffff;
+    background: #24103a;
+    border: 2px solid #f0a45d;
+    border-radius: 8px;
+}
+
+.natural-selection-class-account-help[hidden] {
+    display: none;
+}
+
+.natural-selection-class-account-help summary {
+    color: #ffffff;
+    cursor: pointer;
+    font-weight: bold;
+    line-height: 1.5;
+}
+
+.natural-selection-class-account-help summary:focus-visible {
+    outline: 3px solid #79e6c4;
+    outline-offset: 3px;
+}
+
+.natural-selection-class-account-help p,
+.natural-selection-class-account-help li {
+    color: #ffffff !important;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.natural-selection-class-account-help p {
+    margin-top: 10px !important;
+}
+
+.natural-selection-class-account-help ol {
+    margin: 10px 0 0;
+    padding-left: 24px;
+}
+
+.natural-selection-class-account-help li + li {
+    margin-top: 7px;
+}
+
+.natural-selection-class-comparison-results {
+    margin-top: 16px;
+}
+
+.natural-selection-class-graph-note {
+    margin-bottom: 10px !important;
+}
+
+.natural-selection-class-figure {
+    min-width: 0;
+    margin: 0;
+    padding: 12px;
+    color: #ffffff;
+    background: #090211;
+    border: 1px solid #a98bc9;
+    border-radius: 8px;
+}
+
+.natural-selection-class-figure figcaption {
+    margin-bottom: 8px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.natural-selection-class-figure svg {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.natural-selection-class-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 20px;
+    margin: 8px 0 0;
+    padding: 0;
+    color: #ffffff;
+    font-size: 12px;
+    list-style: none;
+}
+
+.natural-selection-class-legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.natural-selection-class-swatch {
+    display: inline-block;
+    width: 22px;
+    height: 4px;
+    border-radius: 3px;
+}
+
+.natural-selection-class-swatch--student {
+    background: #f0a45d;
+}
+
+.natural-selection-class-swatch--mean {
+    height: 2px;
+    background: repeating-linear-gradient(
+        to right,
+        #79e6c4 0 7px,
+        transparent 7px 11px
+    );
+}
+
+.natural-selection-class-table {
+    width: 100%;
+    min-width: 480px;
+    border-collapse: collapse;
+    color: #ffffff;
+    background: #090211;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.natural-selection-class-table caption {
+    padding: 12px 14px;
+    color: #ffffff;
+    background: #1b0a30;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: left;
+}
+
+.natural-selection-class-table th,
+.natural-selection-class-table td {
+    padding: 9px 10px;
+    border: 1px solid #724da6;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.natural-selection-class-table thead th,
+.natural-selection-class-table tbody th {
+    color: #ffffff;
+    background: #24103a;
+}
+
+.natural-selection-class-table tbody tr:nth-child(even) td {
+    background: rgba(69, 19, 125, 0.22);
+}
+
+.natural-selection-class-privacy-note {
+    margin: 14px 0 0 !important;
+    padding: 10px 12px;
+    color: #ffffff !important;
+    background: #171020;
+    border-left: 4px solid #f0a45d;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+/* --------------------------------------------------
+   Natural Selection responsive laptop layout
+
+   The simulation keeps a fixed 720 x 440 internal
+   coordinate system. Only the displayed canvas size
+   changes; pointer coordinates are scaled back to the
+   internal canvas by NaturalSelectionPredationStage.
+   -------------------------------------------------- */
+
+#pond-zoom-navigation {
+    max-width: 100%;
+    flex-wrap: wrap;
+}
+
+#natural-selection-view :is(
+    h1,
+    h2,
+    h3,
+    p,
+    dt,
+    dd,
+    label,
+    summary,
+    button
+) {
+    overflow-wrap: anywhere;
+}
+
+#natural-selection-workspace > *,
+.natural-selection-data-layout > *,
+.natural-selection-card-grid > *,
+.natural-selection-hypothesis-grid > *,
+.natural-selection-variable-grid > * {
+    min-width: 0;
+}
+
+@media (max-width: 1180px) {
+    #natural-selection-workspace {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    #natural-selection-workspace > *,
+    .natural-selection-setup-panel,
+    .natural-selection-stage,
+    .natural-selection-record-panel,
+    .natural-selection-plan-panel,
+    .natural-selection-data-panel,
+    .natural-selection-analysis-panel,
+    .natural-selection-report-panel,
+    .natural-selection-class-comparison-panel {
+        grid-column: 1;
+    }
+
+    .natural-selection-data-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 820px) {
+    #natural-selection-view {
+        min-height: 0;
+        padding: 14px;
+    }
+
+    .natural-selection-header {
+        margin-bottom: 14px;
+    }
+
+    .natural-selection-panel {
+        min-height: 0;
+        padding: 14px;
+    }
+
+    .natural-selection-guided-header,
+    .natural-selection-analysis-header,
+    .natural-selection-report-header,
+    .natural-selection-class-comparison-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    #natural-selection-guided-progress,
+    .natural-selection-card-grid,
+    .natural-selection-hypothesis-grid,
+    .natural-selection-variable-grid,
+    .natural-selection-scenario-list,
+    .natural-selection-frequency-summary-list,
+    .natural-selection-class-scenario-list,
+    .natural-selection-analysis-option-grid,
+    .natural-selection-analysis-evidence-list,
+    .natural-selection-analysis-summary-list {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    #natural-selection-analysis-progress {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .natural-selection-step-actions,
+    .natural-selection-report-actions,
+    .natural-selection-class-comparison-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .natural-selection-step-actions
+    .natural-selection-primary-action,
+    .natural-selection-step-actions
+    .natural-selection-secondary-action,
+    .natural-selection-report-actions
+    .natural-selection-primary-action,
+    .natural-selection-report-actions
+    .natural-selection-secondary-action {
+        width: 100%;
+        min-width: 0;
+        margin-top: 0;
+    }
+
+    .natural-selection-class-comparison-actions
+    .natural-selection-primary-action,
+    .natural-selection-class-comparison-actions
+    .natural-selection-secondary-action {
+        width: 100%;
+        min-width: 0;
+        margin-top: 0;
+    }
+
+    .natural-selection-preview-list,
+    .natural-selection-plan-summary-list,
+    .natural-selection-confirmed-plan
+    .natural-selection-plan-summary-list {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .natural-selection-card-visual {
+        min-height: 92px;
+    }
+
+    .natural-selection-report-preview {
+        min-height: 300px;
+    }
 }
 
 /* --------------------------------------------------
