@@ -1,0 +1,560 @@
+/* --------------------------------------------------
+   Global player badge
+-------------------------------------------------- */
+
+.player-badge-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 150px;
+    min-height: 48px;
+    box-sizing: border-box;
+    padding: 7px 11px;
+    color: var(--color-nav-text);
+    background: #251044;
+    border: 1px solid var(--color-nav-accent);
+    border-radius: 5px;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition:
+        background 0.18s ease,
+        border-color 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+.player-badge-button:hover,
+.player-badge-button:focus-visible {
+    background: #45137d;
+    border-color: #f0b4ff;
+    box-shadow:
+        0 0 0 2px rgba(223, 128, 255, 0.25),
+        0 0 10px rgba(223, 128, 255, 0.45);
+    outline: none;
+}
+
+.player-badge-avatar,
+.player-profile-avatar {
+    display: inline-grid;
+    flex: 0 0 auto;
+    place-items: center;
+    color: #170522;
+    background: #efb5ff;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.player-badge-avatar {
+    width: 31px;
+    height: 31px;
+    font-size: 12px;
+}
+
+.player-badge-text {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+}
+
+.player-badge-label,
+.player-badge-status {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.player-badge-label {
+    max-width: 160px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.25px;
+}
+
+.player-badge-status {
+    color: #d7c9e8;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.45px;
+    text-transform: uppercase;
+}
+
+.player-badge-status[data-tone="success"] {
+    color: var(--color-status-available);
+}
+
+.player-badge-status[data-tone="error"] {
+    color: #ff9aa5;
+}
+
+.player-badge-status[data-tone="attention"] {
+    color: #ffd36a;
+}
+
+/* --------------------------------------------------
+   Modal drawer frame
+-------------------------------------------------- */
+
+body.player-drawer-open {
+    overflow: hidden;
+}
+
+.player-drawer-dialog {
+    position: fixed;
+    inset: 0 0 0 auto;
+    width: min(480px, calc(100vw - 28px));
+    height: 100vh;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    color: #f7efff;
+    background: #12081f;
+    border: 0;
+    border-left: 2px solid var(--color-nav-accent);
+    border-radius: 0;
+    box-shadow:
+        -12px 0 32px rgba(0, 0, 0, 0.5);
+    font-family: "Oxanium", system-ui, sans-serif;
+}
+
+.player-drawer-dialog[open] {
+    display: flex;
+}
+
+.player-drawer-dialog::backdrop {
+    background: rgba(4, 1, 8, 0.72);
+}
+
+.player-drawer-panel {
+    display: flex;
+    width: 100%;
+    min-height: 0;
+    flex-direction: column;
+}
+
+.player-drawer-header {
+    position: sticky;
+    z-index: 1;
+    top: 0;
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 68px;
+    box-sizing: border-box;
+    padding: 12px 14px 12px 18px;
+    background: #1c0a3a;
+    border-bottom: 1px solid #623583;
+}
+
+.player-drawer-header h2 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 16px;
+    line-height: 1.25;
+}
+
+.player-drawer-header h2:focus {
+    outline: none;
+}
+
+.player-drawer-close {
+    display: inline-grid;
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    place-items: center;
+    color: #ffffff;
+    background: #321255;
+    border: 1px solid #9b6bb8;
+    border-radius: 5px;
+    font: inherit;
+    font-size: 26px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.player-drawer-close:hover,
+.player-drawer-close:focus-visible {
+    background: #531c80;
+    border-color: #efb5ff;
+    box-shadow:
+        0 0 0 3px rgba(223, 128, 255, 0.28);
+    outline: none;
+}
+
+.player-drawer-body {
+    min-height: 0;
+    padding: 18px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.player-drawer-body h3 {
+    margin: 0 0 10px;
+    color: #ffffff;
+    font-size: 18px;
+    line-height: 1.3;
+}
+
+.player-drawer-body p {
+    line-height: 1.5;
+}
+
+/* --------------------------------------------------
+   Feedback and instructional text
+-------------------------------------------------- */
+
+.player-drawer-feedback {
+    margin: 0 0 14px;
+    padding: 11px 12px;
+    color: #e6f8ec;
+    background: #173725;
+    border: 1px solid #5ee38d;
+    border-radius: 6px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.player-drawer-feedback[data-tone="error"] {
+    color: #fff0f2;
+    background: #451a22;
+    border-color: #ff8793;
+}
+
+.player-setup-step {
+    margin: 0 0 8px;
+    color: #d4b7e8;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+}
+
+.player-drawer-note,
+.player-field-description {
+    color: #d4c8dc;
+    font-size: 12px;
+}
+
+.player-drawer-warning {
+    padding: 10px 11px;
+    color: #fff0c7;
+    background: #3d2b0d;
+    border-left: 4px solid #f0c75e;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+/* --------------------------------------------------
+   Form controls and actions
+-------------------------------------------------- */
+
+.player-form-field {
+    display: grid;
+    gap: 6px;
+    margin: 15px 0;
+}
+
+.player-form-field label {
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.player-form-field input[type="text"] {
+    width: 100%;
+    min-height: 44px;
+    box-sizing: border-box;
+    padding: 9px 11px;
+    color: #ffffff;
+    background: #08040e;
+    border: 1px solid #806092;
+    border-radius: 5px;
+    font: inherit;
+    font-size: 16px;
+}
+
+.player-form-field input[type="text"]:focus-visible {
+    border-color: #efb5ff;
+    box-shadow:
+        0 0 0 3px rgba(223, 128, 255, 0.3);
+    outline: none;
+}
+
+.player-form-field input[aria-invalid="true"] {
+    border-color: #ff8793;
+}
+
+.player-field-description,
+.player-field-error {
+    margin: 0;
+}
+
+.player-field-error {
+    color: #ffabb3;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.player-drawer-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.player-drawer-primary,
+.player-drawer-secondary {
+    min-height: 44px;
+    box-sizing: border-box;
+    padding: 9px 14px;
+    border-radius: 5px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.player-drawer-primary {
+    color: #15041f;
+    background: #efb5ff;
+    border: 1px solid #ffffff;
+}
+
+.player-drawer-primary:hover,
+.player-drawer-primary:focus-visible {
+    background: #ffffff;
+    border-color: #ffffff;
+    box-shadow:
+        0 0 0 3px rgba(223, 128, 255, 0.32);
+    outline: none;
+}
+
+.player-drawer-secondary {
+    color: #f7efff;
+    background: #321b42;
+    border: 1px solid #9573a7;
+}
+
+.player-drawer-secondary:hover,
+.player-drawer-secondary:focus-visible {
+    background: #4a2a5d;
+    border-color: #efb5ff;
+    box-shadow:
+        0 0 0 3px rgba(223, 128, 255, 0.25);
+    outline: none;
+}
+
+.player-confirmation {
+    display: grid;
+    grid-template-columns: 24px 1fr;
+    gap: 10px;
+    align-items: start;
+    margin-top: 16px;
+    padding: 12px;
+    color: #fff7dc;
+    background: #34270f;
+    border: 1px solid #a8883c;
+    border-radius: 5px;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.player-confirmation input {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    accent-color: #df80ff;
+}
+
+.player-confirmation input:focus-visible {
+    outline: 3px solid rgba(239, 181, 255, 0.55);
+    outline-offset: 2px;
+}
+
+.player-profile-review {
+    display: grid;
+    grid-template-columns: minmax(88px, auto) 1fr;
+    gap: 8px 12px;
+    margin: 14px 0;
+    padding: 13px;
+    background: #22132d;
+    border: 1px solid #6f507e;
+    border-radius: 6px;
+}
+
+.player-profile-review dt {
+    color: #d4b7e8;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.player-profile-review dd {
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+/* --------------------------------------------------
+   Completed profile and save sections
+-------------------------------------------------- */
+
+.player-drawer-section {
+    margin-bottom: 16px;
+    padding: 15px;
+    background: #1c1025;
+    border: 1px solid #684979;
+    border-radius: 7px;
+}
+
+.player-profile-summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.player-profile-avatar {
+    width: 50px;
+    height: 50px;
+    font-size: 16px;
+}
+
+.player-profile-summary > div {
+    min-width: 0;
+}
+
+.player-profile-gamertag,
+.player-profile-name,
+.player-profile-lock {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.player-profile-gamertag {
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.player-profile-name {
+    color: #dfd3e5;
+    font-size: 13px;
+}
+
+.player-profile-lock {
+    color: #8de8ad;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
+.player-gamertag-edit {
+    margin-top: 14px;
+}
+
+.player-profile-details,
+.player-save-details {
+    margin-top: 14px;
+    color: #d8c9e1;
+    font-size: 12px;
+}
+
+.player-profile-details summary,
+.player-save-details summary {
+    min-height: 32px;
+    color: #efdfff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.player-profile-details summary:focus-visible,
+.player-save-details summary:focus-visible {
+    border-radius: 3px;
+    outline: 3px solid rgba(223, 128, 255, 0.35);
+    outline-offset: 2px;
+}
+
+.player-profile-details p,
+.player-save-details p {
+    overflow-wrap: anywhere;
+}
+
+.player-save-status {
+    margin: 0 0 12px;
+    color: #d8c9e1;
+    font-size: 12px;
+}
+
+.player-save-status[data-state="saved"] {
+    color: #8de8ad;
+}
+
+.player-save-status[data-state="save-failed"] {
+    color: #ffabb3;
+}
+
+.player-save-button {
+    width: 100%;
+    font-size: 15px;
+}
+
+/* --------------------------------------------------
+   Narrow windows and reduced motion
+-------------------------------------------------- */
+
+@media (max-width: 700px) {
+    .player-badge-button {
+        flex: 1 1 150px;
+    }
+
+    .player-drawer-dialog {
+        width: 100vw;
+        border-left: 0;
+    }
+
+    .player-drawer-body {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 420px) {
+    .player-drawer-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .player-drawer-primary,
+    .player-drawer-secondary {
+        width: 100%;
+    }
+
+    .player-profile-review {
+        grid-template-columns: 1fr;
+        gap: 3px;
+    }
+
+    .player-profile-review dd {
+        margin-bottom: 8px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .player-badge-button {
+        transition: none;
+    }
+}
