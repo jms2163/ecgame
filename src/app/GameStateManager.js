@@ -61,13 +61,22 @@ const GameStateManager = {
             return false;
         }
 
+        if (gameState.player?.nameLockedAtMs) {
+            console.warn(
+                "GameStateManager: the confirmed player name is locked"
+            );
+
+            return false;
+        }
+
         const normalizedName =
-            name.trim();
+            name.trim().replace(/\s+/g, " ");
+
+        if (normalizedName === "") {
+            return false;
+        }
 
         gameState.player.name =
-            normalizedName;
-
-        gameState.player.displayName =
             normalizedName;
 
         return true;

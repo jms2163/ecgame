@@ -12,6 +12,10 @@ const gameState = {
         id: null,
         name: "",
         displayName: "",
+        profileSchemaVersion: "1.0",
+        profileCreatedAtMs: null,
+        nameLockedAtMs: null,
+        gamertagUpdatedAtMs: null,
         level: 1,
         xp: 0,
         currentZone: "pond",
@@ -336,6 +340,10 @@ atomizer: {
     settings: {
         volume: 1,
         difficulty: "normal"
+    },
+
+    saveMetadata: {
+        lastSavedAtMs: null
     },
 
     saveVersion: "under-construction"
