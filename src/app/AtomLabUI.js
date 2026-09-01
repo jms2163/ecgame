@@ -3,6 +3,7 @@
 // Orchestration & View Controller for Atom Lab
 // --------------------------------------------------
 
+import gameState from "./GameState.js";
 import PeriodicTableUI from "./PeriodicTableUI.js";
 import AtomCraftUI from "./AtomCraftUI.js";
 import AtomLabManager from "./AtomLabManager.js";
@@ -186,15 +187,19 @@ const AtomLabUI = {
             return false;
         }
 
+        // Retrieve actual counts directly from gameState
+        const discoveredCount = Object.keys(gameState.discoveries?.atoms || {}).length;
+        const isotopesCount = Object.keys(gameState.discoveries?.isotopes || {}).length;
+
         // Dynamically update Header Library Stats
         const discoveredEl = this.rootElement?.querySelector("#stat-discovered-elements");
         const isotopesEl = this.rootElement?.querySelector("#stat-synthesized-isotopes");
 
-        if (discoveredEl && state.discoveredElementsCount !== undefined) {
-            discoveredEl.textContent = `${state.discoveredElementsCount}/118`;
+        if (discoveredEl) {
+            discoveredEl.textContent = `${discoveredCount}/118`;
         }
-        if (isotopesEl && state.synthesizedIsotopesCount !== undefined) {
-            isotopesEl.textContent = state.synthesizedIsotopesCount;
+        if (isotopesEl) {
+            isotopesEl.textContent = isotopesCount;
         }
 
         // Pass state down to child components

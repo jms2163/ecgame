@@ -6,6 +6,7 @@
 import PeriodicTableUI from "./PeriodicTableUI.js";
 import AtomCraftUI from "./AtomCraftUI.js";
 import AtomLabManager from "./AtomLabManager.js";
+import GameStateObserver from "./GameStateObserver.js";
 
 const AtomLabUI = {
 
@@ -38,6 +39,11 @@ const AtomLabUI = {
         }
 
         this.buildInterface();
+
+        // Listen for discovery events to trigger a real-time UI re-render
+        GameStateObserver.on("discovery-made", () => {
+            this.render();
+        });
 
         this.initialized = true;
         this.render();
