@@ -8,6 +8,14 @@ import GameStateObserver from "./GameStateObserver.js";
 import MoleculeBuilderView from "./MoleculeBuilderView.js";
 import MoleculeLabManager from "./MoleculeLabManager.js";
 
+// --------------------------------------------------
+// Module Helper
+// --------------------------------------------------
+function formatFormula(formulaStr) {
+    if (!formulaStr) return "";
+    return formulaStr.replace(/(\d+)/g, "<sub>$1</sub>");
+}
+
 const MoleculeLabUI = {
     initialized: false,
     active: false,
@@ -775,13 +783,13 @@ const MoleculeLabUI = {
                 <span class="molecule-status-badge ${node.phase}">${this.phaseLabel(node.phase)}</span>
             </div>
             <div class="molecule-inspector-content">
-                <div class="molecule-formula-display">${formula}</div>
-                <p>${node.definition.description}</p>
-                <h3>Atom requirements</h3>
-                <ul>${inventoryRows || "<li>No atom recipe.</li>"}</ul>
-                <p class="molecule-requirement-message">${node.message}</p>
-                ${actionMarkup}
-            </div>`;
+    <div class="molecule-formula-display">${formatFormula(formula)}</div>
+    <p>${node.definition.description}</p>
+    <h3>Atom requirements</h3>
+    <ul>${inventoryRows || "<li>No atom recipe.</li>"}</ul>
+    <p class="molecule-requirement-message">${node.message}</p>
+    ${actionMarkup}
+</div>`;
 
         this.elements.startSynthesis = this.elements.inspector.querySelector(
             "#molecule-lab-start-synthesis"
