@@ -18,6 +18,7 @@ import QuantumAutoCollectorManager from "./QuantumAutoCollectorManager.js";
 import AtomizerManager from "./AtomizerManager.js";
 import AtomizerUI from "./AtomizerUI.js";
 import MoleculeLabManager from "./MoleculeLabManager.js";
+import PlayerProfileManager from "./PlayerProfileManager.js";
 
 
 const Bootstrap = {
@@ -32,6 +33,7 @@ const Bootstrap = {
 
         SaveManager.initialize();
         SaveManager.load();
+        PlayerProfileManager.initialize();
 
         ResourceManager.initialize();
         // Global initialization keeps enabled Quantum
