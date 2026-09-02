@@ -111,17 +111,44 @@ const GameStateManager = {
     // Discoveries and cell systems
     // --------------------------------------------------
     hasDiscovery(id) {
-    const discoveries = gameState.discoveries;
-    if (!discoveries) return false;
 
-    // Check across all discovery buckets (atoms, isotopes, molecules)
-    return Boolean(
-        discoveries.atoms?.[id] ||
-        discoveries.isotopes?.[id] ||
-        discoveries.molecules?.[id] ||
-        discoveries[id] // Fallback for legacy flat records
-    );
-},
+        if (
+            typeof id !== "string" ||
+            id.trim() === ""
+        ) {
+            return false;
+        }
+
+        const normalizedId =
+            id.trim();
+
+        const discoveries =
+            gameState.discoveries;
+
+        const legacyDiscoveries =
+            gameState.registry?.discoveries;
+
+        // Transitional compatibility reader:
+        //
+        // Scientific progression uses categorized discovery records,
+        // while released Cell View and organelle progress may still use
+        // the legacy registry.discoveries string array. Read both without
+        // migrating, copying, deleting, or otherwise rewriting save data.
+        return Boolean(
+            discoveries?.atoms?.[normalizedId] ||
+            discoveries?.isotopes?.[normalizedId] ||
+            discoveries?.molecules?.[normalizedId] ||
+            discoveries?.organelles?.[normalizedId] ||
+            discoveries?.[normalizedId] ||
+            (
+                Array.isArray(legacyDiscoveries) &&
+                legacyDiscoveries.includes(
+                    normalizedId
+                )
+            )
+        );
+
+    },
 
     /**
      * Category-specific discovery lookup. This avoids ID collisions
@@ -131,7 +158,12 @@ const GameStateManager = {
     hasDiscoveryInCategory(category, id) {
 
         if (
-            !["atoms", "isotopes", "molecules"].includes(category) ||
+            ![
+                "atoms",
+                "isotopes",
+                "molecules",
+                "organelles"
+            ].includes(category) ||
             typeof id !== "string" ||
             id.trim() === ""
         ) {
