@@ -15,45 +15,61 @@ const DiscoveryManager = {
      * @param {string} type - Must be "atoms", "isotopes", or "molecules".
      * @param {string} id - The exact string identifier (e.g., "H", "He4", "H2O").
      */
-    record(type, id) {
+record(type, id) {
         
-        const validTypes = ["atoms", "isotopes", "molecules"];
-        
-        if (!validTypes.includes(type)) {
-            console.error(`DiscoveryManager: Invalid discovery type "${type}". Must be one of: ${validTypes.join(", ")}`);
-            return false;
-        }
-
-        // Safely ensure the top-level structure exists
-        gameState.discoveries ??= {};
-        gameState.discoveries.atoms ??= {};
-        gameState.discoveries.isotopes ??= {};
-        gameState.discoveries.molecules ??= {};
-
-        const targetBucket = gameState.discoveries[type];
-        const isFirstTimeAtom = (type === "atoms" && !targetBucket[id]);
-
-        // Create or update the discovery record
-        if (!targetBucket[id]) {
-            targetBucket[id] = {
-                discoveredAt: Date.now(),
-                count: 1
-            };
-        } else {
-            targetBucket[id].count += 1;
-        }
-
-        // Expand inventory capacity by +2 for every newly discovered element
-        if (isFirstTimeAtom) {
-            ParticleInventoryManager.increaseCapacity(2);
-            console.log(`[DiscoveryManager] First-time element discovery (${id}): Particle capacity expanded by +2.`);
-        }
-
-        // Emit notification
-        GameStateObserver.notify("discovery-made", { type, id });
-
-        return true;
+    const validTypes = ["atoms", "isotopes", "molecules"];
+    
+    if (!validTypes.includes(type)) {
+        console.error(`DiscoveryManager: Invalid discovery type "${type}". Must be one of: ${validTypes.join(", ")}`);
+        return false;
     }
+
+    // Safely ensure the top-level structure exists
+    gameState.discoveries ??= {};
+    gameState.discoveries.atoms ??= {};
+    gameState.discoveries.isotopes ??= {};
+    gameState.discoveries.molecules ??= {};
+
+    const targetBucket = gameState.discoveries[type];
+    const isFirstTimeAtom = (type === "atoms" && !targetBucket[id]);
+
+    // Create or update the discovery record
+    if (!targetBucket[id]) {
+        targetBucket[id] = {
+            discoveredAt: Date.now(),
+            count: 1
+        };
+    } else {
+        targetBucket[id].count += 1;
+    }
+
+    // Expand inventory capacity by +2 for every newly discovered element
+    if (isFirstTimeAtom) {
+        ParticleInventoryManager.increaseCapacity(2);
+        console.log(`[DiscoveryManager] First-time element discovery (${id}): Particle capacity expanded by +2.`);
+    }
+
+    // --------------------------------------------------
+    // ⭐ NEW: Sync molecule discoveries into ResearchManager registry
+    // --------------------------------------------------
+    if (type === "molecules") {
+
+        // Ensure registry structures exist
+        gameState.registry ??= {};
+        gameState.registry.discoveries ??= [];
+
+        // Add molecule discovery to registry if missing
+        if (!gameState.registry.discoveries.includes(id)) {
+            gameState.registry.discoveries.push(id);
+        }
+    }
+
+    // Emit notification
+    GameStateObserver.notify("discovery-made", { type, id });
+
+    return true;
+}
+
 };
 
 export default DiscoveryManager;
