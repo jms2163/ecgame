@@ -4,6 +4,7 @@
 // --------------------------------------------------
 
 import gameState from "./GameState.js";
+import GameStateManager from "./GameStateManager.js";
 import XPManager from "./XPManager.js";
 import CellSystemManager from "./CellSystemManager.js";
 import OrganelleExperimentLibrary
@@ -46,14 +47,28 @@ const ResearchManager = {
     },
 
     // --------------------------------------------------
-    // Check whether a discovery is known
+    // Check whether a discovery is known.
+    //
+    // Transitional compatibility rule:
+    // - New scientific discoveries (atoms, isotopes, and molecules)
+    //   are stored in the categorized gameState.discoveries buckets.
+    // - Existing organelle/research discoveries are still stored in
+    //   the legacy gameState.registry.discoveries array.
+    //
+    // Read both structures so released student saves remain valid.
+    // This method intentionally does not migrate, copy, or rewrite data.
     // --------------------------------------------------
     hasDiscovery(discoveryId) {
 
         this.ensureRegistryStructures();
 
-        return gameState.registry.discoveries.includes(
-            discoveryId
+        return (
+            GameStateManager.hasDiscovery(
+                discoveryId
+            ) ||
+            gameState.registry.discoveries.includes(
+                discoveryId
+            )
         );
 
     },

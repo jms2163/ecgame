@@ -151,14 +151,37 @@ const MoleculeLabManager = {
     },
 
     /**
-     * Records a newly discovered molecule using DiscoveryManager authority.
-     * @param {string} moleculeId - e.g., "H2O"
-     * @returns {boolean} Success status of the recording
-     */
-    recordMoleculeDiscovery(moleculeId) {
-        if (!moleculeId) return false;
-        return DiscoveryManager.record("molecules", moleculeId);
-    },
+ * Records a newly discovered molecule using DiscoveryManager authority.
+ * Also syncs the discovery into ResearchManager's registry so organelle
+ * experiments can detect it.
+ *
+ * @param {string} moleculeId - e.g., "H2O"
+ * @returns {boolean} Success status of the recording
+ */
+recordMoleculeDiscovery(moleculeId) {
+    if (!moleculeId) {
+        return false;
+    }
+
+    // 1. Record the molecule in the main discovery system
+    const success = DiscoveryManager.record("molecules", moleculeId);
+
+    if (!success) {
+        return false;
+    }
+
+    // 2. Ensure registry structures exist
+    gameState.registry ??= {};
+    gameState.registry.discoveries ??= [];
+
+    // 3. Sync molecule discovery into ResearchManager's discovery list
+    if (!gameState.registry.discoveries.includes(moleculeId)) {
+        gameState.registry.discoveries.push(moleculeId);
+    }
+
+    return true;
+},
+
 
     /**
      * Aggregates current status summary for UI rendering
