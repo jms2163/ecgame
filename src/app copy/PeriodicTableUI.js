@@ -8,10 +8,10 @@ import AtomLabManager from "./AtomLabManager.js";
 import GameStateManager from "./GameStateManager.js";
 
 const CATEGORY_COLORS = {
-    alkali_metal: "rgb(60, 63, 50)",
+    alkali_metal: "rgb(255, 128, 128)",
     alkaline_earth: "rgb(237, 241, 83)",
-    lanthanoid: "rgb(60, 63, 50)",
-    actinide: "rgb(60, 63, 50)",
+    lanthanoid: "#E1C78A",
+    actinide: "#F2BFD1",
     transition_metal: "rgb(60, 63, 50)",
     post_transition_metal: "rgb(60, 63, 50)",
     metalloid: "rgb(60, 63, 50)",

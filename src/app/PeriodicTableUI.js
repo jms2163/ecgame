@@ -8,17 +8,17 @@ import AtomLabManager from "./AtomLabManager.js";
 import GameStateManager from "./GameStateManager.js";
 
 const CATEGORY_COLORS = {
-    alkali_metal: "rgb(60, 63, 50)",
-    alkaline_earth: "rgb(237, 241, 83)",
-    lanthanoid: "rgb(60, 63, 50)",
-    actinide: "rgb(60, 63, 50)",
-    transition_metal: "rgb(60, 63, 50)",
-    post_transition_metal: "rgb(60, 63, 50)",
-    metalloid: "rgb(60, 63, 50)",
-    reactive_nonmetal: "rgb(125, 238, 122)",
-    noble_gas: "rgb(60, 63, 50)",
-    unknown: "rgb(200, 63, 50)",
-    special: "rgb(60, 63, 50)"
+    alkali_metal: "#E5C54C",
+    alkaline_earth: "#EDE753",
+    lanthanoid: "#E1C78A",
+    actinide: "#F2BFD1",
+    transition_metal: "#F7B8A9",
+    post_transition_metal: "#9FD8E7",
+    metalloid: "#90E1C9",
+    reactive_nonmetal: "#7DEE7A",
+    noble_gas: "#DEACDF",
+    unknown: "#EAEAEA",
+    special: "#E00DDC"
 };
 
 const PeriodicTableUI = {
