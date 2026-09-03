@@ -300,6 +300,34 @@ export const techTreeData = Object.freeze(
     desc: "One of two sulfur-containing amino acids; serves as the 'Start' signal for protein synthesis.",
     info: "Methionine’s thioether side chain supports helix formation and hydrophobic packing. As a component in alpha helix and coiled-coil motifs, methionine contributes to structural stability and the protein’s overall three-dimensional tertiary structure."
   },
+    N: {
+    name: "Asparagine",
+    icon: "N",
+    tier: 4,
+    researchTime: 151,
+    parents: ["D", "NH3"],
+    type: "hydrophilic",
+    category: "proteins",
+    state: "locked",
+    affects: [],
+    desc: "A polar, uncharged amino acid with an amide side chain that readily forms hydrogen bonds.",
+    info: "Asparagine’s polar amide side chain can both donate and accept hydrogen bonds, making it especially useful on protein surfaces and in flexible turns. As a component in loop motifs, asparagine helps stabilize local folding and position interacting residues. Asparagine can also participate in recognition sites for N-linked glycosylation, connecting amino-acid sequence to later protein processing and function."
+  },
+
+  Q: {
+    name: "Glutamine",
+    icon: "Q",
+    tier: 4,
+    researchTime: 163,
+    parents: ["E", "NH3"],
+    type: "hydrophilic",
+    category: "proteins",
+    state: "locked",
+    affects: [],
+    desc: "A polar, uncharged amino acid with an extended amide side chain that supports hydrogen bonding and nitrogen transport.",
+    info: "Glutamine’s extended polar side chain forms hydrogen bonds while remaining uncharged at physiological pH. It commonly appears on protein surfaces and can help stabilize alpha helices and interactions between neighboring helices. As a component in coiled-coil motifs, glutamine contributes polar contacts that help organize and stabilize the protein’s three-dimensional structure."
+  },
+
   D: {
     name: "Aspartic Acid",
     icon: "D",
