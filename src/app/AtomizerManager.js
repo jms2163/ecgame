@@ -123,7 +123,7 @@ getSkillPointData() {
                 const atom = this.state.atoms[symbol];
                 if (atom.unlocked) {
                     const previousDisplayedCount = safeDisplayedCount(atom.count);
-                    const spBoost = (this.state.spAllocated?.[symbol] || 0) * 0.10;
+                    const spBoost = (this.state.spAllocated?.[symbol] || 0) * 1.00; // 100%
                     const speedMult = 1 + (atom.boost || 0) + spBoost;
                     const effectiveInterval = Math.max(1, atom.baseRate / speedMult);
                     const generated = elapsedSeconds / effectiveInterval;
@@ -252,7 +252,7 @@ tick(deltaSec) {
     Object.entries(this.state.atoms).forEach(([symbol, atom]) => {
         if (!atom.unlocked) return;
 
-        const spBoost = (this.state.spAllocated?.[symbol] || 0) * 0.10;
+        const spBoost = (this.state.spAllocated?.[symbol] || 0) * 1.00; // 100%
         const speedMult = 1 + (atom.boost || 0) + spBoost;
         const effectiveInterval = Math.max(1, atom.baseRate / speedMult);
 
