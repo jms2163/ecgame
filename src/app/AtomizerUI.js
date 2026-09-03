@@ -181,7 +181,7 @@ const AtomizerUI = {
             if (data.unlocked) {
                 cardEl.classList.remove("locked");
 
-                const spBoost = (state.spAllocated?.[symbol] || 0) * 0.10;
+                const spBoost = (state.spAllocated?.[symbol] || 0) * 1.00; // 100%
                 const speedMult = 1 + (data.boost || 0) + spBoost;
                 const effectiveInterval = Math.round(data.baseRate / speedMult);
 
