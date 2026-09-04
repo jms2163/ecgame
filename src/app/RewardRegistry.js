@@ -11,6 +11,8 @@ import QuantumAutoCollectorManager
     from "./QuantumAutoCollectorManager.js";
 import XPManager from "./XPManager.js";
 import SPManager from "./SPManager.js";
+import SynthesisPointManager
+    from "./SynthesisPointManager.js";
 
 const handlers = new Map();
 
@@ -211,6 +213,55 @@ RewardRegistry.register("sp", {
         SPManager.setSP(previousSP);
     }
 });
+
+// --------------------------------------------------
+// Synthesis points
+// --------------------------------------------------
+
+RewardRegistry.register(
+    "synthesisPoints",
+    {
+        apply(amount) {
+
+            const previousStatus =
+                SynthesisPointManager
+                    .getStatus();
+
+            const updatedPoints =
+                SynthesisPointManager
+                    .addPoints(
+                        amount,
+                        "quest-reward"
+                    );
+
+            if (updatedPoints === false) {
+                throw new Error(
+                    "RewardRegistry: Synthesis Point reward was rejected"
+                );
+            }
+
+            return {
+                snapshot: {
+                    previousStatus
+                },
+                result: {
+                    awarded: amount,
+                    updatedPoints
+                }
+            };
+
+        },
+
+        revert({ previousStatus }) {
+
+            SynthesisPointManager
+                .restoreStatus(
+                    previousStatus
+                );
+
+        }
+    }
+);
 
 
 

@@ -46,6 +46,11 @@ const gameState = {
         maximum: 50
     },
 
+    synthesisPoints: {
+        current: 0,
+        lifetimeEarned: 0
+    },
+
     particles: {
         capacity: 5,
         proton: 0,
@@ -321,7 +326,13 @@ atomizer: {
                 selectedMotifId: "H_helix",
                 activeSynthesis: null,
                 synthesized: {},
-                motifInventory: {}
+                motifInventory: {},
+                upgrades: {
+                    dehydrationSynthesisSpeed: {
+                        level: 0,
+                        synthesisPointsSpent: 0
+                    }
+                }
             }
         },
 
@@ -359,4 +370,3 @@ atomizer: {
 };
 
 export default gameState;
-

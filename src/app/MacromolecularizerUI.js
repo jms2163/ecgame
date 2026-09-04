@@ -15,6 +15,8 @@ const MacromolecularizerUI = {
     rootElement: null,
     elements: {},
     feedbackMessage: "",
+    synthesisFeedbackMessage: "",
+    upgradeFeedbackMessage: "",
 
     // --------------------------------------------------
     // Initialize the persistent zone shell once
@@ -145,8 +147,8 @@ const MacromolecularizerUI = {
                     <h2>Synthesis Workspace</h2>
                     <p>
                         Discover the reactions that build and break
-                        biological polymers. Motif synthesis controls
-                        will be added in the next milestone.
+                        biological polymers, then use ATP to run a
+                        timed motif synthesis job.
                     </p>
 
                     <section
@@ -213,8 +215,40 @@ const MacromolecularizerUI = {
                             <h4>ATP requirement</h4>
                             <p id="macromolecularizer-atp-requirement"></p>
 
+                            <h4>Synthesis timing</h4>
+                            <p id="macromolecularizer-synthesis-timing"></p>
+
                             <p
                                 id="macromolecularizer-eligibility-feedback"
+                                role="status"
+                                aria-live="polite"
+                            ></p>
+
+                            <button
+                                id="macromolecularizer-start-synthesis"
+                                type="button"
+                            >
+                                Begin H_helix Synthesis
+                            </button>
+
+                            <div
+                                id="macromolecularizer-synthesis-progress-panel"
+                                aria-live="polite"
+                                hidden
+                            >
+                                <label for="macromolecularizer-synthesis-progress">
+                                    H_helix synthesis progress
+                                </label>
+                                <progress
+                                    id="macromolecularizer-synthesis-progress"
+                                    max="1"
+                                    value="0"
+                                ></progress>
+                                <p id="macromolecularizer-synthesis-countdown"></p>
+                            </div>
+
+                            <p
+                                id="macromolecularizer-synthesis-feedback"
                                 role="status"
                                 aria-live="polite"
                             ></p>
@@ -237,6 +271,43 @@ const MacromolecularizerUI = {
                         <dt>Active synthesis</dt>
                         <dd id="macromolecularizer-active-synthesis">None</dd>
                     </dl>
+
+                    <section
+                        aria-labelledby="macromolecularizer-speed-heading"
+                    >
+                        <h3 id="macromolecularizer-speed-heading">
+                            Dehydration Synthesis Speed
+                        </h3>
+                        <p>
+                            Future quests award Synthesis Points. Each
+                            point adds 100% base synthesis speed to jobs
+                            started after the upgrade.
+                        </p>
+                        <dl>
+                            <dt>Synthesis Points</dt>
+                            <dd id="macromolecularizer-synthesis-points">0</dd>
+
+                            <dt>Upgrade level</dt>
+                            <dd id="macromolecularizer-speed-level">0</dd>
+
+                            <dt>Synthesis speed</dt>
+                            <dd id="macromolecularizer-speed-multiplier">1×</dd>
+
+                            <dt>Seconds per peptide bond</dt>
+                            <dd id="macromolecularizer-seconds-per-bond">30</dd>
+                        </dl>
+                        <button
+                            id="macromolecularizer-upgrade-speed"
+                            type="button"
+                        >
+                            Spend 1 Synthesis Point
+                        </button>
+                        <p
+                            id="macromolecularizer-upgrade-feedback"
+                            role="status"
+                            aria-live="polite"
+                        ></p>
+                    </section>
                 </aside>
             </div>
         `;
@@ -315,9 +386,57 @@ const MacromolecularizerUI = {
                 this.rootElement.querySelector(
                     "#macromolecularizer-atp-requirement"
                 ),
+            synthesisTiming:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-synthesis-timing"
+                ),
             eligibilityFeedback:
                 this.rootElement.querySelector(
                     "#macromolecularizer-eligibility-feedback"
+                ),
+            startSynthesisButton:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-start-synthesis"
+                ),
+            synthesisProgressPanel:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-synthesis-progress-panel"
+                ),
+            synthesisProgress:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-synthesis-progress"
+                ),
+            synthesisCountdown:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-synthesis-countdown"
+                ),
+            synthesisFeedback:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-synthesis-feedback"
+                ),
+            synthesisPoints:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-synthesis-points"
+                ),
+            speedLevel:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-speed-level"
+                ),
+            speedMultiplier:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-speed-multiplier"
+                ),
+            secondsPerBond:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-seconds-per-bond"
+                ),
+            upgradeSpeedButton:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-upgrade-speed"
+                ),
+            upgradeFeedback:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-upgrade-feedback"
                 )
         };
 
@@ -352,6 +471,38 @@ const MacromolecularizerUI = {
                     }
                 );
             });
+
+        this.elements.startSynthesisButton
+            .addEventListener(
+                "click",
+                () => {
+                    const result =
+                        MacromolecularizerManager
+                            .startSynthesis(
+                                "H_helix"
+                            );
+
+                    this.synthesisFeedbackMessage =
+                        result.message;
+
+                    this.render();
+                }
+            );
+
+        this.elements.upgradeSpeedButton
+            .addEventListener(
+                "click",
+                () => {
+                    const result =
+                        MacromolecularizerManager
+                            .spendSynthesisPointOnDehydrationSpeed();
+
+                    this.upgradeFeedbackMessage =
+                        result.message;
+
+                    this.render();
+                }
+            );
 
     },
 
@@ -416,11 +567,17 @@ const MacromolecularizerUI = {
         this.elements.activeSynthesis
             .textContent =
                 status.activeSynthesis
-                    ?.motifId ??
+                    ? `${status.activeSynthesis.motifId} — ${this.formatDuration(status.activeSynthesis.remainingMs)} remaining`
+                    :
                 "None";
 
         this.renderMotifRecipe(
-            status.selectedMotif
+            status.selectedMotif,
+            status.activeSynthesis
+        );
+
+        this.renderSpeedUpgrade(
+            status.dehydrationSpeed
         );
 
         this.elements.reactionButtons
@@ -478,7 +635,10 @@ const MacromolecularizerUI = {
     // --------------------------------------------------
     // Render H_helix composition and eligibility
     // --------------------------------------------------
-    renderMotifRecipe(motif) {
+    renderMotifRecipe(
+        motif,
+        activeSynthesis
+    ) {
 
         if (!motif) {
             this.elements.motifCard.hidden =
@@ -569,6 +729,50 @@ const MacromolecularizerUI = {
             .textContent =
                 `${motif.atp.current} ATP available · ${motif.atp.cost} ATP required`;
 
+        this.elements.synthesisTiming
+            .textContent =
+                `${this.formatDuration(motif.timing.durationMs)} at ${motif.timing.speedMultiplier}× speed (${motif.timing.baseSecondsPerPeptideBond} seconds per peptide bond at base speed).`;
+
+        const selectedJob =
+            activeSynthesis
+                ?.motifId ===
+            definition.id
+                ? activeSynthesis
+                : null;
+
+        this.elements.startSynthesisButton
+            .disabled =
+                !motif.eligible ||
+                Boolean(activeSynthesis);
+
+        this.elements.startSynthesisButton
+            .textContent = selectedJob
+                ? "H_helix Synthesis in Progress"
+                : "Begin H_helix Synthesis";
+
+        this.elements.synthesisProgressPanel
+            .hidden =
+                !selectedJob;
+
+        if (selectedJob) {
+            this.elements.synthesisProgress
+                .value =
+                    selectedJob.progress;
+
+            this.elements.synthesisCountdown
+                .textContent =
+                    `${this.formatDuration(selectedJob.remainingMs)} remaining · ${Math.floor(selectedJob.progress * 100)}% complete · started at ${selectedJob.speedMultiplier}× speed`;
+        } else {
+            this.elements.synthesisProgress
+                .value = 0;
+            this.elements.synthesisCountdown
+                .textContent = "";
+        }
+
+        this.elements.synthesisFeedback
+            .textContent =
+                this.synthesisFeedbackMessage;
+
         if (
             motif.missingAminoAcidIds
                 .length > 0
@@ -598,10 +802,89 @@ const MacromolecularizerUI = {
             this.elements
                 .eligibilityFeedback
                 .textContent =
-                    "All H_helix requirements are met. Synthesis will be enabled in the next milestone.";
+                    selectedJob
+                        ? "H_helix synthesis is running. Amino-acid prerequisites remain available and are not consumed."
+                        : "All H_helix requirements are met. Synthesis is ready.";
         }
 
         return true;
+
+    },
+
+    // --------------------------------------------------
+    // Render Synthesis Points and speed-upgrade status
+    // --------------------------------------------------
+    renderSpeedUpgrade(speed) {
+
+        this.elements.synthesisPoints
+            .textContent =
+                String(
+                    speed.points.current
+                );
+
+        this.elements.speedLevel
+            .textContent =
+                String(speed.level);
+
+        this.elements.speedMultiplier
+            .textContent =
+                `${speed.speedMultiplier}×`;
+
+        this.elements.secondsPerBond
+            .textContent =
+                this.formatSeconds(
+                    speed.effectiveSecondsPerPeptideBond
+                );
+
+        this.elements.upgradeSpeedButton
+            .disabled =
+                speed.points.current <
+                speed.synthesisPointCost;
+
+        this.elements.upgradeFeedback
+            .textContent =
+                this.upgradeFeedbackMessage ||
+                "Speed upgrades apply only to newly started jobs.";
+
+        return true;
+
+    },
+
+    formatDuration(durationMs) {
+
+        const totalSeconds =
+            Math.max(
+                0,
+                Math.ceil(
+                    durationMs /
+                    1000
+                )
+            );
+
+        const minutes =
+            Math.floor(
+                totalSeconds /
+                60
+            );
+
+        const seconds =
+            totalSeconds % 60;
+
+        if (minutes === 0) {
+            return `${seconds}s`;
+        }
+
+        return `${minutes}m ${seconds}s`;
+
+    },
+
+    formatSeconds(seconds) {
+
+        return Number.isInteger(seconds)
+            ? String(seconds)
+            : seconds.toFixed(2)
+                .replace(/0+$/, "")
+                .replace(/\.$/, "");
 
     },
 
@@ -625,7 +908,19 @@ const MacromolecularizerUI = {
 
         GameStateObserver.on(
             "macromolecularizer-state-changed",
-            () => this.render()
+            detail => {
+                if (
+                    detail?.reason ===
+                    "synthesis-completed"
+                ) {
+                    this.synthesisFeedbackMessage =
+                        detail.saved
+                            ? `${detail.motifId} synthesis completed and saved.`
+                            : `${detail.motifId} synthesis completed, but the browser save failed.`;
+                }
+
+                this.render();
+            }
         );
 
         this.subscribed = true;
