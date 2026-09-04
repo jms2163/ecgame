@@ -14,6 +14,7 @@ const MacromolecularizerUI = {
     subscribed: false,
     rootElement: null,
     elements: {},
+    feedbackMessage: "",
 
     // --------------------------------------------------
     // Initialize the persistent zone shell once
@@ -37,6 +38,7 @@ const MacromolecularizerUI = {
 
         this.buildStaticUI();
         this.cacheElements();
+        this.bindEvents();
         this.subscribe();
 
         this.initialized = true;
@@ -100,7 +102,7 @@ const MacromolecularizerUI = {
     },
 
     // --------------------------------------------------
-    // Build a noninteractive development shell
+    // Build the console-only development shell
     // --------------------------------------------------
     buildStaticUI() {
 
@@ -129,10 +131,45 @@ const MacromolecularizerUI = {
                 >
                     <h2>Synthesis Workspace</h2>
                     <p>
-                        This development shell is intentionally
-                        noninteractive. Dehydration discovery and
-                        synthesis controls will be added in later milestones.
+                        Discover the reactions that build and break
+                        biological polymers. Motif synthesis controls
+                        will be added in the next milestone.
                     </p>
+
+                    <section
+                        class="macromolecularizer-reaction-discovery"
+                        aria-labelledby="macromolecularizer-reaction-heading"
+                    >
+                        <h3 id="macromolecularizer-reaction-heading">
+                            Reaction Discovery
+                        </h3>
+                        <p>
+                            Dehydration synthesis joins monomers by
+                            removing water. Hydrolysis uses water to
+                            separate them.
+                        </p>
+                        <div class="macromolecularizer-reaction-actions">
+                            <button
+                                id="macromolecularizer-discover-dehydration"
+                                type="button"
+                                data-reaction-id="dehydration"
+                            >
+                                Discover Dehydration
+                            </button>
+                            <button
+                                id="macromolecularizer-discover-hydrolysis"
+                                type="button"
+                                data-reaction-id="hydrolysis"
+                            >
+                                Discover Hydrolysis
+                            </button>
+                        </div>
+                        <p
+                            id="macromolecularizer-reaction-feedback"
+                            role="status"
+                            aria-live="polite"
+                        ></p>
+                    </section>
                 </main>
 
                 <aside
@@ -173,8 +210,50 @@ const MacromolecularizerUI = {
             activeSynthesis:
                 this.rootElement.querySelector(
                     "#macromolecularizer-active-synthesis"
+                ),
+            reactionFeedback:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-reaction-feedback"
+                ),
+            reactionButtons:
+                Array.from(
+                    this.rootElement.querySelectorAll(
+                        "[data-reaction-id]"
+                    )
                 )
         };
+
+    },
+
+    // --------------------------------------------------
+    // Bind temporary reaction-discovery controls once
+    // --------------------------------------------------
+    bindEvents() {
+
+        this.elements.reactionButtons
+            .forEach(button => {
+                button.addEventListener(
+                    "click",
+                    () => {
+                        const result =
+                            MacromolecularizerManager
+                                .discoverReaction(
+                                    button.dataset
+                                        .reactionId
+                                );
+
+                        this.elements
+                            .reactionFeedback
+                            .textContent =
+                                result.message;
+
+                        this.feedbackMessage =
+                            result.message;
+
+                        this.render();
+                    }
+                );
+            });
 
     },
 
@@ -242,7 +321,64 @@ const MacromolecularizerUI = {
                     ?.motifId ??
                 "None";
 
+        this.elements.reactionButtons
+            .forEach(button => {
+                const reactionId =
+                    button.dataset.reactionId;
+
+                const discovered =
+                    Boolean(
+                        status.reactionDiscoveries[
+                            reactionId
+                        ]
+                    );
+
+                button.disabled =
+                    discovered;
+
+                button.setAttribute(
+                    "aria-pressed",
+                    String(discovered)
+                );
+
+                if (discovered) {
+                    button.textContent =
+                        `${this.formatReactionName(reactionId)} Discovered`;
+                } else {
+                    button.textContent =
+                        `Discover ${this.formatReactionName(reactionId)}`;
+                }
+            });
+
+        if (this.feedbackMessage === "") {
+            const discoveredNames =
+                Object.entries(
+                    status.reactionDiscoveries
+                )
+                    .filter(([, discovered]) => discovered)
+                    .map(([reactionId]) =>
+                        this.formatReactionName(
+                            reactionId
+                        )
+                    );
+
+            this.elements.reactionFeedback
+                .textContent =
+                    discoveredNames.length > 0
+                        ? `Known reactions: ${discoveredNames.join(", ")}.`
+                        : "No polymer reactions discovered yet.";
+        }
+
         return true;
+
+    },
+
+    formatReactionName(reactionId) {
+
+        return reactionId
+            .charAt(0)
+            .toUpperCase() +
+            reactionId.slice(1);
 
     },
 
