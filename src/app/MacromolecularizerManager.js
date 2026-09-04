@@ -40,6 +40,7 @@ function safeTimestamp(value) {
 const MacromolecularizerManager = {
 
     initialized: false,
+    active: false,
     subscribed: false,
 
     // --------------------------------------------------
@@ -61,6 +62,36 @@ const MacromolecularizerManager = {
         console.log(
             "[MacromolecularizerManager] Initialized with persistent state."
         );
+
+        return true;
+
+    },
+
+    // --------------------------------------------------
+    // Activate domain behavior for the visible zone
+    // --------------------------------------------------
+    activate() {
+
+        if (!this.initialized) {
+            this.initialize();
+        }
+
+        this.active = true;
+        this.ensureState();
+        this.notifyStateChange(
+            "activated"
+        );
+
+        return true;
+
+    },
+
+    // --------------------------------------------------
+    // Deactivate visible-zone domain behavior
+    // --------------------------------------------------
+    deactivate() {
+
+        this.active = false;
 
         return true;
 
@@ -173,6 +204,8 @@ const MacromolecularizerManager = {
         return {
             initialized:
                 this.initialized,
+            active:
+                this.active,
             unlocked:
                 Boolean(zone?.unlocked),
             completed:

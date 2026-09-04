@@ -80,6 +80,10 @@ import SPManager from "./SPManager.js";
 import MoleculeLabManager from "./MoleculeLabManager.js";
 import MacromolecularizerManager
     from "./MacromolecularizerManager.js";
+import Macromolecularizer
+    from "./Macromolecularizer.js";
+import MacromolecularizerUI
+    from "./MacromolecularizerUI.js";
 import MoleculeLab from "./MoleculeLab.js";
 import MoleculeLabUI from "./MoleculeLabUI.js";
 import MoleculeBuilderView from "./MoleculeBuilderView.js";
@@ -139,6 +143,8 @@ const DevConsole = {
             SPManager,
             MoleculeLabManager,
             MacromolecularizerManager,
+            Macromolecularizer,
+            MacromolecularizerUI,
             MoleculeLab,
             MoleculeLabUI,
             MoleculeBuilderView
@@ -153,4 +159,3 @@ const DevConsole = {
 };
 
 export default DevConsole;
-
