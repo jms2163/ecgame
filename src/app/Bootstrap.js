@@ -12,6 +12,7 @@ import NavigationUI from "./NavigationUI.js";
 import ZoneCatalog from "./ZoneCatalog.js";
 import DevConsole from "./DevConsole.js";
 import ResourceManager from "./ResourceManager.js";
+import ATPManager from "./ATPManager.js";
 import QuestManager from "./QuestManager.js";
 import QuestDrawerUI from "./QuestDrawerUI.js";
 import QuantumAutoCollectorManager from "./QuantumAutoCollectorManager.js";
@@ -37,6 +38,9 @@ const Bootstrap = {
         PlayerProfileManager.initialize();
 
         ResourceManager.initialize();
+        // ATP production subscribes before the central
+        // game loop begins emitting game-tick events.
+        ATPManager.initialize();
         // Global initialization keeps enabled Quantum
         // autocollectors running in every zone while the
         // game is open.

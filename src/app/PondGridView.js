@@ -4,6 +4,7 @@
 // --------------------------------------------------
 
 import GameStateManager from "./GameStateManager.js";
+import GameStateObserver from "./GameStateObserver.js";
 import PondWorld from "./PondWorld.js";
 import PondController from "./PondController.js";
 import PondMovementControls from "./PondMovementControls.js";
@@ -24,6 +25,7 @@ const PondGridView = {
 
     initialized: false,
     active: false,
+    atpChangedHandler: null,
 
     viewportElement: null,         // Pond viewport positioning
     microscopeStageElement: null,  // Frame positioning for grid, D-pad, and HUD
@@ -166,6 +168,20 @@ const movementControlsElement =
 
         const statusElement =
             PondStatusHud.create();
+
+        // ATP changes update only the HUD readout.
+        // The Pond grid itself is not rebuilt.
+        this.atpChangedHandler =
+            atpStatus => {
+                PondStatusHud.renderATP(
+                    atpStatus
+                );
+            };
+
+        GameStateObserver.on(
+            "atp-changed",
+            this.atpChangedHandler
+        );
 
         // --------------------------------------------------
         // Mount microscope, controls, and status HUD

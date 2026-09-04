@@ -58,7 +58,41 @@ const PondStatusHud = {
 
     },
 
-        // --------------------------------------------------
+    // --------------------------------------------------
+    // Update coordinate display
+    // --------------------------------------------------
+    renderCoordinates(position) {
+
+        if (
+            !this.coordinatesElement ||
+            !position
+        ) {
+            return;
+        }
+
+        this.coordinatesElement.textContent =
+            `COORD: ${position.x}, ${position.y}`;
+
+    },
+
+    // --------------------------------------------------
+    // Update ATP display without rebuilding the grid
+    // --------------------------------------------------
+    renderATP(atpStatus) {
+
+        if (
+            !this.atpElement ||
+            !atpStatus
+        ) {
+            return;
+        }
+
+        this.atpElement.textContent =
+            `ATP: ${atpStatus.current}/${atpStatus.maximum}`;
+
+    },
+
+    // --------------------------------------------------
     // Update coordinate and ATP display
     // --------------------------------------------------
     render(
@@ -66,25 +100,8 @@ const PondStatusHud = {
         atpStatus
     ) {
 
-        if (
-            this.coordinatesElement &&
-            position
-        ) {
-
-            this.coordinatesElement.textContent =
-                `COORD: ${position.x}, ${position.y}`;
-
-        }
-
-        if (
-            this.atpElement &&
-            atpStatus
-        ) {
-
-            this.atpElement.textContent =
-                `ATP: ${atpStatus.current}/${atpStatus.maximum}`;
-
-        }
+        this.renderCoordinates(position);
+        this.renderATP(atpStatus);
 
     }
 
