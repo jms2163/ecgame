@@ -48,7 +48,10 @@ function safeInteger(value) {
 
 function safeTimestamp(value) {
 
-    return Number.isFinite(value)
+    return (
+        Number.isFinite(value) &&
+        value >= 0
+    )
         ? value
         : null;
 
@@ -349,6 +352,40 @@ const MacromolecularizerManager = {
                         record.lastCompletedAtMs
                     );
 
+                if (record.count === 0) {
+                    record.firstCompletedAtMs =
+                        null;
+                    record.lastCompletedAtMs =
+                        null;
+                } else if (
+                    record.firstCompletedAtMs ===
+                        null &&
+                    record.lastCompletedAtMs !==
+                        null
+                ) {
+                    record.firstCompletedAtMs =
+                        record.lastCompletedAtMs;
+                } else if (
+                    record.lastCompletedAtMs ===
+                        null &&
+                    record.firstCompletedAtMs !==
+                        null
+                ) {
+                    record.lastCompletedAtMs =
+                        record.firstCompletedAtMs;
+                } else if (
+                    record.firstCompletedAtMs >
+                    record.lastCompletedAtMs
+                ) {
+                    const firstCompletedAtMs =
+                        record.lastCompletedAtMs;
+
+                    record.lastCompletedAtMs =
+                        record.firstCompletedAtMs;
+                    record.firstCompletedAtMs =
+                        firstCompletedAtMs;
+                }
+
             }
         );
 
@@ -362,6 +399,63 @@ const MacromolecularizerManager = {
             ([motifId, count]) => {
                 state.motifInventory[motifId] =
                     safeInteger(count);
+            }
+        );
+
+        // Completion history and inventory quantity describe the
+        // same earned motifs. Preserve the highest valid count when
+        // an older or partially written save contains only one side.
+        const recordedMotifIds =
+            new Set([
+                ...Object.keys(
+                    state.synthesized
+                ),
+                ...Object.keys(
+                    state.motifInventory
+                )
+            ]);
+
+        recordedMotifIds.forEach(
+            motifId => {
+                const synthesisRecord =
+                    state.synthesized[
+                        motifId
+                    ];
+
+                const reconciledCount =
+                    Math.max(
+                        safeInteger(
+                            synthesisRecord
+                                ?.count
+                        ),
+                        safeInteger(
+                            state.motifInventory[
+                                motifId
+                            ]
+                        )
+                    );
+
+                state.motifInventory[
+                    motifId
+                ] = reconciledCount;
+
+                if (!isRecord(synthesisRecord)) {
+                    state.synthesized[
+                        motifId
+                    ] = {
+                        count:
+                            reconciledCount,
+                        firstCompletedAtMs:
+                            null,
+                        lastCompletedAtMs:
+                            null
+                    };
+
+                    return;
+                }
+
+                synthesisRecord.count =
+                    reconciledCount;
             }
         );
 
@@ -510,6 +604,80 @@ const MacromolecularizerManager = {
         const speed =
             this.getDehydrationSpeedStatus();
 
+        const eligible =
+            definition
+                .compositionValid &&
+            missingAminoAcidIds
+                .length === 0 &&
+            missingReactionIds
+                .length === 0 &&
+            canAffordATP;
+
+        const state =
+            this.ensureState();
+
+        const inventoryQuantity =
+            safeInteger(
+                state.motifInventory[
+                    motifId
+                ]
+            );
+
+        const synthesisRecord =
+            state.synthesized[
+                motifId
+            ];
+
+        const activeSynthesis =
+            state.activeSynthesis
+                ?.motifId === motifId;
+
+        const blockingReasons = [];
+
+        if (
+            !definition
+                .compositionValid
+        ) {
+            blockingReasons.push({
+                type:
+                    "invalid-composition"
+            });
+        }
+
+        if (
+            missingReactionIds.length > 0
+        ) {
+            blockingReasons.push({
+                type:
+                    "reaction-discovery",
+                ids:
+                    [...missingReactionIds]
+            });
+        }
+
+        if (
+            missingAminoAcidIds.length > 0
+        ) {
+            blockingReasons.push({
+                type:
+                    "amino-acids",
+                ids:
+                    [...missingAminoAcidIds]
+            });
+        }
+
+        if (!canAffordATP) {
+            blockingReasons.push({
+                type: "atp",
+                missingAmount:
+                    Math.max(
+                        0,
+                        definition.atpCost -
+                        atp.current
+                    )
+            });
+        }
+
         return {
             id: definition.id,
             definition:
@@ -547,14 +715,135 @@ const MacromolecularizerManager = {
                 speedMultiplier:
                     speed.speedMultiplier
             },
-            eligible:
-                definition
-                    .compositionValid &&
-                missingAminoAcidIds
-                    .length === 0 &&
-                missingReactionIds
-                    .length === 0 &&
-                canAffordATP
+            requirements: {
+                reactionDiscovery: {
+                    complete:
+                        missingReactionIds
+                            .length === 0,
+                    required:
+                        definition
+                            .requiredReactionIds
+                            .length,
+                    discovered:
+                        definition
+                            .requiredReactionIds
+                            .length -
+                        missingReactionIds
+                            .length
+                },
+                aminoAcids: {
+                    complete:
+                        missingAminoAcidIds
+                            .length === 0,
+                    requiredTypes:
+                        aminoAcids.length,
+                    synthesizedTypes:
+                        aminoAcids.length -
+                        missingAminoAcidIds
+                            .length
+                },
+                atp: {
+                    complete:
+                        canAffordATP,
+                    missingAmount:
+                        Math.max(
+                            0,
+                            definition.atpCost -
+                            atp.current
+                        )
+                }
+            },
+            blockingReasons,
+            eligible,
+            canStart:
+                eligible &&
+                !state.activeSynthesis,
+            lifecycleStatus:
+                activeSynthesis
+                    ? "synthesizing"
+                    : eligible
+                        ? "ready"
+                        : "blocked",
+            inventory: {
+                quantity:
+                    inventoryQuantity,
+                discovered:
+                    GameStateManager
+                        .hasDiscoveryInCategory(
+                            "motifs",
+                            motifId
+                        ),
+                synthesisCount:
+                    safeInteger(
+                        synthesisRecord
+                            ?.count
+                    ),
+                firstCompletedAtMs:
+                    safeTimestamp(
+                        synthesisRecord
+                            ?.firstCompletedAtMs
+                    ),
+                lastCompletedAtMs:
+                    safeTimestamp(
+                        synthesisRecord
+                            ?.lastCompletedAtMs
+                    )
+            }
+        };
+
+    },
+
+    // --------------------------------------------------
+    // Build inventory rows for all enabled motif recipes
+    // --------------------------------------------------
+    getMotifInventoryStatus() {
+
+        const items =
+            MotifRecipeCatalog
+                .getImplemented()
+                .map(
+                    definition => {
+                        const motif =
+                            this.getMotifEligibility(
+                                definition.id
+                            );
+
+                        return {
+                            id:
+                                definition.id,
+                            name:
+                                definition.name,
+                            quantity:
+                                motif.inventory
+                                    .quantity,
+                            discovered:
+                                motif.inventory
+                                    .discovered,
+                            lifecycleStatus:
+                                motif.lifecycleStatus,
+                            canStart:
+                                motif.canStart,
+                            lastCompletedAtMs:
+                                motif.inventory
+                                    .lastCompletedAtMs
+                        };
+                    }
+                );
+
+        return {
+            items,
+            storedTypes:
+                items.filter(
+                    item =>
+                        item.quantity > 0
+                ).length,
+            totalQuantity:
+                items.reduce(
+                    (total, item) =>
+                        total +
+                        item.quantity,
+                    0
+                )
         };
 
     },
@@ -1300,6 +1589,9 @@ const MacromolecularizerManager = {
         const dehydrationSpeed =
             this.getDehydrationSpeedStatus();
 
+        const motifInventoryStatus =
+            this.getMotifInventoryStatus();
+
         return {
             initialized:
                 this.initialized,
@@ -1318,6 +1610,7 @@ const MacromolecularizerManager = {
             activeSynthesis:
                 this.getActiveSynthesisProgress(),
             dehydrationSpeed,
+            motifInventoryStatus,
             synthesized:
                 structuredClone(
                     state.synthesized
