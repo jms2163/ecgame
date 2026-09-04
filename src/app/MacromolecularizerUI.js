@@ -123,6 +123,19 @@ const MacromolecularizerUI = {
                 >
                     <h2>Motif Recipes</h2>
                     <p id="macromolecularizer-selected-motif"></p>
+
+                    <article
+                        id="macromolecularizer-h-helix-card"
+                        aria-label="H_helix recipe"
+                    >
+                        <h3 id="macromolecularizer-card-name"></h3>
+                        <p>
+                            Recipe ID:
+                            <code>H_helix</code>
+                        </p>
+                        <p id="macromolecularizer-card-summary"></p>
+                        <p id="macromolecularizer-card-status"></p>
+                    </article>
                 </aside>
 
                 <main
@@ -169,6 +182,43 @@ const MacromolecularizerUI = {
                             role="status"
                             aria-live="polite"
                         ></p>
+                    </section>
+
+                    <section
+                        class="macromolecularizer-motif-recipe"
+                        aria-labelledby="macromolecularizer-recipe-heading"
+                    >
+                        <h3 id="macromolecularizer-recipe-heading">
+                            H_helix Recipe
+                        </h3>
+
+                        <p
+                            id="macromolecularizer-recipe-gate"
+                            role="status"
+                        ></p>
+
+                        <div id="macromolecularizer-recipe-details">
+                            <h4 id="macromolecularizer-recipe-name"></h4>
+                            <p id="macromolecularizer-recipe-description"></p>
+                            <p id="macromolecularizer-bond-calculation"></p>
+
+                            <h4>Amino-acid composition</h4>
+                            <p>
+                                Each required amino-acid type must be
+                                synthesized at least once. These quantities
+                                describe the motif and are not consumed.
+                            </p>
+                            <ul id="macromolecularizer-amino-acid-requirements"></ul>
+
+                            <h4>ATP requirement</h4>
+                            <p id="macromolecularizer-atp-requirement"></p>
+
+                            <p
+                                id="macromolecularizer-eligibility-feedback"
+                                role="status"
+                                aria-live="polite"
+                            ></p>
+                        </div>
                     </section>
                 </main>
 
@@ -220,6 +270,54 @@ const MacromolecularizerUI = {
                     this.rootElement.querySelectorAll(
                         "[data-reaction-id]"
                     )
+                ),
+            motifCard:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-h-helix-card"
+                ),
+            cardName:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-card-name"
+                ),
+            cardSummary:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-card-summary"
+                ),
+            cardStatus:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-card-status"
+                ),
+            recipeGate:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-recipe-gate"
+                ),
+            recipeDetails:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-recipe-details"
+                ),
+            recipeName:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-recipe-name"
+                ),
+            recipeDescription:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-recipe-description"
+                ),
+            bondCalculation:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-bond-calculation"
+                ),
+            aminoAcidRequirements:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-amino-acid-requirements"
+                ),
+            atpRequirement:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-atp-requirement"
+                ),
+            eligibilityFeedback:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-eligibility-feedback"
                 )
         };
 
@@ -321,6 +419,10 @@ const MacromolecularizerUI = {
                     ?.motifId ??
                 "None";
 
+        this.renderMotifRecipe(
+            status.selectedMotif
+        );
+
         this.elements.reactionButtons
             .forEach(button => {
                 const reactionId =
@@ -367,6 +469,136 @@ const MacromolecularizerUI = {
                     discoveredNames.length > 0
                         ? `Known reactions: ${discoveredNames.join(", ")}.`
                         : "No polymer reactions discovered yet.";
+        }
+
+        return true;
+
+    },
+
+    // --------------------------------------------------
+    // Render H_helix composition and eligibility
+    // --------------------------------------------------
+    renderMotifRecipe(motif) {
+
+        if (!motif) {
+            this.elements.motifCard.hidden =
+                true;
+            this.elements.recipeDetails.hidden =
+                true;
+            this.elements.recipeGate
+                .textContent =
+                    "The selected motif recipe is unavailable.";
+
+            return false;
+        }
+
+        const definition =
+            motif.definition;
+
+        this.elements.motifCard.hidden =
+            false;
+        this.elements.cardName
+            .textContent =
+                definition.name;
+        this.elements.cardSummary
+            .textContent =
+                `${definition.aminoAcidCount} amino acids · ${definition.atpCost} ATP`;
+        this.elements.cardStatus
+            .textContent =
+                motif.eligible
+                    ? "Eligible"
+                    : "Requirements incomplete";
+
+        const dehydrationKnown =
+            Boolean(
+                motif.reactionDiscoveries
+                    .dehydration
+            );
+
+        this.elements.recipeGate.hidden =
+            dehydrationKnown;
+        this.elements.recipeDetails.hidden =
+            !dehydrationKnown;
+
+        if (!dehydrationKnown) {
+            this.elements.recipeGate
+                .textContent =
+                    "Discover dehydration before reviewing motif synthesis requirements.";
+
+            return true;
+        }
+
+        this.elements.recipeName
+            .textContent =
+                definition.name;
+        this.elements.recipeDescription
+            .textContent =
+                definition.description;
+        this.elements.bondCalculation
+            .textContent =
+                `${definition.aminoAcidCount} amino acids form ${definition.peptideBondCount} peptide bonds, requiring ${definition.atpCost} ATP.`;
+
+        this.elements
+            .aminoAcidRequirements
+            .replaceChildren(
+                ...motif.aminoAcids.map(
+                    requirement => {
+
+                        const item =
+                            document.createElement(
+                                "li"
+                            );
+
+                        item.dataset.status =
+                            requirement.synthesized
+                                ? "complete"
+                                : "missing";
+
+                        item.textContent =
+                            `${requirement.quantity} × ${requirement.name} (${requirement.id}) — ${requirement.synthesized
+                                ? `Synthesized (${requirement.synthesisCount})`
+                                : "Not yet synthesized"}`;
+
+                        return item;
+
+                    }
+                )
+            );
+
+        this.elements.atpRequirement
+            .textContent =
+                `${motif.atp.current} ATP available · ${motif.atp.cost} ATP required`;
+
+        if (
+            motif.missingAminoAcidIds
+                .length > 0
+        ) {
+            const missingNames =
+                motif.aminoAcids
+                    .filter(
+                        requirement =>
+                            !requirement
+                                .synthesized
+                    )
+                    .map(
+                        requirement =>
+                            requirement.name
+                    );
+
+            this.elements
+                .eligibilityFeedback
+                .textContent =
+                    `Synthesize these amino-acid types in Molecule Lab: ${missingNames.join(", ")}.`;
+        } else if (!motif.atp.canAfford) {
+            this.elements
+                .eligibilityFeedback
+                .textContent =
+                    `Requires ${motif.atp.cost} ATP; ${motif.atp.current} ATP is currently available.`;
+        } else {
+            this.elements
+                .eligibilityFeedback
+                .textContent =
+                    "All H_helix requirements are met. Synthesis will be enabled in the next milestone.";
         }
 
         return true;
