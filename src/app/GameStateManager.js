@@ -139,6 +139,8 @@ const GameStateManager = {
             discoveries?.isotopes?.[normalizedId] ||
             discoveries?.molecules?.[normalizedId] ||
             discoveries?.organelles?.[normalizedId] ||
+            discoveries?.reactions?.[normalizedId] ||
+            discoveries?.motifs?.[normalizedId] ||
             discoveries?.[normalizedId] ||
             (
                 Array.isArray(legacyDiscoveries) &&
@@ -162,7 +164,9 @@ const GameStateManager = {
                 "atoms",
                 "isotopes",
                 "molecules",
-                "organelles"
+                "organelles",
+                "reactions",
+                "motifs"
             ].includes(category) ||
             typeof id !== "string" ||
             id.trim() === ""
@@ -554,7 +558,64 @@ const GameStateManager = {
 
     },
 
-    // GameStateManager.js
+    // --------------------------------------------------
+    // Ensure a manager-owned zone state exists
+    // --------------------------------------------------
+    ensureZoneState(zoneId) {
+
+        if (
+            typeof zoneId !== "string" ||
+            zoneId.trim() === ""
+        ) {
+            console.warn(
+                "GameStateManager: zone ID must be a non-empty string"
+            );
+
+            return null;
+        }
+
+        const normalizedZoneId =
+            zoneId.trim();
+
+        gameState.zones ??= {};
+
+        if (
+            !gameState.zones[normalizedZoneId] ||
+            typeof gameState.zones[normalizedZoneId] !==
+                "object" ||
+            Array.isArray(
+                gameState.zones[normalizedZoneId]
+            )
+        ) {
+            gameState.zones[normalizedZoneId] = {
+                unlocked: false,
+                completed: false,
+                state: {}
+            };
+        }
+
+        const zone =
+            gameState.zones[normalizedZoneId];
+
+        if (typeof zone.unlocked !== "boolean") {
+            zone.unlocked = false;
+        }
+
+        if (typeof zone.completed !== "boolean") {
+            zone.completed = false;
+        }
+
+        if (
+            !zone.state ||
+            typeof zone.state !== "object" ||
+            Array.isArray(zone.state)
+        ) {
+            zone.state = {};
+        }
+
+        return zone.state;
+
+    },
 
 /**
  * Returns the live, mutable state object for a given zone.
@@ -828,3 +889,4 @@ getParticleCountsForElement(symbol) {
 };
 
 export default GameStateManager;
+

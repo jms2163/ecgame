@@ -32,7 +32,9 @@ const gameState = {
         organelles: {}, // future refactor
         atoms: {},
         isotopes: {},
-        molecules: {}
+        molecules: {},
+        reactions: {},
+        motifs: {}
     },
 
 
@@ -314,7 +316,13 @@ atomizer: {
         macromolecularizer: {
             unlocked: false,
             completed: false,
-            state: {}
+            state: {
+                activeCategory: "motifs",
+                selectedMotifId: "H_helix",
+                activeSynthesis: null,
+                synthesized: {},
+                motifInventory: {}
+            }
         },
 
         polymerizer: {
@@ -351,3 +359,4 @@ atomizer: {
 };
 
 export default gameState;
+
