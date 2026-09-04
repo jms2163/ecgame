@@ -17,6 +17,7 @@ const MacromolecularizerUI = {
     feedbackMessage: "",
     synthesisFeedbackMessage: "",
     upgradeFeedbackMessage: "",
+    chamberViewMode: "synthesis",
 
     // --------------------------------------------------
     // Initialize the persistent zone shell once
@@ -104,69 +105,404 @@ const MacromolecularizerUI = {
     },
 
     // --------------------------------------------------
-    // Build the console-only development shell
+    // Build the console-only laboratory shell
     // --------------------------------------------------
     buildStaticUI() {
 
         this.rootElement.innerHTML = `
-            <header class="macromolecularizer-header">
-                <p class="macromolecularizer-eyebrow">Macromolecularizer</p>
-                <h1>Motif Lab</h1>
-                <p>
-                    Build small polypeptide motifs from amino-acid
-                    synthesis knowledge.
-                </p>
-            </header>
+            <div class="macro-lab-shell">
+                <header class="macro-topbar">
+                    <div class="macro-brand-block">
+                        <p class="macro-kicker">Controlled Assembly System</p>
+                        <h1>Macromolecularizer</h1>
+                        <p class="macro-build-label">Protein Motif Lab // Development Build</p>
+                    </div>
 
-            <div class="macromolecularizer-layout">
+                    <div
+                        class="macro-resource-strip"
+                        aria-label="Macromolecularizer resources and status"
+                    >
+                        <div class="macro-instrument macro-instrument--atp">
+                            <span class="macro-instrument-label">ATP Reserve</span>
+                            <strong id="macromolecularizer-top-atp">0</strong>
+                            <span class="macro-instrument-unit">ATP</span>
+                        </div>
+
+                        <div class="macro-instrument macro-instrument--points">
+                            <span class="macro-instrument-label">Synthesis Points</span>
+                            <strong id="macromolecularizer-synthesis-points">0</strong>
+                            <span class="macro-instrument-unit">SP</span>
+                        </div>
+
+                        <div class="macro-status-stack">
+                            <div class="macro-status-line">
+                                <span class="macro-status-light" aria-hidden="true"></span>
+                                <span id="macromolecularizer-system-status">System standby</span>
+                            </div>
+                            <div class="macro-status-line macro-status-line--muted">
+                                <span class="macro-lock-glyph" aria-hidden="true">◆</span>
+                                Console access only
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="macro-lab-grid">
                 <aside
-                    class="macromolecularizer-catalog"
+                    class="macro-panel macro-recipe-bank"
                     aria-label="Motif recipe catalog"
                 >
-                    <h2>Motif Recipes</h2>
-                    <p id="macromolecularizer-selected-motif"></p>
+                    <header class="macro-panel-heading">
+                        <div>
+                            <p class="macro-kicker">Specimen Catalog</p>
+                            <h2>Recipe Bank</h2>
+                        </div>
+                        <span class="macro-panel-code">CAT-01</span>
+                    </header>
 
-                    <article
-                        id="macromolecularizer-h-helix-card"
-                        aria-label="H_helix recipe"
+                    <div
+                        class="macro-category-tabs"
+                        role="tablist"
+                        aria-label="Macromolecule categories"
                     >
-                        <h3 id="macromolecularizer-card-name"></h3>
-                        <p>
-                            Recipe ID:
-                            <code>H_helix</code>
-                        </p>
-                        <p id="macromolecularizer-card-summary"></p>
-                        <p id="macromolecularizer-card-quantity"></p>
-                        <p id="macromolecularizer-card-status"></p>
-                    </article>
+                        <button
+                            type="button"
+                            role="tab"
+                            aria-selected="false"
+                            disabled
+                            title="Carbohydrate catalog pending"
+                        >
+                            <strong>C</strong>
+                            <span>Carbohydrates</span>
+                            <small>Locked</small>
+                        </button>
+                        <button
+                            id="macromolecularizer-protein-tab"
+                            class="is-selected"
+                            type="button"
+                            role="tab"
+                            aria-selected="true"
+                            aria-controls="macromolecularizer-protein-recipes"
+                        >
+                            <strong>P</strong>
+                            <span>Proteins</span>
+                            <small>1 recipe</small>
+                        </button>
+                        <button
+                            type="button"
+                            role="tab"
+                            aria-selected="false"
+                            disabled
+                            title="Nucleic-acid catalog planned for Milestone 10"
+                        >
+                            <strong>N</strong>
+                            <span>Nucleic Acids</span>
+                            <small>Locked</small>
+                        </button>
+                    </div>
+
+                    <div
+                        id="macromolecularizer-protein-recipes"
+                        class="macro-recipe-list"
+                        role="tabpanel"
+                        aria-labelledby="macromolecularizer-protein-tab"
+                    >
+                        <p id="macromolecularizer-selected-motif" class="macro-selection-readout"></p>
+
+                        <article
+                            id="macromolecularizer-h-helix-card"
+                            class="macro-recipe-card"
+                            aria-label="H_helix recipe"
+                        >
+                            <div class="macro-recipe-card-topline">
+                                <span class="macro-recipe-icon" aria-hidden="true">α</span>
+                                <span class="macro-recipe-code">H_helix</span>
+                            </div>
+                            <h3 id="macromolecularizer-card-name"></h3>
+                            <p id="macromolecularizer-card-summary" class="macro-recipe-specs"></p>
+                            <div class="macro-recipe-card-footer">
+                                <span id="macromolecularizer-card-quantity"></span>
+                                <span id="macromolecularizer-card-status"></span>
+                            </div>
+                        </article>
+
+                        <article class="macro-recipe-card macro-recipe-card--future" aria-disabled="true">
+                            <div class="macro-recipe-card-topline">
+                                <span class="macro-recipe-icon" aria-hidden="true">⌁</span>
+                                <span class="macro-recipe-code">CATALOG EXPANSION</span>
+                            </div>
+                            <h3>Additional Protein Motifs</h3>
+                            <p class="macro-recipe-specs">Loop · Beta sheet · Coiled coil</p>
+                            <div class="macro-recipe-card-footer">
+                                <span>Milestone 9</span>
+                                <span>Development hold</span>
+                            </div>
+                        </article>
+                    </div>
                 </aside>
 
                 <main
-                    class="macromolecularizer-workspace"
+                    class="macro-panel macro-synthesis-workspace"
                     aria-label="Motif synthesis workspace"
                 >
-                    <h2>Synthesis Workspace</h2>
-                    <p>
-                        Discover the reactions that build and break
-                        biological polymers, then use ATP to run a
-                        timed motif synthesis job.
-                    </p>
+                    <header class="macro-panel-heading macro-chamber-heading">
+                        <div>
+                            <p class="macro-kicker">Assembly Core</p>
+                            <h2>Synthesis Chamber</h2>
+                        </div>
+                        <span class="macro-panel-code">CHM-01</span>
+                    </header>
 
                     <section
-                        class="macromolecularizer-reaction-discovery"
+                        id="macromolecularizer-chamber"
+                        class="macro-chamber"
+                        data-mode="locked"
+                        aria-labelledby="macromolecularizer-recipe-heading"
+                    >
+                        <div class="macro-chamber-grid" aria-hidden="true"></div>
+                        <div
+                            class="macro-mode-overlay"
+                            role="status"
+                            aria-live="polite"
+                        >
+                            <span class="macro-mode-light" aria-hidden="true"></span>
+                            <span id="macromolecularizer-chamber-mode">Synthesis locked</span>
+                        </div>
+                        <div class="macro-chamber-readout">
+                            <span>Target</span>
+                            <strong id="macromolecularizer-chamber-target">Alpha Helix Motif</strong>
+                            <small>H_helix // Protein secondary structure</small>
+                        </div>
+                        <div class="macro-helix-stage" aria-hidden="true">
+                            <div class="macro-scan-ring macro-scan-ring--outer"></div>
+                            <div class="macro-scan-ring macro-scan-ring--inner"></div>
+                            <svg
+                                class="macro-helix-model"
+                                viewBox="0 0 360 260"
+                                focusable="false"
+                            >
+                                <defs>
+                                    <linearGradient id="macro-helix-gradient" x1="0" y1="0" x2="1" y2="1">
+                                        <stop offset="0" stop-color="#ffb347"></stop>
+                                        <stop offset="0.5" stop-color="#ff7700"></stop>
+                                        <stop offset="1" stop-color="#ff4d00"></stop>
+                                    </linearGradient>
+                                    <filter id="macro-helix-glow" x="-50%" y="-50%" width="200%" height="200%">
+                                        <feGaussianBlur stdDeviation="4" result="blur"></feGaussianBlur>
+                                        <feMerge>
+                                            <feMergeNode in="blur"></feMergeNode>
+                                            <feMergeNode in="SourceGraphic"></feMergeNode>
+                                        </feMerge>
+                                    </filter>
+                                </defs>
+                                <g class="macro-helix-bonds" stroke="#ffd09a" stroke-width="2" stroke-dasharray="4 5" opacity="0.46">
+                                    <line x1="180" y1="48" x2="180" y2="82"></line>
+                                    <line x1="180" y1="91" x2="180" y2="125"></line>
+                                    <line x1="180" y1="134" x2="180" y2="168"></line>
+                                    <line x1="180" y1="177" x2="180" y2="211"></line>
+                                </g>
+                                <path
+                                    class="macro-helix-shadow"
+                                    d="M180 18 C93 29 98 62 180 69 C262 76 267 108 180 112 C93 119 98 151 180 158 C262 165 267 197 180 203 C98 210 102 237 180 244"
+                                ></path>
+                                <path
+                                    class="macro-helix-strand"
+                                    d="M180 18 C93 29 98 62 180 69 C262 76 267 108 180 112 C93 119 98 151 180 158 C262 165 267 197 180 203 C98 210 102 237 180 244"
+                                ></path>
+                                <g class="macro-helix-nodes" fill="#fff3e5" filter="url(#macro-helix-glow)">
+                                    <circle cx="180" cy="18" r="5"></circle>
+                                    <circle cx="180" cy="112" r="5"></circle>
+                                    <circle cx="180" cy="158" r="5"></circle>
+                                    <circle cx="180" cy="244" r="5"></circle>
+                                </g>
+                            </svg>
+                        </div>
+                        <div class="macro-chamber-quantity">
+                            <span>Stored</span>
+                            <strong id="macromolecularizer-chamber-quantity">0</strong>
+                        </div>
+
+                        <div
+                            id="macromolecularizer-synthesis-progress-panel"
+                            class="macro-progress-panel"
+                            aria-live="polite"
+                            hidden
+                        >
+                            <label for="macromolecularizer-synthesis-progress">
+                                H_helix synthesis progress
+                            </label>
+                            <progress
+                                id="macromolecularizer-synthesis-progress"
+                                max="1"
+                                value="0"
+                            ></progress>
+                            <p id="macromolecularizer-synthesis-countdown"></p>
+                        </div>
+                    </section>
+
+                    <section class="macro-requirements-console">
+                        <div class="macro-console-heading">
+                            <div>
+                                <p class="macro-kicker">Preflight Sequence</p>
+                                <h3 id="macromolecularizer-recipe-heading">Synthesis Requirements</h3>
+                            </div>
+                            <span>Next job</span>
+                        </div>
+                        <ul id="macromolecularizer-requirement-summary" class="macro-requirement-list"></ul>
+                        <p
+                            id="macromolecularizer-recipe-gate"
+                            class="macro-feedback macro-feedback--warning"
+                            role="status"
+                        ></p>
+
+                        <div id="macromolecularizer-recipe-details" class="macro-recipe-details">
+                            <p
+                                id="macromolecularizer-eligibility-feedback"
+                                class="macro-feedback"
+                                role="status"
+                                aria-live="polite"
+                            ></p>
+                            <div class="macro-primary-actions">
+                                <button
+                                    id="macromolecularizer-start-synthesis"
+                                    class="macro-button macro-button--primary"
+                                    type="button"
+                                >
+                                    Begin H_helix Synthesis
+                                </button>
+                                <button
+                                    id="macromolecularizer-observe-structure"
+                                    class="macro-button macro-button--secondary"
+                                    type="button"
+                                >
+                                    Observe Structure
+                                </button>
+                            </div>
+                            <p
+                                id="macromolecularizer-synthesis-feedback"
+                                class="macro-feedback macro-feedback--quiet"
+                                role="status"
+                                aria-live="polite"
+                            ></p>
+
+                            <details class="macro-science-dossier">
+                                <summary>Open molecular dossier</summary>
+                                <div class="macro-dossier-grid">
+                                    <div class="macro-dossier-copy">
+                                        <span class="macro-dossier-label">Structure</span>
+                                        <h4 id="macromolecularizer-recipe-name"></h4>
+                                        <p id="macromolecularizer-recipe-description"></p>
+                                        <p id="macromolecularizer-bond-calculation"></p>
+                                    </div>
+                                    <div>
+                                        <span class="macro-dossier-label">Amino-acid composition</span>
+                                        <p class="macro-dossier-note">
+                                            Quantities describe the motif. Known amino-acid prerequisites are not consumed.
+                                        </p>
+                                        <ul id="macromolecularizer-amino-acid-requirements"></ul>
+                                    </div>
+                                    <div>
+                                        <span class="macro-dossier-label">ATP requirement</span>
+                                        <p id="macromolecularizer-atp-requirement"></p>
+                                    </div>
+                                    <div>
+                                        <span class="macro-dossier-label">Synthesis timing</span>
+                                        <p id="macromolecularizer-synthesis-timing"></p>
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
+                    </section>
+                </main>
+
+                <aside
+                    class="macro-panel macro-inventory-tray"
+                    aria-label="Macromolecularizer status"
+                >
+                    <header class="macro-panel-heading">
+                        <div>
+                            <p class="macro-kicker">Cold Storage</p>
+                            <h2>Inventory Tray</h2>
+                        </div>
+                        <span class="macro-panel-code">INV-01</span>
+                    </header>
+
+                    <div class="macro-inventory-meters">
+                        <div>
+                            <span>Motif types</span>
+                            <strong id="macromolecularizer-inventory-count">0</strong>
+                        </div>
+                        <div>
+                            <span>Total copies</span>
+                            <strong id="macromolecularizer-inventory-total">0</strong>
+                        </div>
+                    </div>
+
+                    <div class="macro-active-job">
+                        <span class="macro-dossier-label">Active synthesis</span>
+                        <strong id="macromolecularizer-active-synthesis">None</strong>
+                    </div>
+
+                    <section
+                        class="macro-tray-section"
+                        aria-labelledby="macromolecularizer-inventory-heading"
+                    >
+                        <div class="macro-tray-heading">
+                            <h3 id="macromolecularizer-inventory-heading">Completed Motifs</h3>
+                            <span>Physical inventory</span>
+                        </div>
+                        <p id="macromolecularizer-inventory-empty" class="macro-empty-slot">
+                            No completed motifs yet.
+                        </p>
+                        <ul id="macromolecularizer-inventory-list" class="macro-inventory-list"></ul>
+                    </section>
+
+                    <section
+                        class="macro-tray-section"
+                        aria-labelledby="macromolecularizer-known-aa-heading"
+                    >
+                        <div class="macro-tray-heading">
+                            <h3 id="macromolecularizer-known-aa-heading">Known Amino Acids</h3>
+                            <span>Knowledge · not consumed</span>
+                        </div>
+                        <ul id="macromolecularizer-known-amino-acids" class="macro-amino-acid-grid"></ul>
+                    </section>
+
+                    <section class="macro-tray-section macro-components-section">
+                        <div class="macro-tray-heading">
+                            <h3>Components</h3>
+                            <span>Future inventory</span>
+                        </div>
+                        <div class="macro-empty-slot">
+                            No consumable components are required for this protein recipe.
+                        </div>
+                    </section>
+                </aside>
+
+                <footer class="macro-panel macro-control-deck">
+                    <header class="macro-panel-heading macro-control-heading">
+                        <div>
+                            <p class="macro-kicker">Operator Console</p>
+                            <h2>Lab Controls</h2>
+                        </div>
+                        <span class="macro-panel-code">CTL-01</span>
+                    </header>
+
+                    <section
+                        class="macro-control-module macro-reaction-module"
                         aria-labelledby="macromolecularizer-reaction-heading"
                     >
-                        <h3 id="macromolecularizer-reaction-heading">
-                            Reaction Discovery
-                        </h3>
-                        <p>
-                            Dehydration synthesis joins monomers by
-                            removing water. Hydrolysis uses water to
-                            separate them.
-                        </p>
+                        <div class="macro-module-heading">
+                            <span class="macro-module-index">01</span>
+                            <div>
+                                <h3 id="macromolecularizer-reaction-heading">Reaction Discovery</h3>
+                                <p>Identify the reactions that build and separate biological polymers.</p>
+                            </div>
+                        </div>
                         <div class="macromolecularizer-reaction-actions">
                             <button
                                 id="macromolecularizer-discover-dehydration"
+                                class="macro-button macro-button--compact"
                                 type="button"
                                 data-reaction-id="dehydration"
                             >
@@ -174,6 +510,7 @@ const MacromolecularizerUI = {
                             </button>
                             <button
                                 id="macromolecularizer-discover-hydrolysis"
+                                class="macro-button macro-button--compact"
                                 type="button"
                                 data-reaction-id="hydrolysis"
                             >
@@ -182,152 +519,55 @@ const MacromolecularizerUI = {
                         </div>
                         <p
                             id="macromolecularizer-reaction-feedback"
+                            class="macro-feedback macro-feedback--quiet"
                             role="status"
                             aria-live="polite"
                         ></p>
                     </section>
 
                     <section
-                        class="macromolecularizer-motif-recipe"
-                        aria-labelledby="macromolecularizer-recipe-heading"
+                        class="macro-control-module macro-upgrade-module"
+                        aria-labelledby="macromolecularizer-speed-heading"
                     >
-                        <h3 id="macromolecularizer-recipe-heading">
-                            H_helix Recipe
-                        </h3>
-
-                        <h4>Requirements for the next synthesis</h4>
-                        <ul id="macromolecularizer-requirement-summary"></ul>
-
-                        <p
-                            id="macromolecularizer-recipe-gate"
-                            role="status"
-                        ></p>
-
-                        <div id="macromolecularizer-recipe-details">
-                            <h4 id="macromolecularizer-recipe-name"></h4>
-                            <p id="macromolecularizer-recipe-description"></p>
-                            <p id="macromolecularizer-bond-calculation"></p>
-
-                            <h4>Amino-acid composition</h4>
-                            <p>
-                                Each required amino-acid type must be
-                                synthesized at least once. These quantities
-                                describe the motif and are not consumed.
-                            </p>
-                            <ul id="macromolecularizer-amino-acid-requirements"></ul>
-
-                            <h4>ATP requirement</h4>
-                            <p id="macromolecularizer-atp-requirement"></p>
-
-                            <h4>Synthesis timing</h4>
-                            <p id="macromolecularizer-synthesis-timing"></p>
-
-                            <p
-                                id="macromolecularizer-eligibility-feedback"
-                                role="status"
-                                aria-live="polite"
-                            ></p>
-
+                        <div class="macro-module-heading">
+                            <span class="macro-module-index">02</span>
+                            <div>
+                                <h3 id="macromolecularizer-speed-heading">Dehydration Speed</h3>
+                                <p>Upgrades affect jobs started after installation.</p>
+                            </div>
+                        </div>
+                        <dl class="macro-upgrade-stats">
+                            <div>
+                                <dt>Level</dt>
+                                <dd id="macromolecularizer-speed-level">0</dd>
+                            </div>
+                            <div>
+                                <dt>Speed</dt>
+                                <dd id="macromolecularizer-speed-multiplier">1×</dd>
+                            </div>
+                            <div>
+                                <dt>Seconds / bond</dt>
+                                <dd id="macromolecularizer-seconds-per-bond">30</dd>
+                            </div>
+                        </dl>
+                        <div class="macro-upgrade-action">
                             <button
-                                id="macromolecularizer-start-synthesis"
+                                id="macromolecularizer-upgrade-speed"
+                                class="macro-button macro-button--compact macro-button--upgrade"
                                 type="button"
                             >
-                                Begin H_helix Synthesis
+                                Spend 1 Synthesis Point
                             </button>
-
-                            <div
-                                id="macromolecularizer-synthesis-progress-panel"
-                                aria-live="polite"
-                                hidden
-                            >
-                                <label for="macromolecularizer-synthesis-progress">
-                                    H_helix synthesis progress
-                                </label>
-                                <progress
-                                    id="macromolecularizer-synthesis-progress"
-                                    max="1"
-                                    value="0"
-                                ></progress>
-                                <p id="macromolecularizer-synthesis-countdown"></p>
-                            </div>
-
                             <p
-                                id="macromolecularizer-synthesis-feedback"
+                                id="macromolecularizer-upgrade-feedback"
+                                class="macro-feedback macro-feedback--quiet"
                                 role="status"
                                 aria-live="polite"
                             ></p>
                         </div>
                     </section>
-                </main>
-
-                <aside
-                    class="macromolecularizer-status"
-                    aria-label="Macromolecularizer status"
-                >
-                    <h2>Development Status</h2>
-                    <dl>
-                        <dt>Access</dt>
-                        <dd>Development console only</dd>
-
-                        <dt>Stored motif types</dt>
-                        <dd id="macromolecularizer-inventory-count">0</dd>
-
-                        <dt>Total motif copies</dt>
-                        <dd id="macromolecularizer-inventory-total">0</dd>
-
-                        <dt>Active synthesis</dt>
-                        <dd id="macromolecularizer-active-synthesis">None</dd>
-                    </dl>
-
-                    <section
-                        aria-labelledby="macromolecularizer-inventory-heading"
-                    >
-                        <h3 id="macromolecularizer-inventory-heading">
-                            Motif Inventory
-                        </h3>
-                        <p id="macromolecularizer-inventory-empty">
-                            No completed motifs yet.
-                        </p>
-                        <ul id="macromolecularizer-inventory-list"></ul>
-                    </section>
-
-                    <section
-                        aria-labelledby="macromolecularizer-speed-heading"
-                    >
-                        <h3 id="macromolecularizer-speed-heading">
-                            Dehydration Synthesis Speed
-                        </h3>
-                        <p>
-                            Future quests award Synthesis Points. Each
-                            point adds 100% base synthesis speed to jobs
-                            started after the upgrade.
-                        </p>
-                        <dl>
-                            <dt>Synthesis Points</dt>
-                            <dd id="macromolecularizer-synthesis-points">0</dd>
-
-                            <dt>Upgrade level</dt>
-                            <dd id="macromolecularizer-speed-level">0</dd>
-
-                            <dt>Synthesis speed</dt>
-                            <dd id="macromolecularizer-speed-multiplier">1×</dd>
-
-                            <dt>Seconds per peptide bond</dt>
-                            <dd id="macromolecularizer-seconds-per-bond">30</dd>
-                        </dl>
-                        <button
-                            id="macromolecularizer-upgrade-speed"
-                            type="button"
-                        >
-                            Spend 1 Synthesis Point
-                        </button>
-                        <p
-                            id="macromolecularizer-upgrade-feedback"
-                            role="status"
-                            aria-live="polite"
-                        ></p>
-                    </section>
-                </aside>
+                </footer>
+                </div>
             </div>
         `;
 
@@ -339,6 +579,14 @@ const MacromolecularizerUI = {
     cacheElements() {
 
         this.elements = {
+            topATP:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-top-atp"
+                ),
+            systemStatus:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-system-status"
+                ),
             selectedMotif:
                 this.rootElement.querySelector(
                     "#macromolecularizer-selected-motif"
@@ -358,6 +606,10 @@ const MacromolecularizerUI = {
             inventoryList:
                 this.rootElement.querySelector(
                     "#macromolecularizer-inventory-list"
+                ),
+            knownAminoAcids:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-known-amino-acids"
                 ),
             activeSynthesis:
                 this.rootElement.querySelector(
@@ -392,6 +644,22 @@ const MacromolecularizerUI = {
             cardStatus:
                 this.rootElement.querySelector(
                     "#macromolecularizer-card-status"
+                ),
+            chamber:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-chamber"
+                ),
+            chamberMode:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-chamber-mode"
+                ),
+            chamberTarget:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-chamber-target"
+                ),
+            chamberQuantity:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-chamber-quantity"
                 ),
             recipeGate:
                 this.rootElement.querySelector(
@@ -436,6 +704,10 @@ const MacromolecularizerUI = {
             startSynthesisButton:
                 this.rootElement.querySelector(
                     "#macromolecularizer-start-synthesis"
+                ),
+            observeStructureButton:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-observe-structure"
                 ),
             synthesisProgressPanel:
                 this.rootElement.querySelector(
@@ -515,6 +787,9 @@ const MacromolecularizerUI = {
             .addEventListener(
                 "click",
                 () => {
+                    this.chamberViewMode =
+                        "synthesis";
+
                     const result =
                         MacromolecularizerManager
                             .startSynthesis(
@@ -523,6 +798,20 @@ const MacromolecularizerUI = {
 
                     this.synthesisFeedbackMessage =
                         result.message;
+
+                    this.render();
+                }
+            );
+
+        this.elements.observeStructureButton
+            .addEventListener(
+                "click",
+                () => {
+                    this.chamberViewMode =
+                        this.chamberViewMode ===
+                        "observation"
+                            ? "synthesis"
+                            : "observation";
 
                     this.render();
                 }
@@ -588,6 +877,64 @@ const MacromolecularizerUI = {
             MacromolecularizerManager
                 .getStatus();
 
+        const selectedMotif =
+            status.selectedMotif;
+
+        this.elements.topATP
+            .textContent =
+                String(
+                    selectedMotif
+                        ?.atp.current ??
+                    0
+                );
+
+        let systemState =
+            selectedMotif
+                ?.lifecycleStatus ||
+            "blocked";
+
+        if (
+            this.chamberViewMode ===
+                "observation" &&
+            selectedMotif
+                ?.inventory.quantity > 0
+        ) {
+            systemState =
+                "observing";
+        }
+
+        if (status.activeSynthesis) {
+            systemState =
+                "synthesizing";
+        }
+
+        this.rootElement.dataset.systemStatus =
+            systemState;
+
+        if (status.activeSynthesis) {
+            this.elements.systemStatus
+                .textContent =
+                    `Assembly active · ${Math.floor(status.activeSynthesis.progress * 100)}%`;
+        } else if (
+            systemState ===
+            "observing"
+        ) {
+            this.elements.systemStatus
+                .textContent =
+                    "Structure observation";
+        } else if (
+            systemState ===
+            "ready"
+        ) {
+            this.elements.systemStatus
+                .textContent =
+                    "System ready";
+        } else {
+            this.elements.systemStatus
+                .textContent =
+                    "Preflight incomplete";
+        }
+
         this.elements.selectedMotif
             .textContent =
                 `Selected: ${status.selectedMotifId}`;
@@ -614,8 +961,17 @@ const MacromolecularizerUI = {
                 "None";
 
         this.renderMotifRecipe(
-            status.selectedMotif,
+            selectedMotif,
             status.activeSynthesis
+        );
+
+        this.renderChamber(
+            selectedMotif,
+            status.activeSynthesis
+        );
+
+        this.renderKnownAminoAcids(
+            selectedMotif
         );
 
         this.renderSpeedUpgrade(
@@ -882,6 +1238,155 @@ const MacromolecularizerUI = {
     },
 
     // --------------------------------------------------
+    // Render the visual chamber without changing job state
+    // --------------------------------------------------
+    renderChamber(
+        motif,
+        activeSynthesis
+    ) {
+
+        if (!motif) {
+            this.chamberViewMode =
+                "synthesis";
+            this.elements.chamber.dataset.mode =
+                "locked";
+            this.elements.chamberMode.textContent =
+                "SYNTHESIS LOCKED";
+            this.elements.chamberTarget.textContent =
+                "No target selected";
+            this.elements.chamberQuantity.textContent =
+                "0";
+            this.elements.observeStructureButton.disabled =
+                true;
+            this.elements.observeStructureButton
+                .setAttribute(
+                    "aria-pressed",
+                    "false"
+                );
+
+            return false;
+        }
+
+        const selectedJob =
+            activeSynthesis
+                ?.motifId ===
+            motif.definition.id
+                ? activeSynthesis
+                : null;
+
+        if (selectedJob) {
+            this.chamberViewMode =
+                "synthesis";
+        } else if (
+            this.chamberViewMode ===
+                "observation" &&
+            motif.inventory.quantity < 1
+        ) {
+            this.chamberViewMode =
+                "synthesis";
+        }
+
+        let mode =
+            motif.canStart
+                ? "ready"
+                : "locked";
+
+        let modeLabel =
+            motif.canStart
+                ? "READY TO SYNTHESIZE"
+                : "SYNTHESIS LOCKED";
+
+        if (selectedJob) {
+            mode = "synthesizing";
+            modeLabel = "SYNTHESIZING";
+        } else if (
+            this.chamberViewMode ===
+            "observation"
+        ) {
+            mode = "observing";
+            modeLabel = "OBSERVING STRUCTURE";
+        }
+
+        this.elements.chamber.dataset.mode =
+            mode;
+        this.elements.chamberMode.textContent =
+            modeLabel;
+        this.elements.chamberTarget.textContent =
+            motif.definition.name;
+        this.elements.chamberQuantity.textContent =
+            String(
+                motif.inventory.quantity
+            );
+
+        const observationAvailable =
+            !selectedJob &&
+            motif.inventory.quantity > 0;
+
+        this.elements.observeStructureButton.disabled =
+            !observationAvailable;
+        this.elements.observeStructureButton
+            .setAttribute(
+                "aria-pressed",
+                String(
+                    mode === "observing"
+                )
+            );
+        this.elements.observeStructureButton
+            .textContent =
+                mode === "observing"
+                    ? "Return to Synthesis"
+                    : "Observe Structure";
+
+        this.elements.startSynthesisButton.dataset.state =
+            mode;
+
+        return true;
+
+    },
+
+    // --------------------------------------------------
+    // Show prerequisite knowledge separately from inventory
+    // --------------------------------------------------
+    renderKnownAminoAcids(motif) {
+
+        if (!motif) {
+            this.elements.knownAminoAcids
+                .replaceChildren();
+
+            return false;
+        }
+
+        this.elements.knownAminoAcids
+            .replaceChildren(
+                ...motif.aminoAcids.map(
+                    requirement => {
+                        const item =
+                            document.createElement(
+                                "li"
+                            );
+
+                        item.dataset.status =
+                            requirement.synthesized
+                                ? "complete"
+                                : "missing";
+
+                        item.textContent =
+                            `${requirement.id} · ${requirement.name} — ${requirement.synthesized
+                                ? "Known"
+                                : "Not synthesized"} · ${requirement.quantity} recipe ${requirement.quantity === 1
+                                ? "position"
+                                : "positions"}`;
+
+                        return item;
+                    }
+                )
+            );
+
+        return true;
+
+    },
+
+    // --------------------------------------------------
     // Render one concise checklist for the next job
     // --------------------------------------------------
     renderRequirementSummary(motif) {
@@ -972,12 +1477,19 @@ const MacromolecularizerUI = {
     // --------------------------------------------------
     renderInventory(inventoryStatus) {
 
+        const storedMotifs =
+            inventoryStatus.items
+                .filter(
+                    motif =>
+                        motif.quantity > 0
+                );
+
         this.elements.inventoryEmpty.hidden =
-            inventoryStatus.totalQuantity > 0;
+            storedMotifs.length > 0;
 
         this.elements.inventoryList
             .replaceChildren(
-                ...inventoryStatus.items.map(
+                ...storedMotifs.map(
                     motif => {
                         const item =
                             document.createElement(
@@ -1129,6 +1641,9 @@ const MacromolecularizerUI = {
                     detail?.reason ===
                     "synthesis-completed"
                 ) {
+                    this.chamberViewMode =
+                        "observation";
+
                     this.synthesisFeedbackMessage =
                         detail.saved
                             ? `${detail.motifId} synthesis completed and saved.`
