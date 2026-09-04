@@ -4,6 +4,7 @@
 // --------------------------------------------------
 
 import gameState from "./GameState.js";
+import GameStateObserver from "./GameStateObserver.js";
 
 const DEFAULT_ATP = {
 
@@ -60,7 +61,31 @@ const ResourceManager = {
         };
 
     },
-        // --------------------------------------------------
+
+    // --------------------------------------------------
+    // Notify observers after an ATP balance change
+    // --------------------------------------------------
+    notifyATPChanged(delta, reason) {
+
+        const status =
+            this.getATPStatus();
+
+        const payload = {
+            ...status,
+            delta,
+            reason
+        };
+
+        GameStateObserver.notify(
+            "atp-changed",
+            payload
+        );
+
+        return payload;
+
+    },
+
+    // --------------------------------------------------
     // Check whether ATP can be spent
     // --------------------------------------------------
     canSpendATP(amount) {
@@ -82,7 +107,10 @@ const ResourceManager = {
     // --------------------------------------------------
     // Spend ATP if available
     // --------------------------------------------------
-    spendATP(amount) {
+    spendATP(
+        amount,
+        reason = "resource-spend"
+    ) {
 
         if (!this.canSpendATP(amount)) {
             return false;
@@ -93,6 +121,11 @@ const ResourceManager = {
 
         atp.current -= amount;
 
+        this.notifyATPChanged(
+            -amount,
+            reason
+        );
+
         return true;
 
     },
@@ -100,7 +133,10 @@ const ResourceManager = {
     // --------------------------------------------------
     // Add ATP up to its maximum reserve
     // --------------------------------------------------
-    addATP(amount) {
+    addATP(
+        amount,
+        reason = "resource-gain"
+    ) {
 
         if (
             !Number.isFinite(amount) ||
@@ -121,7 +157,16 @@ const ResourceManager = {
                 availableSpace
             );
 
+        if (actualGain <= 0) {
+            return 0;
+        }
+
         atp.current += actualGain;
+
+        this.notifyATPChanged(
+            actualGain,
+            reason
+        );
 
         return actualGain;
 

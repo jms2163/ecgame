@@ -23,6 +23,7 @@ import PondWorldConfig
     from "./PondWorldConfig.js";
 import ResourceManager
     from "./ResourceManager.js";
+import ATPManager from "./ATPManager.js";
 import XPManager from "./XPManager.js";
 import ParticleInventoryManager
     from "./ParticleInventoryManager.js";
@@ -101,6 +102,7 @@ const DevConsole = {
             SeededRandom,
             PondWorldConfig,
             ResourceManager,
+            ATPManager,
             XPManager,
             ParticleInventoryManager,
             GameStars,
@@ -137,7 +139,6 @@ const DevConsole = {
             MoleculeLab,
             MoleculeLabUI,
             MoleculeBuilderView
-            
         };
 
         console.log(
