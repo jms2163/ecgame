@@ -9,6 +9,8 @@ import GameStateObserver from "./GameStateObserver.js";
 import DiscoveryManager from "./DiscoveryManager.js";
 import SaveManager from "./SaveManager.js";
 import ResourceManager from "./ResourceManager.js";
+import SynthesisPointManager
+    from "./SynthesisPointManager.js";
 import MoleculeRecipeCatalog
     from "../data/MoleculeRecipeCatalog.js";
 import MotifRecipeCatalog
@@ -17,6 +19,10 @@ import MotifRecipeCatalog
 const ZONE_ID = "macromolecularizer";
 const DEFAULT_CATEGORY = "motifs";
 const FIRST_MOTIF_ID = "H_helix";
+const BASE_SECONDS_PER_PEPTIDE_BOND = 30;
+const DEHYDRATION_SPEED_BONUS_PER_LEVEL = 1;
+const SYNTHESIS_POINT_COST_PER_LEVEL = 1;
+const PROGRESS_EVENT_INTERVAL_MS = 250;
 const REACTION_DISCOVERY_IDS = Object.freeze([
     "dehydration",
     "hydrolysis"
@@ -48,11 +54,165 @@ function safeTimestamp(value) {
 
 }
 
+function getBaseDurationMs(definition) {
+
+    return Math.max(
+        1,
+        definition.peptideBondCount *
+            BASE_SECONDS_PER_PEPTIDE_BOND *
+            1000
+    );
+
+}
+
+function getSpeedMultiplier(level) {
+
+    return 1 +
+        safeInteger(level) *
+        DEHYDRATION_SPEED_BONUS_PER_LEVEL;
+
+}
+
+function calculateDurationMs(
+    definition,
+    speedUpgradeLevel
+) {
+
+    return Math.max(
+        1,
+        Math.round(
+            getBaseDurationMs(
+                definition
+            ) /
+            getSpeedMultiplier(
+                speedUpgradeLevel
+            )
+        )
+    );
+
+}
+
+function createJobId(
+    motifId,
+    startedAtMs
+) {
+
+    if (
+        globalThis.crypto &&
+        typeof globalThis.crypto
+            .randomUUID === "function"
+    ) {
+        return globalThis.crypto
+            .randomUUID();
+    }
+
+    return [
+        motifId,
+        startedAtMs,
+        Math.random()
+            .toString(36)
+            .slice(2)
+    ].join("-");
+
+}
+
+function normalizeActiveSynthesis(job) {
+
+    if (!isRecord(job)) {
+        return null;
+    }
+
+    const definition =
+        MotifRecipeCatalog.get(
+            job.motifId
+        );
+
+    const speedUpgradeLevel =
+        safeInteger(
+            job.speedUpgradeLevel
+        );
+
+    if (
+        !definition
+            ?.implemented ||
+        typeof job.jobId !== "string" ||
+        job.jobId.trim() === "" ||
+        !Number.isFinite(
+            job.startedAtMs
+        ) ||
+        job.startedAtMs < 0
+    ) {
+        return null;
+    }
+
+    const baseDurationMs =
+        getBaseDurationMs(
+            definition
+        );
+
+    const durationMs =
+        calculateDurationMs(
+            definition,
+            speedUpgradeLevel
+        );
+
+    const speedMultiplier =
+        getSpeedMultiplier(
+            speedUpgradeLevel
+        );
+
+    const expectedCompletesAtMs =
+        job.startedAtMs +
+        durationMs;
+
+    if (
+        job.baseDurationMs !==
+            baseDurationMs ||
+        job.durationMs !==
+            durationMs ||
+        job.completesAtMs !==
+            expectedCompletesAtMs ||
+        job.atpCost !==
+            definition.atpCost ||
+        job.peptideBondCount !==
+            definition.peptideBondCount ||
+        job.secondsPerPeptideBond !==
+            BASE_SECONDS_PER_PEPTIDE_BOND ||
+        job.speedMultiplier !==
+            speedMultiplier
+    ) {
+        return null;
+    }
+
+    return {
+        jobId:
+            job.jobId.trim(),
+        motifId:
+            definition.id,
+        startedAtMs:
+            job.startedAtMs,
+        completesAtMs:
+            expectedCompletesAtMs,
+        durationMs,
+        baseDurationMs,
+        atpCost:
+            definition.atpCost,
+        peptideBondCount:
+            definition.peptideBondCount,
+        secondsPerPeptideBond:
+            BASE_SECONDS_PER_PEPTIDE_BOND,
+        speedUpgradeLevel,
+        speedMultiplier
+    };
+
+}
+
 const MacromolecularizerManager = {
 
     initialized: false,
     active: false,
     subscribed: false,
+    lastProgressEventAtMs: 0,
 
     // --------------------------------------------------
     // Initialize domain state once
@@ -66,9 +226,12 @@ const MacromolecularizerManager = {
         }
 
         this.ensureState();
+        SynthesisPointManager
+            .initialize();
         this.subscribe();
 
         this.initialized = true;
+        this.reconcileSynthesis();
 
         console.log(
             "[MacromolecularizerManager] Initialized with persistent state."
@@ -89,6 +252,7 @@ const MacromolecularizerManager = {
 
         this.active = true;
         this.ensureState();
+        this.reconcileSynthesis();
         this.notifyStateChange(
             "activated"
         );
@@ -146,11 +310,11 @@ const MacromolecularizerManager = {
                 state.selectedMotifId.trim();
         }
 
-        if (
-            state.activeSynthesis !== null &&
-            !isRecord(state.activeSynthesis)
-        ) {
-            state.activeSynthesis = null;
+        if (state.activeSynthesis !== null) {
+            state.activeSynthesis =
+                normalizeActiveSynthesis(
+                    state.activeSynthesis
+                );
         }
 
         if (!isRecord(state.synthesized)) {
@@ -200,6 +364,33 @@ const MacromolecularizerManager = {
                     safeInteger(count);
             }
         );
+
+        if (!isRecord(state.upgrades)) {
+            state.upgrades = {};
+        }
+
+        if (
+            !isRecord(
+                state.upgrades
+                    .dehydrationSynthesisSpeed
+            )
+        ) {
+            state.upgrades
+                .dehydrationSynthesisSpeed = {};
+        }
+
+        const speedUpgrade =
+            state.upgrades
+                .dehydrationSynthesisSpeed;
+
+        speedUpgrade.level =
+            safeInteger(
+                speedUpgrade.level
+            );
+
+        // One Synthesis Point purchases one +100%-speed level.
+        speedUpgrade.synthesisPointsSpent =
+            speedUpgrade.level;
 
         return state;
 
@@ -316,6 +507,9 @@ const MacromolecularizerManager = {
                     definition.atpCost
                 );
 
+        const speed =
+            this.getDehydrationSpeedStatus();
+
         return {
             id: definition.id,
             definition:
@@ -336,6 +530,23 @@ const MacromolecularizerManager = {
                 canAfford:
                     canAffordATP
             },
+            timing: {
+                baseSecondsPerPeptideBond:
+                    BASE_SECONDS_PER_PEPTIDE_BOND,
+                baseDurationMs:
+                    getBaseDurationMs(
+                        definition
+                    ),
+                durationMs:
+                    calculateDurationMs(
+                        definition,
+                        speed.level
+                    ),
+                speedUpgradeLevel:
+                    speed.level,
+                speedMultiplier:
+                    speed.speedMultiplier
+            },
             eligible:
                 definition
                     .compositionValid &&
@@ -345,6 +556,597 @@ const MacromolecularizerManager = {
                     .length === 0 &&
                 canAffordATP
         };
+
+    },
+
+    // --------------------------------------------------
+    // Read the dehydration-speed upgrade and currency
+    // --------------------------------------------------
+    getDehydrationSpeedStatus() {
+
+        const state =
+            this.ensureState();
+
+        const level =
+            state.upgrades
+                .dehydrationSynthesisSpeed
+                .level;
+
+        const speedMultiplier =
+            getSpeedMultiplier(
+                level
+            );
+
+        return {
+            level,
+            synthesisPointsSpent:
+                level,
+            synthesisPointCost:
+                SYNTHESIS_POINT_COST_PER_LEVEL,
+            bonusPercentPerLevel:
+                DEHYDRATION_SPEED_BONUS_PER_LEVEL *
+                100,
+            speedMultiplier,
+            effectiveSecondsPerPeptideBond:
+                BASE_SECONDS_PER_PEPTIDE_BOND /
+                speedMultiplier,
+            points:
+                SynthesisPointManager
+                    .getStatus()
+        };
+
+    },
+
+    // --------------------------------------------------
+    // Spend one point on future-job synthesis speed
+    // --------------------------------------------------
+    spendSynthesisPointOnDehydrationSpeed() {
+
+        const state =
+            this.ensureState();
+
+        const speedUpgrade =
+            state.upgrades
+                .dehydrationSynthesisSpeed;
+
+        const previousLevel =
+            speedUpgrade.level;
+
+        const previousPointStatus =
+            SynthesisPointManager
+                .getStatus();
+
+        const updatedPoints =
+            SynthesisPointManager
+                .spendPoints(
+                    SYNTHESIS_POINT_COST_PER_LEVEL,
+                    "dehydration-synthesis-speed"
+                );
+
+        if (updatedPoints === false) {
+            return {
+                success: false,
+                reason:
+                    "insufficient-synthesis-points",
+                message:
+                    "A Synthesis Point is required for this upgrade."
+            };
+        }
+
+        speedUpgrade.level =
+            previousLevel + 1;
+        speedUpgrade.synthesisPointsSpent =
+            speedUpgrade.level;
+
+        const saved =
+            SaveManager.save({
+                reason:
+                    "dehydration-synthesis-speed-upgraded"
+            });
+
+        if (!saved) {
+            speedUpgrade.level =
+                previousLevel;
+            speedUpgrade.synthesisPointsSpent =
+                previousLevel;
+
+            SynthesisPointManager
+                .restoreStatus(
+                    previousPointStatus
+                );
+
+            return {
+                success: false,
+                reason: "save-failed",
+                message:
+                    "The speed upgrade could not be saved."
+            };
+        }
+
+        const speed =
+            this.getDehydrationSpeedStatus();
+
+        this.notifyStateChange(
+            "dehydration-speed-upgraded",
+            {
+                level:
+                    speed.level,
+                speedMultiplier:
+                    speed.speedMultiplier
+            }
+        );
+
+        return {
+            success: true,
+            reason: "speed-upgraded",
+            speed,
+            appliesToActiveJob: false,
+            message:
+                `Dehydration synthesis speed is now ${speed.speedMultiplier}×. Active jobs keep their original duration.`
+        };
+
+    },
+
+    // --------------------------------------------------
+    // Read timestamp-derived active-job progress
+    // --------------------------------------------------
+    getActiveSynthesisProgress(
+        nowMs = Date.now()
+    ) {
+
+        const job =
+            this.ensureState()
+                .activeSynthesis;
+
+        if (!job) {
+            return null;
+        }
+
+        const elapsedMs =
+            Math.max(
+                0,
+                Math.min(
+                    job.durationMs,
+                    nowMs -
+                        job.startedAtMs
+                )
+            );
+
+        return {
+            ...structuredClone(job),
+            elapsedMs,
+            remainingMs:
+                Math.max(
+                    0,
+                    job.durationMs -
+                        elapsedMs
+                ),
+            progress:
+                elapsedMs /
+                job.durationMs,
+            complete:
+                nowMs >=
+                job.completesAtMs
+        };
+
+    },
+
+    // --------------------------------------------------
+    // Start one ATP-funded motif synthesis job
+    // --------------------------------------------------
+    startSynthesis(
+        motifId = FIRST_MOTIF_ID,
+        nowMs = Date.now()
+    ) {
+
+        if (
+            !Number.isFinite(nowMs) ||
+            nowMs < 0
+        ) {
+            return {
+                success: false,
+                reason: "invalid-start-time",
+                message:
+                    "The synthesis job requires a valid start time."
+            };
+        }
+
+        this.reconcileSynthesis(
+            nowMs
+        );
+
+        const state =
+            this.ensureState();
+
+        if (state.activeSynthesis) {
+            return {
+                success: false,
+                reason:
+                    "synthesis-already-active",
+                message:
+                    `Finish ${state.activeSynthesis.motifId} before starting another motif.`
+            };
+        }
+
+        const definition =
+            MotifRecipeCatalog.get(
+                motifId
+            );
+
+        const eligibility =
+            this.getMotifEligibility(
+                motifId
+            );
+
+        if (
+            !definition ||
+            !definition.implemented ||
+            !eligibility
+        ) {
+            return {
+                success: false,
+                reason: "unknown-motif",
+                message:
+                    "That motif is not available for synthesis."
+            };
+        }
+
+        if (
+            eligibility.missingReactionIds
+                .length > 0
+        ) {
+            return {
+                success: false,
+                reason:
+                    "missing-reaction-discovery",
+                missingReactionIds:
+                    eligibility
+                        .missingReactionIds,
+                message:
+                    "Discover dehydration before beginning motif synthesis."
+            };
+        }
+
+        if (
+            eligibility.missingAminoAcidIds
+                .length > 0
+        ) {
+            return {
+                success: false,
+                reason:
+                    "missing-amino-acids",
+                missingAminoAcidIds:
+                    eligibility
+                        .missingAminoAcidIds,
+                message:
+                    `Synthesize these amino-acid types first: ${eligibility.missingAminoAcidIds.join(", ")}.`
+            };
+        }
+
+        if (!eligibility.atp.canAfford) {
+            return {
+                success: false,
+                reason: "insufficient-atp",
+                requiredATP:
+                    eligibility.atp.cost,
+                availableATP:
+                    eligibility.atp.current,
+                message:
+                    `Requires ${eligibility.atp.cost} ATP; ${eligibility.atp.current} ATP is available.`
+            };
+        }
+
+        if (
+            !definition.compositionValid
+        ) {
+            return {
+                success: false,
+                reason:
+                    "invalid-recipe-composition",
+                message:
+                    "This motif recipe has an invalid amino-acid composition."
+            };
+        }
+
+        const speed =
+            this.getDehydrationSpeedStatus();
+
+        const durationMs =
+            calculateDurationMs(
+                definition,
+                speed.level
+            );
+
+        const job = {
+            jobId:
+                createJobId(
+                    motifId,
+                    nowMs
+                ),
+            motifId,
+            startedAtMs:
+                nowMs,
+            completesAtMs:
+                nowMs +
+                durationMs,
+            durationMs,
+            baseDurationMs:
+                getBaseDurationMs(
+                    definition
+                ),
+            atpCost:
+                definition.atpCost,
+            peptideBondCount:
+                definition.peptideBondCount,
+            secondsPerPeptideBond:
+                BASE_SECONDS_PER_PEPTIDE_BOND,
+            speedUpgradeLevel:
+                speed.level,
+            speedMultiplier:
+                speed.speedMultiplier
+        };
+
+        const atpSpent =
+            ResourceManager.spendATP(
+                definition.atpCost,
+                "macromolecularizer-synthesis-started"
+            );
+
+        if (!atpSpent) {
+            return {
+                success: false,
+                reason: "insufficient-atp",
+                message:
+                    "ATP changed before the synthesis job could start."
+            };
+        }
+
+        state.activeSynthesis =
+            job;
+
+        const saved =
+            SaveManager.save({
+                reason:
+                    "macromolecularizer-synthesis-started"
+            });
+
+        if (!saved) {
+            state.activeSynthesis =
+                null;
+
+            ResourceManager.addATP(
+                definition.atpCost,
+                "macromolecularizer-synthesis-start-rollback"
+            );
+
+            return {
+                success: false,
+                reason: "save-failed",
+                message:
+                    "The synthesis job could not be saved. ATP was restored."
+            };
+        }
+
+        this.lastProgressEventAtMs =
+            nowMs;
+
+        this.notifyStateChange(
+            "synthesis-started",
+            {
+                jobId:
+                    job.jobId,
+                motifId
+            }
+        );
+
+        return {
+            success: true,
+            reason: "synthesis-started",
+            synthesis:
+                this.getActiveSynthesisProgress(
+                    nowMs
+                ),
+            message:
+                `${definition.name} synthesis started.`
+        };
+
+    },
+
+    // --------------------------------------------------
+    // Complete one job exactly once when its time elapses
+    // --------------------------------------------------
+    finishSynthesis(
+        jobId,
+        completedAtMs = Date.now()
+    ) {
+
+        if (
+            !Number.isFinite(
+                completedAtMs
+            ) ||
+            completedAtMs < 0
+        ) {
+            return {
+                success: false,
+                reason:
+                    "invalid-completion-time"
+            };
+        }
+
+        const state =
+            this.ensureState();
+
+        const job =
+            state.activeSynthesis;
+
+        if (
+            !job ||
+            job.jobId !== jobId
+        ) {
+            return {
+                success: false,
+                reason: "active-job-mismatch"
+            };
+        }
+
+        if (
+            completedAtMs <
+            job.completesAtMs
+        ) {
+            return {
+                success: false,
+                reason: "synthesis-not-complete"
+            };
+        }
+
+        state.activeSynthesis =
+            null;
+
+        const previous =
+            state.synthesized[
+                job.motifId
+            ];
+
+        const nextCount =
+            safeInteger(
+                previous?.count
+            ) + 1;
+
+        state.synthesized[
+            job.motifId
+        ] = {
+            count:
+                nextCount,
+            firstCompletedAtMs:
+                previous
+                    ?.firstCompletedAtMs ??
+                completedAtMs,
+            lastCompletedAtMs:
+                completedAtMs
+        };
+
+        state.motifInventory[
+            job.motifId
+        ] =
+            safeInteger(
+                state.motifInventory[
+                    job.motifId
+                ]
+            ) + 1;
+
+        if (
+            !GameStateManager
+                .hasDiscoveryInCategory(
+                    "motifs",
+                    job.motifId
+                )
+        ) {
+            DiscoveryManager.record(
+                "motifs",
+                job.motifId
+            );
+        }
+
+        const saved =
+            SaveManager.save({
+                reason:
+                    "macromolecularizer-synthesis-completed"
+            });
+
+        GameStateObserver.notify(
+            "motif-synthesized",
+            {
+                jobId:
+                    job.jobId,
+                motifId:
+                    job.motifId,
+                completedAtMs,
+                count:
+                    nextCount,
+                saved
+            }
+        );
+
+        this.notifyStateChange(
+            "synthesis-completed",
+            {
+                jobId:
+                    job.jobId,
+                motifId:
+                    job.motifId,
+                count:
+                    nextCount,
+                saved
+            }
+        );
+
+        return {
+            success: saved,
+            completed: true,
+            saved,
+            reason: saved
+                ? "synthesis-completed"
+                : "save-failed",
+            motifId:
+                job.motifId,
+            count:
+                nextCount,
+            message: saved
+                ? `${job.motifId} synthesis completed and saved.`
+                : `${job.motifId} synthesis completed, but the browser save failed.`
+        };
+
+    },
+
+    // --------------------------------------------------
+    // Reconcile active work from wall-clock timestamps
+    // --------------------------------------------------
+    reconcileSynthesis(
+        nowMs = Date.now()
+    ) {
+
+        if (
+            !Number.isFinite(nowMs) ||
+            nowMs < 0
+        ) {
+            return false;
+        }
+
+        const progress =
+            this.getActiveSynthesisProgress(
+                nowMs
+            );
+
+        if (!progress) {
+            return false;
+        }
+
+        if (progress.complete) {
+            return this.finishSynthesis(
+                progress.jobId,
+                nowMs
+            );
+        }
+
+        if (
+            this.active &&
+            nowMs -
+                this.lastProgressEventAtMs >=
+                PROGRESS_EVENT_INTERVAL_MS
+        ) {
+            this.lastProgressEventAtMs =
+                nowMs;
+
+            this.notifyStateChange(
+                "synthesis-progress",
+                {
+                    jobId:
+                        progress.jobId
+                }
+            );
+        }
+
+        return false;
 
     },
 
@@ -495,6 +1297,9 @@ const MacromolecularizerManager = {
                 state.selectedMotifId
             );
 
+        const dehydrationSpeed =
+            this.getDehydrationSpeedStatus();
+
         return {
             initialized:
                 this.initialized,
@@ -511,11 +1316,8 @@ const MacromolecularizerManager = {
             selectedMotif,
             reactionDiscoveries,
             activeSynthesis:
-                state.activeSynthesis
-                    ? structuredClone(
-                        state.activeSynthesis
-                    )
-                    : null,
+                this.getActiveSynthesisProgress(),
+            dehydrationSpeed,
             synthesized:
                 structuredClone(
                     state.synthesized
@@ -553,9 +1355,19 @@ const MacromolecularizerManager = {
         }
 
         GameStateObserver.on(
+            "game-tick",
+            () => {
+                this.reconcileSynthesis(
+                    Date.now()
+                );
+            }
+        );
+
+        GameStateObserver.on(
             "game-state-loaded",
             () => {
                 this.ensureState();
+                this.reconcileSynthesis();
                 this.notifyStateChange(
                     "state-loaded"
                 );
@@ -599,6 +1411,19 @@ const MacromolecularizerManager = {
                 if (this.active) {
                     this.notifyStateChange(
                         "atp-eligibility-changed"
+                    );
+                }
+
+            }
+        );
+
+        GameStateObserver.on(
+            "synthesis-points-changed",
+            () => {
+
+                if (this.active) {
+                    this.notifyStateChange(
+                        "synthesis-points-eligibility-changed"
                     );
                 }
 

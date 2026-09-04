@@ -23,6 +23,8 @@ import PondWorldConfig
     from "./PondWorldConfig.js";
 import ResourceManager
     from "./ResourceManager.js";
+import SynthesisPointManager
+    from "./SynthesisPointManager.js";
 import ATPManager from "./ATPManager.js";
 import XPManager from "./XPManager.js";
 import ParticleInventoryManager
@@ -108,6 +110,7 @@ const DevConsole = {
             SeededRandom,
             PondWorldConfig,
             ResourceManager,
+            SynthesisPointManager,
             ATPManager,
             XPManager,
             ParticleInventoryManager,

@@ -12,6 +12,8 @@ import NavigationUI from "./NavigationUI.js";
 import ZoneCatalog from "./ZoneCatalog.js";
 import DevConsole from "./DevConsole.js";
 import ResourceManager from "./ResourceManager.js";
+import SynthesisPointManager
+    from "./SynthesisPointManager.js";
 import ATPManager from "./ATPManager.js";
 import QuestManager from "./QuestManager.js";
 import QuestDrawerUI from "./QuestDrawerUI.js";
@@ -40,6 +42,7 @@ const Bootstrap = {
         PlayerProfileManager.initialize();
 
         ResourceManager.initialize();
+        SynthesisPointManager.initialize();
         // ATP production subscribes before the central
         // game loop begins emitting game-tick events.
         ATPManager.initialize();
@@ -100,4 +103,3 @@ const Bootstrap = {
 };
 
 export default Bootstrap;
-
