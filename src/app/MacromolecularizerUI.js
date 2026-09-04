@@ -136,6 +136,7 @@ const MacromolecularizerUI = {
                             <code>H_helix</code>
                         </p>
                         <p id="macromolecularizer-card-summary"></p>
+                        <p id="macromolecularizer-card-quantity"></p>
                         <p id="macromolecularizer-card-status"></p>
                     </article>
                 </aside>
@@ -193,6 +194,9 @@ const MacromolecularizerUI = {
                         <h3 id="macromolecularizer-recipe-heading">
                             H_helix Recipe
                         </h3>
+
+                        <h4>Requirements for the next synthesis</h4>
+                        <ul id="macromolecularizer-requirement-summary"></ul>
 
                         <p
                             id="macromolecularizer-recipe-gate"
@@ -268,9 +272,24 @@ const MacromolecularizerUI = {
                         <dt>Stored motif types</dt>
                         <dd id="macromolecularizer-inventory-count">0</dd>
 
+                        <dt>Total motif copies</dt>
+                        <dd id="macromolecularizer-inventory-total">0</dd>
+
                         <dt>Active synthesis</dt>
                         <dd id="macromolecularizer-active-synthesis">None</dd>
                     </dl>
+
+                    <section
+                        aria-labelledby="macromolecularizer-inventory-heading"
+                    >
+                        <h3 id="macromolecularizer-inventory-heading">
+                            Motif Inventory
+                        </h3>
+                        <p id="macromolecularizer-inventory-empty">
+                            No completed motifs yet.
+                        </p>
+                        <ul id="macromolecularizer-inventory-list"></ul>
+                    </section>
 
                     <section
                         aria-labelledby="macromolecularizer-speed-heading"
@@ -328,6 +347,18 @@ const MacromolecularizerUI = {
                 this.rootElement.querySelector(
                     "#macromolecularizer-inventory-count"
                 ),
+            inventoryTotal:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-inventory-total"
+                ),
+            inventoryEmpty:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-inventory-empty"
+                ),
+            inventoryList:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-inventory-list"
+                ),
             activeSynthesis:
                 this.rootElement.querySelector(
                     "#macromolecularizer-active-synthesis"
@@ -354,6 +385,10 @@ const MacromolecularizerUI = {
                 this.rootElement.querySelector(
                     "#macromolecularizer-card-summary"
                 ),
+            cardQuantity:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-card-quantity"
+                ),
             cardStatus:
                 this.rootElement.querySelector(
                     "#macromolecularizer-card-status"
@@ -361,6 +396,10 @@ const MacromolecularizerUI = {
             recipeGate:
                 this.rootElement.querySelector(
                     "#macromolecularizer-recipe-gate"
+                ),
+            requirementSummary:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-requirement-summary"
                 ),
             recipeDetails:
                 this.rootElement.querySelector(
@@ -549,20 +588,23 @@ const MacromolecularizerUI = {
             MacromolecularizerManager
                 .getStatus();
 
-        const storedMotifTypes =
-            Object.values(
-                status.motifInventory
-            ).filter(
-                count => count > 0
-            ).length;
-
         this.elements.selectedMotif
             .textContent =
                 `Selected: ${status.selectedMotifId}`;
 
         this.elements.inventoryCount
             .textContent =
-                String(storedMotifTypes);
+                String(
+                    status.motifInventoryStatus
+                        .storedTypes
+                );
+
+        this.elements.inventoryTotal
+            .textContent =
+                String(
+                    status.motifInventoryStatus
+                        .totalQuantity
+                );
 
         this.elements.activeSynthesis
             .textContent =
@@ -578,6 +620,10 @@ const MacromolecularizerUI = {
 
         this.renderSpeedUpgrade(
             status.dehydrationSpeed
+        );
+
+        this.renderInventory(
+            status.motifInventoryStatus
         );
 
         this.elements.reactionButtons
@@ -662,12 +708,23 @@ const MacromolecularizerUI = {
                 definition.name;
         this.elements.cardSummary
             .textContent =
-                `${definition.aminoAcidCount} amino acids · ${definition.atpCost} ATP`;
+                `${definition.aminoAcidCount} amino acids · ${definition.atpCost} ATP · ${this.formatDuration(motif.timing.durationMs)}`;
+        this.elements.cardQuantity
+            .textContent =
+                `${motif.inventory.quantity} stored`;
         this.elements.cardStatus
             .textContent =
-                motif.eligible
-                    ? "Eligible"
-                    : "Requirements incomplete";
+                this.formatLifecycleStatus(
+                    motif.lifecycleStatus,
+                    motif.inventory.quantity
+                );
+
+        this.elements.motifCard.dataset.status =
+            motif.lifecycleStatus;
+
+        this.renderRequirementSummary(
+            motif
+        );
 
         const dehydrationKnown =
             Boolean(
@@ -742,13 +799,14 @@ const MacromolecularizerUI = {
 
         this.elements.startSynthesisButton
             .disabled =
-                !motif.eligible ||
-                Boolean(activeSynthesis);
+                !motif.canStart;
 
         this.elements.startSynthesisButton
             .textContent = selectedJob
                 ? "H_helix Synthesis in Progress"
-                : "Begin H_helix Synthesis";
+                : motif.inventory.quantity > 0
+                    ? "Synthesize Another H_helix"
+                    : "Begin H_helix Synthesis";
 
         this.elements.synthesisProgressPanel
             .hidden =
@@ -771,9 +829,21 @@ const MacromolecularizerUI = {
 
         this.elements.synthesisFeedback
             .textContent =
-                this.synthesisFeedbackMessage;
+                this.synthesisFeedbackMessage ||
+                (
+                    motif.inventory.quantity > 0
+                        ? `${motif.inventory.quantity} completed H_helix ${motif.inventory.quantity === 1
+                            ? "is"
+                            : "are"} stored in the motif inventory.`
+                        : "No H_helix motifs have been completed yet."
+                );
 
-        if (
+        if (selectedJob) {
+            this.elements
+                .eligibilityFeedback
+                .textContent =
+                    "H_helix synthesis is running. Amino-acid prerequisites remain available and are not consumed.";
+        } else if (
             motif.missingAminoAcidIds
                 .length > 0
         ) {
@@ -792,22 +862,168 @@ const MacromolecularizerUI = {
             this.elements
                 .eligibilityFeedback
                 .textContent =
-                    `Synthesize these amino-acid types in Molecule Lab: ${missingNames.join(", ")}.`;
+                    `Synthesize each of these amino-acid types once in Molecule Lab: ${missingNames.join(", ")}. Recipe quantities describe the motif and are not consumed.`;
         } else if (!motif.atp.canAfford) {
             this.elements
                 .eligibilityFeedback
                 .textContent =
-                    `Requires ${motif.atp.cost} ATP; ${motif.atp.current} ATP is currently available.`;
+                    `Generate ${motif.requirements.atp.missingAmount} more ATP in the Pond. ${motif.atp.cost} ATP is required and ${motif.atp.current} ATP is available.`;
         } else {
             this.elements
                 .eligibilityFeedback
                 .textContent =
-                    selectedJob
-                        ? "H_helix synthesis is running. Amino-acid prerequisites remain available and are not consumed."
+                    motif.inventory.quantity > 0
+                        ? "All requirements are met. Another H_helix can be synthesized without consuming amino-acid prerequisites."
                         : "All H_helix requirements are met. Synthesis is ready.";
         }
 
         return true;
+
+    },
+
+    // --------------------------------------------------
+    // Render one concise checklist for the next job
+    // --------------------------------------------------
+    renderRequirementSummary(motif) {
+
+        const reactionNames =
+            Object.keys(
+                motif.reactionDiscoveries
+            ).map(
+                reactionId =>
+                    this.formatReactionName(
+                        reactionId
+                    )
+            );
+
+        const missingAminoAcidNames =
+            motif.aminoAcids
+                .filter(
+                    requirement =>
+                        !requirement
+                            .synthesized
+                )
+                .map(
+                    requirement =>
+                        requirement.name
+                );
+
+        const requirementRows = [
+            {
+                complete:
+                    motif.requirements
+                        .reactionDiscovery
+                        .complete,
+                text:
+                    `${reactionNames.join(", ")} discovery — ${motif.requirements.reactionDiscovery.complete
+                        ? "Complete"
+                        : "Missing"}`
+            },
+            {
+                complete:
+                    motif.requirements
+                        .aminoAcids
+                        .complete,
+                text:
+                    `Amino-acid synthesis knowledge — ${motif.requirements.aminoAcids.synthesizedTypes} of ${motif.requirements.aminoAcids.requiredTypes} types complete${missingAminoAcidNames.length > 0
+                        ? `; missing ${missingAminoAcidNames.join(", ")}`
+                        : ""}`
+            },
+            {
+                complete:
+                    motif.requirements
+                        .atp
+                        .complete,
+                text:
+                    `ATP — ${motif.atp.current} available / ${motif.atp.cost} required${motif.requirements.atp.missingAmount > 0
+                        ? `; generate ${motif.requirements.atp.missingAmount} more`
+                        : ""}`
+            }
+        ];
+
+        this.elements.requirementSummary
+            .replaceChildren(
+                ...requirementRows.map(
+                    requirement => {
+                        const item =
+                            document.createElement(
+                                "li"
+                            );
+
+                        item.dataset.status =
+                            requirement.complete
+                                ? "complete"
+                                : "missing";
+
+                        item.textContent =
+                            requirement.text;
+
+                        return item;
+                    }
+                )
+            );
+
+        return true;
+
+    },
+
+    // --------------------------------------------------
+    // Render persisted quantities for enabled motifs
+    // --------------------------------------------------
+    renderInventory(inventoryStatus) {
+
+        this.elements.inventoryEmpty.hidden =
+            inventoryStatus.totalQuantity > 0;
+
+        this.elements.inventoryList
+            .replaceChildren(
+                ...inventoryStatus.items.map(
+                    motif => {
+                        const item =
+                            document.createElement(
+                                "li"
+                            );
+
+                        item.dataset.status =
+                            motif.lifecycleStatus;
+
+                        item.textContent =
+                            `${motif.name} (${motif.id}) — ${motif.quantity} stored · ${this.formatLifecycleStatus(motif.lifecycleStatus, motif.quantity)}`;
+
+                        return item;
+                    }
+                )
+            );
+
+        return true;
+
+    },
+
+    formatLifecycleStatus(
+        lifecycleStatus,
+        quantity
+    ) {
+
+        if (
+            lifecycleStatus ===
+            "synthesizing"
+        ) {
+            return quantity > 0
+                ? "Synthesizing another motif"
+                : "Synthesizing first motif";
+        }
+
+        if (
+            lifecycleStatus === "ready"
+        ) {
+            return quantity > 0
+                ? "Ready to synthesize another"
+                : "Ready to synthesize";
+        }
+
+        return quantity > 0
+            ? "Requirements incomplete for another synthesis"
+            : "Requirements incomplete";
 
     },
 
