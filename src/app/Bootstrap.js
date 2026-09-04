@@ -19,6 +19,8 @@ import QuantumAutoCollectorManager from "./QuantumAutoCollectorManager.js";
 import AtomizerManager from "./AtomizerManager.js";
 import AtomizerUI from "./AtomizerUI.js";
 import MoleculeLabManager from "./MoleculeLabManager.js";
+import MacromolecularizerManager
+    from "./MacromolecularizerManager.js";
 import PlayerProfileManager from "./PlayerProfileManager.js";
 import PlayerBadgeDrawer from "./PlayerBadgeDrawer.js";
 
@@ -57,6 +59,9 @@ const Bootstrap = {
         // Domain initialization is global so timestamp-based
         // synthesis can reconcile even before the zone is opened.
         MoleculeLabManager.initialize();
+        // Normalize the future Macromolecularizer state
+        // after the local save has been loaded.
+        MacromolecularizerManager.initialize();
 
         const requestedZoneId =
             GameStateManager.getCurrentZoneId();
@@ -95,3 +100,4 @@ const Bootstrap = {
 };
 
 export default Bootstrap;
+
