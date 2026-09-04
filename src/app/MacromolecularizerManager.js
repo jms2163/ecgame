@@ -8,6 +8,11 @@ import GameStateManager from "./GameStateManager.js";
 import GameStateObserver from "./GameStateObserver.js";
 import DiscoveryManager from "./DiscoveryManager.js";
 import SaveManager from "./SaveManager.js";
+import ResourceManager from "./ResourceManager.js";
+import MoleculeRecipeCatalog
+    from "../data/MoleculeRecipeCatalog.js";
+import MotifRecipeCatalog
+    from "../data/MotifRecipeCatalog.js";
 
 const ZONE_ID = "macromolecularizer";
 const DEFAULT_CATEGORY = "motifs";
@@ -126,7 +131,13 @@ const MacromolecularizerManager = {
 
         if (
             typeof state.selectedMotifId !== "string" ||
-            state.selectedMotifId.trim() === ""
+            state.selectedMotifId.trim() === "" ||
+            !MotifRecipeCatalog.has(
+                state.selectedMotifId.trim()
+            ) ||
+            !MotifRecipeCatalog.get(
+                state.selectedMotifId.trim()
+            )?.implemented
         ) {
             state.selectedMotifId =
                 FIRST_MOTIF_ID;
@@ -191,6 +202,149 @@ const MacromolecularizerManager = {
         );
 
         return state;
+
+    },
+
+    // --------------------------------------------------
+    // Read a Molecule Lab synthesis-history snapshot
+    // --------------------------------------------------
+    getMoleculeSynthesisHistory() {
+
+        return GameStateManager
+            .getZoneSnapshot(
+                "moleculeLab"
+            )
+            ?.state
+            ?.synthesized ??
+            {};
+
+    },
+
+    // --------------------------------------------------
+    // Calculate non-consuming motif eligibility
+    // --------------------------------------------------
+    getMotifEligibility(motifId) {
+
+        const definition =
+            MotifRecipeCatalog.get(
+                motifId
+            );
+
+        if (
+            !definition ||
+            !definition.implemented
+        ) {
+            return null;
+        }
+
+        const synthesisHistory =
+            this.getMoleculeSynthesisHistory();
+
+        const aminoAcids =
+            definition.aminoAcids.map(
+                requirement => {
+
+                    const synthesisCount =
+                        safeInteger(
+                            synthesisHistory[
+                                requirement.id
+                            ]?.count
+                        );
+
+                    return {
+                        id:
+                            requirement.id,
+                        name:
+                            MoleculeRecipeCatalog
+                                .get(
+                                    requirement.id
+                                )?.name ??
+                            requirement.id,
+                        quantity:
+                            requirement.quantity,
+                        synthesisCount,
+                        synthesized:
+                            synthesisCount > 0
+                    };
+
+                }
+            );
+
+        const missingAminoAcidIds =
+            aminoAcids
+                .filter(
+                    requirement =>
+                        !requirement
+                            .synthesized
+                )
+                .map(
+                    requirement =>
+                        requirement.id
+                );
+
+        const reactionDiscoveries =
+            Object.fromEntries(
+                definition
+                    .requiredReactionIds
+                    .map(
+                        reactionId => [
+                            reactionId,
+                            this.hasReactionDiscovery(
+                                reactionId
+                            )
+                        ]
+                    )
+            );
+
+        const missingReactionIds =
+            definition
+                .requiredReactionIds
+                .filter(
+                    reactionId =>
+                        !reactionDiscoveries[
+                            reactionId
+                        ]
+                );
+
+        const atp =
+            ResourceManager
+                .getATPStatus();
+
+        const canAffordATP =
+            ResourceManager
+                .canSpendATP(
+                    definition.atpCost
+                );
+
+        return {
+            id: definition.id,
+            definition:
+                structuredClone(
+                    definition
+                ),
+            aminoAcids,
+            missingAminoAcidIds,
+            reactionDiscoveries,
+            missingReactionIds,
+            atp: {
+                current:
+                    atp.current,
+                maximum:
+                    atp.maximum,
+                cost:
+                    definition.atpCost,
+                canAfford:
+                    canAffordATP
+            },
+            eligible:
+                definition
+                    .compositionValid &&
+                missingAminoAcidIds
+                    .length === 0 &&
+                missingReactionIds
+                    .length === 0 &&
+                canAffordATP
+        };
 
     },
 
@@ -336,6 +490,11 @@ const MacromolecularizerManager = {
                 )
             );
 
+        const selectedMotif =
+            this.getMotifEligibility(
+                state.selectedMotifId
+            );
+
         return {
             initialized:
                 this.initialized,
@@ -349,6 +508,7 @@ const MacromolecularizerManager = {
                 state.activeCategory,
             selectedMotifId:
                 state.selectedMotifId,
+            selectedMotif,
             reactionDiscoveries,
             activeSynthesis:
                 state.activeSynthesis
@@ -399,6 +559,49 @@ const MacromolecularizerManager = {
                 this.notifyStateChange(
                     "state-loaded"
                 );
+            }
+        );
+
+        GameStateObserver.on(
+            "molecule-synthesized",
+            ({ moleculeId } = {}) => {
+
+                const definition =
+                    MotifRecipeCatalog.get(
+                        FIRST_MOTIF_ID
+                    );
+
+                if (
+                    this.active &&
+                    definition
+                        ?.aminoAcids
+                        .some(
+                            requirement =>
+                                requirement.id ===
+                                moleculeId
+                        )
+                ) {
+                    this.notifyStateChange(
+                        "amino-acid-prerequisite-changed",
+                        {
+                            moleculeId
+                        }
+                    );
+                }
+
+            }
+        );
+
+        GameStateObserver.on(
+            "atp-changed",
+            () => {
+
+                if (this.active) {
+                    this.notifyStateChange(
+                        "atp-eligibility-changed"
+                    );
+                }
+
             }
         );
 

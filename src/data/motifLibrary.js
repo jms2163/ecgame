@@ -7,7 +7,7 @@
     name: "Alpha Helix Motif",
     category: "motifs",
     aa_count: 20,
-    atp_cost: 80,
+    atp_cost: 19,
     costs: Object.freeze({ L: 4, I: 4, V: 4, A: 4, F: 2, M: 2 }),
     description: "A right-handed coil stabilized by hydrogen bonds; primary membrane-spanning structure.",
     info: "The alpha helix, a <b>secondary structure</b>, is a tightly wound, right-handed coil formed by regular <b>hydrogen bonding</b> between backbone atoms. Its compact, cylindrical shape provides stability and is frequently used in membrane-spanning regions. As a structural component, the alpha helix helps define the protein’s overall three-dimensional form, contributing directly to its tertiary structure and therefore function."
