@@ -6,10 +6,16 @@
 
 import GameStateManager from "./GameStateManager.js";
 import GameStateObserver from "./GameStateObserver.js";
+import DiscoveryManager from "./DiscoveryManager.js";
+import SaveManager from "./SaveManager.js";
 
 const ZONE_ID = "macromolecularizer";
 const DEFAULT_CATEGORY = "motifs";
 const FIRST_MOTIF_ID = "H_helix";
+const REACTION_DISCOVERY_IDS = Object.freeze([
+    "dehydration",
+    "hydrolysis"
+]);
 
 function isRecord(value) {
 
@@ -189,6 +195,123 @@ const MacromolecularizerManager = {
     },
 
     // --------------------------------------------------
+    // Read reaction knowledge from categorized discoveries
+    // --------------------------------------------------
+    hasReactionDiscovery(reactionId) {
+
+        if (
+            typeof reactionId !== "string" ||
+            !REACTION_DISCOVERY_IDS.includes(
+                reactionId.trim()
+            )
+        ) {
+            return false;
+        }
+
+        return GameStateManager
+            .hasDiscoveryInCategory(
+                "reactions",
+                reactionId.trim()
+            );
+
+    },
+
+    // --------------------------------------------------
+    // Record one temporary reaction-discovery gate
+    // --------------------------------------------------
+    discoverReaction(reactionId) {
+
+        if (typeof reactionId !== "string") {
+            return {
+                success: false,
+                discovered: false,
+                saved: false,
+                reason: "unknown-reaction",
+                message: "That reaction is not available for discovery."
+            };
+        }
+
+        const normalizedId =
+            reactionId.trim();
+
+        if (
+            !REACTION_DISCOVERY_IDS.includes(
+                normalizedId
+            )
+        ) {
+            return {
+                success: false,
+                discovered: false,
+                saved: false,
+                reason: "unknown-reaction",
+                reactionId: normalizedId,
+                message: "That reaction is not available for discovery."
+            };
+        }
+
+        if (
+            this.hasReactionDiscovery(
+                normalizedId
+            )
+        ) {
+            return {
+                success: true,
+                discovered: false,
+                saved: true,
+                reason: "already-discovered",
+                reactionId: normalizedId,
+                message:
+                    `${normalizedId} is already discovered.`
+            };
+        }
+
+        const recorded =
+            DiscoveryManager.record(
+                "reactions",
+                normalizedId
+            );
+
+        if (!recorded) {
+            return {
+                success: false,
+                discovered: false,
+                saved: false,
+                reason: "record-failed",
+                reactionId: normalizedId,
+                message: "The reaction discovery could not be recorded."
+            };
+        }
+
+        const saved =
+            SaveManager.save({
+                reason:
+                    "macromolecularizer-reaction-discovered"
+            });
+
+        this.notifyStateChange(
+            "reaction-discovered",
+            {
+                reactionId: normalizedId,
+                saved
+            }
+        );
+
+        return {
+            success: saved,
+            discovered: true,
+            saved,
+            reason: saved
+                ? "reaction-discovered"
+                : "save-failed",
+            reactionId: normalizedId,
+            message: saved
+                ? `${normalizedId} discovered and saved.`
+                : `${normalizedId} was discovered, but the browser save failed.`
+        };
+
+    },
+
+    // --------------------------------------------------
     // Read a safe development snapshot
     // --------------------------------------------------
     getStatus() {
@@ -199,6 +322,18 @@ const MacromolecularizerManager = {
         const zone =
             GameStateManager.getZoneSnapshot(
                 ZONE_ID
+            );
+
+        const reactionDiscoveries =
+            Object.fromEntries(
+                REACTION_DISCOVERY_IDS.map(
+                    reactionId => [
+                        reactionId,
+                        this.hasReactionDiscovery(
+                            reactionId
+                        )
+                    ]
+                )
             );
 
         return {
@@ -214,6 +349,7 @@ const MacromolecularizerManager = {
                 state.activeCategory,
             selectedMotifId:
                 state.selectedMotifId,
+            reactionDiscoveries,
             activeSynthesis:
                 state.activeSynthesis
                     ? structuredClone(
