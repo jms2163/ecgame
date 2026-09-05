@@ -653,13 +653,25 @@
 }
 
 .macro-helix-model {
-    position: relative;
+    position: absolute;
     z-index: 2;
     width: 76%;
     height: 76%;
     overflow: visible;
     filter: drop-shadow(0 0 12px rgba(255, 119, 0, 0.19));
     transform: rotate(-7deg);
+    transition: filter 220ms ease, opacity 220ms ease, transform 300ms ease;
+}
+
+.macro-helix-frame {
+    position: absolute;
+    z-index: 3;
+    width: 88%;
+    height: 88%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 12px rgba(238, 243, 251, 0.16));
+    mix-blend-mode: screen;
+    transform: scale(1);
     transition: filter 220ms ease, opacity 220ms ease, transform 300ms ease;
 }
 
@@ -684,6 +696,11 @@
     filter: grayscale(1);
 }
 
+.macro-chamber[data-mode="locked"] .macro-helix-frame {
+    opacity: 0.34;
+    filter: grayscale(1) drop-shadow(0 0 8px rgba(150, 162, 183, 0.12));
+}
+
 .macro-chamber[data-mode="locked"] .macro-scan-ring {
     border-color: rgba(104, 115, 134, 0.18);
 }
@@ -693,8 +710,19 @@
     filter: drop-shadow(0 0 15px rgba(255, 119, 0, 0.48));
 }
 
+.macro-chamber[data-mode="ready"] .macro-helix-frame {
+    opacity: 0.92;
+    filter: drop-shadow(0 0 15px rgba(238, 243, 251, 0.28));
+}
+
 .macro-chamber[data-mode="observing"] .macro-helix-model {
     transform: rotate(5deg) scale(1.08);
+}
+
+.macro-chamber[data-mode="observing"] .macro-helix-frame {
+    opacity: 1;
+    filter: drop-shadow(0 0 19px rgba(255, 119, 0, 0.48));
+    transform: scale(1.08);
 }
 
 .macro-chamber[data-mode="observing"] .macro-scan-ring {
@@ -703,6 +731,10 @@
 
 .macro-chamber[data-mode="synthesizing"] .macro-helix-model {
     animation: macro-helix-assemble 2.8s ease-in-out infinite;
+}
+
+.macro-chamber[data-mode="synthesizing"] .macro-helix-frame {
+    animation: macro-helix-frame-active 2.8s ease-in-out infinite;
 }
 
 .macro-chamber[data-mode="synthesizing"] .macro-scan-ring--outer {
@@ -722,36 +754,57 @@
     color: var(--macro-muted);
 }
 
+.macro-frame-readout {
+    position: absolute;
+    bottom: 20px;
+    left: 22px;
+    display: grid;
+    color: var(--macro-muted);
+}
+
+.macro-frame-readout span {
+    font: 700 0.55rem "Courier New", monospace;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+}
+
+.macro-frame-readout strong {
+    color: var(--macro-text);
+    font: 700 1rem "Courier New", monospace;
+}
+
 .macro-chamber-quantity strong {
     color: var(--macro-text);
     font: 700 1.35rem "Courier New", monospace;
 }
 
 .macro-progress-panel {
-    position: absolute;
-    right: 22px;
-    bottom: 18px;
-    left: 22px;
-    z-index: 3;
-    padding: 10px 12px;
-    border: 1px solid rgba(255, 119, 0, 0.42);
-    border-radius: 3px;
-    background: rgba(5, 9, 14, 0.92);
-    box-shadow: 0 0 18px rgba(255, 119, 0, 0.12);
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    grid-template-rows: auto 7px;
+    align-items: center;
+    gap: 5px 12px;
+    min-height: 43px;
+    padding: 7px 16px 9px;
+    border-bottom: 1px solid rgba(255, 119, 0, 0.42);
+    background: rgba(8, 13, 21, 0.96);
+    box-shadow: inset 3px 0 0 var(--macro-accent);
 }
 
 .macro-progress-panel label {
-    display: block;
-    margin-bottom: 6px;
+    grid-column: 1;
+    grid-row: 1;
     color: var(--macro-accent-bright);
-    font: 700 0.6rem "Courier New", monospace;
+    font: 700 0.56rem "Courier New", monospace;
     letter-spacing: 0.09em;
     text-transform: uppercase;
 }
 
 .macro-progress-panel progress {
+    grid-column: 1 / -1;
+    grid-row: 2;
     width: 100%;
-    height: 8px;
+    height: 6px;
     overflow: hidden;
     border: 0;
     border-radius: 0;
@@ -774,9 +827,15 @@
 }
 
 .macro-progress-panel p {
-    margin: 6px 0 0;
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+    overflow: hidden;
     color: var(--macro-muted);
-    font: 600 0.62rem "Courier New", monospace;
+    font: 600 0.57rem "Courier New", monospace;
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* Requirements and action console */
@@ -1287,6 +1346,18 @@
     50% {
         filter: drop-shadow(0 0 22px rgba(255, 119, 0, 0.68));
         transform: rotate(-4deg) scale(1.03);
+    }
+}
+
+@keyframes macro-helix-frame-active {
+    0%, 100% {
+        filter: drop-shadow(0 0 10px rgba(255, 119, 0, 0.24));
+        transform: scale(0.985);
+    }
+
+    50% {
+        filter: drop-shadow(0 0 22px rgba(255, 119, 0, 0.56));
+        transform: scale(1.02);
     }
 }
 
