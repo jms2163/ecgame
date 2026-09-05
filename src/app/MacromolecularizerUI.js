@@ -12,6 +12,17 @@ const HELIX_START_FRAME_INDEX = 15;
 const HELIX_COMPLETE_FRAME_INDEX = 0;
 const HELIX_FRAME_PATH =
     "./public/assets/molecularizer/H_helix_white";
+const HELIX_OBSERVATION_PATH =
+    "./public/assets/molecularizer/";
+const HELIX_OBSERVATION_SOURCES =
+    Object.freeze({
+        "100": "H_helix_observe_ribbon_on_hbonds_off_atoms_off.png",
+        "110": "H_helix_observe_ribbon_on_hbonds_on_atoms_off.png",
+        "101": "H_helix_observe_ribbon_on_hbonds_off_atoms_on.png",
+        "111": "H_helix_observe_ribbon_on_hbonds_on_atoms_on.png",
+        "001": "H_helix_observe_ribbon_off_hbonds_off_atoms_on.png",
+        "011": "H_helix_observe_ribbon_off_hbonds_on_atoms_on.png"
+    });
 
 const MacromolecularizerUI = {
 
@@ -25,6 +36,12 @@ const MacromolecularizerUI = {
     upgradeFeedbackMessage: "",
     chamberViewMode: "synthesis",
     helixFramePreload: null,
+    observationImagePreloads: null,
+    observationLayers: {
+        ribbon: true,
+        hbonds: false,
+        atoms: false
+    },
 
     // --------------------------------------------------
     // Initialize the persistent zone shell once
@@ -275,6 +292,39 @@ const MacromolecularizerUI = {
                             <span class="macro-mode-light" aria-hidden="true"></span>
                             <span id="macromolecularizer-chamber-mode">Synthesis locked</span>
                         </div>
+                        <fieldset
+                            id="macromolecularizer-observation-controls"
+                            class="macro-observation-controls"
+                            aria-label="Structure display layers"
+                            hidden
+                        >
+                            <legend>Structure display layers</legend>
+                            <label class="macro-observation-toggle">
+                                <span>Ribbon</span>
+                                <input
+                                    type="checkbox"
+                                    data-observation-layer="ribbon"
+                                    checked
+                                >
+                                <span class="macro-toggle-track" aria-hidden="true"></span>
+                            </label>
+                            <label class="macro-observation-toggle">
+                                <span>H-bonds</span>
+                                <input
+                                    type="checkbox"
+                                    data-observation-layer="hbonds"
+                                >
+                                <span class="macro-toggle-track" aria-hidden="true"></span>
+                            </label>
+                            <label class="macro-observation-toggle">
+                                <span>Atoms</span>
+                                <input
+                                    type="checkbox"
+                                    data-observation-layer="atoms"
+                                >
+                                <span class="macro-toggle-track" aria-hidden="true"></span>
+                            </label>
+                        </fieldset>
                         <div class="macro-chamber-readout">
                             <span>Target</span>
                             <strong id="macromolecularizer-chamber-target">Alpha Helix Motif</strong>
@@ -694,6 +744,16 @@ const MacromolecularizerUI = {
                 this.rootElement.querySelector(
                     "#macromolecularizer-helix-fallback"
                 ),
+            observationControls:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-observation-controls"
+                ),
+            observationToggles:
+                Array.from(
+                    this.rootElement.querySelectorAll(
+                        "[data-observation-layer]"
+                    )
+                ),
             frameStage:
                 this.rootElement.querySelector(
                     "#macromolecularizer-frame-stage"
@@ -918,9 +978,30 @@ const MacromolecularizerUI = {
                             ? "synthesis"
                             : "observation";
 
+                    if (
+                        this.chamberViewMode ===
+                        "observation"
+                    ) {
+                        this.preloadObservationImages();
+                    }
+
                     this.render();
                 }
             );
+
+        this.elements.observationToggles
+            .forEach(toggle => {
+                toggle.addEventListener(
+                    "change",
+                    () => {
+                        this.updateObservationLayer(
+                            toggle.dataset
+                                .observationLayer,
+                            toggle.checked
+                        );
+                    }
+                );
+            });
 
         this.elements.upgradeSpeedButton
             .addEventListener(
@@ -1372,6 +1453,8 @@ const MacromolecularizerUI = {
                     "aria-pressed",
                     "false"
                 );
+            this.elements.observationControls.hidden =
+                true;
 
             return false;
         }
@@ -1451,6 +1534,14 @@ const MacromolecularizerUI = {
                     ? "Return to Synthesis"
                     : "Observe Structure";
 
+        this.elements.observationControls.hidden =
+            mode !== "observing";
+
+        if (mode === "observing") {
+            this.preloadObservationImages();
+            this.syncObservationControls();
+        }
+
         this.elements.startSynthesisButton.dataset.state =
             mode;
 
@@ -1465,6 +1556,21 @@ const MacromolecularizerUI = {
         motif,
         selectedJob
     ) {
+
+        const observingStructure =
+            this.chamberViewMode ===
+                "observation" &&
+            !selectedJob &&
+            motif?.inventory.quantity > 0;
+
+        if (observingStructure) {
+            this.elements.frameReadout.hidden =
+                true;
+            this.elements.frameStage.textContent =
+                "";
+
+            return this.renderObservationImage();
+        }
 
         const frameIndex =
             this.getHelixFrameIndex(
@@ -1481,11 +1587,19 @@ const MacromolecularizerUI = {
         if (
             this.elements.helixFrame
                 .dataset.frameIndex !==
-            frameIndexText
+                frameIndexText ||
+            this.elements.helixFrame
+                .dataset.visualMode !==
+                "synthesis"
         ) {
+            delete this.elements.helixFrame
+                .dataset.observationState;
             this.elements.helixFrame
                 .dataset.frameIndex =
                     frameIndexText;
+            this.elements.helixFrame
+                .dataset.visualMode =
+                    "synthesis";
             this.elements.helixFrame.src =
                 this.getHelixFrameSource(
                     frameIndex
@@ -1512,6 +1626,151 @@ const MacromolecularizerUI = {
                     : `${visualStage} / ${HELIX_FRAME_COUNT}`;
 
         return frameIndex;
+
+    },
+
+    // --------------------------------------------------
+    // Select one of six supplied observation-layer images
+    // --------------------------------------------------
+    renderObservationImage() {
+
+        const observationState =
+            this.getObservationStateKey();
+
+        const filename =
+            HELIX_OBSERVATION_SOURCES[
+                observationState
+            ];
+
+        if (!filename) {
+            return false;
+        }
+
+        this.elements.chamber.dataset
+            .observationState =
+                observationState;
+
+        if (
+            this.elements.helixFrame
+                .dataset.observationState !==
+                observationState ||
+            this.elements.helixFrame
+                .dataset.visualMode !==
+                "observation"
+        ) {
+            delete this.elements.helixFrame
+                .dataset.frameIndex;
+            this.elements.helixFrame
+                .dataset.observationState =
+                    observationState;
+            this.elements.helixFrame
+                .dataset.visualMode =
+                    "observation";
+            this.elements.helixFrame.src =
+                `${HELIX_OBSERVATION_PATH}${filename}`;
+        }
+
+        return observationState;
+
+    },
+
+    getObservationStateKey() {
+
+        return [
+            this.observationLayers.ribbon,
+            this.observationLayers.hbonds,
+            this.observationLayers.atoms
+        ]
+            .map(enabled => enabled ? "1" : "0")
+            .join("");
+
+    },
+
+    updateObservationLayer(
+        layerId,
+        enabled
+    ) {
+
+        if (
+            !Object.prototype.hasOwnProperty.call(
+                this.observationLayers,
+                layerId
+            )
+        ) {
+            return false;
+        }
+
+        this.observationLayers[layerId] =
+            Boolean(enabled);
+
+        if (
+            !this.observationLayers.ribbon &&
+            !this.observationLayers.atoms
+        ) {
+            const companionLayer =
+                layerId === "ribbon"
+                    ? "atoms"
+                    : "ribbon";
+
+            this.observationLayers[
+                companionLayer
+            ] = true;
+        }
+
+        this.syncObservationControls();
+        this.render();
+
+        return true;
+
+    },
+
+    syncObservationControls() {
+
+        const observationState =
+            this.getObservationStateKey();
+
+        this.elements.observationControls
+            .dataset.observationState =
+                observationState;
+
+        this.elements.observationToggles
+            .forEach(toggle => {
+                toggle.checked =
+                    Boolean(
+                        this.observationLayers[
+                            toggle.dataset
+                                .observationLayer
+                        ]
+                    );
+            });
+
+        return observationState;
+
+    },
+
+    preloadObservationImages() {
+
+        if (
+            this.observationImagePreloads ||
+            typeof Image !== "function"
+        ) {
+            return false;
+        }
+
+        this.observationImagePreloads =
+            Object.values(
+                HELIX_OBSERVATION_SOURCES
+            ).map(filename => {
+                const image = new Image();
+
+                image.decoding = "async";
+                image.src =
+                    `${HELIX_OBSERVATION_PATH}${filename}`;
+
+                return image;
+            });
+
+        return true;
 
     },
 
