@@ -14,6 +14,16 @@ const HELIX_OBSERVATION_IMAGES =
         "011": "H_helix_observe_ribbon_off_hbonds_on_atoms_on.png"
     });
 
+const LOOP_OBSERVATION_IMAGES =
+    Object.freeze({
+        "100": "loop_observe_ribbon_on_hbonds_off_atoms_off.png",
+        "110": "loop_observe_ribbon_on_hbonds_on_atoms_off.png",
+        "101": "loop_observe_ribbon_on_hbonds_off_atoms_on.png",
+        "111": "loop_observe_ribbon_on_hbonds_on_atoms_on.png",
+        "001": "loop_observe_ribbon_off_hbonds_off_atoms_on.png",
+        "011": "loop_observe_ribbon_off_hbonds_on_atoms_on.png"
+    });
+
 const VISUALS =
     Object.freeze({
         H_helix: Object.freeze({
@@ -31,15 +41,27 @@ const VISUALS =
             observationImages:
                 HELIX_OBSERVATION_IMAGES,
             observationPath:
-                "./public/assets/molecularizer/"
+                "./public/assets/molecularizer/",
+            previewImage: null
         }),
         L_loop: Object.freeze({
             icon: "↪",
             classification:
                 "Protein loop motif",
-            synthesisFrames: null,
-            observationImages: null,
-            observationPath: null
+            synthesisFrames:
+                Object.freeze({
+                    count: 10,
+                    startIndex: 9,
+                    completeIndex: 0,
+                    pathPrefix:
+                        "./public/assets/molecularizer/loop_white"
+                }),
+            observationImages:
+                LOOP_OBSERVATION_IMAGES,
+            observationPath:
+                "./public/assets/molecularizer/",
+            previewImage:
+                "./public/assets/molecularizer/loop.png"
         }),
         B_sheet: Object.freeze({
             icon: "β",
@@ -47,7 +69,8 @@ const VISUALS =
                 "Protein secondary structure",
             synthesisFrames: null,
             observationImages: null,
-            observationPath: null
+            observationPath: null,
+            previewImage: null
         }),
         C_coil: Object.freeze({
             icon: "∿",
@@ -55,7 +78,8 @@ const VISUALS =
                 "Protein structural motif",
             synthesisFrames: null,
             observationImages: null,
-            observationPath: null
+            observationPath: null,
+            previewImage: null
         })
     });
 
