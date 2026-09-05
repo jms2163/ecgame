@@ -7,6 +7,12 @@ import GameStateObserver from "./GameStateObserver.js";
 import MacromolecularizerManager
     from "./MacromolecularizerManager.js";
 
+const HELIX_FRAME_COUNT = 16;
+const HELIX_START_FRAME_INDEX = 15;
+const HELIX_COMPLETE_FRAME_INDEX = 0;
+const HELIX_FRAME_PATH =
+    "./public/assets/molecularizer/H_helix_white";
+
 const MacromolecularizerUI = {
 
     initialized: false,
@@ -18,6 +24,7 @@ const MacromolecularizerUI = {
     synthesisFeedbackMessage: "",
     upgradeFeedbackMessage: "",
     chamberViewMode: "synthesis",
+    helixFramePreload: null,
 
     // --------------------------------------------------
     // Initialize the persistent zone shell once
@@ -276,10 +283,19 @@ const MacromolecularizerUI = {
                         <div class="macro-helix-stage" aria-hidden="true">
                             <div class="macro-scan-ring macro-scan-ring--outer"></div>
                             <div class="macro-scan-ring macro-scan-ring--inner"></div>
+                            <img
+                                id="macromolecularizer-helix-frame"
+                                class="macro-helix-frame"
+                                src="./public/assets/molecularizer/H_helix_white15.png"
+                                alt=""
+                                decoding="async"
+                            >
                             <svg
+                                id="macromolecularizer-helix-fallback"
                                 class="macro-helix-model"
                                 viewBox="0 0 360 260"
                                 focusable="false"
+                                hidden
                             >
                                 <defs>
                                     <linearGradient id="macro-helix-gradient" x1="0" y1="0" x2="1" y2="1">
@@ -317,28 +333,37 @@ const MacromolecularizerUI = {
                                 </g>
                             </svg>
                         </div>
+                        <div
+                            id="macromolecularizer-frame-readout"
+                            class="macro-frame-readout"
+                            hidden
+                        >
+                            <span>Assembly stage</span>
+                            <strong id="macromolecularizer-frame-stage">0 / 16</strong>
+                        </div>
                         <div class="macro-chamber-quantity">
                             <span>Stored</span>
                             <strong id="macromolecularizer-chamber-quantity">0</strong>
                         </div>
 
-                        <div
-                            id="macromolecularizer-synthesis-progress-panel"
-                            class="macro-progress-panel"
-                            aria-live="polite"
-                            hidden
-                        >
-                            <label for="macromolecularizer-synthesis-progress">
-                                H_helix synthesis progress
-                            </label>
-                            <progress
-                                id="macromolecularizer-synthesis-progress"
-                                max="1"
-                                value="0"
-                            ></progress>
-                            <p id="macromolecularizer-synthesis-countdown"></p>
-                        </div>
                     </section>
+
+                    <div
+                        id="macromolecularizer-synthesis-progress-panel"
+                        class="macro-progress-panel"
+                        aria-live="polite"
+                        hidden
+                    >
+                        <label for="macromolecularizer-synthesis-progress">
+                            H_helix synthesis progress
+                        </label>
+                        <progress
+                            id="macromolecularizer-synthesis-progress"
+                            max="1"
+                            value="0"
+                        ></progress>
+                        <p id="macromolecularizer-synthesis-countdown"></p>
+                    </div>
 
                     <section class="macro-requirements-console">
                         <div class="macro-console-heading">
@@ -661,6 +686,22 @@ const MacromolecularizerUI = {
                 this.rootElement.querySelector(
                     "#macromolecularizer-chamber-quantity"
                 ),
+            helixFrame:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-helix-frame"
+                ),
+            helixFallback:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-helix-fallback"
+                ),
+            frameStage:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-frame-stage"
+                ),
+            frameReadout:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-frame-readout"
+                ),
             recipeGate:
                 this.rootElement.querySelector(
                     "#macromolecularizer-recipe-gate"
@@ -757,6 +798,70 @@ const MacromolecularizerUI = {
     // Bind temporary reaction-discovery controls once
     // --------------------------------------------------
     bindEvents() {
+
+        this.elements.helixFrame
+            .addEventListener(
+                "load",
+                () => {
+                    this.setHelixImageAvailable(
+                        true
+                    );
+                }
+            );
+
+        this.elements.helixFrame
+            .addEventListener(
+                "error",
+                () => {
+                    this.setHelixImageAvailable(
+                        false
+                    );
+                }
+            );
+
+        if (this.elements.helixFrame.complete) {
+            this.setHelixImageAvailable(
+                this.elements.helixFrame
+                    .naturalWidth > 0
+            );
+        } else if (
+            typeof this.elements
+                .helixFrame.decode ===
+            "function"
+        ) {
+            const pendingSource =
+                this.elements.helixFrame
+                    .src;
+
+            this.elements.helixFrame
+                .decode()
+                .then(
+                    () => {
+                        if (
+                            this.elements
+                                .helixFrame.src ===
+                            pendingSource
+                        ) {
+                            this.setHelixImageAvailable(
+                                true
+                            );
+                        }
+                    }
+                )
+                .catch(
+                    () => {
+                        if (
+                            this.elements
+                                .helixFrame.src ===
+                            pendingSource
+                        ) {
+                            this.setHelixImageAvailable(
+                                false
+                            );
+                        }
+                    }
+                );
+        }
 
         this.elements.reactionButtons
             .forEach(button => {
@@ -1256,6 +1361,10 @@ const MacromolecularizerUI = {
                 "No target selected";
             this.elements.chamberQuantity.textContent =
                 "0";
+            this.renderHelixFrame(
+                null,
+                null
+            );
             this.elements.observeStructureButton.disabled =
                 true;
             this.elements.observeStructureButton
@@ -1318,6 +1427,11 @@ const MacromolecularizerUI = {
                 motif.inventory.quantity
             );
 
+        this.renderHelixFrame(
+            motif,
+            selectedJob
+        );
+
         const observationAvailable =
             !selectedJob &&
             motif.inventory.quantity > 0;
@@ -1341,6 +1455,151 @@ const MacromolecularizerUI = {
             mode;
 
         return true;
+
+    },
+
+    // --------------------------------------------------
+    // Map job progress across the 16 supplied PNG frames
+    // --------------------------------------------------
+    renderHelixFrame(
+        motif,
+        selectedJob
+    ) {
+
+        const frameIndex =
+            this.getHelixFrameIndex(
+                motif,
+                selectedJob
+            );
+
+        const frameIndexText =
+            String(frameIndex);
+
+        this.elements.chamber.dataset.frameIndex =
+            frameIndexText;
+
+        if (
+            this.elements.helixFrame
+                .dataset.frameIndex !==
+            frameIndexText
+        ) {
+            this.elements.helixFrame
+                .dataset.frameIndex =
+                    frameIndexText;
+            this.elements.helixFrame.src =
+                this.getHelixFrameSource(
+                    frameIndex
+                );
+
+            this.preloadNextHelixFrame(
+                frameIndex
+            );
+        }
+
+        this.elements.frameReadout.hidden =
+            !selectedJob;
+
+        const visualStage =
+            selectedJob
+                ? HELIX_FRAME_COUNT -
+                    frameIndex
+                : null;
+
+        this.elements.frameStage
+            .textContent =
+                visualStage === null
+                    ? ""
+                    : `${visualStage} / ${HELIX_FRAME_COUNT}`;
+
+        return frameIndex;
+
+    },
+
+    getHelixFrameIndex(
+        motif,
+        selectedJob
+    ) {
+
+        if (!selectedJob) {
+            return motif
+                ?.inventory.quantity > 0
+                ? HELIX_COMPLETE_FRAME_INDEX
+                : HELIX_START_FRAME_INDEX;
+        }
+
+        const progress =
+            Number.isFinite(
+                selectedJob.progress
+            )
+                ? Math.min(
+                    1,
+                    Math.max(
+                        0,
+                        selectedJob.progress
+                    )
+                )
+                : 0;
+
+        const elapsedFrameIntervals =
+            Math.min(
+                HELIX_FRAME_COUNT - 1,
+                Math.floor(
+                    progress *
+                    HELIX_FRAME_COUNT
+                )
+            );
+
+        return Math.max(
+            HELIX_COMPLETE_FRAME_INDEX,
+            HELIX_START_FRAME_INDEX -
+                elapsedFrameIntervals
+        );
+
+    },
+
+    getHelixFrameSource(frameIndex) {
+
+        return `${HELIX_FRAME_PATH}${frameIndex}.png`;
+
+    },
+
+    preloadNextHelixFrame(frameIndex) {
+
+        const nextFrameIndex =
+            frameIndex - 1;
+
+        if (
+            nextFrameIndex <
+                HELIX_COMPLETE_FRAME_INDEX ||
+            typeof Image !== "function"
+        ) {
+            this.helixFramePreload =
+                null;
+
+            return false;
+        }
+
+        this.helixFramePreload =
+            new Image();
+        this.helixFramePreload.decoding =
+            "async";
+        this.helixFramePreload.src =
+            this.getHelixFrameSource(
+                nextFrameIndex
+            );
+
+        return true;
+
+    },
+
+    setHelixImageAvailable(available) {
+
+        this.elements.helixFrame.hidden =
+            !available;
+        this.elements.helixFallback.hidden =
+            available;
+
+        return available;
 
     },
 
