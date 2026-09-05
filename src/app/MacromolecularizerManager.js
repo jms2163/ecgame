@@ -1323,6 +1323,13 @@ const MacromolecularizerManager = {
                 ]
             ) + 1;
 
+        const atpCapacity =
+            ResourceManager
+                .increaseATPCapacity(
+                    1,
+                    "macromolecularizer-motif-synthesized"
+                );
+
         if (
             !GameStateManager
                 .hasDiscoveryInCategory(
@@ -1352,6 +1359,7 @@ const MacromolecularizerManager = {
                 completedAtMs,
                 count:
                     nextCount,
+                atpCapacity,
                 saved
             }
         );
@@ -1365,6 +1373,7 @@ const MacromolecularizerManager = {
                     job.motifId,
                 count:
                     nextCount,
+                atpCapacity,
                 saved
             }
         );
@@ -1380,8 +1389,9 @@ const MacromolecularizerManager = {
                 job.motifId,
             count:
                 nextCount,
+            atpCapacity,
             message: saved
-                ? `${job.motifId} synthesis completed and saved.`
+                ? `${job.motifId} synthesis completed and saved. ATP capacity increased to ${atpCapacity.maximum}.`
                 : `${job.motifId} synthesis completed, but the browser save failed.`
         };
 
