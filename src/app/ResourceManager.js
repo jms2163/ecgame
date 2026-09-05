@@ -65,13 +65,18 @@ const ResourceManager = {
     // --------------------------------------------------
     // Notify observers after an ATP balance change
     // --------------------------------------------------
-    notifyATPChanged(delta, reason) {
+    notifyATPChanged(
+        delta,
+        reason,
+        detail = {}
+    ) {
 
         const status =
             this.getATPStatus();
 
         const payload = {
             ...status,
+            ...detail,
             delta,
             reason
         };
@@ -82,6 +87,44 @@ const ResourceManager = {
         );
 
         return payload;
+
+    },
+
+    // --------------------------------------------------
+    // Permanently increase ATP storage without refilling it
+    // --------------------------------------------------
+    increaseATPCapacity(
+        amount,
+        reason = "atp-capacity-increased"
+    ) {
+
+        if (
+            !Number.isInteger(amount) ||
+            amount <= 0
+        ) {
+            console.warn(
+                "ResourceManager: ATP capacity increase must be a positive integer"
+            );
+
+            return false;
+        }
+
+        const atp =
+            this.ensureATPResource();
+
+        atp.maximum +=
+            amount;
+
+        this.notifyATPChanged(
+            0,
+            reason,
+            {
+                capacityDelta:
+                    amount
+            }
+        );
+
+        return this.getATPStatus();
 
     },
 

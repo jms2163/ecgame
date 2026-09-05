@@ -1903,9 +1903,17 @@ const MacromolecularizerUI = {
                     this.chamberViewMode =
                         "observation";
 
+                    const capacityFeedback =
+                        Number.isFinite(
+                            detail.atpCapacity
+                                ?.maximum
+                        )
+                            ? ` ATP capacity increased to ${detail.atpCapacity.maximum}.`
+                            : "";
+
                     this.synthesisFeedbackMessage =
                         detail.saved
-                            ? `${detail.motifId} synthesis completed and saved.`
+                            ? `${detail.motifId} synthesis completed and saved.${capacityFeedback}`
                             : `${detail.motifId} synthesis completed, but the browser save failed.`;
                 }
 
