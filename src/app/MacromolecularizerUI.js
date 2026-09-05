@@ -9,26 +9,6 @@ import MacromolecularizerManager
 import MotifVisualCatalog
     from "../data/MotifVisualCatalog.js";
 
-const HELIX_VISUAL =
-    MotifVisualCatalog.get(
-        "H_helix"
-    );
-const HELIX_FRAME_COUNT =
-    HELIX_VISUAL.synthesisFrames.count;
-const HELIX_START_FRAME_INDEX =
-    HELIX_VISUAL.synthesisFrames
-        .startIndex;
-const HELIX_COMPLETE_FRAME_INDEX =
-    HELIX_VISUAL.synthesisFrames
-        .completeIndex;
-const HELIX_FRAME_PATH =
-    HELIX_VISUAL.synthesisFrames
-        .pathPrefix;
-const HELIX_OBSERVATION_PATH =
-    HELIX_VISUAL.observationPath;
-const HELIX_OBSERVATION_SOURCES =
-    HELIX_VISUAL.observationImages;
-
 const MacromolecularizerUI = {
 
     initialized: false,
@@ -41,7 +21,7 @@ const MacromolecularizerUI = {
     upgradeFeedbackMessage: "",
     chamberViewMode: "synthesis",
     helixFramePreload: null,
-    observationImagePreloads: null,
+    observationImagePreloads: {},
     observationLayers: {
         ribbon: true,
         hbonds: false,
@@ -1027,13 +1007,6 @@ const MacromolecularizerUI = {
                             ? "synthesis"
                             : "observation";
 
-                    if (
-                        this.chamberViewMode ===
-                        "observation"
-                    ) {
-                        this.preloadObservationImages();
-                    }
-
                     this.render();
                 }
             );
@@ -1748,7 +1721,9 @@ const MacromolecularizerUI = {
             mode !== "observing";
 
         if (mode === "observing") {
-            this.preloadObservationImages();
+            this.preloadObservationImages(
+                motif.definition.id
+            );
             this.syncObservationControls();
         }
 
@@ -1760,7 +1735,7 @@ const MacromolecularizerUI = {
     },
 
     // --------------------------------------------------
-    // Map job progress across the 16 supplied PNG frames
+    // Map job progress across the selected motif frame set
     // --------------------------------------------------
     renderHelixFrame(
         motif,
@@ -1774,12 +1749,24 @@ const MacromolecularizerUI = {
         this.activeVisualMotifId =
             motifId;
 
+        const visual =
+            MotifVisualCatalog.get(
+                motifId
+            );
+
+        const frameSet =
+            visual?.synthesisFrames ??
+            (
+                motifId
+                    ? null
+                    : MotifVisualCatalog
+                        .get("H_helix")
+                        .synthesisFrames
+            );
+
         if (
             motifId &&
-            !MotifVisualCatalog
-                .supportsFrameSynthesis(
-                    motifId
-                )
+            !frameSet
         ) {
             return this.renderGenericMotifVisual(
                 motif,
@@ -1810,13 +1797,33 @@ const MacromolecularizerUI = {
             this.elements.frameStage.textContent =
                 "";
 
-            return this.renderObservationImage();
+            return this.renderObservationImage(
+                motifId
+            );
+        }
+
+        if (
+            motifId &&
+            !selectedJob &&
+            visual?.previewImage
+        ) {
+            this.renderMotifPreview(
+                motifId,
+                visual.previewImage
+            );
+            this.elements.frameReadout.hidden =
+                true;
+            this.elements.frameStage.textContent =
+                "";
+
+            return "preview";
         }
 
         const frameIndex =
             this.getHelixFrameIndex(
                 motif,
-                selectedJob
+                selectedJob,
+                frameSet
             );
 
         const frameIndexText =
@@ -1831,8 +1838,25 @@ const MacromolecularizerUI = {
                 frameIndexText ||
             this.elements.helixFrame
                 .dataset.visualMode !==
-                "synthesis"
+                "synthesis" ||
+            this.elements.helixFrame
+                .dataset.visualMotifId !==
+                motifId
         ) {
+            if (
+                this.elements.helixFrame
+                    .dataset.visualMotifId !==
+                    motifId ||
+                this.elements.helixFrame
+                    .dataset.visualMode !==
+                    "synthesis"
+            ) {
+                this.elements.helixFrame.hidden =
+                    true;
+                this.elements.helixFallback.hidden =
+                    true;
+            }
+
             delete this.elements.helixFrame
                 .dataset.observationState;
             this.elements.helixFrame
@@ -1841,13 +1865,19 @@ const MacromolecularizerUI = {
             this.elements.helixFrame
                 .dataset.visualMode =
                     "synthesis";
+            this.elements.helixFrame
+                .dataset.visualMotifId =
+                    motifId ??
+                    "H_helix";
             this.elements.helixFrame.src =
                 this.getHelixFrameSource(
-                    frameIndex
+                    frameIndex,
+                    frameSet
                 );
 
             this.preloadNextHelixFrame(
-                frameIndex
+                frameIndex,
+                frameSet
             );
         }
 
@@ -1856,7 +1886,7 @@ const MacromolecularizerUI = {
 
         const visualStage =
             selectedJob
-                ? HELIX_FRAME_COUNT -
+                ? frameSet.count -
                     frameIndex
                 : null;
 
@@ -1864,9 +1894,54 @@ const MacromolecularizerUI = {
             .textContent =
                 visualStage === null
                     ? ""
-                    : `${visualStage} / ${HELIX_FRAME_COUNT}`;
+                    : `${visualStage} / ${frameSet.count}`;
 
         return frameIndex;
+
+    },
+
+    renderMotifPreview(
+        motifId,
+        previewImage
+    ) {
+
+        if (
+            this.elements.helixFrame
+                .dataset.visualMode !==
+                "preview" ||
+            this.elements.helixFrame
+                .dataset.visualMotifId !==
+                motifId
+        ) {
+            if (
+                this.elements.helixFrame
+                    .dataset.visualMotifId !==
+                    motifId ||
+                this.elements.helixFrame
+                    .dataset.visualMode !==
+                    "preview"
+            ) {
+                this.elements.helixFrame.hidden =
+                    true;
+                this.elements.helixFallback.hidden =
+                    true;
+            }
+
+            delete this.elements.helixFrame
+                .dataset.frameIndex;
+            delete this.elements.helixFrame
+                .dataset.observationState;
+            this.elements.helixFrame
+                .dataset.visualMode =
+                    "preview";
+            this.elements.helixFrame
+                .dataset.visualMotifId =
+                    motifId;
+            this.elements.helixFrame.src =
+                previewImage;
+        }
+
+        return previewImage;
 
     },
 
@@ -1943,17 +2018,25 @@ const MacromolecularizerUI = {
     // --------------------------------------------------
     // Select one of six supplied observation-layer images
     // --------------------------------------------------
-    renderObservationImage() {
+    renderObservationImage(motifId) {
 
         const observationState =
             this.getObservationStateKey();
 
+        const visual =
+            MotifVisualCatalog.get(
+                motifId
+            );
+
         const filename =
-            HELIX_OBSERVATION_SOURCES[
+            visual?.observationImages?.[
                 observationState
             ];
 
-        if (!filename) {
+        if (
+            !filename ||
+            !visual.observationPath
+        ) {
             return false;
         }
 
@@ -1967,8 +2050,25 @@ const MacromolecularizerUI = {
                 observationState ||
             this.elements.helixFrame
                 .dataset.visualMode !==
-                "observation"
+                "observation" ||
+            this.elements.helixFrame
+                .dataset.visualMotifId !==
+                motifId
         ) {
+            if (
+                this.elements.helixFrame
+                    .dataset.visualMotifId !==
+                    motifId ||
+                this.elements.helixFrame
+                    .dataset.visualMode !==
+                    "observation"
+            ) {
+                this.elements.helixFrame.hidden =
+                    true;
+                this.elements.helixFallback.hidden =
+                    true;
+            }
+
             delete this.elements.helixFrame
                 .dataset.frameIndex;
             this.elements.helixFrame
@@ -1977,8 +2077,11 @@ const MacromolecularizerUI = {
             this.elements.helixFrame
                 .dataset.visualMode =
                     "observation";
+            this.elements.helixFrame
+                .dataset.visualMotifId =
+                    motifId;
             this.elements.helixFrame.src =
-                `${HELIX_OBSERVATION_PATH}${filename}`;
+                `${visual.observationPath}${filename}`;
         }
 
         return observationState;
@@ -2059,24 +2162,35 @@ const MacromolecularizerUI = {
 
     },
 
-    preloadObservationImages() {
+    preloadObservationImages(motifId) {
+
+        const visual =
+            MotifVisualCatalog.get(
+                motifId
+            );
 
         if (
-            this.observationImagePreloads ||
+            !visual?.observationImages ||
+            !visual.observationPath ||
+            this.observationImagePreloads[
+                motifId
+            ] ||
             typeof Image !== "function"
         ) {
             return false;
         }
 
-        this.observationImagePreloads =
+        this.observationImagePreloads[
+            motifId
+        ] =
             Object.values(
-                HELIX_OBSERVATION_SOURCES
+                visual.observationImages
             ).map(filename => {
                 const image = new Image();
 
                 image.decoding = "async";
                 image.src =
-                    `${HELIX_OBSERVATION_PATH}${filename}`;
+                    `${visual.observationPath}${filename}`;
 
                 return image;
             });
@@ -2087,14 +2201,15 @@ const MacromolecularizerUI = {
 
     getHelixFrameIndex(
         motif,
-        selectedJob
+        selectedJob,
+        frameSet
     ) {
 
         if (!selectedJob) {
             return motif
                 ?.inventory.quantity > 0
-                ? HELIX_COMPLETE_FRAME_INDEX
-                : HELIX_START_FRAME_INDEX;
+                ? frameSet.completeIndex
+                : frameSet.startIndex;
         }
 
         const progress =
@@ -2112,35 +2227,41 @@ const MacromolecularizerUI = {
 
         const elapsedFrameIntervals =
             Math.min(
-                HELIX_FRAME_COUNT - 1,
+                frameSet.count - 1,
                 Math.floor(
                     progress *
-                    HELIX_FRAME_COUNT
+                    frameSet.count
                 )
             );
 
         return Math.max(
-            HELIX_COMPLETE_FRAME_INDEX,
-            HELIX_START_FRAME_INDEX -
+            frameSet.completeIndex,
+            frameSet.startIndex -
                 elapsedFrameIntervals
         );
 
     },
 
-    getHelixFrameSource(frameIndex) {
+    getHelixFrameSource(
+        frameIndex,
+        frameSet
+    ) {
 
-        return `${HELIX_FRAME_PATH}${frameIndex}.png`;
+        return `${frameSet.pathPrefix}${frameIndex}.png`;
 
     },
 
-    preloadNextHelixFrame(frameIndex) {
+    preloadNextHelixFrame(
+        frameIndex,
+        frameSet
+    ) {
 
         const nextFrameIndex =
             frameIndex - 1;
 
         if (
             nextFrameIndex <
-                HELIX_COMPLETE_FRAME_INDEX ||
+                frameSet.completeIndex ||
             typeof Image !== "function"
         ) {
             this.helixFramePreload =
@@ -2155,7 +2276,8 @@ const MacromolecularizerUI = {
             "async";
         this.helixFramePreload.src =
             this.getHelixFrameSource(
-                nextFrameIndex
+                nextFrameIndex,
+                frameSet
             );
 
         return true;
@@ -2164,11 +2286,39 @@ const MacromolecularizerUI = {
 
     setHelixImageAvailable(available) {
 
+        const activeVisual =
+            MotifVisualCatalog.get(
+                this.activeVisualMotifId
+            );
+
         if (
+            this.activeVisualMotifId &&
+            !activeVisual?.synthesisFrames &&
+            !activeVisual?.previewImage
+        ) {
+            return false;
+        }
+
+        if (
+            !available &&
             this.activeVisualMotifId &&
             this.activeVisualMotifId !==
                 "H_helix"
         ) {
+            const status =
+                MacromolecularizerManager
+                    .getStatus();
+
+            if (
+                status.selectedMotif?.id ===
+                this.activeVisualMotifId
+            ) {
+                this.renderGenericMotifVisual(
+                    status.selectedMotif,
+                    status.activeSynthesis
+                );
+            }
+
             return false;
         }
 
@@ -2176,6 +2326,8 @@ const MacromolecularizerUI = {
             !available;
         this.elements.helixFallback.hidden =
             available;
+        this.elements.genericMotifVisual.hidden =
+            true;
 
         return available;
 
