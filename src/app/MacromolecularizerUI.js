@@ -6,23 +6,28 @@
 import GameStateObserver from "./GameStateObserver.js";
 import MacromolecularizerManager
     from "./MacromolecularizerManager.js";
+import MotifVisualCatalog
+    from "../data/MotifVisualCatalog.js";
 
-const HELIX_FRAME_COUNT = 16;
-const HELIX_START_FRAME_INDEX = 15;
-const HELIX_COMPLETE_FRAME_INDEX = 0;
+const HELIX_VISUAL =
+    MotifVisualCatalog.get(
+        "H_helix"
+    );
+const HELIX_FRAME_COUNT =
+    HELIX_VISUAL.synthesisFrames.count;
+const HELIX_START_FRAME_INDEX =
+    HELIX_VISUAL.synthesisFrames
+        .startIndex;
+const HELIX_COMPLETE_FRAME_INDEX =
+    HELIX_VISUAL.synthesisFrames
+        .completeIndex;
 const HELIX_FRAME_PATH =
-    "./public/assets/molecularizer/H_helix_white";
+    HELIX_VISUAL.synthesisFrames
+        .pathPrefix;
 const HELIX_OBSERVATION_PATH =
-    "./public/assets/molecularizer/";
+    HELIX_VISUAL.observationPath;
 const HELIX_OBSERVATION_SOURCES =
-    Object.freeze({
-        "100": "H_helix_observe_ribbon_on_hbonds_off_atoms_off.png",
-        "110": "H_helix_observe_ribbon_on_hbonds_on_atoms_off.png",
-        "101": "H_helix_observe_ribbon_on_hbonds_off_atoms_on.png",
-        "111": "H_helix_observe_ribbon_on_hbonds_on_atoms_on.png",
-        "001": "H_helix_observe_ribbon_off_hbonds_off_atoms_on.png",
-        "011": "H_helix_observe_ribbon_off_hbonds_on_atoms_on.png"
-    });
+    HELIX_VISUAL.observationImages;
 
 const MacromolecularizerUI = {
 
@@ -42,6 +47,7 @@ const MacromolecularizerUI = {
         hbonds: false,
         atoms: false
     },
+    activeVisualMotifId: null,
 
     // --------------------------------------------------
     // Initialize the persistent zone shell once
@@ -210,7 +216,7 @@ const MacromolecularizerUI = {
                         >
                             <strong>P</strong>
                             <span>Proteins</span>
-                            <small>1 recipe</small>
+                            <small id="macromolecularizer-protein-recipe-count">1 recipe</small>
                         </button>
                         <button
                             type="button"
@@ -233,35 +239,12 @@ const MacromolecularizerUI = {
                     >
                         <p id="macromolecularizer-selected-motif" class="macro-selection-readout"></p>
 
-                        <article
-                            id="macromolecularizer-h-helix-card"
-                            class="macro-recipe-card"
-                            aria-label="H_helix recipe"
-                        >
-                            <div class="macro-recipe-card-topline">
-                                <span class="macro-recipe-icon" aria-hidden="true">α</span>
-                                <span class="macro-recipe-code">H_helix</span>
-                            </div>
-                            <h3 id="macromolecularizer-card-name"></h3>
-                            <p id="macromolecularizer-card-summary" class="macro-recipe-specs"></p>
-                            <div class="macro-recipe-card-footer">
-                                <span id="macromolecularizer-card-quantity"></span>
-                                <span id="macromolecularizer-card-status"></span>
-                            </div>
-                        </article>
+                        <div
+                            id="macromolecularizer-motif-card-list"
+                            class="macro-motif-card-list"
+                            aria-label="Available protein motif recipes"
+                        ></div>
 
-                        <article class="macro-recipe-card macro-recipe-card--future" aria-disabled="true">
-                            <div class="macro-recipe-card-topline">
-                                <span class="macro-recipe-icon" aria-hidden="true">⌁</span>
-                                <span class="macro-recipe-code">CATALOG EXPANSION</span>
-                            </div>
-                            <h3>Additional Protein Motifs</h3>
-                            <p class="macro-recipe-specs">Loop · Beta sheet · Coiled coil</p>
-                            <div class="macro-recipe-card-footer">
-                                <span>Milestone 9</span>
-                                <span>Development hold</span>
-                            </div>
-                        </article>
                     </div>
                 </aside>
 
@@ -328,7 +311,7 @@ const MacromolecularizerUI = {
                         <div class="macro-chamber-readout">
                             <span>Target</span>
                             <strong id="macromolecularizer-chamber-target">Alpha Helix Motif</strong>
-                            <small>H_helix // Protein secondary structure</small>
+                            <small id="macromolecularizer-chamber-classification">H_helix // Protein secondary structure</small>
                         </div>
                         <div class="macro-helix-stage" aria-hidden="true">
                             <div class="macro-scan-ring macro-scan-ring--outer"></div>
@@ -382,6 +365,18 @@ const MacromolecularizerUI = {
                                     <circle cx="180" cy="244" r="5"></circle>
                                 </g>
                             </svg>
+                            <div
+                                id="macromolecularizer-generic-motif-visual"
+                                class="macro-generic-motif-visual"
+                                hidden
+                            >
+                                <span
+                                    id="macromolecularizer-generic-motif-icon"
+                                    class="macro-generic-motif-icon"
+                                >◆</span>
+                                <strong id="macromolecularizer-generic-motif-name">Motif</strong>
+                                <small id="macromolecularizer-generic-motif-status">Awaiting synthesis</small>
+                            </div>
                         </div>
                         <div
                             id="macromolecularizer-frame-readout"
@@ -404,8 +399,11 @@ const MacromolecularizerUI = {
                         aria-live="polite"
                         hidden
                     >
-                        <label for="macromolecularizer-synthesis-progress">
-                            H_helix synthesis progress
+                        <label
+                            id="macromolecularizer-synthesis-progress-label"
+                            for="macromolecularizer-synthesis-progress"
+                        >
+                            Motif synthesis progress
                         </label>
                         <progress
                             id="macromolecularizer-synthesis-progress"
@@ -443,7 +441,7 @@ const MacromolecularizerUI = {
                                     class="macro-button macro-button--primary"
                                     type="button"
                                 >
-                                    Begin H_helix Synthesis
+                                    Begin Motif Synthesis
                                 </button>
                                 <button
                                     id="macromolecularizer-observe-structure"
@@ -666,6 +664,14 @@ const MacromolecularizerUI = {
                 this.rootElement.querySelector(
                     "#macromolecularizer-selected-motif"
                 ),
+            proteinRecipeCount:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-protein-recipe-count"
+                ),
+            motifCardList:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-motif-card-list"
+                ),
             inventoryCount:
                 this.rootElement.querySelector(
                     "#macromolecularizer-inventory-count"
@@ -700,26 +706,6 @@ const MacromolecularizerUI = {
                         "[data-reaction-id]"
                     )
                 ),
-            motifCard:
-                this.rootElement.querySelector(
-                    "#macromolecularizer-h-helix-card"
-                ),
-            cardName:
-                this.rootElement.querySelector(
-                    "#macromolecularizer-card-name"
-                ),
-            cardSummary:
-                this.rootElement.querySelector(
-                    "#macromolecularizer-card-summary"
-                ),
-            cardQuantity:
-                this.rootElement.querySelector(
-                    "#macromolecularizer-card-quantity"
-                ),
-            cardStatus:
-                this.rootElement.querySelector(
-                    "#macromolecularizer-card-status"
-                ),
             chamber:
                 this.rootElement.querySelector(
                     "#macromolecularizer-chamber"
@@ -732,6 +718,10 @@ const MacromolecularizerUI = {
                 this.rootElement.querySelector(
                     "#macromolecularizer-chamber-target"
                 ),
+            chamberClassification:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-chamber-classification"
+                ),
             chamberQuantity:
                 this.rootElement.querySelector(
                     "#macromolecularizer-chamber-quantity"
@@ -743,6 +733,22 @@ const MacromolecularizerUI = {
             helixFallback:
                 this.rootElement.querySelector(
                     "#macromolecularizer-helix-fallback"
+                ),
+            genericMotifVisual:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-generic-motif-visual"
+                ),
+            genericMotifIcon:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-generic-motif-icon"
+                ),
+            genericMotifName:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-generic-motif-name"
+                ),
+            genericMotifStatus:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-generic-motif-status"
                 ),
             observationControls:
                 this.rootElement.querySelector(
@@ -813,6 +819,10 @@ const MacromolecularizerUI = {
             synthesisProgressPanel:
                 this.rootElement.querySelector(
                     "#macromolecularizer-synthesis-progress-panel"
+                ),
+            synthesisProgressLabel:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-synthesis-progress-label"
                 ),
             synthesisProgress:
                 this.rootElement.querySelector(
@@ -958,11 +968,50 @@ const MacromolecularizerUI = {
                     const result =
                         MacromolecularizerManager
                             .startSynthesis(
-                                "H_helix"
+                                MacromolecularizerManager
+                                    .getStatus()
+                                    .selectedMotifId
                             );
 
                     this.synthesisFeedbackMessage =
                         result.message;
+
+                    this.render();
+                }
+            );
+
+        this.elements.motifCardList
+            .addEventListener(
+                "click",
+                event => {
+                    const card =
+                        event.target.closest(
+                            "[data-motif-id]"
+                        );
+
+                    if (
+                        !card ||
+                        card.disabled
+                    ) {
+                        return;
+                    }
+
+                    const result =
+                        MacromolecularizerManager
+                            .selectMotif(
+                                card.dataset
+                                    .motifId
+                            );
+
+                    if (result.success) {
+                        this.chamberViewMode =
+                            "synthesis";
+                        this.synthesisFeedbackMessage =
+                            "";
+                    } else {
+                        this.synthesisFeedbackMessage =
+                            result.message;
+                    }
 
                     this.render();
                 }
@@ -1123,7 +1172,13 @@ const MacromolecularizerUI = {
 
         this.elements.selectedMotif
             .textContent =
-                `Selected: ${status.selectedMotifId}`;
+                `Selected: ${selectedMotif?.definition.name ?? status.selectedMotifId}`;
+
+        this.renderMotifCards(
+            status.motifCatalog,
+            status.selectedMotifId,
+            status.activeSynthesis
+        );
 
         this.elements.inventoryCount
             .textContent =
@@ -1221,7 +1276,158 @@ const MacromolecularizerUI = {
     },
 
     // --------------------------------------------------
-    // Render H_helix composition and eligibility
+    // Render selectable motif recipes from manager status
+    // --------------------------------------------------
+    renderMotifCards(
+        motifs,
+        selectedMotifId,
+        activeSynthesis
+    ) {
+
+        const recipeCount =
+            motifs.length;
+
+        this.elements.proteinRecipeCount
+            .textContent =
+                `${recipeCount} ${recipeCount === 1
+                    ? "recipe"
+                    : "recipes"}`;
+
+        this.elements.motifCardList
+            .replaceChildren(
+                ...motifs.map(motif => {
+                    const definition =
+                        motif.definition;
+
+                    const card =
+                        document.createElement(
+                            "button"
+                        );
+
+                    card.type = "button";
+                    card.className =
+                        "macro-recipe-card macro-recipe-card--selectable";
+                    card.dataset.motifId =
+                        definition.id;
+                    card.dataset.status =
+                        motif.lifecycleStatus;
+                    card.setAttribute(
+                        "aria-pressed",
+                        String(
+                            definition.id ===
+                            selectedMotifId
+                        )
+                    );
+                    card.disabled =
+                        Boolean(
+                            activeSynthesis &&
+                            activeSynthesis.motifId !==
+                                definition.id
+                        );
+                    card.setAttribute(
+                        "aria-label",
+                        `${definition.name}, ${motif.inventory.quantity} stored, ${this.formatLifecycleStatus(motif.lifecycleStatus, motif.inventory.quantity)}`
+                    );
+
+                    const topline =
+                        document.createElement(
+                            "span"
+                        );
+                    topline.className =
+                        "macro-recipe-card-topline";
+
+                    const icon =
+                        document.createElement(
+                            "span"
+                        );
+                    icon.className =
+                        "macro-recipe-icon";
+                    icon.setAttribute(
+                        "aria-hidden",
+                        "true"
+                    );
+                    icon.textContent =
+                        this.getMotifIcon(
+                            definition.id
+                        );
+
+                    const code =
+                        document.createElement(
+                            "span"
+                        );
+                    code.className =
+                        "macro-recipe-code";
+                    code.textContent =
+                        definition.id;
+
+                    topline.append(
+                        icon,
+                        code
+                    );
+
+                    const name =
+                        document.createElement(
+                            "span"
+                        );
+                    name.className =
+                        "macro-recipe-title";
+                    name.textContent =
+                        definition.name;
+
+                    const summary =
+                        document.createElement(
+                            "span"
+                        );
+                    summary.className =
+                        "macro-recipe-specs";
+                    summary.textContent =
+                        `${definition.aminoAcidCount} amino acids · ${definition.atpCost} ATP · ${this.formatDuration(motif.timing.durationMs)}`;
+
+                    const footer =
+                        document.createElement(
+                            "span"
+                        );
+                    footer.className =
+                        "macro-recipe-card-footer";
+
+                    const quantity =
+                        document.createElement(
+                            "span"
+                        );
+                    quantity.textContent =
+                        `${motif.inventory.quantity} stored`;
+
+                    const lifecycle =
+                        document.createElement(
+                            "span"
+                        );
+                    lifecycle.textContent =
+                        this.formatLifecycleStatus(
+                            motif.lifecycleStatus,
+                            motif.inventory.quantity
+                        );
+
+                    footer.append(
+                        quantity,
+                        lifecycle
+                    );
+                    card.append(
+                        topline,
+                        name,
+                        summary,
+                        footer
+                    );
+
+                    return card;
+                })
+            );
+
+        return recipeCount;
+
+    },
+
+    // --------------------------------------------------
+    // Render selected-motif composition and eligibility
     // --------------------------------------------------
     renderMotifRecipe(
         motif,
@@ -1229,8 +1435,6 @@ const MacromolecularizerUI = {
     ) {
 
         if (!motif) {
-            this.elements.motifCard.hidden =
-                true;
             this.elements.recipeDetails.hidden =
                 true;
             this.elements.recipeGate
@@ -1242,27 +1446,6 @@ const MacromolecularizerUI = {
 
         const definition =
             motif.definition;
-
-        this.elements.motifCard.hidden =
-            false;
-        this.elements.cardName
-            .textContent =
-                definition.name;
-        this.elements.cardSummary
-            .textContent =
-                `${definition.aminoAcidCount} amino acids · ${definition.atpCost} ATP · ${this.formatDuration(motif.timing.durationMs)}`;
-        this.elements.cardQuantity
-            .textContent =
-                `${motif.inventory.quantity} stored`;
-        this.elements.cardStatus
-            .textContent =
-                this.formatLifecycleStatus(
-                    motif.lifecycleStatus,
-                    motif.inventory.quantity
-                );
-
-        this.elements.motifCard.dataset.status =
-            motif.lifecycleStatus;
 
         this.renderRequirementSummary(
             motif
@@ -1345,10 +1528,14 @@ const MacromolecularizerUI = {
 
         this.elements.startSynthesisButton
             .textContent = selectedJob
-                ? "H_helix Synthesis in Progress"
+                ? `${definition.id} Synthesis in Progress`
                 : motif.inventory.quantity > 0
-                    ? "Synthesize Another H_helix"
-                    : "Begin H_helix Synthesis";
+                    ? `Synthesize Another ${definition.id}`
+                    : `Begin ${definition.id} Synthesis`;
+
+        this.elements.synthesisProgressLabel
+            .textContent =
+                `${definition.id} synthesis progress`;
 
         this.elements.synthesisProgressPanel
             .hidden =
@@ -1374,17 +1561,17 @@ const MacromolecularizerUI = {
                 this.synthesisFeedbackMessage ||
                 (
                     motif.inventory.quantity > 0
-                        ? `${motif.inventory.quantity} completed H_helix ${motif.inventory.quantity === 1
+                        ? `${motif.inventory.quantity} completed ${definition.id} ${motif.inventory.quantity === 1
                             ? "is"
                             : "are"} stored in the motif inventory.`
-                        : "No H_helix motifs have been completed yet."
+                        : `No ${definition.id} motifs have been completed yet.`
                 );
 
         if (selectedJob) {
             this.elements
                 .eligibilityFeedback
                 .textContent =
-                    "H_helix synthesis is running. Amino-acid prerequisites remain available and are not consumed.";
+                    `${definition.id} synthesis is running. Amino-acid prerequisites remain available and are not consumed.`;
         } else if (
             motif.missingAminoAcidIds
                 .length > 0
@@ -1415,8 +1602,8 @@ const MacromolecularizerUI = {
                 .eligibilityFeedback
                 .textContent =
                     motif.inventory.quantity > 0
-                        ? "All requirements are met. Another H_helix can be synthesized without consuming amino-acid prerequisites."
-                        : "All H_helix requirements are met. Synthesis is ready.";
+                        ? `All requirements are met. Another ${definition.id} can be synthesized without consuming amino-acid prerequisites.`
+                        : `All ${definition.id} requirements are met. Synthesis is ready.`;
         }
 
         return true;
@@ -1440,6 +1627,8 @@ const MacromolecularizerUI = {
                 "SYNTHESIS LOCKED";
             this.elements.chamberTarget.textContent =
                 "No target selected";
+            this.elements.chamberClassification.textContent =
+                "No motif recipe available";
             this.elements.chamberQuantity.textContent =
                 "0";
             this.renderHelixFrame(
@@ -1472,7 +1661,13 @@ const MacromolecularizerUI = {
         } else if (
             this.chamberViewMode ===
                 "observation" &&
-            motif.inventory.quantity < 1
+            (
+                motif.inventory.quantity < 1 ||
+                !MotifVisualCatalog
+                    .supportsObservation(
+                        motif.definition.id
+                    )
+            )
         ) {
             this.chamberViewMode =
                 "synthesis";
@@ -1505,6 +1700,14 @@ const MacromolecularizerUI = {
             modeLabel;
         this.elements.chamberTarget.textContent =
             motif.definition.name;
+
+        const motifVisual =
+            MotifVisualCatalog.get(
+                motif.definition.id
+            );
+
+        this.elements.chamberClassification.textContent =
+            `${motif.definition.id} // ${motifVisual?.classification ?? "Protein structural motif"}`;
         this.elements.chamberQuantity.textContent =
             String(
                 motif.inventory.quantity
@@ -1517,7 +1720,11 @@ const MacromolecularizerUI = {
 
         const observationAvailable =
             !selectedJob &&
-            motif.inventory.quantity > 0;
+            motif.inventory.quantity > 0 &&
+            MotifVisualCatalog
+                .supportsObservation(
+                    motif.definition.id
+                );
 
         this.elements.observeStructureButton.disabled =
             !observationAvailable;
@@ -1532,6 +1739,9 @@ const MacromolecularizerUI = {
             .textContent =
                 mode === "observing"
                     ? "Return to Synthesis"
+                    : motif.inventory.quantity > 0 &&
+                        !observationAvailable
+                        ? "Observation Model Pending"
                     : "Observe Structure";
 
         this.elements.observationControls.hidden =
@@ -1556,6 +1766,37 @@ const MacromolecularizerUI = {
         motif,
         selectedJob
     ) {
+
+        const motifId =
+            motif?.definition.id ??
+            null;
+
+        this.activeVisualMotifId =
+            motifId;
+
+        if (
+            motifId &&
+            !MotifVisualCatalog
+                .supportsFrameSynthesis(
+                    motifId
+                )
+        ) {
+            return this.renderGenericMotifVisual(
+                motif,
+                selectedJob
+            );
+        }
+
+        this.elements.genericMotifVisual.hidden =
+            true;
+        this.setHelixImageAvailable(
+            Boolean(
+                this.elements.helixFrame
+                    .complete &&
+                this.elements.helixFrame
+                    .naturalWidth > 0
+            )
+        );
 
         const observingStructure =
             this.chamberViewMode ===
@@ -1626,6 +1867,76 @@ const MacromolecularizerUI = {
                     : `${visualStage} / ${HELIX_FRAME_COUNT}`;
 
         return frameIndex;
+
+    },
+
+    // --------------------------------------------------
+    // Neutral progress display until motif art is supplied
+    // --------------------------------------------------
+    renderGenericMotifVisual(
+        motif,
+        selectedJob
+    ) {
+
+        const definition =
+            motif.definition;
+
+        const visual =
+            MotifVisualCatalog.get(
+                definition.id
+            );
+
+        this.elements.helixFrame.hidden =
+            true;
+        this.elements.helixFallback.hidden =
+            true;
+        this.elements.frameReadout.hidden =
+            true;
+        this.elements.frameStage.textContent =
+            "";
+        this.elements.genericMotifVisual.hidden =
+            false;
+        this.elements.genericMotifVisual
+            .dataset.status =
+                selectedJob
+                    ? "synthesizing"
+                    : motif.inventory.quantity > 0
+                        ? "stored"
+                        : "awaiting";
+        this.elements.genericMotifIcon
+            .textContent =
+                visual?.icon ??
+                "◆";
+        this.elements.genericMotifName
+            .textContent =
+                definition.name;
+        this.elements.genericMotifStatus
+            .textContent =
+                selectedJob
+                    ? `${Math.floor(selectedJob.progress * 100)}% assembled`
+                    : motif.inventory.quantity > 0
+                        ? `${motif.inventory.quantity} stored`
+                        : "Awaiting synthesis";
+
+        const progress =
+            selectedJob
+                ? selectedJob.progress
+                : motif.inventory.quantity > 0
+                    ? 1
+                    : 0;
+
+        this.elements.genericMotifVisual
+            .style.setProperty(
+                "--macro-motif-progress",
+                `${Math.max(0, Math.min(1, progress)) * 360}deg`
+            );
+
+        delete this.elements.chamber.dataset
+            .frameIndex;
+        delete this.elements.chamber.dataset
+            .observationState;
+
+        return definition.id;
 
     },
 
@@ -1852,6 +2163,14 @@ const MacromolecularizerUI = {
     },
 
     setHelixImageAvailable(available) {
+
+        if (
+            this.activeVisualMotifId &&
+            this.activeVisualMotifId !==
+                "H_helix"
+        ) {
+            return false;
+        }
 
         this.elements.helixFrame.hidden =
             !available;
@@ -2143,6 +2462,15 @@ const MacromolecularizerUI = {
 
     },
 
+    getMotifIcon(motifId) {
+
+        return MotifVisualCatalog
+            .get(motifId)
+            ?.icon ??
+            "◆";
+
+    },
+
     // --------------------------------------------------
     // Subscribe once to domain-state changes
     // --------------------------------------------------
@@ -2160,7 +2488,12 @@ const MacromolecularizerUI = {
                     "synthesis-completed"
                 ) {
                     this.chamberViewMode =
-                        "observation";
+                        MotifVisualCatalog
+                            .supportsObservation(
+                                detail.motifId
+                            )
+                            ? "observation"
+                            : "synthesis";
 
                     const capacityFeedback =
                         Number.isFinite(

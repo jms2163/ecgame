@@ -17,7 +17,7 @@
     name: "Loop Motif",
     category: "motifs",
     aa_count: 8,
-    atp_cost: 32,
+    atp_cost: 7,
     costs: Object.freeze({ G: 1, S: 1, T: 1, D: 1, E: 1, K: 1, R: 1, N: 1 }),
     description: "Flexible connector regions often found on the protein surface.",
     info: "Loops are flexible, irregular segments that connect more rigid secondary structures such as helices and sheets. Their mobility allows proteins to adopt precise shapes and often positions functional residues on the surface. By linking structural elements and enabling conformational adjustments, loops play a crucial role in shaping the protein’s overall three-dimensional tertiary structure and therefore function."
@@ -27,7 +27,7 @@
     name: "Beta Sheet Motif",
     category: "motifs",
     aa_count: 7,
-    atp_cost: 28,
+    atp_cost: 6,
     costs: Object.freeze({ V: 2, I: 1, L: 1, F: 1, Y: 1, T: 1 }),
     description: "Parallel or anti-parallel strands providing structural rigidity.",
     info: "Beta sheets are formed by extended strands aligned side-by-side, stabilized by hydrogen bonds between backbone atoms. Their planar, sheet-like arrangement provides rigidity and strength to protein cores. As a major <b>secondary structural</b> element, the beta sheet contributes significantly to the protein’s overall three-dimensional tertiary structure, helping define its stability and shape and therefore function."
@@ -37,7 +37,7 @@
     name: "Coiled-Coil Domain",
     category: "motifs",
     aa_count: 28,
-    atp_cost: 112,
+    atp_cost: 27,
     costs: Object.freeze({ L: 4, I: 4, V: 4, M: 4, E: 3, K: 3, Q: 3, A: 3 }),
     description: "Highly stable structural motif formed by the interleaving of helices.",
     info: "The coiled-coil domain consists of two or more alpha helices wrapped around each other, stabilized by hydrophobic interactions and specific residue patterns. This interleaving creates a strong, rope-like structure frequently used in protein dimerization and mechanical support. As a robust architectural element, the coiled-coil domain helps shape the protein’s overall three-dimensional tertiary structure and therefore function."

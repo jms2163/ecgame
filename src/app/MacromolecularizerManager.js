@@ -320,6 +320,12 @@ const MacromolecularizerManager = {
                 );
         }
 
+        if (state.activeSynthesis) {
+            state.selectedMotifId =
+                state.activeSynthesis
+                    .motifId;
+        }
+
         if (!isRecord(state.synthesized)) {
             state.synthesized = {};
         }
@@ -487,6 +493,109 @@ const MacromolecularizerManager = {
             speedUpgrade.level;
 
         return state;
+
+    },
+
+    // --------------------------------------------------
+    // Select one implemented recipe for inspection/work
+    // --------------------------------------------------
+    selectMotif(motifId) {
+
+        const normalizedId =
+            typeof motifId === "string"
+                ? motifId.trim()
+                : "";
+
+        const definition =
+            MotifRecipeCatalog.get(
+                normalizedId
+            );
+
+        if (!definition?.implemented) {
+            return {
+                success: false,
+                reason: "unknown-motif",
+                message:
+                    "That motif recipe is not available."
+            };
+        }
+
+        const state =
+            this.ensureState();
+
+        if (
+            state.activeSynthesis &&
+            state.activeSynthesis.motifId !==
+                normalizedId
+        ) {
+            return {
+                success: false,
+                reason:
+                    "synthesis-already-active",
+                selectedMotifId:
+                    state.selectedMotifId,
+                message:
+                    `Finish ${state.activeSynthesis.motifId} before selecting another motif.`
+            };
+        }
+
+        if (
+            state.selectedMotifId ===
+            normalizedId
+        ) {
+            return {
+                success: true,
+                reason: "motif-already-selected",
+                selectedMotifId:
+                    normalizedId,
+                message:
+                    `${definition.name} is already selected.`
+            };
+        }
+
+        const previousMotifId =
+            state.selectedMotifId;
+
+        state.selectedMotifId =
+            normalizedId;
+
+        const saved =
+            SaveManager.save({
+                reason:
+                    "macromolecularizer-motif-selected"
+            });
+
+        if (!saved) {
+            state.selectedMotifId =
+                previousMotifId;
+
+            return {
+                success: false,
+                reason: "save-failed",
+                selectedMotifId:
+                    previousMotifId,
+                message:
+                    "The motif selection could not be saved."
+            };
+        }
+
+        this.notifyStateChange(
+            "motif-selected",
+            {
+                motifId:
+                    normalizedId
+            }
+        );
+
+        return {
+            success: true,
+            reason: "motif-selected",
+            selectedMotifId:
+                normalizedId,
+            saved: true,
+            message:
+                `${definition.name} selected.`
+        };
 
     },
 
@@ -790,6 +899,22 @@ const MacromolecularizerManager = {
                     )
             }
         };
+
+    },
+
+    // --------------------------------------------------
+    // Build selectable status for every enabled recipe
+    // --------------------------------------------------
+    getMotifCatalogStatus() {
+
+        return MotifRecipeCatalog
+            .getImplemented()
+            .map(
+                definition =>
+                    this.getMotifEligibility(
+                        definition.id
+                    )
+            );
 
     },
 
@@ -1175,6 +1300,9 @@ const MacromolecularizerManager = {
                 speed.speedMultiplier
         };
 
+        const previousSelectedMotifId =
+            state.selectedMotifId;
+
         const atpSpent =
             ResourceManager.spendATP(
                 definition.atpCost,
@@ -1192,6 +1320,8 @@ const MacromolecularizerManager = {
 
         state.activeSynthesis =
             job;
+        state.selectedMotifId =
+            motifId;
 
         const saved =
             SaveManager.save({
@@ -1202,6 +1332,8 @@ const MacromolecularizerManager = {
         if (!saved) {
             state.activeSynthesis =
                 null;
+            state.selectedMotifId =
+                previousSelectedMotifId;
 
             ResourceManager.addATP(
                 definition.atpCost,
@@ -1591,10 +1723,15 @@ const MacromolecularizerManager = {
                 )
             );
 
+        const motifCatalog =
+            this.getMotifCatalogStatus();
+
         const selectedMotif =
-            this.getMotifEligibility(
-                state.selectedMotifId
-            );
+            motifCatalog.find(
+                motif =>
+                    motif.id ===
+                    state.selectedMotifId
+            ) ?? null;
 
         const dehydrationSpeed =
             this.getDehydrationSpeedStatus();
@@ -1616,6 +1753,7 @@ const MacromolecularizerManager = {
             selectedMotifId:
                 state.selectedMotifId,
             selectedMotif,
+            motifCatalog,
             reactionDiscoveries,
             activeSynthesis:
                 this.getActiveSynthesisProgress(),

@@ -7,7 +7,10 @@
 import { motifLibrary } from "./motifLibrary.js";
 
 const IMPLEMENTED_MOTIF_IDS = Object.freeze([
-    "H_helix"
+    "H_helix",
+    "L_loop",
+    "B_sheet",
+    "C_coil"
 ]);
 
 function safePositiveInteger(value) {
