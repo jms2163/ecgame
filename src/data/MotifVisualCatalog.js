@@ -63,24 +63,31 @@ const VISUALS =
             previewImage:
                 "./public/assets/molecularizer/loop.png"
         }),
-        B_sheet: Object.freeze({
+                B_sheet: Object.freeze({
             icon: "β",
             classification:
                 "Protein secondary structure",
-            synthesisFrames: null,
-            observationImages: null,
-            observationPath: null,
-            previewImage: null
-        }),
-        C_coil: Object.freeze({
-            icon: "∿",
-            classification:
-                "Protein structural motif",
-            synthesisFrames: null,
-            observationImages: null,
-            observationPath: null,
-            previewImage: null
+            synthesisFrames: Object.freeze({
+                count: 5,
+                startIndex: 0,
+                completeIndex: 4,
+                pathPrefix:
+                    "./public/assets/molecularizer/beta_sheet_white"
+            }),
+            observationImages: Object.freeze({
+                "100": "beta_sheet_observe_ribbon_on_hbonds_off_atoms_off.png",
+                "110": "beta_sheet_observe_ribbon_on_hbonds_on_atoms_off.png",
+                "101": "beta_sheet_observe_ribbon_on_hbonds_off_atoms_on.png",
+                "111": "beta_sheet_observe_ribbon_on_hbonds_on_atoms_on.png",
+                "001": "beta_sheet_observe_ribbon_off_hbonds_off_atoms_on.png",
+                "011": "beta_sheet_observe_ribbon_off_hbonds_on_atoms_on.png"
+            }),
+            observationPath:
+                "./public/assets/molecularizer/",
+            previewImage:
+                "./public/assets/molecularizer/beta_sheet.png"
         })
+
     });
 
 const MotifVisualCatalog =

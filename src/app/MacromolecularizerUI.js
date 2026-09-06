@@ -1805,6 +1805,7 @@ const MacromolecularizerUI = {
         if (
             motifId &&
             !selectedJob &&
+            motif?.inventory.quantity < 1 &&
             visual?.previewImage
         ) {
             this.renderMotifPreview(
@@ -1886,8 +1887,10 @@ const MacromolecularizerUI = {
 
         const visualStage =
             selectedJob
-                ? frameSet.count -
-                    frameIndex
+                ? this.getSynthesisFrameStage(
+                    frameIndex,
+                    frameSet
+                )
                 : null;
 
         this.elements.frameStage
@@ -2234,10 +2237,29 @@ const MacromolecularizerUI = {
                 )
             );
 
-        return Math.max(
-            frameSet.completeIndex,
-            frameSet.startIndex -
-                elapsedFrameIntervals
+        const frameStep =
+            Math.sign(
+                frameSet.completeIndex -
+                frameSet.startIndex
+            );
+
+        return frameSet.startIndex +
+            frameStep *
+            elapsedFrameIntervals;
+
+    },
+
+    getSynthesisFrameStage(
+        frameIndex,
+        frameSet
+    ) {
+
+        return Math.min(
+            frameSet.count,
+            Math.abs(
+                frameIndex -
+                frameSet.startIndex
+            ) + 1
         );
 
     },
@@ -2256,12 +2278,28 @@ const MacromolecularizerUI = {
         frameSet
     ) {
 
+        const frameStep =
+            Math.sign(
+                frameSet.completeIndex -
+                frameSet.startIndex
+            );
+
         const nextFrameIndex =
-            frameIndex - 1;
+            frameIndex +
+            frameStep;
 
         if (
-            nextFrameIndex <
-                frameSet.completeIndex ||
+            frameStep === 0 ||
+            (
+                frameStep > 0 &&
+                nextFrameIndex >
+                    frameSet.completeIndex
+            ) ||
+            (
+                frameStep < 0 &&
+                nextFrameIndex <
+                    frameSet.completeIndex
+            ) ||
             typeof Image !== "function"
         ) {
             this.helixFramePreload =

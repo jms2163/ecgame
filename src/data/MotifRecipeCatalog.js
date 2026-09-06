@@ -9,8 +9,7 @@ import { motifLibrary } from "./motifLibrary.js";
 const IMPLEMENTED_MOTIF_IDS = Object.freeze([
     "H_helix",
     "L_loop",
-    "B_sheet",
-    "C_coil"
+    "B_sheet"
 ]);
 
 function safePositiveInteger(value) {
