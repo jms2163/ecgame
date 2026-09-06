@@ -33,13 +33,4 @@
     info: "Beta sheets are formed by extended strands aligned side-by-side, stabilized by hydrogen bonds between backbone atoms. Their planar, sheet-like arrangement provides rigidity and strength to protein cores. As a major <b>secondary structural</b> element, the beta sheet contributes significantly to the protein’s overall three-dimensional tertiary structure, helping define its stability and shape and therefore function."
   }),
 
-  C_coil: Object.freeze({
-    name: "Coiled-Coil Domain",
-    category: "motifs",
-    aa_count: 28,
-    atp_cost: 27,
-    costs: Object.freeze({ L: 4, I: 4, V: 4, M: 4, E: 3, K: 3, Q: 3, A: 3 }),
-    description: "Highly stable structural motif formed by the interleaving of helices.",
-    info: "The coiled-coil domain consists of two or more alpha helices wrapped around each other, stabilized by hydrophobic interactions and specific residue patterns. This interleaving creates a strong, rope-like structure frequently used in protein dimerization and mechanical support. As a robust architectural element, the coiled-coil domain helps shape the protein’s overall three-dimensional tertiary structure and therefore function."
-  })
 });
