@@ -6,6 +6,7 @@
 import GameStateObserver from "./GameStateObserver.js";
 import MacromolecularizerManager
     from "./MacromolecularizerManager.js";
+import MoleculeRecipeCatalog from "../data/MoleculeRecipeCatalog.js";
 import MotifVisualCatalog
     from "../data/MotifVisualCatalog.js";
 
@@ -125,7 +126,7 @@ const MacromolecularizerUI = {
                     <div class="macro-brand-block">
                         <p class="macro-kicker">Controlled Assembly System</p>
                         <h1>Macromolecularizer</h1>
-                        <p class="macro-build-label">Protein Motif Lab // Development Build</p>
+                        <p class="macro-build-label">Molecular Assembly Lab</p>
                     </div>
 
                     <div
@@ -179,15 +180,17 @@ const MacromolecularizerUI = {
                             type="button"
                             role="tab"
                             aria-selected="false"
-                            disabled
-                            title="Carbohydrate catalog pending"
+                            id="macromolecularizer-carb-tab"
+                            data-assembly-category="carbs"
+                            aria-controls="macromolecularizer-protein-recipes"
                         >
                             <strong>C</strong>
                             <span>Carbohydrates</span>
-                            <small>Locked</small>
+                            <small>3 recipes</small>
                         </button>
                         <button
                             id="macromolecularizer-protein-tab"
+                            data-assembly-category="motifs"
                             class="is-selected"
                             type="button"
                             role="tab"
@@ -222,7 +225,7 @@ const MacromolecularizerUI = {
                         <div
                             id="macromolecularizer-motif-card-list"
                             class="macro-motif-card-list"
-                            aria-label="Available protein motif recipes"
+                            aria-label="Available assembly recipes"
                         ></div>
 
                     </div>
@@ -450,7 +453,7 @@ const MacromolecularizerUI = {
                                     <div>
                                         <span class="macro-dossier-label">Amino-acid composition</span>
                                         <p class="macro-dossier-note">
-                                            Quantities describe the motif. Known amino-acid prerequisites are not consumed.
+                                            Quantities describe the product. Synthesized monomer knowledge is required and is not consumed.
                                         </p>
                                         <ul id="macromolecularizer-amino-acid-requirements"></ul>
                                     </div>
@@ -482,7 +485,7 @@ const MacromolecularizerUI = {
 
                     <div class="macro-inventory-meters">
                         <div>
-                            <span>Motif types</span>
+                            <span>Product types</span>
                             <strong id="macromolecularizer-inventory-count">0</strong>
                         </div>
                         <div>
@@ -501,11 +504,11 @@ const MacromolecularizerUI = {
                         aria-labelledby="macromolecularizer-inventory-heading"
                     >
                         <div class="macro-tray-heading">
-                            <h3 id="macromolecularizer-inventory-heading">Completed Motifs</h3>
+                            <h3 id="macromolecularizer-inventory-heading">Completed Products</h3>
                             <span>Physical inventory</span>
                         </div>
                         <p id="macromolecularizer-inventory-empty" class="macro-empty-slot">
-                            No completed motifs yet.
+                            No completed products yet.
                         </p>
                         <ul id="macromolecularizer-inventory-list" class="macro-inventory-list"></ul>
                     </section>
@@ -527,7 +530,7 @@ const MacromolecularizerUI = {
                             <span>Future inventory</span>
                         </div>
                         <div class="macro-empty-slot">
-                            No consumable components are required for this protein recipe.
+                            Monomer synthesis knowledge is required; no stored monomers are consumed.
                         </div>
                     </section>
                 </aside>
@@ -849,6 +852,19 @@ const MacromolecularizerUI = {
     // --------------------------------------------------
     bindEvents() {
 
+        this.rootElement.querySelectorAll("[data-assembly-category]").forEach(button => {
+            button.addEventListener("click", () => {
+                const status = MacromolecularizerManager.getStatus();
+                const recipe = status.motifCatalog.find(item => item.definition.category === button.dataset.assemblyCategory);
+                if (recipe) {
+                    const result = MacromolecularizerManager.selectMotif(recipe.id);
+                    if (result.success) this.chamberViewMode = "synthesis";
+                    else this.synthesisFeedbackMessage = result.message;
+                    this.render();
+                }
+            });
+        });
+
         this.elements.helixFrame
             .addEventListener(
                 "load",
@@ -1147,8 +1163,23 @@ const MacromolecularizerUI = {
             .textContent =
                 `Selected: ${selectedMotif?.definition.name ?? status.selectedMotifId}`;
 
+        const activeCategory = selectedMotif?.definition.category ?? "motifs";
+        this.rootElement.querySelectorAll("[data-assembly-category]").forEach(button => {
+            const selected = button.dataset.assemblyCategory === activeCategory;
+            button.setAttribute("aria-selected", String(selected));
+            button.classList.toggle("is-selected", selected);
+            const count = status.motifCatalog.filter(item => item.definition.category === button.dataset.assemblyCategory).length;
+            button.querySelector("small").textContent = `${count} ${count === 1 ? "recipe" : "recipes"}`;
+            button.disabled = Boolean(status.activeSynthesis && !selected);
+        });
+        this.rootElement.querySelector("#macromolecularizer-protein-recipes")
+            .setAttribute("aria-labelledby", activeCategory === "carbs"
+                ? "macromolecularizer-carb-tab" : "macromolecularizer-protein-tab");
+        this.rootElement.querySelector("#macromolecularizer-known-aa-heading").textContent =
+            activeCategory === "carbs" ? "Known Monosaccharides" : "Known Amino Acids";
+
         this.renderMotifCards(
-            status.motifCatalog,
+            status.motifCatalog.filter(item => item.definition.category === activeCategory),
             status.selectedMotifId,
             status.activeSynthesis
         );
@@ -1260,11 +1291,7 @@ const MacromolecularizerUI = {
         const recipeCount =
             motifs.length;
 
-        this.elements.proteinRecipeCount
-            .textContent =
-                `${recipeCount} ${recipeCount === 1
-                    ? "recipe"
-                    : "recipes"}`;
+
 
         this.elements.motifCardList
             .replaceChildren(
@@ -1354,7 +1381,7 @@ const MacromolecularizerUI = {
                     summary.className =
                         "macro-recipe-specs";
                     summary.textContent =
-                        `${definition.aminoAcidCount} amino acids · ${definition.atpCost} ATP · ${this.formatDuration(motif.timing.durationMs)}`;
+                        `${definition.monomerCount} ${definition.category === "carbs" ? "sugar units" : "amino acids"} · ${definition.atpCost} ATP · ${this.formatDuration(motif.timing.durationMs)}`;
 
                     const footer =
                         document.createElement(
@@ -1438,7 +1465,7 @@ const MacromolecularizerUI = {
         if (!dehydrationKnown) {
             this.elements.recipeGate
                 .textContent =
-                    "Discover dehydration before reviewing motif synthesis requirements.";
+                    "Discover dehydration before reviewing synthesis requirements.";
 
             return true;
         }
@@ -1451,12 +1478,12 @@ const MacromolecularizerUI = {
                 definition.description;
         this.elements.bondCalculation
             .textContent =
-                `${definition.aminoAcidCount} amino acids form ${definition.peptideBondCount} peptide bonds, requiring ${definition.atpCost} ATP.`;
+                `${definition.monomerCount} ${definition.category === "carbs" ? "sugar units" : "amino acids"} form ${definition.bondCount} ${definition.bondType} bond${definition.bondCount === 1 ? "" : "s"}, requiring ${definition.atpCost} ATP.`;
 
         this.elements
             .aminoAcidRequirements
             .replaceChildren(
-                ...motif.aminoAcids.map(
+                ...motif.monomers.map(
                     requirement => {
 
                         const item =
@@ -1486,7 +1513,7 @@ const MacromolecularizerUI = {
 
         this.elements.synthesisTiming
             .textContent =
-                `${this.formatDuration(motif.timing.durationMs)} at ${motif.timing.speedMultiplier}× speed (${motif.timing.baseSecondsPerPeptideBond} seconds per peptide bond at base speed).`;
+                `${this.formatDuration(motif.timing.durationMs)} at ${motif.timing.speedMultiplier}× speed (${motif.timing.baseSecondsPerBond} seconds per ${definition.bondType} bond at base speed).`;
 
         const selectedJob =
             activeSynthesis
@@ -1536,21 +1563,21 @@ const MacromolecularizerUI = {
                     motif.inventory.quantity > 0
                         ? `${motif.inventory.quantity} completed ${definition.id} ${motif.inventory.quantity === 1
                             ? "is"
-                            : "are"} stored in the motif inventory.`
-                        : `No ${definition.id} motifs have been completed yet.`
+                            : "are"} stored in the inventory.`
+                        : `No ${definition.id} products have been completed yet.`
                 );
 
         if (selectedJob) {
             this.elements
                 .eligibilityFeedback
                 .textContent =
-                    `${definition.id} synthesis is running. Amino-acid prerequisites remain available and are not consumed.`;
+                    `${definition.id} synthesis is running. Monomer prerequisites remain available and are not consumed.`;
         } else if (
             motif.missingAminoAcidIds
                 .length > 0
         ) {
             const missingNames =
-                motif.aminoAcids
+                motif.monomers
                     .filter(
                         requirement =>
                             !requirement
@@ -1564,7 +1591,7 @@ const MacromolecularizerUI = {
             this.elements
                 .eligibilityFeedback
                 .textContent =
-                    `Synthesize each of these amino-acid types once in Molecule Lab: ${missingNames.join(", ")}. Recipe quantities describe the motif and are not consumed.`;
+                    `Synthesize each of these ${definition.category === "carbs" ? "monosaccharide" : "amino-acid"} types once in Molecule Lab: ${missingNames.join(", ")}. Recipe quantities describe the product and are not consumed.`;
         } else if (!motif.atp.canAfford) {
             this.elements
                 .eligibilityFeedback
@@ -1575,7 +1602,7 @@ const MacromolecularizerUI = {
                 .eligibilityFeedback
                 .textContent =
                     motif.inventory.quantity > 0
-                        ? `All requirements are met. Another ${definition.id} can be synthesized without consuming amino-acid prerequisites.`
+                        ? `All requirements are met. Another ${definition.id} can be synthesized without consuming monomer prerequisites.`
                         : `All ${definition.id} requirements are met. Synthesis is ready.`;
         }
 
@@ -1718,9 +1745,9 @@ const MacromolecularizerUI = {
                     : "Observe Structure";
 
         this.elements.observationControls.hidden =
-            mode !== "observing";
+            mode !== "observing" || !motifVisual?.observationImages;
 
-        if (mode === "observing") {
+        if (mode === "observing" && motifVisual?.observationImages) {
             this.preloadObservationImages(
                 motif.definition.id
             );
@@ -1766,7 +1793,8 @@ const MacromolecularizerUI = {
 
         if (
             motifId &&
-            !frameSet
+            !frameSet &&
+            !visual?.previewImage
         ) {
             return this.renderGenericMotifVisual(
                 motif,
@@ -1803,10 +1831,8 @@ const MacromolecularizerUI = {
         }
 
         if (
-            motifId &&
-            !selectedJob &&
-            motif?.inventory.quantity < 1 &&
-            visual?.previewImage
+            visual?.previewImage &&
+            (!frameSet || (!selectedJob && motif?.inventory.quantity < 1))
         ) {
             this.renderMotifPreview(
                 motifId,
@@ -2022,6 +2048,13 @@ const MacromolecularizerUI = {
     // Select one of six supplied observation-layer images
     // --------------------------------------------------
     renderObservationImage(motifId) {
+
+        const staticImage = MotifVisualCatalog.get(motifId)?.observationImage;
+        if (staticImage) {
+            delete this.elements.chamber.dataset.observationState;
+            delete this.elements.chamber.dataset.frameIndex;
+            return this.renderMotifPreview(motifId, staticImage);
+        }
 
         const observationState =
             this.getObservationStateKey();
@@ -2269,7 +2302,7 @@ const MacromolecularizerUI = {
         frameSet
     ) {
 
-        return `${frameSet.pathPrefix}${frameIndex}.png`;
+        return frameSet.files?.[frameIndex] ?? `${frameSet.pathPrefix}${frameIndex}.png`;
 
     },
 
@@ -2385,7 +2418,7 @@ const MacromolecularizerUI = {
 
         this.elements.knownAminoAcids
             .replaceChildren(
-                ...motif.aminoAcids.map(
+                ...motif.monomers.map(
                     requirement => {
                         const item =
                             document.createElement(
@@ -2429,7 +2462,7 @@ const MacromolecularizerUI = {
             );
 
         const missingAminoAcidNames =
-            motif.aminoAcids
+            motif.monomers
                 .filter(
                     requirement =>
                         !requirement
@@ -2439,6 +2472,8 @@ const MacromolecularizerUI = {
                     requirement =>
                         requirement.name
                 );
+
+        const unavailableNames = motif.monomers.filter(item => !MoleculeRecipeCatalog.get(item.id)?.implemented).map(item => item.name);
 
         const requirementRows = [
             {
@@ -2457,7 +2492,7 @@ const MacromolecularizerUI = {
                         .aminoAcids
                         .complete,
                 text:
-                    `Amino-acid synthesis knowledge — ${motif.requirements.aminoAcids.synthesizedTypes} of ${motif.requirements.aminoAcids.requiredTypes} types complete${missingAminoAcidNames.length > 0
+                    `${motif.definition.category === "carbs" ? "Monosaccharide" : "Amino-acid"} synthesis knowledge — ${motif.requirements.aminoAcids.synthesizedTypes} of ${motif.requirements.aminoAcids.requiredTypes} types complete${missingAminoAcidNames.length > 0
                         ? `; missing ${missingAminoAcidNames.join(", ")}`
                         : ""}`
             },
@@ -2472,6 +2507,11 @@ const MacromolecularizerUI = {
                         : ""}`
             }
         ];
+
+        if (unavailableNames.length) requirementRows.push({
+            complete: false,
+            text: "Molecule Lab recipes pending: " + unavailableNames.join(", ") + ". These must become buildable before this product can be synthesized."
+        });
 
         this.elements.requirementSummary
             .replaceChildren(
@@ -2548,8 +2588,8 @@ const MacromolecularizerUI = {
             "synthesizing"
         ) {
             return quantity > 0
-                ? "Synthesizing another motif"
-                : "Synthesizing first motif";
+                ? "Synthesizing another copy"
+                : "Synthesizing first copy";
         }
 
         if (

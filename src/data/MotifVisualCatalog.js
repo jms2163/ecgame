@@ -26,6 +26,40 @@ const LOOP_OBSERVATION_IMAGES =
 
 const VISUALS =
     Object.freeze({
+        Maltose: Object.freeze({
+            icon: "⬡",
+            classification: "Disaccharide · glucose + glucose",
+            previewImage: "./public/assets/molecularizer/maltose_left_black_right_black.png",
+            synthesisFrames: Object.freeze({
+                count: 3, startIndex: 0, completeIndex: 2,
+                files: Object.freeze([
+                    "./public/assets/molecularizer/maltose_left_black_right_black.png",
+                    "./public/assets/molecularizer/maltose_left_green_right_black.png",
+                    "./public/assets/molecularizer/maltose_left_green_right_green.png"
+                ])
+            }),
+            observationImage: "./public/assets/molecularizer/maltose_left_green_right_green.png"
+        }),
+        Sucrose: Object.freeze({
+            icon: "⬡",
+            classification: "Disaccharide · glucose + fructose",
+            previewImage: "./public/assets/molecularizer/sucrose_left_black_right_black.png",
+            synthesisFrames: Object.freeze({
+                count: 3, startIndex: 0, completeIndex: 2,
+                files: Object.freeze([
+                    "./public/assets/molecularizer/sucrose_left_black_right_black.png",
+                    "./public/assets/molecularizer/sucrose_left_green_right_black.png",
+                    "./public/assets/molecularizer/sucrose_left_green_right_green.png"
+                ])
+            }),
+            observationImage: "./public/assets/molecularizer/sucrose_left_green_right_green.png"
+        }),
+        Lactose: Object.freeze({
+            icon: "⬡",
+            classification: "Disaccharide · galactose + glucose",
+            previewImage: null,
+            observationImage: null
+        }),
         H_helix: Object.freeze({
             icon: "α",
             classification:
@@ -113,7 +147,7 @@ const MotifVisualCatalog =
 
             return Boolean(
                 this.get(motifId)
-                    ?.observationImages
+                    ?.observationImages || this.get(motifId)?.observationImage
             );
 
         }

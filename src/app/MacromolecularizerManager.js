@@ -13,13 +13,13 @@ import SynthesisPointManager
     from "./SynthesisPointManager.js";
 import MoleculeRecipeCatalog
     from "../data/MoleculeRecipeCatalog.js";
-import MotifRecipeCatalog
-    from "../data/MotifRecipeCatalog.js";
+import MacromolecularRecipeCatalog
+    from "../data/MacromolecularRecipeCatalog.js";
 
 const ZONE_ID = "macromolecularizer";
 const DEFAULT_CATEGORY = "motifs";
 const FIRST_MOTIF_ID = "H_helix";
-const BASE_SECONDS_PER_PEPTIDE_BOND = 30;
+const BASE_SECONDS_PER_BOND = 30;
 const DEHYDRATION_SPEED_BONUS_PER_LEVEL = 1;
 const SYNTHESIS_POINT_COST_PER_LEVEL = 1;
 const PROGRESS_EVENT_INTERVAL_MS = 250;
@@ -61,8 +61,8 @@ function getBaseDurationMs(definition) {
 
     return Math.max(
         1,
-        definition.peptideBondCount *
-            BASE_SECONDS_PER_PEPTIDE_BOND *
+        definition.bondCount *
+            BASE_SECONDS_PER_BOND *
             1000
     );
 
@@ -126,7 +126,7 @@ function normalizeActiveSynthesis(job) {
     }
 
     const definition =
-        MotifRecipeCatalog.get(
+        MacromolecularRecipeCatalog.get(
             job.motifId
         );
 
@@ -177,10 +177,11 @@ function normalizeActiveSynthesis(job) {
             expectedCompletesAtMs ||
         job.atpCost !==
             definition.atpCost ||
-        job.peptideBondCount !==
-            definition.peptideBondCount ||
-        job.secondsPerPeptideBond !==
-            BASE_SECONDS_PER_PEPTIDE_BOND ||
+        (definition.category === "carbs"
+            ? job.bondCount !== definition.bondCount || job.bondType !== definition.bondType
+            : job.peptideBondCount !== definition.peptideBondCount) ||
+        (job.secondsPerBond ?? job.secondsPerPeptideBond) !==
+            BASE_SECONDS_PER_BOND ||
         job.speedMultiplier !==
             speedMultiplier
     ) {
@@ -200,10 +201,9 @@ function normalizeActiveSynthesis(job) {
         baseDurationMs,
         atpCost:
             definition.atpCost,
-        peptideBondCount:
-            definition.peptideBondCount,
-        secondsPerPeptideBond:
-            BASE_SECONDS_PER_PEPTIDE_BOND,
+        ...(definition.category === "carbs"
+            ? { bondCount: definition.bondCount, bondType: definition.bondType, secondsPerBond: BASE_SECONDS_PER_BOND }
+            : { peptideBondCount: definition.peptideBondCount, secondsPerPeptideBond: BASE_SECONDS_PER_BOND }),
         speedUpgradeLevel,
         speedMultiplier
     };
@@ -291,7 +291,7 @@ const MacromolecularizerManager = {
             );
         }
 
-        if (state.activeCategory !== DEFAULT_CATEGORY) {
+        if (!["motifs", "carbs"].includes(state.activeCategory)) {
             state.activeCategory =
                 DEFAULT_CATEGORY;
         }
@@ -299,10 +299,10 @@ const MacromolecularizerManager = {
         if (
             typeof state.selectedMotifId !== "string" ||
             state.selectedMotifId.trim() === "" ||
-            !MotifRecipeCatalog.has(
+            !MacromolecularRecipeCatalog.has(
                 state.selectedMotifId.trim()
             ) ||
-            !MotifRecipeCatalog.get(
+            !MacromolecularRecipeCatalog.get(
                 state.selectedMotifId.trim()
             )?.implemented
         ) {
@@ -325,6 +325,8 @@ const MacromolecularizerManager = {
                 state.activeSynthesis
                     .motifId;
         }
+
+        state.activeCategory = MacromolecularRecipeCatalog.get(state.selectedMotifId)?.category ?? DEFAULT_CATEGORY;
 
         if (!isRecord(state.synthesized)) {
             state.synthesized = {};
@@ -395,6 +397,8 @@ const MacromolecularizerManager = {
             }
         );
 
+        // Keep the existing saved inventory map for both assembly categories.
+        // IDs are distinct; category and discovery type come from the catalog.
         if (!isRecord(state.motifInventory)) {
             state.motifInventory = {};
         }
@@ -507,7 +511,7 @@ const MacromolecularizerManager = {
                 : "";
 
         const definition =
-            MotifRecipeCatalog.get(
+            MacromolecularRecipeCatalog.get(
                 normalizedId
             );
 
@@ -555,9 +559,11 @@ const MacromolecularizerManager = {
 
         const previousMotifId =
             state.selectedMotifId;
+        const previousCategory = state.activeCategory;
 
         state.selectedMotifId =
             normalizedId;
+        state.activeCategory = definition.category;
 
         const saved =
             SaveManager.save({
@@ -568,6 +574,7 @@ const MacromolecularizerManager = {
         if (!saved) {
             state.selectedMotifId =
                 previousMotifId;
+            state.activeCategory = previousCategory;
 
             return {
                 success: false,
@@ -620,7 +627,7 @@ const MacromolecularizerManager = {
     getMotifEligibility(motifId) {
 
         const definition =
-            MotifRecipeCatalog.get(
+            MacromolecularRecipeCatalog.get(
                 motifId
             );
 
@@ -634,8 +641,8 @@ const MacromolecularizerManager = {
         const synthesisHistory =
             this.getMoleculeSynthesisHistory();
 
-        const aminoAcids =
-            definition.aminoAcids.map(
+        const monomers =
+            definition.monomers.map(
                 requirement => {
 
                     const synthesisCount =
@@ -658,14 +665,14 @@ const MacromolecularizerManager = {
                             requirement.quantity,
                         synthesisCount,
                         synthesized:
-                            synthesisCount > 0
+                            synthesisCount > 0 && Boolean(MoleculeRecipeCatalog.get(requirement.id)?.implemented)
                     };
 
                 }
             );
 
-        const missingAminoAcidIds =
-            aminoAcids
+        const missingMonomerIds =
+            monomers
                 .filter(
                     requirement =>
                         !requirement
@@ -716,7 +723,7 @@ const MacromolecularizerManager = {
         const eligible =
             definition
                 .compositionValid &&
-            missingAminoAcidIds
+            missingMonomerIds
                 .length === 0 &&
             missingReactionIds
                 .length === 0 &&
@@ -765,13 +772,13 @@ const MacromolecularizerManager = {
         }
 
         if (
-            missingAminoAcidIds.length > 0
+            missingMonomerIds.length > 0
         ) {
             blockingReasons.push({
                 type:
-                    "amino-acids",
+                    definition.category === "carbs" ? "monomers" : "amino-acids",
                 ids:
-                    [...missingAminoAcidIds]
+                    [...missingMonomerIds]
             });
         }
 
@@ -793,8 +800,10 @@ const MacromolecularizerManager = {
                 structuredClone(
                     definition
                 ),
-            aminoAcids,
-            missingAminoAcidIds,
+            monomers,
+            aminoAcids: monomers, // Compatibility with existing protein console probes.
+            missingMonomerIds,
+            missingAminoAcidIds: missingMonomerIds,
             reactionDiscoveries,
             missingReactionIds,
             atp: {
@@ -808,8 +817,9 @@ const MacromolecularizerManager = {
                     canAffordATP
             },
             timing: {
+                baseSecondsPerBond: BASE_SECONDS_PER_BOND,
                 baseSecondsPerPeptideBond:
-                    BASE_SECONDS_PER_PEPTIDE_BOND,
+                    BASE_SECONDS_PER_BOND,
                 baseDurationMs:
                     getBaseDurationMs(
                         definition
@@ -842,13 +852,13 @@ const MacromolecularizerManager = {
                 },
                 aminoAcids: {
                     complete:
-                        missingAminoAcidIds
+                        missingMonomerIds
                             .length === 0,
                     requiredTypes:
-                        aminoAcids.length,
+                        monomers.length,
                     synthesizedTypes:
-                        aminoAcids.length -
-                        missingAminoAcidIds
+                        monomers.length -
+                        missingMonomerIds
                             .length
                 },
                 atp: {
@@ -879,7 +889,7 @@ const MacromolecularizerManager = {
                 discovered:
                     GameStateManager
                         .hasDiscoveryInCategory(
-                            "motifs",
+                            definition.discoveryCategory,
                             motifId
                         ),
                 synthesisCount:
@@ -907,7 +917,7 @@ const MacromolecularizerManager = {
     // --------------------------------------------------
     getMotifCatalogStatus() {
 
-        return MotifRecipeCatalog
+        return MacromolecularRecipeCatalog
             .getImplemented()
             .map(
                 definition =>
@@ -924,7 +934,7 @@ const MacromolecularizerManager = {
     getMotifInventoryStatus() {
 
         const items =
-            MotifRecipeCatalog
+            MacromolecularRecipeCatalog
                 .getImplemented()
                 .map(
                     definition => {
@@ -1002,7 +1012,7 @@ const MacromolecularizerManager = {
                 100,
             speedMultiplier,
             effectiveSecondsPerPeptideBond:
-                BASE_SECONDS_PER_PEPTIDE_BOND /
+                BASE_SECONDS_PER_BOND /
                 speedMultiplier,
             points:
                 SynthesisPointManager
@@ -1183,7 +1193,7 @@ const MacromolecularizerManager = {
         }
 
         const definition =
-            MotifRecipeCatalog.get(
+            MacromolecularRecipeCatalog.get(
                 motifId
             );
 
@@ -1228,12 +1238,13 @@ const MacromolecularizerManager = {
             return {
                 success: false,
                 reason:
-                    "missing-amino-acids",
+                    definition.category === "carbs" ? "missing-monomers" : "missing-amino-acids",
+                missingMonomerIds: eligibility.missingMonomerIds,
                 missingAminoAcidIds:
                     eligibility
                         .missingAminoAcidIds,
                 message:
-                    `Synthesize these amino-acid types first: ${eligibility.missingAminoAcidIds.join(", ")}.`
+                    `Synthesize these monomer types in Molecule Lab first: ${eligibility.missingAminoAcidIds.join(", ")}.`
             };
         }
 
@@ -1290,10 +1301,9 @@ const MacromolecularizerManager = {
                 ),
             atpCost:
                 definition.atpCost,
-            peptideBondCount:
-                definition.peptideBondCount,
-            secondsPerPeptideBond:
-                BASE_SECONDS_PER_PEPTIDE_BOND,
+            ...(definition.category === "carbs"
+                ? { bondCount: definition.bondCount, bondType: definition.bondType, secondsPerBond: BASE_SECONDS_PER_BOND }
+                : { peptideBondCount: definition.peptideBondCount, secondsPerPeptideBond: BASE_SECONDS_PER_BOND }),
             speedUpgradeLevel:
                 speed.level,
             speedMultiplier:
@@ -1455,22 +1465,23 @@ const MacromolecularizerManager = {
                 ]
             ) + 1;
 
-        const atpCapacity =
+        const completedDefinition = MacromolecularRecipeCatalog.get(job.motifId);
+        const atpCapacity = completedDefinition.category === "motifs" ?
             ResourceManager
                 .increaseATPCapacity(
                     1,
                     "macromolecularizer-motif-synthesized"
-                );
+                ) : null;
 
         if (
             !GameStateManager
                 .hasDiscoveryInCategory(
-                    "motifs",
+                    completedDefinition.discoveryCategory,
                     job.motifId
                 )
         ) {
             DiscoveryManager.record(
-                "motifs",
+                completedDefinition.discoveryCategory,
                 job.motifId
             );
         }
@@ -1482,7 +1493,7 @@ const MacromolecularizerManager = {
             });
 
         GameStateObserver.notify(
-            "motif-synthesized",
+            completedDefinition.category === "carbs" ? "carbohydrate-synthesized" : "motif-synthesized",
             {
                 jobId:
                     job.jobId,
@@ -1523,7 +1534,7 @@ const MacromolecularizerManager = {
                 nextCount,
             atpCapacity,
             message: saved
-                ? `${job.motifId} synthesis completed and saved. ATP capacity increased to ${atpCapacity.maximum}.`
+                ? `${job.motifId} synthesis completed and saved.${atpCapacity ? ` ATP capacity increased to ${atpCapacity.maximum}.` : ""}`
                 : `${job.motifId} synthesis completed, but the browser save failed.`
         };
 
@@ -1820,14 +1831,14 @@ const MacromolecularizerManager = {
             ({ moleculeId } = {}) => {
 
                 const definition =
-                    MotifRecipeCatalog.get(
-                        FIRST_MOTIF_ID
+                    MacromolecularRecipeCatalog.get(
+                        this.ensureState().selectedMotifId
                     );
 
                 if (
                     this.active &&
                     definition
-                        ?.aminoAcids
+                        ?.monomers
                         .some(
                             requirement =>
                                 requirement.id ===
