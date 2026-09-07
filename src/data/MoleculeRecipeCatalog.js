@@ -13,6 +13,7 @@ import MoleculeDipoleCatalog
     from "./MoleculeDipoleCatalog.js";
 import MoleculeWaterInteractionCatalog
     from "./MoleculeWaterInteractionCatalog.js";
+import { baseLibrary } from "./baseLibrary.js";
 
 const STANDARD_STRUCTURES = {
     H2: {
@@ -159,7 +160,8 @@ const CATEGORY_REQUIREMENTS = Object.freeze({
     molecules: [],
     carbs: ["CO2", "H2O"],
     proteins: ["CH4", "NH3"],
-    lipids: ["CH4"]
+    lipids: ["CH4"],
+    nucleics: ["CH4", "NH3"]
 });
 
 function formulaFromRecord(record = {}) {
@@ -180,10 +182,13 @@ function structureFor(id) {
 
     const aminoAcid = aminoAcids[id];
     if (aminoAcid?.atoms && aminoAcid?.bonds) {
+        const formula =
+            formulaFromRecord(aminoAcid);
+
         return {
-            formula: formulaFromRecord(aminoAcid),
+            formula,
             requiredDiscoveries:
-                Object.keys(formulaFromRecord(aminoAcid)),
+                Object.keys(formula),
             atoms: aminoAcid.atoms,
             bonds: aminoAcid.bonds
         };
@@ -191,12 +196,29 @@ function structureFor(id) {
 
     const sugar = monosaccharideLibrary[id];
     if (sugar?.atoms && sugar?.bonds) {
+        const formula =
+            formulaFromRecord(sugar);
+
         return {
-            formula: formulaFromRecord(sugar),
+            formula,
             requiredDiscoveries:
-                Object.keys(formulaFromRecord(sugar)),
+                Object.keys(formula),
             atoms: sugar.atoms,
             bonds: sugar.bonds
+        };
+    }
+
+    const base = baseLibrary[id];
+    if (base?.atoms && base?.bonds) {
+        const formula =
+            formulaFromRecord(base);
+
+        return {
+            formula,
+            requiredDiscoveries:
+                Object.keys(formula),
+            atoms: base.atoms,
+            bonds: base.bonds
         };
     }
 
@@ -275,7 +297,8 @@ const MoleculeRecipeCatalog = Object.freeze({
         Object.freeze({ id: "molecules", label: "M", title: "Molecules" }),
         Object.freeze({ id: "carbs", label: "C", title: "Carbohydrates" }),
         Object.freeze({ id: "proteins", label: "P", title: "Proteins" }),
-        Object.freeze({ id: "lipids", label: "L", title: "Lipids" })
+        Object.freeze({ id: "lipids", label: "L", title: "Lipids" }),
+        Object.freeze({ id: "nucleics", label: "N", title: "Nitrogenous Bases" })
     ]),
 
     has(id) {
