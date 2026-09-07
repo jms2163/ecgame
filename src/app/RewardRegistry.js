@@ -11,6 +11,7 @@ import QuantumAutoCollectorManager
     from "./QuantumAutoCollectorManager.js";
 import XPManager from "./XPManager.js";
 import SPManager from "./SPManager.js";
+import ResourceManager from "./ResourceManager.js";
 import SynthesisPointManager
     from "./SynthesisPointManager.js";
 
@@ -151,6 +152,28 @@ const RewardRegistry = {
     }
 
 };
+
+// --------------------------------------------------
+// ATP capacity. Saved quest claims enforce one award per tier; snapshots
+// restore both values if a later reward or the final save fails.
+// --------------------------------------------------
+
+RewardRegistry.register("atpCapacity", {
+    apply(amount) {
+        if (!Number.isSafeInteger(amount) || amount <= 0) {
+            throw new Error("RewardRegistry: ATP capacity reward must be a positive integer");
+        }
+        const previous = ResourceManager.getATPStatus();
+        const updated = ResourceManager.setATPStatus({
+            current: previous.current,
+            maximum: previous.maximum + amount
+        }, "quest-atp-capacity");
+        return { snapshot: previous, result: { awarded: amount, ...updated } };
+    },
+    revert(previous) {
+        ResourceManager.setATPStatus(previous, "quest-atp-capacity-rollback");
+    }
+});
 
 // --------------------------------------------------
 // Experience points
