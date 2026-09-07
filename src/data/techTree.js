@@ -869,14 +869,264 @@ export const techTreeData = Object.freeze(
     desc: "The most complex aromatic amino acid, containing a double-ring indole system.",
     info: "Tryptophan’s large indole ring stabilizes hydrophobic cores and supports rigid structural elements. As a component in beta sheet and helix motifs, tryptophan helps define protein packing and contributes to the overall three-dimensional tertiary structure."
   },
-  Lipids: {
-    name: "Fats",
-    icon: "L",
+  Glycerol: {
+    name: "Glycerol",
+    icon: "Gl",
     tier: 0,
+    researchTime: 50,
     parents: ["CH4"],
+    type: "hydrophilic",
+    category: "lipids",
+    state: "locked",
+    affects: [], // lipid health
+    desc: "A simple polyol compound serving as the backbone for glycerolipids.",
+    info: "Glycerol forms the structural core of triglycerides and phospholipids, linking head groups to fatty acid chains."
+  },
+  Ethanolamine: {
+    name: "Ethanolamine",
+    icon: "Et",
+    tier: 0,
+    researchTime: 60,
+    parents: ["CH4", "NH3"],
+    type: "hydrophilic",
+    category: "lipids",
+    state: "locked",
+    affects: [], // signalling
+    desc: "An organic chemical compound and primary amine head group.",
+    info: "Ethanolamine is a key component of phosphatidylethanolamine, playing a structural and signaling role in membranes."
+  },
+  Choline: {
+    name: "Choline",
+    icon: "Co",
+    tier: 0,
+    researchTime: 70,
+    parents: ["CH4", "NH3"],
+    type: "hydrophilic",
+    category: "lipids",
+    state: "locked",
+    affects: [], // signalling, mobility
+    desc: "A quaternary ammonium salt vital for cell membrane composition.",
+    info: "Choline head groups form phosphatidylcholine, essential for membrane integrity and neural signalling."
+  },
+  Inositol: {
+    name: "Inositol",
+    icon: "In",
+    tier: 0,
+    researchTime: 80,
+    parents: ["CH4"],
+    type: "hydrophilic",
+    category: "lipids",
+    state: "locked",
+    affects: [], // signalling
+    desc: "A carbocyclic sugar that acts as a foundational head group.",
+    info: "Phosphoinositides containing inositol are crucial for intracellular signal transduction."
+  },
+  PropionicAcid: {
+    name: "Propionic acid",
+    icon: "Pr",
+    tier: 1,
+    researchTime: 90,
+    parents: ["CH4"],
+    type: "hydrophobic",
     category: "lipids",
     state: "locked",
     affects: [],
-    desc: "Long-term energy storage."
+    desc: "A naturally occurring short-chain fatty acid.",
+    info: "Acts as a metabolic precursor and short-chain lipid building block."
+  },
+  ButyricAcid: {
+    name: "Butyric acid",
+    icon: "Bu",
+    tier: 1,
+    researchTime: 100,
+    parents: ["CH4"],
+    type: "hydrophobic",
+    category: "lipids",
+    state: "locked",
+    affects: [], // defense
+    desc: "A four-carbon short-chain fatty acid.",
+    info: "Provides cellular energy and exhibits antimicrobial properties supporting barrier defense."
+  },
+  CaprylicAcid: {
+    name: "Caprylic acid",
+    icon: "C8",
+    tier: 1,
+    researchTime: 110,
+    parents: ["CH4"],
+    type: "hydrophobic",
+    category: "lipids",
+    state: "locked",
+    affects: [], // defense
+    desc: "An eight-carbon saturated fatty acid.",
+    info: "Known for its natural antimicrobial properties within lipid layers."
+  },
+  CapricAcid: {
+    name: "Capric acid",
+    icon: "C10",
+    tier: 1,
+    researchTime: 120,
+    parents: ["CH4"],
+    type: "hydrophobic",
+    category: "lipids",
+    state: "locked",
+    affects: [], // defense
+    desc: "A ten-carbon saturated fatty acid.",
+    info: "Contributes to cellular defense mechanisms and medium-chain lipid networks."
+  },
+  LauricAcid: {
+    name: "Lauric acid",
+    icon: "C12",
+    tier: 1,
+    researchTime: 130,
+    parents: ["CH4"],
+    type: "hydrophobic",
+    category: "lipids",
+    state: "locked",
+    affects: [], // lipid health
+    desc: "A twelve-carbon saturated fatty acid.",
+    info: "Readily incorporated into stable lipid structures to support membrane stability."
+  },
+  MyristicAcid: {
+    name: "Myristic acid",
+    icon: "C14",
+    tier: 1,
+    researchTime: 140,
+    parents: ["CH4"],
+    type: "hydrophobic",
+    category: "lipids",
+    state: "locked",
+    affects: [], // lipid health
+    desc: "A common saturated fourteen-carbon fatty acid.",
+    info: "Frequently utilized in protein acylation for tight membrane anchoring."
+  },
+  PalmiticAcid: {
+    name: "Palmitic acid",
+    icon: "C16",
+    tier: 1,
+    researchTime: 150,
+    parents: ["CH4"],
+    type: "hydrophobic",
+    category: "lipids",
+    state: "locked",
+    affects: [], // mobility
+    desc: "The primary saturated fatty acid produced during de novo lipogenesis.",
+    info: "Serves as a major structural component shaping baseline membrane fluidity and thickness."
+  },
+  StearicAcid: {
+    name: "Stearic acid",
+    icon: "C18",
+    tier: 1,
+    researchTime: 160,
+    parents: ["CH4"],
+    type: "hydrophobic",
+    category: "lipids",
+    state: "locked",
+    affects: [], // mobility
+    desc: "A saturated eighteen-carbon fatty acid with a straight hydrocarbon chain.",
+    info: "Enhances membrane packing rigidity and structural integrity."
+  },
+  OleicAcid: {
+    name: "Oleic acid",
+    icon: "Ol",
+    tier: 2,
+    researchTime: 170,
+    parents: ["CH4"],
+    type: "hydrophobic",
+    category: "lipids",
+    state: "locked",
+    affects: [], // mobility
+    desc: "A monounsaturated omega-9 fatty acid with a single double bond.",
+    info: "Introduces a structural kink that prevents tight packing, increasing membrane fluidity."
+  },
+  EA: {
+    name: "EA (Erucic acid)",
+    icon: "EA",
+    tier: 2,
+    researchTime: 180,
+    parents: ["CH4"],
+    type: "hydrophobic",
+    category: "lipids",
+    state: "locked",
+    affects: [], // mobility
+    desc: "A monounsaturated long-chain omega-9 fatty acid.",
+    info: "Modulates membrane viscosity and local lipid environment dynamics."
+  },
+  LA: {
+    name: "LA (Linoleum acid)",
+    icon: "LA",
+    tier: 3,
+    researchTime: 190,
+    parents: ["CH4"],
+    type: "hydrophobic",
+    category: "lipids",
+    state: "locked",
+    affects: [], // signalling, reproduction
+    desc: "An essential polyunsaturated omega-6 fatty acid.",
+    info: "Acts as a vital metabolic precursor for downstream signaling molecules and specialized lipids."
+  },
+  AA: {
+    name: "AA (Arachidonic acid)",
+    icon: "AA",
+    tier: 3,
+    researchTime: 200,
+    parents: ["CH4"],
+    type: "hydrophobic",
+    category: "lipids",
+    state: "locked",
+    affects: [], // signalling, defense
+    desc: "A polyunsaturated omega-6 fatty acid rich in animal membranes.",
+    info: "Central precursor for inflammatory mediators, immune response, and cellular signaling."
+  },
+  EPA: {
+    name: "EPA (Eicosapentaenoic acid)",
+    icon: "EPA",
+    tier: 3,
+    researchTime: 210,
+    parents: ["CH4"],
+    type: "hydrophobic",
+    category: "lipids",
+    state: "locked",
+    affects: [], // lipid health
+    desc: "An omega-3 polyunsaturated fatty acid with five double bonds.",
+    info: "Optimizes membrane dynamics and supports balanced physiological regulation."
+  },
+  DHA: {
+    name: "DHA (Docosahexaenoic acid)",
+    icon: "DHA",
+    tier: 3,
+    researchTime: 220,
+    parents: ["CH4"],
+    type: "hydrophobic",
+    category: "lipids",
+    state: "locked",
+    affects: [], // sensing, mobility
+    desc: "A critical long-chain omega-3 polyunsaturated fatty acid.",
+    info: "Highly enriched in neural and sensory tissues to maximize membrane protein efficiency."
+  },
+  Ergosterol: {
+    name: "Ergosterol",
+    icon: "Erg",
+    tier: 4,
+    researchTime: 230,
+    parents: ["CH4"],
+    type: "hydrophobic",
+    category: "lipids",
+    state: "locked",
+    affects: [], // defense, sensing
+    desc: "A biological sterol component found in non-animal eukaryotic cell membranes.",
+    info: "Modulates membrane permeability, fluidity, and localized receptor interactions."
+  },
+  Sitosterol: {
+    name: "Sitosterol",
+    icon: "Sit",
+    tier: 4,
+    researchTime: 240,
+    parents: ["CH4"],
+    type: "hydrophobic",
+    category: "lipids",
+    state: "locked",
+    affects: [], // lipid health, defense
+    desc: "A plant phytosterol structurally similar to cholesterol.",
+    info: "Stabilizes lipid bilayer architecture and strengthens cellular barrier defense."
   }
 });

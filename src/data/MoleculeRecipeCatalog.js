@@ -14,6 +14,7 @@ import MoleculeDipoleCatalog
 import MoleculeWaterInteractionCatalog
     from "./MoleculeWaterInteractionCatalog.js";
 import { baseLibrary } from "./baseLibrary.js";
+import { lipidLibrary } from "./lipidLibrary.js";
 
 const STANDARD_STRUCTURES = {
     H2: {
@@ -219,6 +220,20 @@ function structureFor(id) {
                 Object.keys(formula),
             atoms: base.atoms,
             bonds: base.bonds
+        };
+    }
+
+    const lipid = lipidLibrary[id];
+    if (lipid?.atoms && lipid?.bonds) {
+        const formula =
+            formulaFromRecord(lipid);
+
+        return {
+            formula,
+            requiredDiscoveries:
+                Object.keys(formula),
+            atoms: lipid.atoms,
+            bonds: lipid.bonds
         };
     }
 
