@@ -4,6 +4,7 @@
 // --------------------------------------------------
 
 import gameState from "./GameState.js";
+import GameStateObserver from "./GameStateObserver.js";
 
 const DEFAULT_ATP = {
 
@@ -59,6 +60,28 @@ const ResourceManager = {
             maximum: atp.maximum
         };
 
+    },
+    // Atomic resource update used by reward application and rollback.
+    // Callers increasing capacity preserve the current balance explicitly.
+    setATPStatus(status, reason = "atp-status-restored") {
+        if (!Number.isSafeInteger(status?.current) || status.current < 0 ||
+            !Number.isSafeInteger(status?.maximum) || status.maximum < status.current) {
+            throw new Error("ResourceManager: invalid ATP status");
+        }
+        const atp = this.ensureATPResource();
+        const previous = this.getATPStatus();
+        atp.current = status.current;
+        atp.maximum = status.maximum;
+        try {
+            GameStateObserver.notify("atp-changed", {
+                ...this.getATPStatus(), delta: status.current - previous.current, reason
+            });
+        } catch (error) {
+            atp.current = previous.current;
+            atp.maximum = previous.maximum;
+            throw error;
+        }
+        return this.getATPStatus();
     },
         // --------------------------------------------------
     // Check whether ATP can be spent
