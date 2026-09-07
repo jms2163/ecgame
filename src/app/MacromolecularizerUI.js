@@ -451,7 +451,7 @@ const MacromolecularizerUI = {
                                         <p id="macromolecularizer-bond-calculation"></p>
                                     </div>
                                     <div>
-                                        <span class="macro-dossier-label">Amino-acid composition</span>
+                                        <span id="macromolecularizer-composition-label" class="macro-dossier-label">Monomer composition</span>
                                         <p class="macro-dossier-note">
                                             Quantities describe the product. Synthesized monomer knowledge is required and is not consumed.
                                         </p>
@@ -774,6 +774,10 @@ const MacromolecularizerUI = {
             bondCalculation:
                 this.rootElement.querySelector(
                     "#macromolecularizer-bond-calculation"
+                ),
+            compositionLabel:
+                this.rootElement.querySelector(
+                    "#macromolecularizer-composition-label"
                 ),
             aminoAcidRequirements:
                 this.rootElement.querySelector(
@@ -1479,6 +1483,11 @@ const MacromolecularizerUI = {
         this.elements.bondCalculation
             .textContent =
                 `${definition.monomerCount} ${definition.category === "carbs" ? "sugar units" : "amino acids"} form ${definition.bondCount} ${definition.bondType} bond${definition.bondCount === 1 ? "" : "s"}, requiring ${definition.atpCost} ATP.`;
+        this.elements.compositionLabel
+            .textContent =
+                definition.category === "carbs"
+                    ? "Monosaccharide composition"
+                    : "Amino-acid composition";
 
         this.elements
             .aminoAcidRequirements
