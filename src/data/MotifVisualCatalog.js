@@ -57,8 +57,16 @@ const VISUALS =
         Lactose: Object.freeze({
             icon: "⬡",
             classification: "Disaccharide · galactose + glucose",
-            previewImage: null,
-            observationImage: null
+            previewImage: "./public/assets/molecularizer/lactose_left_black_right_black.png",
+            synthesisFrames: Object.freeze({
+                count: 3, startIndex: 0, completeIndex: 2,
+                files: Object.freeze([
+                    "./public/assets/molecularizer/lactose_left_black_right_black.png",
+                    "./public/assets/molecularizer/lactose_left_green_right_black.png",
+                    "./public/assets/molecularizer/lactose_left_green_right_green.png"
+                ])
+            }),
+            observationImage: "./public/assets/molecularizer/lactose_left_green_right_green.png"
         }),
         H_helix: Object.freeze({
             icon: "α",
