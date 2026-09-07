@@ -172,16 +172,398 @@ export const techTreeData = Object.freeze(
     affects: [],
     desc: "Unlock Sugar and Carbohydrate research."
   },
+  G3P: {
+      researchTime: 170, // Seconds: nominal molecular mass, matching amino-acid timing.
+      "name": "Glyceraldehyde-3-phosphate",
+      "icon": "C<sub>3</sub>H<sub>7</sub>O<sub>6</sub>P",
+      "tier": 0,
+      "parents": [
+          "CO2",
+          "H2O"
+      ],
+      "category": "carbs",
+      "state": "locked",
+      "affects": [],
+      "desc": "Synthesize Glyceraldehyde-3-phosphate."
+  },
+
+  DHAP: {
+      researchTime: 170, // Seconds: nominal molecular mass, matching amino-acid timing.
+      "name": "Dihydroxyacetone phosphate",
+      "icon": "C<sub>3</sub>H<sub>7</sub>O<sub>6</sub>P",
+      "tier": 0,
+      "parents": [
+          "CO2",
+          "H2O"
+      ],
+      "category": "carbs",
+      "state": "locked",
+      "affects": [],
+      "desc": "Synthesize Dihydroxyacetone phosphate."
+  },
+
+  Erythrose: {
+      researchTime: 120, // Seconds: nominal molecular mass, matching amino-acid timing.
+      "name": "Erythrose",
+      "icon": "C<sub>4</sub>H<sub>8</sub>O<sub>4</sub>",
+      "tier": 0,
+      "parents": [
+          "CO2",
+          "H2O"
+      ],
+      "category": "carbs",
+      "state": "locked",
+      "affects": [],
+      "desc": "Synthesize Erythrose."
+  },
+
+  Erythrulose: {
+      researchTime: 120, // Seconds: nominal molecular mass, matching amino-acid timing.
+      "name": "Erythrulose",
+      "icon": "C<sub>4</sub>H<sub>8</sub>O<sub>4</sub>",
+      "tier": 0,
+      "parents": [
+          "CO2",
+          "H2O"
+      ],
+      "category": "carbs",
+      "state": "locked",
+      "affects": [],
+      "desc": "Synthesize Erythrulose."
+  },
+
+  Arabinose: {
+      researchTime: 150, // Seconds: nominal molecular mass, matching amino-acid timing.
+      "name": "Arabinose",
+      "icon": "C<sub>5</sub>H<sub>10</sub>O<sub>5</sub>",
+      "tier": 1,
+      "parents": [
+          "CO2",
+          "H2O"
+      ],
+      "category": "carbs",
+      "state": "locked",
+      "affects": [],
+      "desc": "Synthesize Arabinose."
+  },
+
+  Xylose: {
+      researchTime: 150, // Seconds: nominal molecular mass, matching amino-acid timing.
+      "name": "Xylose",
+      "icon": "C<sub>5</sub>H<sub>10</sub>O<sub>5</sub>",
+      "tier": 1,
+      "parents": [
+          "CO2",
+          "H2O"
+      ],
+      "category": "carbs",
+      "state": "locked",
+      "affects": [],
+      "desc": "Synthesize Xylose."
+  },
+
+  Lyxose: {
+      researchTime: 150, // Seconds: nominal molecular mass, matching amino-acid timing.
+      "name": "Lyxose",
+      "icon": "C<sub>5</sub>H<sub>10</sub>O<sub>5</sub>",
+      "tier": 1,
+      "parents": [
+          "CO2",
+          "H2O"
+      ],
+      "category": "carbs",
+      "state": "locked",
+      "affects": [],
+      "desc": "Synthesize Lyxose."
+  },
+
+  Ribulose: {
+      researchTime: 150, // Seconds: nominal molecular mass, matching amino-acid timing.
+      "name": "Ribulose",
+      "icon": "C<sub>5</sub>H<sub>10</sub>O<sub>5</sub>",
+      "tier": 1,
+      "parents": [
+          "CO2",
+          "H2O"
+      ],
+      "category": "carbs",
+      "state": "locked",
+      "affects": [],
+      "desc": "Synthesize Ribulose."
+  },
+
+  Xylulose: {
+      researchTime: 150, // Seconds: nominal molecular mass, matching amino-acid timing.
+      "name": "Xylulose",
+      "icon": "C<sub>5</sub>H<sub>10</sub>O<sub>5</sub>",
+      "tier": 1,
+      "parents": [
+          "CO2",
+          "H2O"
+      ],
+      "category": "carbs",
+      "state": "locked",
+      "affects": [],
+      "desc": "Synthesize Xylulose."
+  },
+
+  Deoxyribose: {
+      researchTime: 134, // Seconds: nominal molecular mass, matching amino-acid timing.
+      "name": "Deoxyribose",
+      "icon": "C<sub>5</sub>H<sub>10</sub>O<sub>4</sub>",
+      "tier": 1,
+      "parents": [
+          "CO2",
+          "H2O"
+      ],
+      "category": "carbs",
+      "state": "locked",
+      "affects": [],
+      "desc": "Synthesize Deoxyribose."
+  },
+
+  Ribose: {
+      researchTime: 150, // Seconds: nominal molecular mass, matching amino-acid timing.
+      "name": "Ribose",
+      "icon": "C<sub>5</sub>H<sub>10</sub>O<sub>5</sub>",
+      "tier": 1,
+      "parents": [
+          "CO2",
+          "H2O"
+      ],
+      "category": "carbs",
+      "state": "locked",
+      "affects": [],
+      "desc": "Synthesize Ribose."
+  },
+
   Glucose: {
-    name: "Glucose",
-    icon: "C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>",
-    tier: 0,
-    parents: ["CO2", "H2O"],
-    category: "carbs",
-    state: "locked",
-    affects: [],
-    desc: "A primary simple sugar.",
-    info: "Glucose is a six‑carbon monosaccharide that typically forms a stable ring structure in aqueous environments. Each carbon is bonded to oxygen and hydrogen in a way that creates multiple hydroxyl (–OH) groups, making glucose highly polar and readily soluble in water through <b>hydrogen bonding</b>. This polarity allows cells to transport and metabolize glucose efficiently. As a primary simple sugar, glucose serves as the fundamental energy source for most organisms: during cellular respiration, its carbon–hydrogen bonds are broken to release energy stored in ATP. Glucose is also a key building block for larger carbohydrates such as starch, cellulose, and glycogen. Since it is large and polar, it requires transporters to pass across lipid membranes."
+      researchTime: 180, // Seconds: nominal molecular mass, matching amino-acid timing.
+      "name": "Glucose",
+      "icon": "C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>",
+      "tier": 2,
+      "parents": [
+          "CO2",
+          "H2O"
+      ],
+      "category": "carbs",
+      "state": "locked",
+      "affects": [],
+      "desc": "Synthesize Glucose.",
+      "info": "Glucose is a six‑carbon monosaccharide that typically forms a stable ring structure in aqueous environments. Each carbon is bonded to oxygen and hydrogen in a way that creates multiple hydroxyl (–OH) groups, making glucose highly polar and readily soluble in water through <b>hydrogen bonding</b>. This polarity allows cells to transport and metabolize glucose efficiently. As a primary simple sugar, glucose serves as the fundamental energy source for most organisms: during cellular respiration, its carbon–hydrogen bonds are broken to release energy stored in ATP. Glucose is also a key building block for larger carbohydrates such as starch, cellulose, and glycogen. Since it is large and polar, it requires transporters to pass across lipid membranes."
+  },
+
+  Fructose: {
+      researchTime: 180, // Seconds: nominal molecular mass, matching amino-acid timing.
+      "name": "Fructose",
+      "icon": "C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>",
+      "tier": 2,
+      "parents": [
+          "CO2",
+          "H2O"
+      ],
+      "category": "carbs",
+      "state": "locked",
+      "affects": [],
+      "desc": "Synthesize Fructose."
+  },
+
+  Mannose: {
+      researchTime: 180, // Seconds: nominal molecular mass, matching amino-acid timing.
+      "name": "Mannose",
+      "icon": "C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>",
+      "tier": 2,
+      "parents": [
+          "CO2",
+          "H2O"
+      ],
+      "category": "carbs",
+      "state": "locked",
+      "affects": [],
+      "desc": "Synthesize Mannose."
+  },
+
+  Galactose: {
+      researchTime: 180, // Seconds: nominal molecular mass, matching amino-acid timing.
+      "name": "Galactose",
+      "icon": "C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>",
+      "tier": 2,
+      "parents": [
+          "CO2",
+          "H2O"
+      ],
+      "category": "carbs",
+      "state": "locked",
+      "affects": [],
+      "desc": "Synthesize Galactose."
+  },
+
+  Gulose: {
+      researchTime: 180, // Seconds: nominal molecular mass, matching amino-acid timing.
+      "name": "Gulose",
+      "icon": "C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>",
+      "tier": 2,
+      "parents": [
+          "CO2",
+          "H2O"
+      ],
+      "category": "carbs",
+      "state": "locked",
+      "affects": [],
+      "desc": "Synthesize Gulose."
+  },
+
+  Idose: {
+      researchTime: 180, // Seconds: nominal molecular mass, matching amino-acid timing.
+      "name": "Idose",
+      "icon": "C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>",
+      "tier": 2,
+      "parents": [
+          "CO2",
+          "H2O"
+      ],
+      "category": "carbs",
+      "state": "locked",
+      "affects": [],
+      "desc": "Synthesize Idose."
+  },
+
+  Talose: {
+      researchTime: 180, // Seconds: nominal molecular mass, matching amino-acid timing.
+      "name": "Talose",
+      "icon": "C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>",
+      "tier": 2,
+      "parents": [
+          "CO2",
+          "H2O"
+      ],
+      "category": "carbs",
+      "state": "locked",
+      "affects": [],
+      "desc": "Synthesize Talose."
+  },
+
+  Allose: {
+      researchTime: 180, // Seconds: nominal molecular mass, matching amino-acid timing.
+      "name": "Allose",
+      "icon": "C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>",
+      "tier": 2,
+      "parents": [
+          "CO2",
+          "H2O"
+      ],
+      "category": "carbs",
+      "state": "locked",
+      "affects": [],
+      "desc": "Synthesize Allose."
+  },
+
+  Altrose: {
+      researchTime: 180, // Seconds: nominal molecular mass, matching amino-acid timing.
+      "name": "Altrose",
+      "icon": "C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>",
+      "tier": 2,
+      "parents": [
+          "CO2",
+          "H2O"
+      ],
+      "category": "carbs",
+      "state": "locked",
+      "affects": [],
+      "desc": "Synthesize Altrose."
+  },
+
+  Sorbose: {
+      researchTime: 180, // Seconds: nominal molecular mass, matching amino-acid timing.
+      "name": "Sorbose",
+      "icon": "C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>",
+      "tier": 2,
+      "parents": [
+          "CO2",
+          "H2O"
+      ],
+      "category": "carbs",
+      "state": "locked",
+      "affects": [],
+      "desc": "Synthesize Sorbose."
+  },
+
+  Tagatose: {
+      researchTime: 180, // Seconds: nominal molecular mass, matching amino-acid timing.
+      "name": "Tagatose",
+      "icon": "C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>",
+      "tier": 2,
+      "parents": [
+          "CO2",
+          "H2O"
+      ],
+      "category": "carbs",
+      "state": "locked",
+      "affects": [],
+      "desc": "Synthesize Tagatose."
+  },
+
+  Psicose: {
+      researchTime: 180, // Seconds: nominal molecular mass, matching amino-acid timing.
+      "name": "Psicose",
+      "icon": "C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>",
+      "tier": 2,
+      "parents": [
+          "CO2",
+          "H2O"
+      ],
+      "category": "carbs",
+      "state": "locked",
+      "affects": [],
+      "desc": "Synthesize Psicose."
+  },
+
+  Glucosamine: {
+      researchTime: 179, // Seconds: nominal molecular mass, matching amino-acid timing.
+      "name": "Glucosamine",
+      "icon": "C<sub>6</sub>H<sub>13</sub>NO<sub>5</sub>",
+      "tier": 3,
+      "parents": [
+          "CO2",
+          "H2O",
+          "NH3"
+      ],
+      "category": "carbs",
+      "state": "locked",
+      "affects": [],
+      "desc": "Synthesize Glucosamine."
+  },
+
+  NAcetylglucosamine: {
+      researchTime: 221, // Seconds: nominal molecular mass, matching amino-acid timing.
+      "name": "N-Acetylglucosamine",
+      "icon": "C<sub>8</sub>H<sub>15</sub>NO<sub>6</sub>",
+      "tier": 3,
+      "parents": [
+          "CO2",
+          "H2O",
+          "NH3"
+      ],
+      "category": "carbs",
+      "state": "locked",
+      "affects": [],
+      "desc": "Synthesize N-Acetylglucosamine."
+  },
+
+  NAcetylmuramicAcid: {
+      researchTime: 293, // Seconds: nominal molecular mass, matching amino-acid timing.
+      "name": "N-Acetylmuramic Acid",
+      "icon": "C<sub>11</sub>H<sub>19</sub>NO<sub>8</sub>",
+      "tier": 3,
+      "parents": [
+          "CO2",
+          "H2O",
+          "NH3"
+      ],
+      "category": "carbs",
+      "state": "locked",
+      "affects": [],
+      "desc": "Synthesize N-Acetylmuramic Acid."
   },
   G: {
     name: "Glycine",

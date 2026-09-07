@@ -391,6 +391,28 @@ ObjectiveRegistry.register(
     }
 );
 
+// A fixed set of distinct, completed Molecule Lab recipes. This intentionally
+// reads synthesis history, not discovery flags or counts of repeated copies.
+ObjectiveRegistry.register("molecule-synthesis-set", {
+    events: ["molecule-synthesized"],
+
+    evaluate({ objective }) {
+        const ids = [...new Set(objective.moleculeIds ?? [])];
+        if (ids.length === 0 || ids.length !== objective.target) {
+            return { current: 0, target: objective.target ?? 1, complete: false,
+                error: "invalid-molecule-set" };
+        }
+        const history = gameState.zones?.moleculeLab?.state?.synthesized ?? {};
+        const completed = ids.filter(id =>
+            Number.isFinite(history[id]?.count) && history[id].count >= 1
+        );
+        return {
+            ...normalizeProgress(completed.length, ids.length),
+            missingIds: ids.filter(id => !completed.includes(id))
+        };
+    }
+});
+
 export {
     createBaselineKey,
     normalizeProgress

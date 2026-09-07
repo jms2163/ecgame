@@ -491,6 +491,10 @@ const QuestDrawerUI = {
             );
         }
 
+        if (quest.rewards.atpCapacity) {
+            rewardParts.push(`+${quest.rewards.atpCapacity} maximum ATP`);
+        }
+
 
 
         if (
