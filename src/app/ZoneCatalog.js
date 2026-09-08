@@ -57,14 +57,13 @@ const ZONE_DEFINITIONS = Object.freeze([
 }),
 
     Object.freeze({
-        id: "macromolecularizer",
-        label: "Macromolecularizer",
-        releaseState: RELEASE_STATE.COMING_SOON,
-        lockedMessage:
-            "Complete the required Molecular activities first.",
-        comingSoonMessage:
-            "Macromolecule construction is planned for a later release."
-    }),
+    id: "macromolecularizer",
+    label: "Macromolecularizer",
+    releaseState: RELEASE_STATE.PLAYABLE,
+    lockedMessage:
+        "Synthesize a monosaccharide, an amino acid, and a nitrogenous base, then claim the Macromolecular Foundations quest.",
+    comingSoonMessage: ""
+}),
 
     Object.freeze({
         id: "polymerizer",

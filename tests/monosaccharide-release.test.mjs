@@ -36,6 +36,7 @@ try {
     assert.equal(Object.keys(monosaccharideLibrary).length, 26);
     const listedIds = awards.flatMap(q => q.objectives[0].moleculeIds);
     assert.equal(new Set(listedIds).size, 26);
+    const nominalAtomicMass = { H: 1, C: 12, N: 14, O: 16, P: 31, S: 32 };
     for (const [tier, award] of awards.entries()) {
         for (const id of award.objectives[0].moleculeIds) {
             const definition = MoleculeRecipeCatalog.get(id);
@@ -43,6 +44,9 @@ try {
             assert(definition?.implemented, id);
             assert.equal(definition.tier, tier, id);
             assert.deepEqual(definition.parents, tier === 3 ? ["CO2", "H2O", "NH3"] : ["CO2", "H2O"]);
+            const expectedDurationSeconds = Object.entries(nominalAtomicMass)
+                .reduce((total, [symbol, mass]) => total + (model[symbol] ?? 0) * mass, 0);
+            assert.equal(definition.durationMs, expectedDurationSeconds * 1000, `${id}: synthesis duration`);
             const atomCounts = {};
             model.atoms.forEach(atom => {
                 atomCounts[atom.type] = (atomCounts[atom.type] ?? 0) + 1;
@@ -155,4 +159,4 @@ try {
     console.log = originalLog;
     console.error = originalError;
 }
-console.log("PASS: 26 recipes, tier/parent mapping, graph/formula checks, legacy save, distinct synthesis sets, four rewards, save-failure rollback, and reload/duplicate-claim protection.");
+console.log("PASS: 26 recipes, molecular-mass timing, tier/parent mapping, graph/formula checks, legacy save, distinct synthesis sets, four rewards, save-failure rollback, and reload/duplicate-claim protection.");

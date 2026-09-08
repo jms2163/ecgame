@@ -23,6 +23,9 @@ import PondWorldConfig
     from "./PondWorldConfig.js";
 import ResourceManager
     from "./ResourceManager.js";
+import SynthesisPointManager
+    from "./SynthesisPointManager.js";
+import ATPManager from "./ATPManager.js";
 import XPManager from "./XPManager.js";
 import ParticleInventoryManager
     from "./ParticleInventoryManager.js";
@@ -77,6 +80,12 @@ import GameStateObserver from "./GameStateObserver.js";
 import AtomizerUI from "./AtomizerUI.js";
 import SPManager from "./SPManager.js";
 import MoleculeLabManager from "./MoleculeLabManager.js";
+import MacromolecularizerManager
+    from "./MacromolecularizerManager.js";
+import Macromolecularizer
+    from "./Macromolecularizer.js";
+import MacromolecularizerUI
+    from "./MacromolecularizerUI.js";
 import MoleculeLab from "./MoleculeLab.js";
 import MoleculeLabUI from "./MoleculeLabUI.js";
 import MoleculeBuilderView from "./MoleculeBuilderView.js";
@@ -101,6 +110,8 @@ const DevConsole = {
             SeededRandom,
             PondWorldConfig,
             ResourceManager,
+            SynthesisPointManager,
+            ATPManager,
             XPManager,
             ParticleInventoryManager,
             GameStars,
@@ -134,10 +145,12 @@ const DevConsole = {
             AtomizerUI,
             SPManager,
             MoleculeLabManager,
+            MacromolecularizerManager,
+            Macromolecularizer,
+            MacromolecularizerUI,
             MoleculeLab,
             MoleculeLabUI,
             MoleculeBuilderView
-            
         };
 
         console.log(

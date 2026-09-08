@@ -61,6 +61,7 @@ const ResourceManager = {
         };
 
     },
+
     // Atomic resource update used by reward application and rollback.
     // Callers increasing capacity preserve the current balance explicitly.
     setATPStatus(status, reason = "atp-status-restored") {
@@ -83,7 +84,74 @@ const ResourceManager = {
         }
         return this.getATPStatus();
     },
-        // --------------------------------------------------
+
+    // --------------------------------------------------
+    // Notify observers after an ATP balance change
+    // --------------------------------------------------
+    notifyATPChanged(
+        delta,
+        reason,
+        detail = {}
+    ) {
+
+        const status =
+            this.getATPStatus();
+
+        const payload = {
+            ...status,
+            ...detail,
+            delta,
+            reason
+        };
+
+        GameStateObserver.notify(
+            "atp-changed",
+            payload
+        );
+
+        return payload;
+
+    },
+
+    // --------------------------------------------------
+    // Permanently increase ATP storage without refilling it
+    // --------------------------------------------------
+    increaseATPCapacity(
+        amount,
+        reason = "atp-capacity-increased"
+    ) {
+
+        if (
+            !Number.isInteger(amount) ||
+            amount <= 0
+        ) {
+            console.warn(
+                "ResourceManager: ATP capacity increase must be a positive integer"
+            );
+
+            return false;
+        }
+
+        const atp =
+            this.ensureATPResource();
+
+        atp.maximum +=
+            amount;
+
+        this.notifyATPChanged(
+            0,
+            reason,
+            {
+                capacityDelta:
+                    amount
+            }
+        );
+
+        return this.getATPStatus();
+
+    },
+
+    // --------------------------------------------------
     // Check whether ATP can be spent
     // --------------------------------------------------
     canSpendATP(amount) {
@@ -105,7 +173,10 @@ const ResourceManager = {
     // --------------------------------------------------
     // Spend ATP if available
     // --------------------------------------------------
-    spendATP(amount) {
+    spendATP(
+        amount,
+        reason = "resource-spend"
+    ) {
 
         if (!this.canSpendATP(amount)) {
             return false;
@@ -116,6 +187,11 @@ const ResourceManager = {
 
         atp.current -= amount;
 
+        this.notifyATPChanged(
+            -amount,
+            reason
+        );
+
         return true;
 
     },
@@ -123,7 +199,10 @@ const ResourceManager = {
     // --------------------------------------------------
     // Add ATP up to its maximum reserve
     // --------------------------------------------------
-    addATP(amount) {
+    addATP(
+        amount,
+        reason = "resource-gain"
+    ) {
 
         if (
             !Number.isFinite(amount) ||
@@ -144,7 +223,16 @@ const ResourceManager = {
                 availableSpace
             );
 
+        if (actualGain <= 0) {
+            return 0;
+        }
+
         atp.current += actualGain;
+
+        this.notifyATPChanged(
+            actualGain,
+            reason
+        );
 
         return actualGain;
 

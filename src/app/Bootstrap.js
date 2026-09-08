@@ -12,12 +12,17 @@ import NavigationUI from "./NavigationUI.js";
 import ZoneCatalog from "./ZoneCatalog.js";
 import DevConsole from "./DevConsole.js";
 import ResourceManager from "./ResourceManager.js";
+import SynthesisPointManager
+    from "./SynthesisPointManager.js";
+import ATPManager from "./ATPManager.js";
 import QuestManager from "./QuestManager.js";
 import QuestDrawerUI from "./QuestDrawerUI.js";
 import QuantumAutoCollectorManager from "./QuantumAutoCollectorManager.js";
 import AtomizerManager from "./AtomizerManager.js";
 import AtomizerUI from "./AtomizerUI.js";
 import MoleculeLabManager from "./MoleculeLabManager.js";
+import MacromolecularizerManager
+    from "./MacromolecularizerManager.js";
 import PlayerProfileManager from "./PlayerProfileManager.js";
 import PlayerBadgeDrawer from "./PlayerBadgeDrawer.js";
 
@@ -37,6 +42,10 @@ const Bootstrap = {
         PlayerProfileManager.initialize();
 
         ResourceManager.initialize();
+        SynthesisPointManager.initialize();
+        // ATP production subscribes before the central
+        // game loop begins emitting game-tick events.
+        ATPManager.initialize();
         // Global initialization keeps enabled Quantum
         // autocollectors running in every zone while the
         // game is open.
@@ -53,6 +62,9 @@ const Bootstrap = {
         // Domain initialization is global so timestamp-based
         // synthesis can reconcile even before the zone is opened.
         MoleculeLabManager.initialize();
+        // Normalize the future Macromolecularizer state
+        // after the local save has been loaded.
+        MacromolecularizerManager.initialize();
 
         const requestedZoneId =
             GameStateManager.getCurrentZoneId();

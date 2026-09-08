@@ -5,6 +5,9 @@
 
 import gameState from "./GameState.js";
 import ParticleInventoryManager from "./ParticleInventoryManager.js";
+import MoleculeRecipeCatalog
+    from "../data/MoleculeRecipeCatalog.js";
+
 
 const handlers = new Map();
 
@@ -387,6 +390,70 @@ ObjectiveRegistry.register(
                 current,
                 objective.target
             );
+        }
+    }
+);
+
+// Counts distinct, completed Molecule Lab recipes in one category.
+// Existing synthesis history counts; repeated copies do not.
+// #TODO CHECK added 9/7/26 3:28 p.m.
+ObjectiveRegistry.register(
+    "molecule-category-synthesis",
+    {
+        events: ["molecule-synthesized"],
+
+        evaluate({ objective }) {
+            const categoryId =
+                objective.categoryId;
+
+            const validCategory =
+                MoleculeRecipeCatalog.categories
+                    .some(category =>
+                        category.id === categoryId
+                    );
+
+            if (!validCategory) {
+                return {
+                    current: 0,
+                    target:
+                        objective.target ?? 1,
+                    complete: false,
+                    error:
+                        "invalid-molecule-category"
+                };
+            }
+
+            const history =
+                gameState.zones
+                    ?.moleculeLab
+                    ?.state
+                    ?.synthesized ?? {};
+
+            const completedIds =
+                Object.entries(history)
+                    .filter(([id, record]) => {
+                        const definition =
+                            MoleculeRecipeCatalog.get(id);
+
+                        return (
+                            Number.isFinite(
+                                record?.count
+                            ) &&
+                            record.count >= 1 &&
+                            definition?.type !== "link" &&
+                            definition?.category ===
+                                categoryId
+                        );
+                    })
+                    .map(([id]) => id);
+
+            return {
+                ...normalizeProgress(
+                    completedIds.length,
+                    objective.target
+                ),
+                completedIds
+            };
         }
     }
 );
