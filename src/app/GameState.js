@@ -32,7 +32,9 @@ const gameState = {
         organelles: {}, // future refactor
         atoms: {},
         isotopes: {},
-        molecules: {}
+        molecules: {},
+        reactions: {},
+        motifs: {}
     },
 
 
@@ -42,6 +44,11 @@ const gameState = {
     atp: {
         current: 50,
         maximum: 50
+    },
+
+    synthesisPoints: {
+        current: 0,
+        lifetimeEarned: 0
     },
 
     particles: {
@@ -314,7 +321,19 @@ atomizer: {
         macromolecularizer: {
             unlocked: false,
             completed: false,
-            state: {}
+            state: {
+                activeCategory: "motifs",
+                selectedMotifId: "H_helix",
+                activeSynthesis: null,
+                synthesized: {},
+                motifInventory: {},
+                upgrades: {
+                    dehydrationSynthesisSpeed: {
+                        level: 0,
+                        synthesisPointsSpent: 0
+                    }
+                }
+            }
         },
 
         polymerizer: {

@@ -263,6 +263,56 @@ unlock_molecule_lab: {
             collectorUnlocks: ["electron"]
         }
     },
+    // TODO check 9/7/26 3:29 p.m.
+    unlock_macromolecularizer: {
+    id: "unlock_macromolecularizer",
+    title: "Macromolecular Foundations",
+    category: "main",
+    releaseState: "playable",
+
+    description:
+        "Synthesize at least one monosaccharide, one amino acid, and one nitrogenous base to unlock the Macromolecularizer.",
+
+    prerequisites: [
+        "unlock_molecule_lab"
+    ],
+
+    objectives: [
+        {
+            type:
+                "molecule-category-synthesis",
+            categoryId: "carbs",
+            label:
+                "Monosaccharide synthesized",
+            target: 1
+        },
+        {
+            type:
+                "molecule-category-synthesis",
+            categoryId: "proteins",
+            label:
+                "Amino acid synthesized",
+            target: 1
+        },
+        {
+            type:
+                "molecule-category-synthesis",
+            categoryId: "nucleics",
+            label:
+                "Nitrogenous base synthesized",
+            target: 1
+        }
+    ],
+
+    rewards: {
+        xp: 500,
+        synthesisPoints: 1,
+        zoneUnlocks: [
+            "macromolecularizer"
+        ],
+        collectorUnlocks: []
+    }
+},
     // Merge Atomizer quests (a1 through a24) directly into the catalog
     ...AtomizerQuestCatalog,
     ...MonosaccharideQuestCatalog
