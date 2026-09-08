@@ -1,6 +1,7 @@
 // Aggregate assembly recipes without putting carbohydrates in the motif library.
 import MotifRecipeCatalog from "./MotifRecipeCatalog.js";
 import CarbohydrateRecipeCatalog from "./CarbohydrateRecipeCatalog.js";
+import NucleotideRecipeCatalog from "./NucleotideRecipeCatalog.js";
 
 const definitions = Object.freeze([
     ...MotifRecipeCatalog.getImplemented().map(recipe => Object.freeze({
@@ -11,7 +12,15 @@ const definitions = Object.freeze([
         bondCount: recipe.peptideBondCount,
         bondType: "peptide"
     })),
-    ...CarbohydrateRecipeCatalog.getAll()
+    ...CarbohydrateRecipeCatalog.getAll(),
+    ...NucleotideRecipeCatalog.getImplemented().map(recipe => Object.freeze({
+        ...recipe,
+        discoveryCategory: "molecules",
+        monomers: recipe.components,
+        monomerCount: recipe.componentCount,
+        bondCount: recipe.assemblyBondCount,
+        bondType: recipe.bondType
+    }))
 ]);
 
 export default Object.freeze({

@@ -202,15 +202,16 @@ const MacromolecularizerUI = {
                             <small id="macromolecularizer-protein-recipe-count">1 recipe</small>
                         </button>
                         <button
+                            id="macromolecularizer-nucleotide-tab"
+                            data-assembly-category="nucleotides"
                             type="button"
                             role="tab"
                             aria-selected="false"
-                            disabled
-                            title="Nucleic-acid catalog planned for Milestone 10"
+                            aria-controls="macromolecularizer-protein-recipes"
                         >
                             <strong>N</strong>
                             <span>Nucleic Acids</span>
-                            <small>Locked</small>
+                            <small>8 recipes</small>
                         </button>
                     </div>
 
@@ -1176,11 +1177,22 @@ const MacromolecularizerUI = {
             button.querySelector("small").textContent = `${count} ${count === 1 ? "recipe" : "recipes"}`;
             button.disabled = Boolean(status.activeSynthesis && !selected);
         });
+        const categoryTabIds = {
+            carbs: "macromolecularizer-carb-tab",
+            motifs: "macromolecularizer-protein-tab",
+            nucleotides: "macromolecularizer-nucleotide-tab"
+        };
         this.rootElement.querySelector("#macromolecularizer-protein-recipes")
-            .setAttribute("aria-labelledby", activeCategory === "carbs"
-                ? "macromolecularizer-carb-tab" : "macromolecularizer-protein-tab");
+            .setAttribute(
+                "aria-labelledby",
+                categoryTabIds[activeCategory] ?? "macromolecularizer-protein-tab"
+            );
         this.rootElement.querySelector("#macromolecularizer-known-aa-heading").textContent =
-            activeCategory === "carbs" ? "Known Monosaccharides" : "Known Amino Acids";
+            activeCategory === "carbs"
+                ? "Known Monosaccharides"
+                : activeCategory === "nucleotides"
+                    ? "Known Nucleotide Components"
+                    : "Known Amino Acids";
 
         this.renderMotifCards(
             status.motifCatalog.filter(item => item.definition.category === activeCategory),
@@ -1385,7 +1397,11 @@ const MacromolecularizerUI = {
                     summary.className =
                         "macro-recipe-specs";
                     summary.textContent =
-                        `${definition.monomerCount} ${definition.category === "carbs" ? "sugar units" : "amino acids"} · ${definition.atpCost} ATP · ${this.formatDuration(motif.timing.durationMs)}`;
+                        `${definition.monomerCount} ${definition.category === "carbs"
+                            ? "sugar units"
+                            : definition.category === "nucleotides"
+                                ? "components"
+                                : "amino acids"} · ${definition.atpCost} ATP · ${this.formatDuration(motif.timing.durationMs)}`;
 
                     const footer =
                         document.createElement(
@@ -1482,12 +1498,18 @@ const MacromolecularizerUI = {
                 definition.description;
         this.elements.bondCalculation
             .textContent =
-                `${definition.monomerCount} ${definition.category === "carbs" ? "sugar units" : "amino acids"} form ${definition.bondCount} ${definition.bondType} bond${definition.bondCount === 1 ? "" : "s"}, requiring ${definition.atpCost} ATP.`;
+                `${definition.monomerCount} ${definition.category === "carbs"
+                    ? "sugar units"
+                    : definition.category === "nucleotides"
+                        ? "components"
+                        : "amino acids"} form ${definition.bondCount} ${definition.bondType} bond${definition.bondCount === 1 ? "" : "s"}, requiring ${definition.atpCost} ATP.`;
         this.elements.compositionLabel
             .textContent =
                 definition.category === "carbs"
                     ? "Monosaccharide composition"
-                    : "Amino-acid composition";
+                    : definition.category === "nucleotides"
+                        ? "Nucleotide components"
+                        : "Amino-acid composition";
 
         this.elements
             .aminoAcidRequirements
@@ -1600,7 +1622,11 @@ const MacromolecularizerUI = {
             this.elements
                 .eligibilityFeedback
                 .textContent =
-                    `Synthesize each of these ${definition.category === "carbs" ? "monosaccharide" : "amino-acid"} types once in Molecule Lab: ${missingNames.join(", ")}. Recipe quantities describe the product and are not consumed.`;
+                    `Synthesize each of these ${definition.category === "carbs"
+                        ? "monosaccharide"
+                        : definition.category === "nucleotides"
+                            ? "component"
+                            : "amino-acid"} types once in Molecule Lab: ${missingNames.join(", ")}. Recipe quantities describe the product and are not consumed.`;
         } else if (!motif.atp.canAfford) {
             this.elements
                 .eligibilityFeedback
@@ -2501,7 +2527,11 @@ const MacromolecularizerUI = {
                         .aminoAcids
                         .complete,
                 text:
-                    `${motif.definition.category === "carbs" ? "Monosaccharide" : "Amino-acid"} synthesis knowledge — ${motif.requirements.aminoAcids.synthesizedTypes} of ${motif.requirements.aminoAcids.requiredTypes} types complete${missingAminoAcidNames.length > 0
+                    `${motif.definition.category === "carbs"
+                        ? "Monosaccharide"
+                        : motif.definition.category === "nucleotides"
+                            ? "Nucleotide-component"
+                            : "Amino-acid"} synthesis knowledge — ${motif.requirements.aminoAcids.synthesizedTypes} of ${motif.requirements.aminoAcids.requiredTypes} types complete${missingAminoAcidNames.length > 0
                         ? `; missing ${missingAminoAcidNames.join(", ")}`
                         : ""}`
             },

@@ -68,6 +68,26 @@ const VISUALS =
             }),
             observationImage: "./public/assets/molecularizer/lactose_left_green_right_green.png"
         }),
+        dTMP: Object.freeze({
+            icon: "T",
+            classification:
+                "DNA nucleotide · thymine + deoxyribose + phosphate",
+            previewImage:
+                "./public/assets/molecularizer/dtmp_stage0.png",
+            synthesisFrames: Object.freeze({
+                count: 4,
+                startIndex: 0,
+                completeIndex: 3,
+                files: Object.freeze([
+                    "./public/assets/molecularizer/dtmp_stage0.png",
+                    "./public/assets/molecularizer/dtmp_stage1.png",
+                    "./public/assets/molecularizer/dtmp_stage2.png",
+                    "./public/assets/molecularizer/dtmp_stage3.png"
+                ])
+            }),
+            observationImage:
+                "./public/assets/molecularizer/dtmp_stage3.png"
+        }),
         H_helix: Object.freeze({
             icon: "α",
             classification:
