@@ -5,6 +5,7 @@
 
 import { AtomizerQuestCatalog } from "./AtomizerQuestCatalog.js";
 import { MonosaccharideQuestCatalog } from "./MonosaccharideQuestCatalog.js";
+import { AminoAcidQuestCatalog } from "./AminoAcidQuestCatalog.js";
 
 const QuestCatalog = {
 
@@ -315,7 +316,8 @@ unlock_molecule_lab: {
 },
     // Merge Atomizer quests (a1 through a24) directly into the catalog
     ...AtomizerQuestCatalog,
-    ...MonosaccharideQuestCatalog
+    ...MonosaccharideQuestCatalog,
+    ...AminoAcidQuestCatalog
 
 };
 
