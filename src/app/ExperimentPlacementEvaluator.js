@@ -240,6 +240,47 @@ const ExperimentPlacementEvaluator = {
     },
 
     // --------------------------------------------------
+    // Evaluate an exact material count in one named zone.
+    // --------------------------------------------------
+    evaluateExactMaterialCountRule(
+        rule,
+        context
+    ) {
+
+        const count =
+            this.getMaterialCount(
+                context.snapshot,
+                rule.materialId,
+                rule.zoneId
+            );
+
+        const passed =
+            count === rule.exactCount;
+
+        return {
+            id: rule.id,
+            type: rule.type,
+            passed,
+            awardedPoints:
+                passed
+                    ? rule.points
+                    : 0,
+            maximumPoints:
+                rule.points,
+            details: {
+                materialId:
+                    rule.materialId,
+                zoneId:
+                    rule.zoneId,
+                count,
+                exactCount:
+                    rule.exactCount
+            }
+        };
+
+    },
+
+    // --------------------------------------------------
     // Evaluate balanced-ion concentration gradient
     // --------------------------------------------------
     evaluateBalancedIonGradientRule(
@@ -703,6 +744,18 @@ const ExperimentPlacementEvaluator = {
                 rule,
                 context
             );
+        }
+
+        if (
+            rule.type ===
+            "exact_material_count_in_zone"
+        ) {
+            return [
+                this.evaluateExactMaterialCountRule(
+                    rule,
+                    context
+                )
+            ];
         }
 
         if (

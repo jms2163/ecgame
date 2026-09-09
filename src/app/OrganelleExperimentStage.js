@@ -31,6 +31,8 @@ import SaveManager
     from "./SaveManager.js";
 import ProblemReportManager
     from "./ProblemReportManager.js";
+import PassiveDiffusionView from "./PassiveDiffusionView.js";
+import PlasmaMembraneVisualCatalog from "./PlasmaMembraneVisualCatalog.js";
 
 const OrganelleExperimentStage = {
 
@@ -44,6 +46,7 @@ const OrganelleExperimentStage = {
     simulationStructureResizeObserver: null,
 
     isReviewMode: false,
+    isReexamineMode: false,
 
     selectedProteinStatusElement: null,
 
@@ -99,6 +102,8 @@ const OrganelleExperimentStage = {
     // drag-and-drop workspace is interactive again.
     // --------------------------------------------------
     stopParticleSimulation() {
+
+        PassiveDiffusionView.clear();
 
         this.simulationStructureResizeObserver?.disconnect();
 
@@ -382,8 +387,16 @@ renderControls(experiment) {
 
     this.controlsElement.replaceChildren();
 
+    this.selectedProteinStatusElement =
+        null;
+
     const controls =
-        experiment.stage?.controls ?? [];
+        this.getControlsForMode(
+            experiment,
+            this.isReexamineMode
+                ? "reexamine"
+                : "attempt"
+        );
 
     controls.forEach(control => {
 
@@ -440,6 +453,15 @@ renderControls(experiment) {
 
     });
 
+    if (
+        !this.hasControl(
+            controls,
+            "rotate"
+        )
+    ) {
+        return;
+    }
+
     const selectedProteinStatus =
         document.createElement("p");
 
@@ -469,11 +491,78 @@ renderControls(experiment) {
 },
 
     // --------------------------------------------------
+    // Check resolved or unresolved control definitions.
+    // --------------------------------------------------
+    hasControl(
+        controls,
+        expectedControlId
+    ) {
+
+        return (
+            controls ?? []
+        ).some(control =>
+            (
+                typeof control === "string"
+                    ? control
+                    : control.id
+            ) === expectedControlId
+        );
+
+    },
+
+    // --------------------------------------------------
+    // Re-examine mode retains the interactive model tools
+    // while removing every grading and writing action.
+    // --------------------------------------------------
+    getControlsForMode(
+        experiment,
+        mode = "attempt"
+    ) {
+
+        const controls =
+            experiment?.stage?.controls ?? [];
+
+        if (mode !== "reexamine") {
+            return [...controls];
+        }
+
+        const excludedControlIds =
+            new Set([
+                "reflection",
+                "submit"
+            ]);
+
+        return controls.filter(control => {
+
+            const controlId =
+                typeof control === "string"
+                    ? control
+                    : control.id;
+
+            return !excludedControlIds.has(
+                controlId
+            );
+
+        });
+
+    },
+
+    // --------------------------------------------------
 // Handle active experiment controls
 // --------------------------------------------------
 handleControlAction(actionId) {
 
     if (this.isReviewMode) {
+        return;
+    }
+
+    if (
+        this.isReexamineMode &&
+        (
+            actionId === "reflection" ||
+            actionId === "submit"
+        )
+    ) {
         return;
     }
 
@@ -546,7 +635,13 @@ handleControlAction(actionId) {
     }
 
     this.open(
-        this.activeExperiment
+        this.activeExperiment,
+        {
+            mode:
+                this.isReexamineMode
+                    ? "reexamine"
+                    : "attempt"
+        }
     );
 
 },
@@ -698,6 +793,13 @@ handleControlAction(actionId) {
     // --------------------------------------------------
     submitExperiment() {
 
+        if (this.isReexamineMode) {
+            return {
+                submitted: false,
+                reason: "reexamine-mode"
+            };
+        }
+
         const experiment =
             this.activeResolvedExperiment;
 
@@ -821,6 +923,7 @@ handleControlAction(actionId) {
     // --------------------------------------------------
     // Show or hide the current reflection panel
     regradeExperiment(experiment) {
+        if (experiment?.stage?.template === "passive_diffusion_exploration") return null;
         const submissions = OrganelleExperimentSubmissionManager.getSubmissions(experiment.id);
         const results = submissions.map(submission => ({ submission, report: ExperimentPlacementEvaluator.evaluate({
             assessment: experiment.assessment,
@@ -1141,75 +1244,97 @@ runSimulation() {
         return;
     }
 
-    // The setup membrane may have a responsive minimum width.
-    // Read its actual rendered bounds so simulation artwork and
-    // engine collisions remain aligned at every viewport size.
+    const isMembraneTransport =
+        experiment.simulation.modelId ===
+        "particle_membrane_transport";
+
     const stageElement =
         simulationSurface.closest(
-            ".membrane-transport-stage"
+            isMembraneTransport
+                ? ".membrane-transport-stage"
+                : ".solution-mixing-stage"
         );
 
-    const membraneElement =
-        stageElement?.querySelector(
-            ".membrane-transport-bilayer"
+    let simulation =
+        structuredClone(
+            experiment.simulation
         );
 
-    const stageBounds =
-        stageElement?.getBoundingClientRect();
+    if (isMembraneTransport) {
 
-    const membraneBounds =
-        membraneElement?.getBoundingClientRect();
+        // The setup membrane may have a responsive minimum width.
+        // Read its rendered bounds so artwork and collisions align.
+        const membraneElement =
+            stageElement?.querySelector(
+                ".membrane-transport-bilayer"
+            );
 
-    const fallbackGeometry =
-        experiment.simulation.membraneGeometry ??
-        {
-            start: 0.44,
-            end: 0.56
+        const stageBounds =
+            stageElement?.getBoundingClientRect();
+
+        const membraneBounds =
+            membraneElement?.getBoundingClientRect();
+
+        const fallbackGeometry =
+            experiment.simulation.membraneGeometry ??
+            {
+                start: 0.44,
+                end: 0.56
+            };
+
+        const hasRenderableGeometry =
+            stageBounds?.width > 0 &&
+            membraneBounds?.width > 0;
+
+        const renderedStart =
+            hasRenderableGeometry
+                ? Math.max(
+                    0,
+                    Math.min(
+                        1,
+                        (
+                            membraneBounds.left -
+                            stageBounds.left
+                        ) /
+                        stageBounds.width
+                    )
+                )
+                : fallbackGeometry.start;
+
+        const renderedEnd =
+            hasRenderableGeometry
+                ? Math.max(
+                    renderedStart,
+                    Math.min(
+                        1,
+                        (
+                            membraneBounds.right -
+                            stageBounds.left
+                        ) /
+                        stageBounds.width
+                    )
+                )
+                : fallbackGeometry.end;
+
+        simulation = {
+            ...simulation,
+            membraneGeometry: {
+                start: renderedStart,
+                end: renderedEnd
+            }
         };
 
-    const hasRenderableGeometry =
-        stageBounds?.width > 0 &&
-        membraneBounds?.width > 0;
+        simulationSurface.style.setProperty(
+            "--membrane-start",
+            `${renderedStart * 100}%`
+        );
 
-    const renderedStart = hasRenderableGeometry
-        ? Math.max(
-            0,
-            Math.min(
-                1,
-                (membraneBounds.left - stageBounds.left) /
-                stageBounds.width
-            )
-        )
-        : fallbackGeometry.start;
+        simulationSurface.style.setProperty(
+            "--membrane-width",
+            `${(renderedEnd - renderedStart) * 100}%`
+        );
 
-    const renderedEnd = hasRenderableGeometry
-        ? Math.max(
-            renderedStart,
-            Math.min(
-                1,
-                (membraneBounds.right - stageBounds.left) /
-                stageBounds.width
-            )
-        )
-        : fallbackGeometry.end;
-
-    const simulation = {
-        ...structuredClone(experiment.simulation),
-        membraneGeometry: {
-            start: renderedStart,
-            end: renderedEnd
-        }
-    };
-
-    simulationSurface.style.setProperty(
-        "--membrane-start",
-        `${renderedStart * 100}%`
-    );
-
-    simulationSurface.style.setProperty(
-        "--membrane-width",
-        `${(renderedEnd - renderedStart) * 100}%`
-    );
+    }
 
     const snapshot =
         this.getPlacementSnapshot();
@@ -1291,6 +1416,8 @@ runSimulation() {
             null;
 
         this.isReviewMode = false;
+
+        this.isReexamineMode = false;
 
         this.setIdleStage(true);
 
@@ -1417,20 +1544,10 @@ runSimulation() {
         // Rendering it as an element keeps it visible even if
         // stylesheet background paths change during refactors.
         const membraneVisual =
-            document.createElement("img");
-
-        membraneVisual.className =
-            "membrane-transport-bilayer-visual";
-
-        membraneVisual.src =
-            "./public/assets/experiments/membranes/phospholipid-bilayer.svg";
-
-        membraneVisual.alt = "";
-
-        membraneVisual.setAttribute(
-            "aria-hidden",
-            "true"
-        );
+            PlasmaMembraneVisualCatalog.createVisual({
+                className:
+                    "membrane-transport-bilayer-visual"
+            });
 
         membrane.appendChild(
             membraneVisual
@@ -1473,12 +1590,71 @@ simulationSurface.setAttribute(
     "Particle simulation"
 );
 
+PlasmaMembraneVisualCatalog.applyGeometry(
+    simulationSurface
+);
+
 stage.append(
     sideA,
     membrane,
     sideB,
     simulationSurface
 );
+
+        return stage;
+
+    },
+
+    // --------------------------------------------------
+    // Render one open solution chamber without a membrane.
+    // --------------------------------------------------
+    renderSolutionMixingStage() {
+
+        const stage =
+            document.createElement("section");
+
+        stage.className =
+            "solution-mixing-stage";
+
+        stage.dataset.template =
+            "solution_mixing";
+
+        const solution =
+            document.createElement("section");
+
+        solution.className =
+            "solution-mixing-chamber";
+
+        solution.setAttribute(
+            "aria-label",
+            "Saltwater solution placement area"
+        );
+
+        OrganelleExperimentPlacementController
+            .registerDropZone(
+                solution,
+                "solution"
+            );
+
+        const simulationSurface =
+            document.createElement("div");
+
+        simulationSurface.id =
+            "organelle-particle-simulation-surface";
+
+        simulationSurface.className =
+            "organelle-particle-simulation-surface " +
+            "organelle-particle-simulation-surface--solution hidden";
+
+        simulationSurface.setAttribute(
+            "aria-label",
+            "Saltwater particle simulation"
+        );
+
+        stage.append(
+            solution,
+            simulationSurface
+        );
 
         return stage;
 
@@ -1620,7 +1796,12 @@ stage.append(
     // --------------------------------------------------
     // Open one experiment on the stage
     // --------------------------------------------------
-    open(experiment) {
+    open(
+        experiment,
+        {
+            mode = "attempt"
+        } = {}
+    ) {
 
         if (!this.initialize()) {
             return;
@@ -1638,6 +1819,21 @@ stage.append(
         this.setIdleStage(false);
 
         this.isReviewMode = false;
+
+        this.isReexamineMode =
+            mode === "reexamine";
+
+        if (experiment.stage?.template === "passive_diffusion_exploration") {
+            this.stopParticleSimulation();
+            OrganelleExperimentPlacementController.reset();
+            OrganelleExperimentAttemptManager.reset();
+            this.activeResolvedExperiment = experiment;
+            this.titleElement.textContent = `${experiment.title}${this.isReexamineMode ? " - Re-examine" : ""}`;
+            this.controlsElement.replaceChildren();
+            this.selectedProteinStatusElement = null;
+            PassiveDiffusionView.mount(this.contentElement, { sandbox: this.isReexamineMode });
+            return;
+        }
 
         const resolvedExperiment = {
 
@@ -1670,7 +1866,9 @@ stage.append(
                     );
 
         this.titleElement.textContent =
-            resolvedExperiment.title;
+            this.isReexamineMode
+                ? `${resolvedExperiment.title} - Re-examine`
+                : resolvedExperiment.title;
 
         this.renderControls(
             resolvedExperiment
@@ -1680,6 +1878,21 @@ stage.append(
     
 
         this.contentElement.replaceChildren();
+
+        if (this.isReexamineMode) {
+            const notice =
+                document.createElement("p");
+
+            notice.className =
+                "organelle-experiment-reexamine-notice";
+
+            notice.textContent =
+                "Re-examine mode: Explore the model and run the simulation freely. Nothing here is submitted, graded, or saved.";
+
+            this.contentElement.appendChild(
+                notice
+            );
+        }
 
         const objectiveLabel =
             document.createElement("p");
@@ -1740,10 +1953,35 @@ stage.append(
             );
         }
 
-        const reflectionPanel =
-            this.createReflectionPanel(
-                resolvedExperiment
+        if (
+            resolvedExperiment.stage?.template ===
+            "solution_mixing"
+        ) {
+            const workspace =
+                document.createElement("div");
+
+            workspace.className =
+                "organelle-experiment-workspace " +
+                "organelle-experiment-workspace--solution";
+
+            workspace.append(
+                this.renderSolutionMixingStage(),
+                this.renderMaterialTray(
+                    resolvedExperiment
+                )
             );
+
+            this.contentElement.appendChild(
+                workspace
+            );
+        }
+
+        const reflectionPanel =
+            this.isReexamineMode
+                ? null
+                : this.createReflectionPanel(
+                    resolvedExperiment
+                );
 
         if (reflectionPanel) {
             this.contentElement.appendChild(
@@ -1757,6 +1995,21 @@ stage.append(
 this.contentElement.appendChild(
     simulationPanel
 );
+
+    },
+
+    // --------------------------------------------------
+    // Open a clean, interactive copy of a completed lab.
+    // This mode has no reflection, submission, or grading.
+    // --------------------------------------------------
+    openReexamine(experiment) {
+
+        return this.open(
+            experiment,
+            {
+                mode: "reexamine"
+            }
+        );
 
     },
 
@@ -1795,6 +2048,18 @@ this.contentElement.appendChild(
         };
 
         this.isReviewMode = true;
+
+        this.isReexamineMode = false;
+
+        if (experiment.stage?.template === "passive_diffusion_exploration") {
+            OrganelleExperimentPlacementController.reset();
+            OrganelleExperimentAttemptManager.reset();
+            this.titleElement.textContent = `${experiment.title} - Submission Review`;
+            this.controlsElement.replaceChildren();
+            this.selectedProteinStatusElement = null;
+            PassiveDiffusionView.mount(this.contentElement, { review: true });
+            return;
+        }
 
         this.titleElement.textContent =
             `${this.activeResolvedExperiment.title} - Submission Review`;
@@ -1955,6 +2220,31 @@ this.contentElement.appendChild(
             );
 
             this.contentElement.appendChild(workspace);
+
+            OrganelleExperimentPlacementController
+                .restoreSnapshot(
+                    submission.placementSnapshot
+                );
+        }
+
+        if (
+            this.activeResolvedExperiment.stage?.template ===
+            "solution_mixing"
+        ) {
+            const workspace =
+                document.createElement("div");
+
+            workspace.className =
+                "organelle-experiment-workspace " +
+                "organelle-experiment-workspace--solution";
+
+            workspace.appendChild(
+                this.renderSolutionMixingStage()
+            );
+
+            this.contentElement.appendChild(
+                workspace
+            );
 
             OrganelleExperimentPlacementController
                 .restoreSnapshot(

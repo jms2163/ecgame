@@ -60,6 +60,36 @@ const ParticleSimulationEngine = {
 
     },
 
+    // --------------------------------------------------
+    // Give solution particles visually random but fully
+    // deterministic directions for repeatable testing.
+    // --------------------------------------------------
+    createSolutionMixingVelocity(index) {
+
+        const goldenAngle =
+            Math.PI * (3 - Math.sqrt(5));
+
+        const angle =
+            (index + 1) * goldenAngle;
+
+        const speedVariation =
+            0.82 +
+            (index % 5) * 0.045;
+
+        return {
+            x:
+                Math.cos(angle) *
+                DEFAULT_SPEED *
+                speedVariation,
+
+            y:
+                Math.sin(angle) *
+                DEFAULT_SPEED *
+                speedVariation
+        };
+
+    },
+
     getVisualId(materialId) {
 
         return ExperimentMaterialLibrary[
@@ -255,6 +285,13 @@ const ParticleSimulationEngine = {
         simulation
     ) {
 
+        if (zoneId === "solution") {
+            return {
+                start: MIN_POSITION,
+                end: MAX_POSITION
+            };
+        }
+
         const membrane =
             this.getMembraneBounds(simulation);
 
@@ -359,9 +396,14 @@ const ParticleSimulationEngine = {
             },
 
             velocity:
-                this.createInitialVelocity(
-                    index
-                ),
+                simulation?.modelId ===
+                "particle_solution_mixing"
+                    ? this.createSolutionMixingVelocity(
+                        index
+                    )
+                    : this.createInitialVelocity(
+                        index
+                    ),
 
             radius:
                 PARTICLE_RADIUS,
@@ -387,9 +429,16 @@ const ParticleSimulationEngine = {
         snapshot
     } = {}) {
 
+        const supportedModelIds =
+            new Set([
+                "particle_membrane_transport",
+                "particle_solution_mixing"
+            ]);
+
         if (
-            simulation?.modelId !==
-            "particle_membrane_transport"
+            !supportedModelIds.has(
+                simulation?.modelId
+            )
         ) {
             throw new Error(
                 "ParticleSimulationEngine: unsupported simulation model"
@@ -1114,10 +1163,13 @@ const ParticleSimulationEngine = {
             structuredClone(state);
 
         const gradient =
-            this.getOsmoticGradient(
-                nextState.particles,
-                nextState.simulation
-            );
+            nextState.modelId ===
+            "particle_membrane_transport"
+                ? this.getOsmoticGradient(
+                    nextState.particles,
+                    nextState.simulation
+                )
+                : null;
 
         nextState.elapsedMs +=
             safeElapsedMilliseconds;

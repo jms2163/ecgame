@@ -22,6 +22,7 @@ const OrganelleExperimentPanel = {
     currentOrganelleId: null,
     onOpenExperiment: null,
     onReviewSubmission: null,
+    onReexamineExperiment: null,
     onRegradeAssessment: null,
 
     // --------------------------------------------------
@@ -201,6 +202,15 @@ const OrganelleExperimentPanel = {
             statusElement
         );
 
+        if (experiment.stage?.template === "passive_diffusion_exploration" && state === "available") {
+            const review = document.createElement("button");
+            review.type = "button";
+            review.className = "organelle-experiment-run-button";
+            review.textContent = "Review saved observations";
+            review.addEventListener("click", () => this.onReviewSubmission?.(experiment, null));
+            card.appendChild(review);
+        }
+
         if (state === "available") {
 
             const bestScore =
@@ -287,6 +297,44 @@ const OrganelleExperimentPanel = {
 
             statusElement.appendChild(
                 reviewLink
+            );
+
+            const reexamineButton =
+                document.createElement("button");
+
+            reexamineButton.type =
+                "button";
+
+            reexamineButton.className =
+                "organelle-experiment-run-button";
+
+            reexamineButton.textContent =
+                "Re-examine";
+
+            reexamineButton.addEventListener(
+                "click",
+                () => {
+
+                    if (
+                        typeof this.onReexamineExperiment !==
+                        "function"
+                    ) {
+                        console.warn(
+                            "OrganelleExperimentPanel: experiment re-examine callback unavailable"
+                        );
+
+                        return;
+                    }
+
+                    this.onReexamineExperiment(
+                        experiment
+                    );
+
+                }
+            );
+
+            card.appendChild(
+                reexamineButton
             );
 
             const star =
@@ -461,6 +509,7 @@ starElement.setAttribute(
         {
             onOpenExperiment = null,
             onReviewSubmission = null,
+            onReexamineExperiment = null,
             onRegradeAssessment = null,
             actionMessage = ""
         } = {}
@@ -478,6 +527,9 @@ starElement.setAttribute(
 
         this.onReviewSubmission =
             onReviewSubmission;
+
+        this.onReexamineExperiment =
+            onReexamineExperiment;
 
         this.onRegradeAssessment = onRegradeAssessment;
 
