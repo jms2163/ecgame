@@ -884,6 +884,32 @@
     }
 }
 
+/*
+ * Keep the desktop builder row independent from expanding inspector content.
+ * Without this boundary, opening molecular-property notes can enlarge the
+ * grid row, which enlarges the WebGL canvas and triggers a resize feedback
+ * loop. The inspector scrolls inside the fixed-height laboratory row instead.
+ */
+@media (min-width: 1181px) {
+    .molecule-lab-workspace {
+        grid-template-rows: 680px auto;
+        align-items: start;
+    }
+
+    .molecule-lab-recipe-drawer,
+    .molecule-lab-synthesis-canvas,
+    .molecule-lab-inspector {
+        height: 680px;
+        max-height: 680px;
+    }
+
+    .molecule-lab-synthesis-canvas,
+    .molecule-lab-builder-viewport,
+    #molecule-lab-builder-canvas {
+        min-height: 0;
+    }
+}
+
 @media (max-width: 1180px) {
     .molecule-lab-workspace {
         grid-template-columns: minmax(280px, 0.8fr) minmax(420px, 1.2fr);
