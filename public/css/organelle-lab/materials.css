@@ -68,7 +68,7 @@
     width: 1rem;
     height: 1rem;
     border: 1px solid #ffffff;
-    background: #58b8ff;
+    background: var(--material-color, #58b8ff);
     box-shadow: none;
 }
 
@@ -83,7 +83,7 @@
     width: 1rem;
     height: 1rem;
     border: 1px solid #ffffff;
-    background: #a92f4e;
+    background: var(--material-color, #a92f4e);
     box-shadow: none;
 }
 /* Match ParticleSimulationRenderer: compact chloride-green with a white outline. */
@@ -91,9 +91,58 @@
     width: 1rem;
     height: 1rem;
     border: 1px solid #ffffff;
-    background: #5ee38d;
+    background: var(--material-color, #5ee38d);
     box-shadow: none;
 }
+.organelle-experiment-particle--calcium,
+.organelle-experiment-particle--urea {
+    width: 1rem;
+    height: 1rem;
+    border: 1px solid #ffffff;
+    box-shadow: none;
+}
+.organelle-experiment-particle--calcium { background: var(--material-color, #b692eb); }
+.organelle-experiment-particle--urea { background: var(--material-color, #ecc994); }
+.organelle-experiment-particle--protein {
+    width: 3rem;
+    height: 3rem;
+    border: 1px solid #ffffff;
+    background: var(--material-color, #d989b5);
+}
+.organelle-experiment-particle--glucose,
+.organelle-experiment-particle--fructose {
+    width: 1.6rem;
+    height: 1.6rem;
+    border: 1px solid #ffffff;
+    border-radius: 0;
+    background: linear-gradient(
+        135deg,
+        var(--material-color-start, #a5f5b1),
+        var(--material-color-end, #25894c)
+    );
+}
+.organelle-experiment-particle--glucose {
+    clip-path: polygon(50% 0, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+}
+.organelle-experiment-particle--fructose {
+    clip-path: polygon(50% 0, 98% 35%, 79% 100%, 21% 100%, 2% 35%);
+}
+.organelle-experiment-particle--carbon-dioxide,
+.organelle-experiment-particle--oxygen,
+.organelle-experiment-particle--atp,
+.organelle-experiment-particle--cholesterol {
+    display: grid;
+    place-items: center;
+    border-radius: 0;
+    color: #ffffff;
+    font-size: 0.65rem;
+    font-weight: 700;
+}
+.organelle-experiment-particle--atp {
+    color: var(--material-color, #ffe36a);
+    border: 1px solid var(--material-color, #ffe36a);
+}
+.organelle-experiment-particle--cholesterol { color: var(--material-color, #d8ae4e); }
 .organelle-experiment-particle--aquaporin { display: block; width: 4.5rem; height: 3.1rem; border-radius: 0; object-fit: contain; transform-origin: center; }
 
 /* Protein art needs room for its full silhouette and material name. */

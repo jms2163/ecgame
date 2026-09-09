@@ -3,6 +3,8 @@
 // Static definitions for organelle research experiments
 // --------------------------------------------------
 
+import PassiveDiffusionExperiment from "./PassiveDiffusionCatalog.js";
+
 const MEMBRANE_TRANSPORT_LABELS = [
 
     "sodium_ion",
@@ -24,8 +26,215 @@ const MEMBRANE_TRANSPORT_LABELS = [
 const OrganelleExperimentLibrary = {
 
     // --------------------------------------------------
+    // Plasma membrane foundations: molecular motion
+    // --------------------------------------------------
+    dynamic_movement: {
+
+        id:
+            "dynamic_movement",
+
+        organelleId:
+            "plasma_membrane",
+
+        title:
+            "Dynamic Movement",
+
+        summary:
+            "Observe water molecules and dissolved ions moving continuously to form a homogeneous saltwater mixture.",
+
+        catalogReward:
+            "+100 XP",
+
+        objective:
+            "Observe the dynamics of salt dissolving in water and the constant movement of substances.",
+
+        stage: {
+
+            template:
+                "solution_mixing",
+
+            materials: [
+                {
+                    id: "water",
+                    maxPlacements: 1
+                },
+                {
+                    id: "sodium_ion",
+                    maxPlacements: 2
+                },
+                {
+                    id: "chloride_ion",
+                    maxPlacements: 2
+                }
+            ],
+
+            labels: [],
+
+            controls: [
+                "simulate",
+                "reflection",
+                "submit",
+                "reset"
+            ]
+
+        },
+
+        simulation: {
+
+            modelId:
+                "particle_solution_mixing",
+
+            modelVariant:
+                "saltwater_homogeneous_mixture",
+
+            zoneIds: [
+                "solution"
+            ],
+
+            particleMaterialIds: [
+                "water",
+                "sodium_ion",
+                "chloride_ion"
+            ]
+
+        },
+
+        assessment: {
+
+            scoreMaximum:
+                25,
+
+            rubricVersion:
+                "dynamic-movement-v1",
+
+            feedback: {
+                movingSubstance:
+                    "Describe how the water molecules and dissolved ions move during the simulation.",
+                destinationSide:
+                    "Recheck the required amounts of water, sodium ions, and chloride ions in the solution."
+            },
+
+            setupRules: [
+                {
+                    id: "one_water_sample",
+                    type: "exact_material_count_in_zone",
+                    materialId: "water",
+                    zoneId: "solution",
+                    exactCount: 1,
+                    points: 5
+                },
+                {
+                    id: "two_sodium_ions",
+                    type: "exact_material_count_in_zone",
+                    materialId: "sodium_ion",
+                    zoneId: "solution",
+                    exactCount: 2,
+                    points: 5
+                },
+                {
+                    id: "two_chloride_ions",
+                    type: "exact_material_count_in_zone",
+                    materialId: "chloride_ion",
+                    zoneId: "solution",
+                    exactCount: 2,
+                    points: 5
+                }
+            ],
+
+            labelRules: [],
+
+            reflection: {
+
+                id:
+                    "dynamic_movement_description",
+
+                prompt:
+                    "Describe what happens to the water molecules and dissolved ions during the simulation.",
+
+                maximumPoints:
+                    10,
+
+                conceptGroups: [
+                    {
+                        id: "continuous_random_motion",
+                        terms: [
+                            "random movement",
+                            "random directions",
+                            "constant movement",
+                            "constant motion",
+                            "continuous movement",
+                            "continuous motion"
+                        ],
+                        patterns: [
+                            "\\b(move|moves|moving|motion)\\b.{0,35}\\b(random|different|many|all)\\s+directions?\\b",
+                            "\\b(constant|constantly|continuous|continuously|always)\\b.{0,25}\\b(move|moves|moving|motion)\\b"
+                        ]
+                    },
+                    {
+                        id: "even_distribution",
+                        terms: [
+                            "spread evenly",
+                            "evenly distributed",
+                            "homogeneous mixture",
+                            "uniform mixture",
+                            "mixed evenly"
+                        ],
+                        patterns: [
+                            "\\b(spread|spreads|spreading|distribute|distributed)\\b.{0,25}\\b(evenly|uniformly|throughout)\\b",
+                            "\\b(even|uniform|homogeneous)\\b.{0,20}\\b(distribution|mixture|solution)\\b"
+                        ]
+                    }
+                ],
+
+                feedbackByKeywordGroup: [
+                    "Describe the direction and constancy of molecular motion.",
+                    "Describe how the particles become distributed throughout the solution."
+                ],
+
+                technicalVocabulary: [
+                    "homogeneous mixture",
+                    "random motion",
+                    "dissolved ions",
+                    "solute",
+                    "solvent"
+                ]
+
+            }
+
+        },
+
+        requirements: {
+            discoveries: [
+                "H2O"
+            ],
+            completedExperiments: []
+        },
+
+        grants: {
+            xp: 100,
+            discoveries: [
+                "homogeneous_mixture"
+            ],
+            achievements: [],
+            metricEffects: []
+        },
+
+        observation: {
+            title:
+                "Saltwater Is Dynamic",
+            description:
+                "Water molecules and dissolved sodium and chloride ions remain in constant motion and spread throughout the available space.",
+            takeaway:
+                "Saltwater is a homogeneous mixture of water and ions whose particles are continuously moving."
+        }
+
+    },
+
+    // --------------------------------------------------
     // Plasma membrane: passive diffusion
     // --------------------------------------------------
+    passive_diffusion: PassiveDiffusionExperiment,
+
     water_passive_diffusion: {
 
         id:

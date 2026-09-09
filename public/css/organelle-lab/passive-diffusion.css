@@ -1,0 +1,18 @@
+.passive-diffusion-exploration { display: grid; gap: 12px; min-width: 0; color: #eee4f3; }
+.passive-diffusion-exploration p { margin: 0; line-height: 1.5; }
+.passive-diffusion-exploration button, .passive-diffusion-exploration select { background: #2b103d; color: #fff; border: 1px solid #b286c8; padding: 9px 12px; font: inherit; cursor: pointer; }
+.passive-diffusion-exploration button:disabled { opacity: .5; cursor: default; }
+.passive-diffusion-exploration :focus-visible { outline: 2px solid #82dcff; outline-offset: 3px; }
+.pd-prediction { display: grid; gap: 8px; border: 1px solid #74465f; }
+.pd-prediction label { display: flex; gap: 9px; align-items: center; }
+.pd-sample-row, .pd-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.pd-sample { display: flex; align-items: center; max-width: 320px; touch-action: none; }
+.pd-sample canvas { flex: 0 0 70px; }
+.pd-chamber-frame { position: relative; height: 320px; overflow: hidden; border: 1px solid #b286c8; background: #16051e; box-sizing: border-box; }
+.pd-membrane-visual { position: absolute; z-index: 0; top: 0; bottom: 0; left: var(--membrane-start, 44%); width: var(--membrane-width, 12%); height: 100%; object-fit: fill; pointer-events: none; }
+.pd-chamber { position: relative; z-index: 1; display: block; width: 100%; height: 100%; touch-action: none; }
+.pd-notice, .pd-status { padding: 12px; background: #21132b; border-left: 3px solid #5ee38d; }
+.pd-note { font-size: .85rem; color: #c8bbd0; }
+.pd-response textarea { display: block; width: 100%; box-sizing: border-box; background: #16051e; color: white; padding: 10px; font: inherit; }
+.pd-response[hidden] { display: none; }
+.passive-diffusion-exploration article { border: 1px solid #74465f; padding: 12px; }

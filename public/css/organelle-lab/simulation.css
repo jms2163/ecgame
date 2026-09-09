@@ -54,10 +54,28 @@
     width: var(--membrane-width, 12%);
     background:
         #2b103d
-        url("../../assets/experiments/membranes/phospholipid-bilayer-animated.svg")
+        var(
+            --plasma-membrane-image,
+            url("../../assets/experiments/membranes/phospholipid-bilayer-animated.svg")
+        )
         center / 100% 100%
         no-repeat;
     pointer-events: none;
+}
+
+/* A mixing chamber has the same canvas overlay but no membrane. */
+.organelle-particle-simulation-surface--solution::before {
+    display: none;
+}
+
+.organelle-particle-simulation-surface--solution {
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(72, 139, 196, 0.2),
+            transparent 72%
+        ),
+        #16051e;
 }
 
 .organelle-particle-simulation-surface.hidden {

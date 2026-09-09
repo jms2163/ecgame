@@ -89,6 +89,18 @@ const OrganelleView = {
     },
 
     // --------------------------------------------------
+    // Reopen a completed experiment as an ungraded
+    // interactive sandbox. Nothing in this mode persists.
+    // --------------------------------------------------
+    reexamineExperiment(experiment) {
+
+        OrganelleExperimentStage.openReexamine(
+            experiment
+        );
+
+    },
+
+    // --------------------------------------------------
     // Activate Organelle Lab
     // --------------------------------------------------
     activate({
@@ -135,6 +147,12 @@ const OrganelleView = {
                         this.reviewSubmission(
                             experiment,
                             submission
+                        ),
+
+                onReexamineExperiment:
+                    experiment =>
+                        this.reexamineExperiment(
+                            experiment
                         )
             }
         );
