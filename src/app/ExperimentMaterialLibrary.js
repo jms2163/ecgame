@@ -59,6 +59,101 @@ const ExperimentMaterialLibrary = {
 
     },
 
+    potassium_ion: {
+
+        id:
+            "potassium_ion",
+
+        displayName:
+            "Potassium ion",
+
+        ariaLabel:
+            "Potassium ion",
+
+        visualId:
+            "potassium_ion_sphere"
+
+    },
+
+    calcium_ion: {
+
+        id:
+            "calcium_ion",
+
+        displayName:
+            "Calcium ion",
+
+        ariaLabel:
+            "Calcium ion",
+
+        visualId:
+            "calcium_ion_sphere"
+
+    },
+
+    sodium_chloride: {
+
+        id:
+            "sodium_chloride",
+
+        displayName:
+            "NaCl",
+
+        ariaLabel:
+            "Sodium chloride sample",
+
+        visualId:
+            "sodium_chloride_sample",
+
+        particleComposition: {
+            sodium_ion: 6,
+            chloride_ion: 6
+        }
+
+    },
+
+    calcium_chloride: {
+
+        id:
+            "calcium_chloride",
+
+        displayName:
+            "CaCl₂",
+
+        ariaLabel:
+            "Calcium chloride sample",
+
+        visualId:
+            "calcium_chloride_sample",
+
+        particleComposition: {
+            calcium_ion: 4,
+            chloride_ion: 8
+        }
+
+    },
+
+    potassium_chloride: {
+
+        id:
+            "potassium_chloride",
+
+        displayName:
+            "KCl",
+
+        ariaLabel:
+            "Potassium chloride sample",
+
+        visualId:
+            "potassium_chloride_sample",
+
+        particleComposition: {
+            potassium_ion: 6,
+            chloride_ion: 6
+        }
+
+    },
+
     aquaporin: {
 
         id:
@@ -83,6 +178,33 @@ const ExperimentMaterialLibrary = {
         // The vertically oriented source art begins in the
         // incorrect membrane orientation. Students rotate it
         // to span the membrane.
+        initialRotationDeg:
+            0,
+
+        rotatable:
+            true
+
+    },
+
+    potassium_channel: {
+
+        id:
+            "potassium_channel",
+
+        displayName:
+            "K⁺ Channel",
+
+        ariaLabel:
+            "Selective potassium ion channel",
+
+        visualId:
+            "potassium_channel",
+
+        placementSize: {
+            widthRem: 3.1,
+            heightRem: 4.5
+        },
+
         initialRotationDeg:
             0,
 

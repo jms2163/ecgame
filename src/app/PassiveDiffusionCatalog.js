@@ -27,8 +27,8 @@ export default {
     title: "Passive Diffusion",
     summary: "Predict and explore how molecular size, polarity, and charge affect passage through a lipid bilayer.",
     objective: "Predict how each substance interacts with a lipid bilayer, then test your prediction by observing its movement.",
-    catalogReward: "+250 XP for exploring every substance",
+    catalogReward: "+250 XP • Discovery: Membrane Permeability",
     stage: { template: "passive_diffusion_exploration", materials: [], labels: [], controls: [] },
     requirements: { discoveries: ["H2O"], completedExperiments: ["dynamic_movement"] },
-    grants: { xp: 250, discoveries: [], achievements: [], metricEffects: [] }
+    grants: { xp: 250, discoveries: ["membrane_permeability"], achievements: [], metricEffects: [] }
 };
