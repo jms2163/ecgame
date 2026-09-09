@@ -854,12 +854,26 @@ placeActiveDrag(
             placement.definitionId
         );
 
-    if (material?.id === "water") {
+    const particlesPerPlacement =
+        Number.isInteger(
+            material?.particlesPerPlacement
+        ) &&
+        material.particlesPerPlacement > 0
+            ? material.particlesPerPlacement
+            : 1;
+
+    if (particlesPerPlacement > 1) {
         const cluster = document.createElement("span");
         cluster.className = "organelle-experiment-water-cluster";
-        for (let index = 0; index < 12; index += 1) {
+
+        for (
+            let index = 0;
+            index < particlesPerPlacement;
+            index += 1
+        ) {
             cluster.appendChild(this.createMaterialVisual(material));
         }
+
         element.appendChild(cluster);
     } else {
         const visual = this.createMaterialVisual(material);

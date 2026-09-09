@@ -17,7 +17,13 @@ const ExperimentMaterialLibrary = {
             "Water molecule",
 
         visualId:
-            "water_sphere"
+            "water_sphere",
+
+        // One draggable water source represents a small sample.
+        // Placement and simulation renderers both read this value
+        // so the visible cluster does not collapse on simulation.
+        particlesPerPlacement:
+            12
 
     },
 

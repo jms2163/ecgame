@@ -717,9 +717,6 @@ simulation: {
                 end: 0.56
             },
 
-            waterParticlesPerPlacement:
-                12,
-
             poreRule: {
 
                 materialId:
