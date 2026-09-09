@@ -1052,7 +1052,7 @@ export const techTreeData = Object.freeze(
     info: "Modulates membrane viscosity and local lipid environment dynamics."
   },
   LA: {
-    name: "LA (Linoleum acid)",
+    name: "LA (Linoleic acid)",
     icon: "LA",
     tier: 3,
     researchTime: 190,
