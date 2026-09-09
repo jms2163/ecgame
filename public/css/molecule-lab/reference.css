@@ -1,4 +1,7 @@
 .molecule-lab-reference-panel {
+    position: relative;
+    z-index: 10;
+    isolation: isolate;
     margin-top: 2rem;
     padding: 1.5rem;
     background: rgba(15, 23, 42, 0.6);
@@ -14,6 +17,8 @@
 }
 
 .molecule-lab-reference-grid {
+    position: relative;
+    z-index: 1;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 1rem;
@@ -21,13 +26,29 @@
 }
 
 .molecule-lab-reference-card {
+    position: relative;
+    z-index: 1;
     background: rgba(30, 41, 59, 0.8);
+    width: 100%;
     padding: 1rem;
+    color: inherit;
     border-radius: 6px;
     border: 1px solid rgba(255, 255, 255, 0.05);
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    font: inherit;
+    text-align: left;
+    appearance: none;
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+.molecule-lab-reference-card:hover,
+.molecule-lab-reference-card:focus-visible {
+    border-color: rgba(0, 210, 255, 0.65);
+    box-shadow: 0 0 14px rgba(0, 210, 255, 0.14);
+    outline: none;
 }
 
 .molecule-lab-reference-card h3 {
