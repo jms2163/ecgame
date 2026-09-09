@@ -16,6 +16,28 @@ function formatFormula(formulaStr) {
     return formulaStr.replace(/(\d+)/g, "<sub>$1</sub>");
 }
 
+function renderPropertyBar(label, value, className) {
+    const score = Math.max(
+        0,
+        Math.min(100, Number(value) || 0)
+    );
+
+    return `
+        <div class="molecule-property-bar ${className}">
+            <strong>${label}</strong>
+            <span
+                class="molecule-property-bar-track"
+                role="progressbar"
+                aria-label="${label} score"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="${score}"
+            >
+                <i style="width: ${score}%"></i>
+            </span>
+        </div>`;
+}
+
 const MoleculeLabUI = {
     initialized: false,
     active: false,
@@ -295,6 +317,19 @@ const MoleculeLabUI = {
             }
         }, true);
 
+        this.elements.reference.addEventListener("click", event => {
+            const card = event.target instanceof Element
+                ? event.target.closest("[data-reference-concept]")
+                : null;
+            if (!card || !this.elements.reference.contains(card)) return;
+
+            const title = card.querySelector("h3")?.textContent?.trim() ??
+                "Chemical bonding";
+            this.setFeedback(
+                `${title} reference selected. Interactive reference activities are coming later.`
+            );
+        }, true);
+
         this.renderReferencePanel();
     },
 
@@ -304,6 +339,15 @@ const MoleculeLabUI = {
             : null;
         if (directButton && this.rootElement.contains(directButton)) {
             return directButton;
+        }
+
+        // Reference content is an opaque interactive layer. Never search
+        // through it for a molecule card occupying the same screen position.
+        if (
+            event.target instanceof Element &&
+            event.target.closest(".molecule-lab-reference-panel")
+        ) {
+            return null;
         }
 
         if (!Number.isFinite(event.clientX) || !Number.isFinite(event.clientY)) {
@@ -333,7 +377,8 @@ const MoleculeLabUI = {
             "moleculeId",
             "category",
             "builderAction",
-            "moleculeAction"
+            "moleculeAction",
+            "referenceConcept"
         ];
         for (const key of dataKeys) {
             if (button.dataset[key]) {
@@ -425,22 +470,27 @@ const MoleculeLabUI = {
 
     renderReferencePanel() {
         const concepts = [
-            ["Covalent bond", "Atoms share electrons to fill their outer shells."],
-            ["Nonpolar", "Electrons are shared evenly, producing no permanent charge separation."],
-            ["Polar", "Unequal electron sharing creates partial positive and negative regions."],
-            ["Molecular shape", "Three-dimensional geometry determines many molecular properties."],
-            ["Hydrophilic", "Polar or charged substances interact readily with water."],
-            ["Hydrophobic", "Nonpolar substances interact poorly with water."]
+            ["covalent-bond", "Covalent bond", "Atoms share electrons to fill their outer shells."],
+            ["nonpolar", "Nonpolar", "Electrons are shared evenly, producing no permanent charge separation."],
+            ["polar", "Polar", "Unequal electron sharing creates partial positive and negative regions."],
+            ["molecular-shape", "Molecular shape", "Three-dimensional geometry determines many molecular properties."],
+            ["hydrophilic", "Hydrophilic", "Polar or charged substances interact readily with water."],
+            ["hydrophobic", "Hydrophobic", "Nonpolar substances interact poorly with water."]
         ];
 
         this.elements.reference.innerHTML = `
             <h2>Chemical Bonding Reference</h2>
             <div class="molecule-lab-reference-grid">
-                ${concepts.map(([term, definition]) => `
-                    <article class="molecule-lab-reference-card">
+                ${concepts.map(([id, term, definition]) => `
+                    <button
+                        type="button"
+                        class="molecule-lab-reference-card"
+                        data-reference-concept="${id}"
+                        aria-label="Open ${term} reference"
+                    >
                         <h3>${term}</h3>
                         <p>${definition}</p>
-                    </article>`).join("")}
+                    </button>`).join("")}
             </div>`;
     },
 
@@ -665,13 +715,21 @@ const MoleculeLabUI = {
         const formula = Object.entries(node.definition.formula)
             .map(([symbol, count]) => `${symbol}${count > 1 ? count : ""}`)
             .join(" ") || "—";
-        const inventoryRows = Object.entries(node.definition.formula)
-            .map(([symbol, required]) => {
-                const owned = status.atomInventory[symbol]?.count ?? 0;
-                return `<li><span>${symbol}</span><strong>${owned} owned · ${required} total</strong></li>`;
-            }).join("");
-
         const isComplete = node.phase === "complete";
+        const requirementsMarkup = isComplete
+            ? ""
+            : (() => {
+                const inventoryRows = Object.entries(node.definition.formula)
+                    .map(([symbol, required]) => {
+                        const owned = status.atomInventory[symbol]?.count ?? 0;
+                        return `<li><span>${symbol}</span><strong>${owned} owned · ${required} total</strong></li>`;
+                    }).join("");
+
+                return `
+                    <h3>Atom requirements</h3>
+                    <ul>${inventoryRows || "<li>No atom recipe.</li>"}</ul>
+                    <p class="molecule-requirement-message">${node.message}</p>`;
+            })();
         const activeDipoleSession =
             this.dipoleSession?.moleculeId === node.id;
         const activeWaterInteractionSession =
@@ -700,11 +758,19 @@ const MoleculeLabUI = {
                 <div class="molecule-property-measurement measured">
                     <strong>Water Interaction Measured</strong>
                     <span>${node.waterInteractionMeasurement.conclusion}</span>
-                    <small>
-                        ${node.waterInteractionMeasurement.interactionLabel} ·
-                        Hydrophilic ${node.waterInteractionMeasurement.hydrophilicScore}/100 ·
-                        Hydrophobic ${node.waterInteractionMeasurement.hydrophobicScore}/100
-                    </small>
+                    <small>${node.waterInteractionMeasurement.interactionLabel}</small>
+                    <div class="molecule-property-bars">
+                        ${renderPropertyBar(
+                            "Hydrophobic",
+                            node.waterInteractionMeasurement.hydrophobicScore,
+                            "hydrophobic"
+                        )}
+                        ${renderPropertyBar(
+                            "Hydrophilic",
+                            node.waterInteractionMeasurement.hydrophilicScore,
+                            "hydrophilic"
+                        )}
+                    </div>
                 </div>`
             : `
                 <div class="molecule-property-measurement unknown">
@@ -785,9 +851,7 @@ const MoleculeLabUI = {
             <div class="molecule-inspector-content">
     <div class="molecule-formula-display">${formatFormula(formula)}</div>
     <p>${node.definition.description}</p>
-    <h3>Atom requirements</h3>
-    <ul>${inventoryRows || "<li>No atom recipe.</li>"}</ul>
-    <p class="molecule-requirement-message">${node.message}</p>
+    ${requirementsMarkup}
     ${actionMarkup}
 </div>`;
 
