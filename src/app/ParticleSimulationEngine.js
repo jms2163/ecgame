@@ -16,6 +16,8 @@ const DEFAULT_MEMBRANE_START = 0.44;
 const DEFAULT_MEMBRANE_END = 0.56;
 
 const MEMBRANE_CLEARANCE = 0.012;
+const PARTICLE_CLUSTER_SPACING =
+    PARTICLE_RADIUS * 2.5;
 
 const ParticleSimulationEngine = {
 
@@ -64,6 +66,160 @@ const ParticleSimulationEngine = {
             materialId
         ]?.visualId ??
             "unknown";
+
+    },
+
+    // --------------------------------------------------
+    // Resolve the shared material count, with an optional
+    // experiment-level override for future simulations.
+    // --------------------------------------------------
+    getParticlesPerPlacement(
+        materialId,
+        simulation
+    ) {
+
+        const experimentOverride =
+            simulation?.particlesPerPlacement?.[
+                materialId
+            ];
+
+        const materialDefault =
+            ExperimentMaterialLibrary[
+                materialId
+            ]?.particlesPerPlacement;
+
+        const count =
+            experimentOverride ??
+            materialDefault ??
+            1;
+
+        return Number.isInteger(count) &&
+            count > 0
+            ? count
+            : 1;
+
+    },
+
+    // --------------------------------------------------
+    // Build a centered deterministic grid. Unlike the old
+    // repeating Y-only pattern, every particle receives a
+    // distinct two-dimensional starting position.
+    // --------------------------------------------------
+    createParticleClusterOffsets(count) {
+
+        const columns =
+            Math.ceil(
+                Math.sqrt(count)
+            );
+
+        const rows =
+            Math.ceil(
+                count / columns
+            );
+
+        return Array.from(
+            {
+                length: count
+            },
+            (_, index) => {
+
+                const column =
+                    index % columns;
+
+                const row =
+                    Math.floor(
+                        index / columns
+                    );
+
+                return {
+                    x:
+                        (
+                            column -
+                            (columns - 1) / 2
+                        ) *
+                        PARTICLE_CLUSTER_SPACING,
+
+                    y:
+                        (
+                            row -
+                            (rows - 1) / 2
+                        ) *
+                        PARTICLE_CLUSTER_SPACING
+                };
+
+            }
+        );
+
+    },
+
+    // --------------------------------------------------
+    // Place a complete particle cluster inside its starting
+    // zone without flattening edge particles onto one point.
+    // --------------------------------------------------
+    positionParticleCluster(
+        particles,
+        component,
+        simulation
+    ) {
+
+        if (particles.length === 0) {
+            return particles;
+        }
+
+        const offsets =
+            this.createParticleClusterOffsets(
+                particles.length
+            );
+
+        const xValues =
+            offsets.map(offset => offset.x);
+
+        const yValues =
+            offsets.map(offset => offset.y);
+
+        const zone =
+            this.getZoneBounds(
+                component.zoneId,
+                simulation
+            );
+
+        const centerX =
+            this.clamp(
+                particles[0].position.x,
+                zone.start +
+                    PARTICLE_RADIUS -
+                    Math.min(...xValues),
+                zone.end -
+                    PARTICLE_RADIUS -
+                    Math.max(...xValues)
+            );
+
+        const centerY =
+            this.clamp(
+                particles[0].position.y,
+                MIN_POSITION +
+                    PARTICLE_RADIUS -
+                    Math.min(...yValues),
+                MAX_POSITION -
+                    PARTICLE_RADIUS -
+                    Math.max(...yValues)
+            );
+
+        particles.forEach(
+            (particle, index) => {
+
+                particle.position.x =
+                    centerX +
+                    offsets[index].x;
+
+                particle.position.y =
+                    centerY +
+                    offsets[index].y;
+
+            }
+        );
+
+        return particles;
 
     },
 
@@ -282,20 +438,36 @@ const ParticleSimulationEngine = {
             particles: (() => {
                 let particleIndex = 0;
 
-                return particleComponents.flatMap(component => {
-                const count = component.id === "water"
-                    ? (simulation.waterParticlesPerPlacement ?? 1)
-                    : 1;
-                return Array.from({ length: count }, (_, offset) => {
-                    const particle = this.createParticle(
-                        component,
-                        particleIndex++,
-                        simulation
-                    );
-                    particle.position.y = this.clamp(particle.position.y + ((offset % 4) - 1.5) * 0.055);
-                    return particle;
-                });
-                });
+                return particleComponents.flatMap(
+                    component => {
+
+                        const count =
+                            this.getParticlesPerPlacement(
+                                component.id,
+                                simulation
+                            );
+
+                        const particles =
+                            Array.from(
+                                {
+                                    length: count
+                                },
+                                () =>
+                                    this.createParticle(
+                                        component,
+                                        particleIndex++,
+                                        simulation
+                                    )
+                            );
+
+                        return this.positionParticleCluster(
+                            particles,
+                            component,
+                            simulation
+                        );
+
+                    }
+                );
             })(),
 
             pore: this.resolvePore(components, simulation),
