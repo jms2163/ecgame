@@ -42,6 +42,20 @@ const PlasmaMembraneVisualCatalog = {
             this.geometry.end -
             this.geometry.start;
 
+        const widthPercent =
+            Number(
+                (width * 100).toFixed(4)
+            );
+
+        // Resolve against the document before handing the URL to
+        // CSS. A relative URL inside a custom property may otherwise
+        // be interpreted from simulation.css instead of the page.
+        const simulationAssetUrl =
+            new URL(
+                this.assets.simulation,
+                document.baseURI
+            ).href;
+
         element.style.setProperty(
             "--membrane-start",
             `${this.geometry.start * 100}%`
@@ -49,12 +63,12 @@ const PlasmaMembraneVisualCatalog = {
 
         element.style.setProperty(
             "--membrane-width",
-            `${width * 100}%`
+            `${widthPercent}%`
         );
 
         element.style.setProperty(
             "--plasma-membrane-image",
-            `url("${this.assets.simulation}")`
+            `url("${simulationAssetUrl}")`
         );
 
         return element;

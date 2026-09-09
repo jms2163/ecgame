@@ -50,6 +50,37 @@ const ExperimentMaterialVisualLibrary = {
             simulationColor: "#b692eb"
         },
 
+        potassium_ion_sphere: {
+            id: "potassium_ion_sphere",
+            cssClass: "potassium",
+            shape: "sphere",
+            simulationColor: "#f2b84b"
+        },
+
+        sodium_chloride_sample: {
+            id: "sodium_chloride_sample",
+            cssClass: "sodium-chloride-sample",
+            shape: "formula",
+            text: "NaCl",
+            colors: ["#a92f4e", "#5ee38d"]
+        },
+
+        calcium_chloride_sample: {
+            id: "calcium_chloride_sample",
+            cssClass: "calcium-chloride-sample",
+            shape: "formula",
+            text: "CaCl₂",
+            colors: ["#b692eb", "#5ee38d"]
+        },
+
+        potassium_chloride_sample: {
+            id: "potassium_chloride_sample",
+            cssClass: "potassium-chloride-sample",
+            shape: "formula",
+            text: "KCl",
+            colors: ["#f2b84b", "#5ee38d"]
+        },
+
         urea_sphere: {
             id: "urea_sphere",
             cssClass: "urea",
@@ -121,7 +152,25 @@ const ExperimentMaterialVisualLibrary = {
                 "aquaporin",
 
             assetPath:
-    "./public/assets/experiments/proteins/aquaporin.png"
+    "./public/assets/experiments/proteins/aquaporin.png",
+
+            altText:
+                "Aquaporin water channel"
+        },
+
+        potassium_channel: {
+
+            id:
+                "potassium_channel",
+
+            cssClass:
+                "potassium-channel",
+
+            assetPath:
+                "./public/assets/experiments/proteins/potassium-channel.svg",
+
+            altText:
+                "Selective potassium ion channel"
         }
 
     },
@@ -194,7 +243,7 @@ const ExperimentMaterialVisualLibrary = {
 
             visual.alt = decorative
                 ? ""
-                : "Aquaporin water channel";
+                : definition.altText ?? "Experiment material";
         }
 
         return visual;

@@ -131,6 +131,49 @@ const ParticleSimulationEngine = {
     },
 
     // --------------------------------------------------
+    // A compound sample can dissociate into constituent
+    // particles when its simulation begins.
+    // --------------------------------------------------
+    getParticleMaterialIds(
+        materialId,
+        simulation
+    ) {
+
+        const composition =
+            simulation?.particleCompositions?.[
+                materialId
+            ] ??
+            ExperimentMaterialLibrary[
+                materialId
+            ]?.particleComposition;
+
+        if (
+            composition &&
+            typeof composition === "object"
+        ) {
+            const expanded =
+                Object.entries(composition)
+                    .flatMap(([particleMaterialId, count]) =>
+                        Number.isInteger(count) && count > 0
+                            ? Array(count).fill(particleMaterialId)
+                            : []
+                    );
+
+            if (expanded.length > 0) {
+                return expanded;
+            }
+        }
+
+        return Array(
+            this.getParticlesPerPlacement(
+                materialId,
+                simulation
+            )
+        ).fill(materialId);
+
+    },
+
+    // --------------------------------------------------
     // Build a centered deterministic grid. Unlike the old
     // repeating Y-only pattern, every particle receives a
     // distinct two-dimensional starting position.
@@ -360,7 +403,8 @@ const ParticleSimulationEngine = {
     createParticle(
         component,
         index,
-        simulation
+        simulation,
+        particleMaterialId = component.id
     ) {
 
         return {
@@ -368,11 +412,14 @@ const ParticleSimulationEngine = {
                 `particle-${index + 1}`,
 
             materialId:
+                particleMaterialId,
+
+            sourceMaterialId:
                 component.id,
 
             visualId:
                 this.getVisualId(
-                    component.id
+                    particleMaterialId
                 ),
 
             zoneId:
@@ -490,22 +537,20 @@ const ParticleSimulationEngine = {
                 return particleComponents.flatMap(
                     component => {
 
-                        const count =
-                            this.getParticlesPerPlacement(
+                        const materialIds =
+                            this.getParticleMaterialIds(
                                 component.id,
                                 simulation
                             );
 
                         const particles =
-                            Array.from(
-                                {
-                                    length: count
-                                },
-                                () =>
+                            materialIds.map(
+                                particleMaterialId =>
                                     this.createParticle(
                                         component,
                                         particleIndex++,
-                                        simulation
+                                        simulation,
+                                        particleMaterialId
                                     )
                             );
 
@@ -524,6 +569,8 @@ const ParticleSimulationEngine = {
             elapsedMs: 0,
 
             totalWaterTransfers: 0,
+
+            totalMembraneTransfers: 0,
 
             isRunning: true
         };
@@ -636,8 +683,48 @@ const ParticleSimulationEngine = {
     getExpectedCrossingDirection(
         particle,
         gradient,
-        pore
+        simulation
     ) {
+
+        const selectiveRule =
+            simulation?.selectiveTransportRule;
+
+        if (selectiveRule) {
+            const sourceZoneId =
+                selectiveRule.sourceZoneId;
+
+            const targetZoneId =
+                selectiveRule.targetZoneId;
+
+            const allowedMaterialIds =
+                selectiveRule.allowedMaterialIds ?? [];
+
+            if (
+                particle.membraneCrossingLocked ||
+                particle.zoneId !== sourceZoneId ||
+                !allowedMaterialIds.includes(
+                    particle.materialId
+                )
+            ) {
+                return null;
+            }
+
+            if (
+                sourceZoneId === "side_a" &&
+                targetZoneId === "side_b"
+            ) {
+                return 1;
+            }
+
+            if (
+                sourceZoneId === "side_b" &&
+                targetZoneId === "side_a"
+            ) {
+                return -1;
+            }
+
+            return null;
+        }
 
         if (
             particle.materialId !== "water" ||
@@ -661,6 +748,22 @@ const ParticleSimulationEngine = {
 
     },
 
+    getMembraneTargetZoneId(
+        gradient,
+        simulation
+    ) {
+
+        if (simulation?.selectiveTransportRule) {
+            return simulation
+                .selectiveTransportRule
+                .targetZoneId ?? null;
+        }
+
+        return gradient?.higherSoluteZoneId ??
+            null;
+
+    },
+
     shouldStartMembraneTransit(
         particle,
         gradient,
@@ -673,7 +776,8 @@ const ParticleSimulationEngine = {
         const direction =
             this.getExpectedCrossingDirection(
                 particle,
-                gradient
+                gradient,
+                simulation
             );
 
         if (!direction) {
@@ -920,7 +1024,10 @@ const ParticleSimulationEngine = {
                 true;
 
             nextParticle.membraneTargetZoneId =
-                gradient.higherSoluteZoneId;
+                this.getMembraneTargetZoneId(
+                    gradient,
+                    simulation
+                );
 
             nextParticle.zoneId =
                 "membrane";
@@ -1191,8 +1298,20 @@ const ParticleSimulationEngine = {
                     particle.completedCrossing
             );
 
-        nextState.totalWaterTransfers +=
+        nextState.totalMembraneTransfers ??=
+            0;
+
+        nextState.totalWaterTransfers ??=
+            0;
+
+        nextState.totalMembraneTransfers +=
             completedTransfers.length;
+
+        nextState.totalWaterTransfers +=
+            completedTransfers.filter(
+                particle =>
+                    particle.materialId === "water"
+            ).length;
 
         completedTransfers.forEach(
             particle => {

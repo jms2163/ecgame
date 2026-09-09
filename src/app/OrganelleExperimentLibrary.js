@@ -4,6 +4,8 @@
 // --------------------------------------------------
 
 import PassiveDiffusionExperiment from "./PassiveDiffusionCatalog.js";
+import PotassiumChannelExperiment
+    from "./PotassiumChannelExperimentCatalog.js";
 
 const MEMBRANE_TRANSPORT_LABELS = [
 
@@ -43,7 +45,7 @@ const OrganelleExperimentLibrary = {
             "Observe water molecules and dissolved ions moving continuously to form a homogeneous saltwater mixture.",
 
         catalogReward:
-            "+100 XP",
+            "+100 XP • Discovery: Diffusion",
 
         objective:
             "Observe the dynamics of salt dissolving in water and the constant movement of substances.",
@@ -213,7 +215,8 @@ const OrganelleExperimentLibrary = {
         grants: {
             xp: 100,
             discoveries: [
-                "homogeneous_mixture"
+                "homogeneous_mixture",
+                "diffusion"
             ],
             achievements: [],
             metricEffects: []
@@ -250,7 +253,7 @@ const OrganelleExperimentLibrary = {
             "Observe water moving slowly across the plasma membrane without ATP or a transport protein.",
 
         catalogReward:
-            "+100 XP",
+            "+100 XP • Discovery: Osmosis",
 
         objective:
             "An amoeba needs water. Position the components so that water flows into the cell.",
@@ -787,7 +790,9 @@ simulation: {
             xp:
                 100,
 
-            discoveries: [],
+            discoveries: [
+                "osmosis"
+            ],
 
             achievements: [],
 
@@ -828,7 +833,7 @@ simulation: {
             "Compare slow passive water movement with rapid water movement through an aquaporin channel.",
 
         catalogReward:
-            "+500 XP • +5% membrane transport • +3% vacuole osmoregulation",
+            "+500 XP • Discovery: Aquaporin • +5% membrane transport • +3% vacuole osmoregulation",
 
         objective:
             "An amoeba has taken in too much water and must export the excess to restore water balance. Arrange the materials to move water out of the cell.",
@@ -1352,7 +1357,8 @@ simulation: {
                 500,
 
             discoveries: [
-                "facilitated_diffusion_level_1"
+                "facilitated_diffusion_level_1",
+                "aquaporin"
             ],
 
             achievements: [
@@ -1406,7 +1412,10 @@ simulation: {
 
         }
 
-    }
+    },
+
+    potassium_channel_selectivity:
+        PotassiumChannelExperiment
 
 };
 
