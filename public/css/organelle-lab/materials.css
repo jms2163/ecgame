@@ -63,6 +63,8 @@
     border-radius: 50%;
 }
 
+.organelle-experiment-particle--proton { display: grid; place-items: center; width: 1.3rem; height: 1.3rem; background: var(--material-color); color: #241029; border: 1px solid white; font-size: .7rem; }
+
 /* Match ParticleSimulationRenderer: compact blue water with a white outline. */
 .organelle-experiment-particle--water {
     width: 1rem;

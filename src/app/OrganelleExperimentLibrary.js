@@ -4,6 +4,7 @@
 // --------------------------------------------------
 
 import PassiveDiffusionExperiment from "./PassiveDiffusionCatalog.js";
+import ContractileVacuoleExperiment from './ContractileVacuoleExperimentCatalog.js';
 import PotassiumChannelExperiment
     from "./PotassiumChannelExperimentCatalog.js";
 
@@ -26,6 +27,8 @@ const MEMBRANE_TRANSPORT_LABELS = [
 ];
 
 const OrganelleExperimentLibrary = {
+
+    contractile_vacuole_filling: ContractileVacuoleExperiment,
 
     // --------------------------------------------------
     // Plasma membrane foundations: molecular motion

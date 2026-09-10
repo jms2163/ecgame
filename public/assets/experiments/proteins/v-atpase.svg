@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 110">
+  <title>V-ATPase: ATP-binding head at top; proton movement toward bottom</title>
+  <rect x="14" y="48" width="16" height="54" rx="7" fill="#8470c9" stroke="#e5d5ff" stroke-width="2"/>
+  <rect x="42" y="48" width="16" height="54" rx="7" fill="#8470c9" stroke="#e5d5ff" stroke-width="2"/>
+  <path d="M36 29V58" stroke="#d8bdff" stroke-width="10"/>
+  <ellipse cx="36" cy="22" rx="29" ry="19" fill="#d8bdff" stroke="#fff" stroke-width="2"/>
+  <text x="36" y="26" text-anchor="middle" font-size="12" font-family="sans-serif" fill="#251035">ATP</text>
+  <path d="M36 61V91M30 84L36 94L42 84" fill="none" stroke="#ff8c42" stroke-width="4"/>
+</svg>

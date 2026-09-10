@@ -24,8 +24,8 @@ const CellMapLayout = {
             hotspotDiameter: 50,
 
             labelPosition: {
-                x: 1080,
-                y: 100,
+                x: 290, //1080
+                y: 90, //100
                 anchor: "end"
             }
         },
@@ -45,8 +45,8 @@ const CellMapLayout = {
             hotspotDiameter: 50,
 
             labelPosition: {
-                x: 120,
-                y: 100,
+                x: 318,
+                y: 697,
                 anchor: "start"
             }
         },
@@ -171,8 +171,8 @@ const CellMapLayout = {
             hotspotDiameter: 30,
 
             labelPosition: {
-                x: 120,
-                y: 560,
+                x: 871,
+                y: 756,
                 anchor: "start"
             }
         },
@@ -192,8 +192,8 @@ const CellMapLayout = {
             hotspotDiameter: 70,
 
             labelPosition: {
-                x: 420,
-                y: 760,
+                x: 962,
+                y: 98,
                 anchor: "start"
             }
         },
@@ -276,8 +276,8 @@ const CellMapLayout = {
             hotspotDiameter: 50,
 
             labelPosition: {
-                x: 470,
-                y: 50,
+                x: 656,
+                y: 696,
                 anchor: "start"
             }
         },
@@ -290,15 +290,15 @@ const CellMapLayout = {
             labFocusId: "cytoskeleton",
 
             node: {
-                x: 402,
+                x: 384,
                 y: 266
             },
 
             hotspotDiameter: 50,
 
             labelPosition: {
-                x: 120,
-                y: 630,
+                x: 448,
+                y: 100,
                 anchor: "start"
             }
         },

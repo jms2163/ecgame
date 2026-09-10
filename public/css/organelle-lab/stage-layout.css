@@ -36,5 +36,20 @@
 .membrane-transport-bilayer { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 6px; overflow: hidden; background: #2b103d; }
 .membrane-transport-lipid { display: flex; align-items: center; justify-content: center; width: 4.5rem; height: 1rem; }
 .membrane-lipid-tail { width: 1.15rem; height: 2px; background: #9b66b7; }
+
+.guided-experiment-panel { gap: 10px; }
+.guided-experiment-prediction { display: grid; gap: 6px; margin: 0; padding: 10px 12px; border: 1px solid #74465f; }
+.guided-experiment-prediction legend { padding: 0 5px; color: #f7efff; font-weight: bold; }
+.guided-experiment-prediction label { display: flex; gap: 7px; align-items: flex-start; color: #ddd4e9; font-size: 0.86rem; }
+.guided-experiment-prediction input { flex: 0 0 auto; margin-top: 2px; }
+.guided-experiment-actions { display: flex; flex-wrap: wrap; gap: 7px; }
+.guided-experiment-actions button { padding: 6px 11px; color: #f7efff; border: 1px solid #74465f; background: #2b103d; font-family: inherit; }
+.guided-experiment-actions button:disabled { opacity: 0.55; }
+.guided-experiment-model-note { margin-top: 12px; color: #cdbfd8; font-size: 0.8rem; }
+.guided-experiment-model-note summary { width: fit-content; cursor: pointer; color: #a791b2; }
+.guided-experiment-model-note p { margin: 7px 0 0; max-width: 52rem; }
+.guided-zone-label { position: absolute; z-index: 3; top: 8px; pointer-events: none; color: #f7efff; font-weight: bold; }
+.guided-zone-label--side_a { left: 8px; }
+.guided-zone-label--side_b { right: 8px; }
 @media (max-width: 760px) { #organelle-workspace { grid-template-columns: 1fr; } #organelle-experiment-stage { min-height: 28rem; } #organelle-experiment-stage-content { min-height: 20rem; } }
 @media (max-width: 560px) { #organelle-experiment-stage-header { align-items: flex-start; flex-direction: column; } #organelle-experiment-stage-controls { justify-content: flex-start; } .organelle-experiment-activity-layout { grid-template-columns: 1fr; } .organelle-experiment-label-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

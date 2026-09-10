@@ -89,6 +89,7 @@ import MacromolecularizerUI
 import MoleculeLab from "./MoleculeLab.js";
 import MoleculeLabUI from "./MoleculeLabUI.js";
 import MoleculeBuilderView from "./MoleculeBuilderView.js";
+import CellMapLabelCalibrator from "./CellMapLabelCalibrator.js";
 
 
 const DevConsole = {
@@ -150,7 +151,8 @@ const DevConsole = {
             MacromolecularizerUI,
             MoleculeLab,
             MoleculeLabUI,
-            MoleculeBuilderView
+            MoleculeBuilderView,
+            CellMapLabelCalibrator
         };
 
         console.log(
