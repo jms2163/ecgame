@@ -5,6 +5,14 @@
 
 const ExperimentMaterialLibrary = {
 
+    hydrogen_ion: { id: 'hydrogen_ion', displayName: 'H⁺', ariaLabel: 'Proton', visualId: 'hydrogen_ion_sphere' },
+    hydrogen_ion_sample: { id: 'hydrogen_ion_sample', displayName: 'H⁺ sample', ariaLabel: 'Six protons',
+        visualId: 'hydrogen_ion_sphere', particleComposition: { hydrogen_ion: 6 } },
+    lab_atp_supply: { id: 'lab_atp_supply', displayName: 'ATP supply', ariaLabel: 'Lab ATP supply, six ATP molecules',
+        visualId: 'atp_symbol', particlesPerPlacement: 6 },
+    v_atpase: { id: 'v_atpase', displayName: 'V-ATPase', ariaLabel: 'ATP-powered proton pump', visualId: 'v_atpase',
+        placementSize: { widthRem: 3.1, heightRem: 4.5 }, initialRotationDeg: 0, rotatable: true },
+
     water: {
 
         id:

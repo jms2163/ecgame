@@ -14,6 +14,7 @@ const ParticleSimulationView = {
 
     canvasElement: null,
     currentState: null,
+    onStateChanged: null,
 
     animationFrameId: null,
     lastFrameAtMs: null,
@@ -126,6 +127,9 @@ const ParticleSimulationView = {
 
         this.render();
 
+        this.onStateChanged?.(this.currentState);
+        if (!this.currentState?.isRunning) return;
+
         this.animationFrameId =
             window.requestAnimationFrame(
                 nextFrameAtMs =>
@@ -139,7 +143,7 @@ const ParticleSimulationView = {
     // --------------------------------------------------
     // Start one active particle simulation
     // --------------------------------------------------
-    start(state) {
+    start(state, { onStateChanged = null } = {}) {
 
         if (
             !this.canvasElement ||
@@ -153,6 +157,8 @@ const ParticleSimulationView = {
         }
 
         this.stop();
+
+        this.onStateChanged = onStateChanged;
 
         this.currentState =
             structuredClone(state);
@@ -206,6 +212,7 @@ const ParticleSimulationView = {
     clear() {
 
         this.stop();
+        this.onStateChanged = null;
 
         this.canvasElement?.remove();
 

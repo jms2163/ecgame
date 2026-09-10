@@ -204,6 +204,11 @@ const ResearchManager = {
                 experimentId
             );
 
+        // A preview cannot accidentally grant full-experiment rewards.
+        if (experiment.sequence?.stages?.some(stage => !stage.playable)) {
+            return { completed: false, reason: 'experiment-in-development' };
+        }
+
         if (status.completed) {
             return {
                 completed: false,

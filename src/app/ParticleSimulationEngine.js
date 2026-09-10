@@ -442,15 +442,20 @@ const ParticleSimulationEngine = {
                     )
             },
 
-            velocity:
-                simulation?.modelId ===
-                "particle_solution_mixing"
-                    ? this.createSolutionMixingVelocity(
-                        index
-                    )
-                    : this.createInitialVelocity(
-                        index
-                    ),
+            velocity: (() => {
+                const baseVelocity =
+                    simulation?.modelId === "particle_solution_mixing"
+                        ? this.createSolutionMixingVelocity(index)
+                        : this.createInitialVelocity(index);
+                const multiplier =
+                    Number.isFinite(simulation?.movementSpeedMultiplier)
+                        ? simulation.movementSpeedMultiplier
+                        : 1;
+                return {
+                    x: baseVelocity.x * multiplier,
+                    y: baseVelocity.y * multiplier
+                };
+            })(),
 
             radius:
                 PARTICLE_RADIUS,
@@ -565,6 +570,13 @@ const ParticleSimulationEngine = {
             })(),
 
             pore: this.resolvePore(components, simulation),
+
+            // ATP is represented by moving particles. The pump begins
+            // unenergized and can hold one activation at a time.
+            atpRemaining: 0,
+            atpConsumed: 0,
+            pumpActivated: false,
+            pumpActivationDelayRemainingMs: 0,
 
             elapsedMs: 0,
 
@@ -891,12 +903,23 @@ const ParticleSimulationEngine = {
 
     },
 
+    // After a failed approach in an energy-coupled teaching model,
+    // change the vertical component so the next pass can encounter
+    // the visible pump instead of repeating one specular path forever.
+    guideNextPumpApproach(nextParticle, pore) {
+        if (!pore) return;
+        const direction = Math.sign(pore.y - nextParticle.position.y) || 1;
+        nextParticle.velocity.y =
+            direction * Math.max(Math.abs(nextParticle.velocity.y), DEFAULT_SPEED * 0.55);
+    },
+
     advanceParticle(
         particle,
         elapsedMilliseconds,
         gradient,
         pore,
-        simulation
+        simulation,
+        energy = null
     ) {
 
         const elapsedSeconds =
@@ -984,6 +1007,47 @@ const ParticleSimulationEngine = {
         }
 
         // --------------------------------------------------
+        // ATP must physically contact the correctly oriented
+        // pump. The ATP particle is then consumed and the pump
+        // stores one visible activation for the next H+.
+        // --------------------------------------------------
+        const energyRule =
+            simulation?.energyRule;
+
+        const isEnergyParticle =
+            energyRule &&
+            nextParticle.materialId === energyRule.materialId;
+
+        if (
+            isEnergyParticle &&
+            nextParticle.zoneId === energyRule.zoneId &&
+            nextParticle.velocity.x > 0 &&
+            nextParticle.position.x >= membrane.start - MEMBRANE_CLEARANCE
+        ) {
+            const nearPore =
+                pore &&
+                (
+                    nextParticle.pumpApproachGuided ||
+                    Math.abs(nextParticle.position.y - pore.y) <= pore.radius
+                );
+
+            if (nearPore && energy && energy.remaining === 0) {
+                nextParticle.position.y = pore.y;
+                energy.remaining = 1;
+                energy.consumed += 1;
+                energy.activationDelayRemainingMs =
+                    energyRule.activationDelayMs ?? 0;
+                nextParticle.isConsumed = true;
+                return nextParticle;
+            }
+
+            this.reflectFromMembrane(nextParticle, 1, simulation);
+            nextParticle.pumpApproachGuided = true;
+            this.guideNextPumpApproach(nextParticle, pore);
+            return nextParticle;
+        }
+
+        // --------------------------------------------------
         // A lower-solute water molecule may pass through
         // when it physically reaches the membrane.
         // --------------------------------------------------
@@ -995,10 +1059,24 @@ const ParticleSimulationEngine = {
             )
         ) {
             if (pore) {
-                const nearPore = Math.abs(nextParticle.position.y - pore.y) <= pore.radius;
+                const effectivePoreRadius =
+                    energyRule && energy?.remaining > 0
+                        ? energyRule.activatedPoreRadius ?? pore.radius
+                        : pore.radius;
+                const nearPore =
+                    nextParticle.pumpApproachGuided ||
+                    Math.abs(nextParticle.position.y - pore.y) <= effectivePoreRadius;
                 if (!nearPore) {
                     this.reflectFromMembrane(nextParticle, nextParticle.velocity.x > 0 ? 1 : -1, simulation);
+                    if (energyRule) {
+                        nextParticle.pumpApproachGuided = true;
+                        this.guideNextPumpApproach(nextParticle, pore);
+                    }
                     return nextParticle;
+                }
+                if (energyRule && nextParticle.pumpApproachGuided) {
+                    nextParticle.position.y = pore.y;
+                    delete nextParticle.pumpApproachGuided;
                 }
                 nextParticle.postPoreVelocity = {
                     ...nextParticle.velocity
@@ -1019,6 +1097,24 @@ const ParticleSimulationEngine = {
             } else if (simulation?.poreRule) {
                 this.reflectFromMembrane(nextParticle, nextParticle.velocity.x > 0 ? 1 : -1, simulation);
                 return nextParticle;
+            }
+            if (energyRule) {
+                const cost = energyRule.unitsPerTransfer;
+                if (
+                    !energy ||
+                    energy.remaining < cost ||
+                    energy.activationDelayRemainingMs > 0
+                ) {
+                    // Do not retain the boosted pore velocity when ATP is absent.
+                    if (nextParticle.postPoreVelocity) {
+                        nextParticle.velocity = nextParticle.postPoreVelocity;
+                        delete nextParticle.postPoreVelocity;
+                    }
+                    this.reflectFromMembrane(nextParticle, nextParticle.velocity.x > 0 ? 1 : -1, simulation);
+                    nextParticle.pumpApproachGuided = true;
+                    return nextParticle;
+                }
+                energy.remaining -= cost;
             }
             nextParticle.isMembraneTransit =
                 true;
@@ -1077,7 +1173,8 @@ const ParticleSimulationEngine = {
         elapsedMilliseconds,
         gradient,
         pore,
-        simulation
+        simulation,
+        energy = null
     ) {
 
         return particles.map(
@@ -1087,9 +1184,10 @@ const ParticleSimulationEngine = {
                     elapsedMilliseconds,
                 gradient,
                 pore,
-                simulation
+                simulation,
+                energy
                 )
-        );
+        ).filter(particle => !particle.isConsumed);
 
     },
 
@@ -1281,6 +1379,15 @@ const ParticleSimulationEngine = {
         nextState.elapsedMs +=
             safeElapsedMilliseconds;
 
+        const energy = {
+            remaining: nextState.atpRemaining ?? 0,
+            consumed: nextState.atpConsumed ?? 0,
+            activationDelayRemainingMs: Math.max(
+                0,
+                (nextState.pumpActivationDelayRemainingMs ?? 0) - safeElapsedMilliseconds
+            )
+        };
+
         nextState.particles =
             this.resolveParticleCollisions(
                 this.advanceParticles(
@@ -1288,9 +1395,16 @@ const ParticleSimulationEngine = {
                     safeElapsedMilliseconds,
                     gradient,
                     nextState.pore,
-                    nextState.simulation
+                    nextState.simulation,
+                    energy
                 )
             );
+
+        nextState.atpRemaining = energy.remaining;
+        nextState.atpConsumed = energy.consumed;
+        nextState.pumpActivated = energy.remaining > 0;
+        nextState.pumpActivationDelayRemainingMs =
+            energy.activationDelayRemainingMs;
 
         const completedTransfers =
             nextState.particles.filter(

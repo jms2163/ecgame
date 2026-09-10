@@ -32,6 +32,8 @@ import SaveManager
 import ProblemReportManager
     from "./ProblemReportManager.js";
 import PassiveDiffusionView from "./PassiveDiffusionView.js";
+import GuidedExperimentManager from './GuidedExperimentManager.js';
+import GuidedExperimentView from './GuidedExperimentView.js';
 import PlasmaMembraneVisualCatalog from "./PlasmaMembraneVisualCatalog.js";
 
 const OrganelleExperimentStage = {
@@ -44,6 +46,8 @@ const OrganelleExperimentStage = {
     activeResolvedExperiment: null,
     isParticleSimulationRunning: false,
     simulationStructureResizeObserver: null,
+    guidedStateChanged: null,
+    guidedCanSimulate: null,
 
     isReviewMode: false,
     isReexamineMode: false,
@@ -226,6 +230,9 @@ const OrganelleExperimentStage = {
                     structure.classList.add(
                         "organelle-particle-simulation-structure"
                     );
+
+                    structure.dataset.simulationStructureMaterialId =
+                        materialId;
 
                     structure.style.width =
                         sourceStyle.width;
@@ -597,7 +604,7 @@ handleControlAction(actionId) {
             this.showSimulationResult(
                 {
                     title: "Select a Protein",
-                    message: "Place and select an aquaporin in the membrane before rotating it."
+                    message: "Place and select a rotatable protein in the membrane before rotating it."
                 }
             );
         }
@@ -1231,6 +1238,10 @@ runSimulation() {
         return;
     }
 
+    if (this.guidedCanSimulate && !this.guidedCanSimulate()) {
+        return;
+    }
+
     const simulationSurface =
         document.getElementById(
             "organelle-particle-simulation-surface"
@@ -1372,8 +1383,38 @@ runSimulation() {
     );
 
     ParticleSimulationView.start(
-        initialState
+        initialState,
+        { onStateChanged: state => {
+            const pumpMaterialId =
+                simulation.poreRule?.materialId;
+            simulationSurface
+                .querySelectorAll('[data-simulation-structure-material-id]')
+                .forEach(structure => {
+                    const isActivePump =
+                        structure.dataset.simulationStructureMaterialId === pumpMaterialId &&
+                        state.pumpActivated;
+                    structure.classList.toggle(
+                        'organelle-particle-simulation-structure--energized',
+                        Boolean(isActivePump)
+                    );
+                });
+            if (this.guidedStateChanged?.(state)) {
+                ParticleSimulationView.stop();
+                this.isParticleSimulationRunning = false;
+                simulationButton.textContent = 'Observation Complete';
+                simulationButton.disabled = true;
+            }
+        } }
     );
+
+    if (experiment.sequence) {
+        for (const [zoneId, text] of [['side_a', 'CYTOSOL'], ['side_b', 'CV LUMEN']]) {
+            const label = document.createElement('span');
+            label.textContent = text;
+            label.className = `guided-zone-label guided-zone-label--${zoneId}`;
+            simulationSurface.append(label);
+        }
+    }
 
     OrganelleExperimentAttemptManager
         .markSimulationRun();
@@ -1414,6 +1455,8 @@ runSimulation() {
 
         this.activeResolvedExperiment =
             null;
+        this.guidedStateChanged = null;
+        this.guidedCanSimulate = null;
 
         this.isReviewMode = false;
 
@@ -1835,14 +1878,18 @@ stage.append(
             return;
         }
 
+        const stageExperiment = experiment.sequence
+            ? GuidedExperimentManager.resolve(experiment)
+            : experiment;
+
         const resolvedExperiment = {
 
-            ...experiment,
+            ...stageExperiment,
 
             stage:
                 ExperimentStageDefinitionResolver
                     .resolveStage(
-                        experiment.stage
+                        stageExperiment.stage
                     )
 
         };
@@ -1878,6 +1925,8 @@ stage.append(
     
 
         this.contentElement.replaceChildren();
+        this.guidedStateChanged = null;
+        this.guidedCanSimulate = null;
 
         if (this.isReexamineMode) {
             const notice =
@@ -1995,6 +2044,16 @@ stage.append(
 this.contentElement.appendChild(
     simulationPanel
 );
+
+        if (resolvedExperiment.sequence) {
+            const guidedView = GuidedExperimentView.mount(
+                this.contentElement,
+                resolvedExperiment,
+                { sandbox: this.isReexamineMode }
+            );
+            this.guidedStateChanged = guidedView.onStateChanged;
+            this.guidedCanSimulate = guidedView.canSimulate;
+        }
 
     },
 

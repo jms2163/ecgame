@@ -10,8 +10,8 @@ const DEFAULT_HEIGHT = 320;
 const MEMBRANE_START = 0.45;
 const MEMBRANE_END = 0.55;
 
-import ExperimentMaterialVisualLibrary
-    from "./ExperimentMaterialVisualLibrary.js";
+import ExperimentMaterialCanvasRenderer
+    from "./ExperimentMaterialCanvasRenderer.js";
 
 const ParticleSimulationRenderer = {
 
@@ -195,34 +195,12 @@ const ParticleSimulationRenderer = {
                 height
             );
 
-        const color =
-            ExperimentMaterialVisualLibrary
-                .definitions[
-                    particle.visualId
-                ]?.simulationColor ??
-            "#f7efff";
-
-        context.fillStyle =
-            color;
-
-        context.strokeStyle =
-            "#ffffff";
-
-        context.lineWidth = 1;
-
-        context.beginPath();
-
-        context.arc(
+        ExperimentMaterialCanvasRenderer.draw(
+            context,
+            particle.visualId,
             point.x,
-            point.y,
-            6,
-            0,
-            Math.PI * 2
+            point.y
         );
-
-        context.fill();
-
-        context.stroke();
 
     },
 

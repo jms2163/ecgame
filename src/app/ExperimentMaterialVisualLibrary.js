@@ -7,6 +7,10 @@ const ExperimentMaterialVisualLibrary = {
 
     definitions: {
 
+        hydrogen_ion_sphere: { id: 'hydrogen_ion_sphere', cssClass: 'proton', shape: 'sphere', simulationColor: '#ff8c42', text: 'H⁺' },
+        v_atpase: { id: 'v_atpase', cssClass: 'potassium-channel',
+            assetPath: './public/assets/experiments/proteins/v-atpase.svg', altText: 'V-ATPase with ATP-binding head and proton-transport arrow' },
+
         water_sphere: {
 
             id:

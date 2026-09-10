@@ -102,6 +102,13 @@
     transform-origin: center;
 }
 
+/* ATP contact energizes the pump for one H+ transport cycle. */
+.organelle-particle-simulation-structure--energized {
+    filter:
+        drop-shadow(0 0 5px #ffe36a)
+        drop-shadow(0 0 13px #ffe36a);
+}
+
 .membrane-transport-stage--labels-hidden
 .organelle-experiment-placement--label {
     visibility: hidden;
