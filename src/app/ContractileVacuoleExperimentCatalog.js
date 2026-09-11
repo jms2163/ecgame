@@ -3,11 +3,10 @@ import Membrane from './PlasmaMembraneVisualCatalog.js';
 export default {
     id: 'contractile_vacuole_filling', organelleId: 'contractile_vacuole',
     title: 'Filling the Contractile Vacuole',
-    summary: 'Guided investigation: establish a proton gradient, then use it to exchange H⁺ for Na⁺. Stages 1–2 are available.',
+    summary: 'Guided investigation: establish a proton gradient, load Na⁺ and Cl⁻, then draw water into the contractile-vacuole lumen through aquaporin.',
     objective: 'Build the conditions that allow water to enter the contractile-vacuole complex.',
     catalogReward: '1200 XP after all four stages are completed',
     requirements: { discoveries: [], completedExperiments: ['aquaporin_facilitated_diffusion'] },
-    // No experiment completion or reward until all four stages ship.
     grants: { xp: 1200, discoveries: ['contractile_vacuole_filling'], achievements: [], metricEffects: [] },
     sequence: {
         stages: [
@@ -83,8 +82,75 @@ export default {
                     modelNote: 'Stage 2 begins with the H⁺ gradient saved in Stage 1. This simplified antiporter uses the movement of H⁺ back toward the cytosol to couple Na⁺ movement into the contractile-vacuole lumen.'
                 }
             },
-            { id: 'chloride_entry', title: 'Stage 3: Cl⁻ Entry', playable: false },
-            { id: 'water_entry', title: 'Stage 4: Osmotic Water Entry', playable: false }
+            {
+                id: 'chloride_entry', title: 'Stage 3: Cl⁻ Entry', playable: true,
+                objective: 'Use the positive charge established by lumen Na⁺ to move six cytosolic Cl⁻ through a chloride channel into the contractile-vacuole lumen.',
+                stage: { template: 'membrane_transport', materials: [
+                    { id: 'chloride_ion_sample', maxPlacements: 1 },
+                    { id: 'chloride_channel', maxPlacements: 1 }
+                ], labels: [], controls: ['rotate', 'simulate', 'reset'] },
+                simulation: {
+                    modelId: 'particle_membrane_transport', modelVariant: 'chloride_channel_entry', stageId: 'chloride_entry',
+                    zoneIds: ['side_a', 'membrane', 'side_b'],
+                    membraneGeometry: { ...Membrane.geometry },
+                    particleMaterialIds: ['chloride_ion_sample', 'sodium_ion'],
+                    fixedStructureMaterialIds: ['chloride_channel'],
+                    carryForward: { fromStageId: 'sodium_exchange', materialIds: ['sodium_ion'], targetZoneId: 'side_b' },
+                    poreRule: { materialId: 'chloride_channel', allowedRotationDeg: [0], radius: 0.13, speedMultiplier: 4 },
+                    movementSpeedMultiplier: 2,
+                    selectiveTransportRule: {
+                        allowedMaterialIds: ['chloride_ion'],
+                        sourceZoneId: 'side_a', targetZoneId: 'side_b'
+                    }
+                },
+                goal: { transfers: 6 },
+                guidedUi: {
+                    predictionPrompt: 'Before you simulate: predict what Cl⁻ will do after Na⁺ has accumulated in the CV lumen.',
+                    predictionChoices: [
+                        { id: 'chloride_enters_lumen', text: 'Cl⁻ moves through its channel from the cytosol into the CV lumen.' },
+                        { id: 'chloride_stays_cytosol', text: 'Cl⁻ stays in the cytosol because ions can never cross a membrane.' },
+                        { id: 'sodium_leaves_lumen', text: 'Na⁺ leaves the CV lumen through the chloride channel.' },
+                        { id: 'atp_pumps_chloride', text: 'ATP directly pumps Cl⁻ into the CV lumen.' }
+                    ],
+                    transportedLabel: 'Cl⁻ moved into lumen',
+                    hint: 'Put Cl⁻ in the cytosol. Rotate the chloride channel until its green arrow points RIGHT, toward the Na⁺ already in the CV lumen.',
+                    modelNote: 'Stage 3 begins with Na⁺ retained in the CV lumen from Stage 2. The accumulated positive charge favors Cl⁻ entry through a selective channel. The model simplifies the full electrochemical gradient while preserving the direction and channel requirement.'
+                }
+            },
+            {
+                id: 'water_entry', title: 'Stage 4: Osmotic Water Entry', playable: true,
+                objective: 'Use the NaCl accumulated in the contractile-vacuole lumen to draw water from the cytosol through aquaporin. Place water in the cytosol, place aquaporin in the membrane, orient the channel correctly, and simulate.',
+                stage: { template: 'membrane_transport', materials: [
+                    { id: 'water', maxPlacements: 1 },
+                    { id: 'aquaporin', maxPlacements: 1 }
+                ], labels: [], controls: ['rotate', 'simulate', 'reset'] },
+                simulation: {
+                    modelId: 'particle_membrane_transport', modelVariant: 'contractile_vacuole_osmosis', stageId: 'water_entry',
+                    zoneIds: ['side_a', 'membrane', 'side_b'],
+                    membraneGeometry: { ...Membrane.geometry },
+                    particleMaterialIds: ['water', 'sodium_ion', 'chloride_ion'],
+                    fixedStructureMaterialIds: ['aquaporin'],
+                    carryForward: {
+                        fromStageId: 'chloride_entry',
+                        materialIds: ['sodium_ion', 'chloride_ion'],
+                        targetZoneId: 'side_b'
+                    },
+                    poreRule: { materialId: 'aquaporin', allowedRotationDeg: [90, 270], radius: 0.10, speedMultiplier: 5 }
+                },
+                goal: { waterTransfers: 6 },
+                guidedUi: {
+                    predictionPrompt: 'Before you simulate: predict how water will move after Na⁺ and Cl⁻ have accumulated in the CV lumen.',
+                    predictionChoices: [
+                        { id: 'water_enters_lumen', text: 'Water moves from the cytosol through aquaporin into the CV lumen.' },
+                        { id: 'water_leaves_lumen', text: 'Water moves from the CV lumen into the cytosol.' },
+                        { id: 'ions_cross_aquaporin', text: 'Na⁺ and Cl⁻ leave the CV lumen through aquaporin.' },
+                        { id: 'atp_pumps_water', text: 'ATP directly pumps water into the CV lumen.' }
+                    ],
+                    transportedLabel: 'Water moved into lumen',
+                    hint: 'Put water in the cytosol. Place aquaporin in the membrane and rotate it until the channel spans across the membrane.',
+                    modelNote: 'Stage 4 begins with equal numbers of Na⁺ and Cl⁻ retained in the CV lumen from Stage 3. Water moves toward this higher solute concentration by osmosis, and aquaporin provides a rapid passive pathway without ATP. The model does not yet represent expansion or contraction of the whole vacuole.'
+                }
+            }
         ]
     }
 };

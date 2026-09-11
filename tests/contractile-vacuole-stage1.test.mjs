@@ -97,7 +97,7 @@ try {
     assert.equal(Manager.read(Catalog.id).checkpoints.proton_gradient.predictionId, 'lumen_head_cytosol');
     assert.equal(Manager.resolve(Catalog).guidedStageId, 'sodium_exchange');
     assert.equal(Manager.resolve(Catalog, 'sodium_exchange').guidedStageId, 'sodium_exchange');
-    assert.equal(Research.completeExperiment(Catalog.id).reason, 'experiment-in-development');
+    assert.equal(Research.completeExperiment(Catalog.id).reason, 'requirements-not-met');
     assert.equal(gameState.player.xp, xp);
 } finally {
     for (const key of Object.keys(gameState)) delete gameState[key];

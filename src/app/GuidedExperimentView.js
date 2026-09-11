@@ -1,4 +1,5 @@
 import Manager from './GuidedExperimentManager.js';
+import ExperimentMaterialLibrary from './ExperimentMaterialLibrary.js';
 import ExperimentMaterialVisualLibrary from './ExperimentMaterialVisualLibrary.js';
 
 // UI adapter for multi-stage investigations that reuse the standard organelle
@@ -25,7 +26,7 @@ const GuidedExperimentView = {
         cluster.setAttribute('role', 'img');
         cluster.setAttribute('aria-label', `${carried.length} ions carried forward from the prior stage`);
         carried.forEach(component => {
-            const visualId = component.id === 'hydrogen_ion' ? 'hydrogen_ion_sphere' : null;
+            const visualId = ExperimentMaterialLibrary[component.id]?.visualId ?? null;
             const visual = visualId
                 ? ExperimentMaterialVisualLibrary.create(visualId, { decorative: true })
                 : null;
@@ -37,6 +38,12 @@ const GuidedExperimentView = {
     statusText(stage, state) {
         if (stage.goal.exchangeCycles !== undefined) {
             return `Na⁺ exchanged into lumen: ${state.exchangeCycles ?? 0} / ${stage.goal.exchangeCycles} · H⁺ returned to cytosol: ${state.exchangeCycles ?? 0} / ${stage.goal.exchangeCycles}`;
+        }
+        if (stage.guidedUi?.transportedLabel) {
+            const tracksWater = stage.goal.waterTransfers !== undefined;
+            const current = tracksWater ? state.totalWaterTransfers : state.totalMembraneTransfers;
+            const target = tracksWater ? stage.goal.waterTransfers : stage.goal.transfers;
+            return `${stage.guidedUi.transportedLabel}: ${current ?? 0} / ${target}`;
         }
         const availableAtp = state.particles
             .filter(particle => particle.materialId === 'lab_atp_supply').length;
@@ -106,7 +113,7 @@ const GuidedExperimentView = {
         buttons.className = 'guided-experiment-actions';
         buttons.append(hint);
         if (!sandbox) buttons.append(record);
-        buttons.append(next);
+        if (nextStage) buttons.append(next);
 
         const modelNote = document.createElement('details');
         modelNote.className = 'guided-experiment-model-note';
@@ -125,8 +132,11 @@ const GuidedExperimentView = {
                 sandbox,
                 predictionId: selectedPrediction()
             });
+            const rewardText = result.completion?.completed
+                ? ` Investigation complete — ${result.completion.xpAwarded.toLocaleString()} XP awarded.`
+                : '';
             status.textContent = result.ok
-                ? `✓ ${stage.title} complete — checkpoint saved.${nextStage?.playable ? ' Select Next to continue.' : ''}`
+                ? `✓ ${stage.title} complete — checkpoint saved.${rewardText}${nextStage?.playable ? ' Select Next to continue.' : ''}`
                 : 'Checkpoint could not be saved. Keep this page open and retry.';
             if (result.ok) {
                 record.disabled = true;

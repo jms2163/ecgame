@@ -13,6 +13,9 @@ const ExperimentMaterialVisualLibrary = {
         sodium_hydrogen_exchanger: { id: 'sodium_hydrogen_exchanger', cssClass: 'potassium-channel',
             assetPath: './public/assets/experiments/proteins/sodium-hydrogen-exchanger.svg',
             altText: 'Sodium proton antiporter with opposing transport arrows' },
+        chloride_channel: { id: 'chloride_channel', cssClass: 'potassium-channel',
+            assetPath: './public/assets/experiments/proteins/chloride-channel.svg',
+            altText: 'Selective chloride channel with a lumen-directed arrow' },
 
         water_sphere: {
 
