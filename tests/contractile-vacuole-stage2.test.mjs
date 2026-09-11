@@ -12,8 +12,8 @@ import Visuals from '../src/app/ExperimentMaterialVisualLibrary.js';
 const stage1 = Catalog.sequence.stages[0];
 const stage2 = Catalog.sequence.stages[1];
 assert.equal(stage2.playable, true);
-assert.equal(Catalog.sequence.stages[2].playable, false);
-assert.equal(Catalog.sequence.stages[3].playable, false);
+assert.equal(Catalog.sequence.stages[2].playable, true);
+assert.equal(Catalog.sequence.stages[3].playable, true);
 assert.equal(Catalog.grants.xp, 1200);
 assert.equal(Materials.sodium_ion_sample.particleComposition.sodium_ion, 6);
 assert.equal(Materials.sodium_hydrogen_exchanger.rotatable, true);
@@ -99,8 +99,8 @@ try {
     assert.equal(saved.predictionId, 'sodium_in_proton_out');
     assert.equal(Manager.checkpoint(Catalog, stage2, complete).duplicate, true);
     assert.equal(gameState.player.xp, xpBefore, 'Stage 2 checkpoint does not award the final sequence XP');
-    assert.equal(Manager.resolve(Catalog).guidedStageId, stage2.id, 'latest playable stage remains available for replay');
-    assert.equal(Research.completeExperiment(Catalog.id).reason, 'experiment-in-development');
+    assert.equal(Manager.resolve(Catalog).guidedStageId, Catalog.sequence.stages[2].id, 'the newly unlocked Stage 3 becomes current');
+    assert.equal(Research.completeExperiment(Catalog.id).reason, 'requirements-not-met');
     assert.equal(gameState.player.xp, xpBefore);
 } finally {
     for (const key of Object.keys(gameState)) delete gameState[key];

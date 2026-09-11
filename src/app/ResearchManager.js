@@ -229,6 +229,21 @@ const ResearchManager = {
             };
         }
 
+        if (experiment.sequence?.stages) {
+            const checkpoints =
+                gameState.registry.research.guidedExperiments?.[experimentId]?.checkpoints ?? {};
+            const incompleteStageIds = experiment.sequence.stages
+                .filter(stage => !checkpoints[stage.id])
+                .map(stage => stage.id);
+            if (incompleteStageIds.length > 0) {
+                return {
+                    completed: false,
+                    reason: 'guided-stages-incomplete',
+                    incompleteStageIds
+                };
+            }
+        }
+
         const grants =
             experiment.grants ?? {};
 

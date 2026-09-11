@@ -17,6 +17,11 @@ const ExperimentMaterialLibrary = {
     sodium_hydrogen_exchanger: { id: 'sodium_hydrogen_exchanger', displayName: 'Na⁺/H⁺ exchanger',
         ariaLabel: 'Sodium proton antiporter', visualId: 'sodium_hydrogen_exchanger',
         placementSize: { widthRem: 4.5, heightRem: 3.1 }, initialRotationDeg: 180, rotatable: true },
+    chloride_ion_sample: { id: 'chloride_ion_sample', displayName: 'Cl⁻ sample', ariaLabel: 'Six chloride ions',
+        visualId: 'chloride_ion_sphere', particleComposition: { chloride_ion: 6 } },
+    chloride_channel: { id: 'chloride_channel', displayName: 'Cl⁻ channel', ariaLabel: 'Selective chloride ion channel',
+        visualId: 'chloride_channel', placementSize: { widthRem: 4.5, heightRem: 3.1 },
+        initialRotationDeg: 180, rotatable: true },
 
     water: {
 

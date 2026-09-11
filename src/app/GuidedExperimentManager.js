@@ -1,6 +1,7 @@
 // Optional sequencing layer. Existing single-stage experiments are unchanged.
 import gameState from './GameState.js';
 import SaveManager from './SaveManager.js';
+import ResearchManager from './ResearchManager.js';
 
 const GuidedExperimentManager = {
     read(id) {
@@ -51,6 +52,7 @@ const GuidedExperimentManager = {
         const goal = stage.goal;
         if (!goal || state?.simulation?.stageId !== stage.id) return false;
         if (goal.transfers !== undefined && (state.totalMembraneTransfers ?? 0) < goal.transfers) return false;
+        if (goal.waterTransfers !== undefined && (state.totalWaterTransfers ?? 0) < goal.waterTransfers) return false;
         if (goal.atpConsumed !== undefined && (state.atpConsumed ?? 0) < goal.atpConsumed) return false;
         if (goal.exchangeCycles !== undefined && (state.exchangeCycles ?? 0) < goal.exchangeCycles) return false;
         return true;
@@ -64,23 +66,35 @@ const GuidedExperimentManager = {
         if (index < 0 || experiment.sequence.stages.slice(0, index).some(item => !progress.checkpoints[item.id])) {
             return { ok: false, reason: 'prior-stage-incomplete' };
         }
+        const before = structuredClone(gameState);
         gameState.registry ??= {};
         gameState.registry.research ??= {};
         const research = gameState.registry.research;
-        const before = structuredClone(research.guidedExperiments);
         research.guidedExperiments ??= {};
         progress.checkpoints[stage.id] = { completedAtMs: Date.now(),
             transfers: state.totalMembraneTransfers, atpConsumed: state.atpConsumed,
+            waterTransfers: state.totalWaterTransfers ?? 0,
             exchangeCycles: state.exchangeCycles ?? 0,
             predictionId,
             particles: state.particles.map(p => ({ materialId: p.materialId, zoneId: p.zoneId })) };
         research.guidedExperiments[experiment.id] = progress;
+
+        const isFinalStage = index === experiment.sequence.stages.length - 1;
+        const completion = isFinalStage
+            ? ResearchManager.completeExperiment(experiment.id)
+            : null;
+        if (isFinalStage && !completion?.completed) {
+            for (const key of Object.keys(gameState)) delete gameState[key];
+            Object.assign(gameState, before);
+            return { ok: false, reason: completion?.reason ?? 'completion-failed' };
+        }
+
         if (!SaveManager.save({ reason: 'guided-stage-checkpoint' })) {
-            if (before === undefined) delete research.guidedExperiments;
-            else research.guidedExperiments = before;
+            for (const key of Object.keys(gameState)) delete gameState[key];
+            Object.assign(gameState, before);
             return { ok: false, reason: 'save-failed' };
         }
-        return { ok: true };
+        return { ok: true, completion };
     }
 };
 export default GuidedExperimentManager;
