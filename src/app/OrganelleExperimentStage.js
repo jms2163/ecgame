@@ -1350,6 +1350,14 @@ runSimulation() {
     const snapshot =
         this.getPlacementSnapshot();
 
+    const simulationSnapshot =
+        experiment.sequence
+            ? GuidedExperimentManager.prepareSimulationSnapshot(
+                experiment,
+                snapshot
+            )
+            : snapshot;
+
     const initialState =
         ParticleSimulationEngine
             .createInitialState(
@@ -1357,7 +1365,8 @@ runSimulation() {
                     simulation:
                         simulation,
 
-                    snapshot
+                    snapshot:
+                        simulationSnapshot
                 }
             );
 
@@ -2049,7 +2058,13 @@ this.contentElement.appendChild(
             const guidedView = GuidedExperimentView.mount(
                 this.contentElement,
                 resolvedExperiment,
-                { sandbox: this.isReexamineMode }
+                {
+                    sandbox: this.isReexamineMode,
+                    onNextStage: () => this.open(
+                        this.activeExperiment,
+                        { mode: this.isReexamineMode ? 'reexamine' : 'attempt' }
+                    )
+                }
             );
             this.guidedStateChanged = guidedView.onStateChanged;
             this.guidedCanSimulate = guidedView.canSimulate;

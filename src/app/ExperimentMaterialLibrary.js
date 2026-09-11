@@ -12,6 +12,11 @@ const ExperimentMaterialLibrary = {
         visualId: 'atp_symbol', particlesPerPlacement: 6 },
     v_atpase: { id: 'v_atpase', displayName: 'V-ATPase', ariaLabel: 'ATP-powered proton pump', visualId: 'v_atpase',
         placementSize: { widthRem: 3.1, heightRem: 4.5 }, initialRotationDeg: 0, rotatable: true },
+    sodium_ion_sample: { id: 'sodium_ion_sample', displayName: 'Na⁺ sample', ariaLabel: 'Six sodium ions',
+        visualId: 'sodium_ion_sphere', particleComposition: { sodium_ion: 6 } },
+    sodium_hydrogen_exchanger: { id: 'sodium_hydrogen_exchanger', displayName: 'Na⁺/H⁺ exchanger',
+        ariaLabel: 'Sodium proton antiporter', visualId: 'sodium_hydrogen_exchanger',
+        placementSize: { widthRem: 4.5, heightRem: 3.1 }, initialRotationDeg: 180, rotatable: true },
 
     water: {
 

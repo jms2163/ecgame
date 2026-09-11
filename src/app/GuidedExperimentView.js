@@ -1,51 +1,106 @@
 import Manager from './GuidedExperimentManager.js';
+import ExperimentMaterialVisualLibrary from './ExperimentMaterialVisualLibrary.js';
 
-// UI adapter for the standard organelle stage, not another lab renderer.
+// UI adapter for multi-stage investigations that reuse the standard organelle
+// stage, placement controller, membrane scene, and particle renderer.
 const GuidedExperimentView = {
-    mount(host, experiment, { sandbox = false } = {}) {
+    stageProgressText(experiment) {
+        const checkpoints = Manager.read(experiment.id).checkpoints;
+        return experiment.sequence.stages
+            .map(item => `${checkpoints[item.id] ? '✓ ' : ''}${item.title}${item.playable ? '' : ' (coming next)'}`)
+            .join(' · ');
+    },
+
+    mountCarriedParticles(host, experiment) {
+        if (!experiment.simulation?.carryForward) return;
+        const carried = Manager.prepareSimulationSnapshot(experiment, { components: [] })
+            .components.filter(component => component.carriedFromStageId);
+        const zone = host.querySelector(
+            `[data-experiment-drop-zone="${experiment.simulation.carryForward.targetZoneId}"]`
+        );
+        if (!zone || carried.length === 0) return;
+
+        const cluster = document.createElement('div');
+        cluster.className = 'guided-carried-particle-cluster';
+        cluster.setAttribute('role', 'img');
+        cluster.setAttribute('aria-label', `${carried.length} ions carried forward from the prior stage`);
+        carried.forEach(component => {
+            const visualId = component.id === 'hydrogen_ion' ? 'hydrogen_ion_sphere' : null;
+            const visual = visualId
+                ? ExperimentMaterialVisualLibrary.create(visualId, { decorative: true })
+                : null;
+            if (visual) cluster.append(visual);
+        });
+        zone.append(cluster);
+    },
+
+    statusText(stage, state) {
+        if (stage.goal.exchangeCycles !== undefined) {
+            return `Na⁺ exchanged into lumen: ${state.exchangeCycles ?? 0} / ${stage.goal.exchangeCycles} · H⁺ returned to cytosol: ${state.exchangeCycles ?? 0} / ${stage.goal.exchangeCycles}`;
+        }
+        const availableAtp = state.particles
+            .filter(particle => particle.materialId === 'lab_atp_supply').length;
+        const pump = state.pumpActivated ? 'energized' : 'not energized';
+        return `ATP available: ${availableAtp} · ATP used: ${state.atpConsumed} · Pump: ${pump} · H⁺ pumped into lumen: ${state.totalMembraneTransfers} / ${stage.goal.transfers}`;
+    },
+
+    mount(host, experiment, { sandbox = false, onNextStage = null } = {}) {
         const stage = experiment.sequence.stages.find(item => item.id === experiment.guidedStageId);
+        const stageIndex = experiment.sequence.stages.indexOf(stage);
+        const nextStage = experiment.sequence.stages[stageIndex + 1] ?? null;
         const stored = Manager.read(experiment.id).checkpoints[stage.id];
+        const ui = stage.guidedUi ?? {};
+
         const panel = document.createElement('section');
         panel.className = 'organelle-experiment-simulation-result guided-experiment-panel';
         const heading = document.createElement('h3');
         heading.textContent = stage.title;
         const steps = document.createElement('p');
-        steps.textContent = experiment.sequence.stages.map(item => `${Manager.read(experiment.id).checkpoints[item.id] ? '✓ ' : ''}${item.title}${item.playable ? '' : ' (coming next)'}`).join(' · ');
+        steps.textContent = this.stageProgressText(experiment);
 
         const prediction = document.createElement('fieldset');
         prediction.className = 'guided-experiment-prediction';
         prediction.tabIndex = -1;
         const legend = document.createElement('legend');
-        legend.textContent = 'Before you simulate: predict which side will accumulate H⁺ and which side the ATP-binding head should face.';
+        legend.textContent = ui.predictionPrompt ?? 'Before you simulate, make a prediction.';
         prediction.append(legend);
-        const choices = [
-            ['lumen_head_cytosol', 'H⁺ accumulates in the CV lumen; the ATP-binding head faces the cytosol.'],
-            ['cytosol_head_lumen', 'H⁺ accumulates in the cytosol; the ATP-binding head faces the CV lumen.'],
-            ['lumen_head_lumen', 'H⁺ accumulates in the CV lumen; the ATP-binding head faces the CV lumen.'],
-            ['cytosol_head_cytosol', 'H⁺ accumulates in the cytosol; the ATP-binding head faces the cytosol.']
-        ];
-        choices.forEach(([value, text]) => {
+        (ui.predictionChoices ?? []).forEach(choice => {
             const label = document.createElement('label');
             const input = document.createElement('input');
             input.type = 'radio';
             input.name = `${experiment.id}-${stage.id}-prediction`;
-            input.value = value;
-            input.checked = stored?.predictionId === value;
-            label.append(input, document.createTextNode(text));
+            input.value = choice.id;
+            input.checked = stored?.predictionId === choice.id;
+            label.append(input, document.createTextNode(choice.text));
             prediction.append(label);
         });
 
         const status = document.createElement('p');
         status.setAttribute('role', 'status');
-        status.textContent = stored ? '✓ Stage 1 checkpoint saved. Replay freely; no additional reward is granted.' : 'Place the materials, then simulate. H⁺ must actually cross to complete the stage.';
+        status.textContent = stored
+            ? `✓ ${stage.title} checkpoint saved. Replay freely; no additional reward is granted.`
+            : 'Place the materials, then simulate. The particles must actually move through the membrane to complete this stage.';
 
         const record = document.createElement('button');
-        record.type = 'button'; record.textContent = 'Save'; record.title = 'Save Stage 1 after the proton-pumping goal is reached'; record.disabled = true;
+        record.type = 'button';
+        record.textContent = 'Save';
+        record.title = `Save ${stage.title} after its simulation goal is reached`;
+        record.disabled = true;
+
         const next = document.createElement('button');
-        next.type = 'button'; next.textContent = 'Next'; next.title = 'Stage 2 will be available in the next milestone'; next.disabled = true;
+        next.type = 'button';
+        next.textContent = 'Next';
+        next.title = nextStage?.playable
+            ? `Continue to ${nextStage.title}`
+            : `${nextStage?.title ?? 'The next stage'} will be available in a later milestone`;
+        next.disabled = !stored || !nextStage?.playable;
+        next.onclick = () => onNextStage?.();
+
         const hint = document.createElement('button');
-        hint.type = 'button'; hint.textContent = 'Hint'; hint.title = 'Show one setup hint';
-        hint.onclick = () => { status.textContent = 'Put ATP and H⁺ in the cytosol. Select the pump and rotate until its large ATP head points LEFT and its orange transport arrow points RIGHT.'; };
+        hint.type = 'button';
+        hint.textContent = 'Hint';
+        hint.title = 'Show one setup hint';
+        hint.onclick = () => { status.textContent = ui.hint ?? 'Check each material, side, and protein orientation.'; };
 
         const buttons = document.createElement('div');
         buttons.className = 'guided-experiment-actions';
@@ -58,7 +113,7 @@ const GuidedExperimentView = {
         const modelSummary = document.createElement('summary');
         modelSummary.textContent = 'Model note';
         const modelText = document.createElement('p');
-        modelText.textContent = 'This zoomed view shows cytosol on the left and contractile-vacuole lumen on the right. It is an internal vacuole membrane, not the cell surface. Lab ATP does not spend game ATP. One ATP per H⁺ is an illustrative count, not biological stoichiometry.';
+        modelText.textContent = ui.modelNote ?? '';
         modelNote.append(modelSummary, modelText);
 
         const selectedPrediction = () =>
@@ -70,14 +125,22 @@ const GuidedExperimentView = {
                 sandbox,
                 predictionId: selectedPrediction()
             });
-            status.textContent = result.ok ? '✓ Stage 1 Complete — proton gradient established and checkpoint saved. Stage 2 is not yet available.' : 'Checkpoint could not be saved. Keep this page open and retry.';
-            if (result.ok) { record.disabled = true; steps.textContent = '✓ Proton gradient established · Na⁺/H⁺ exchange → Cl⁻ entry → Water entry (coming next)'; }
+            status.textContent = result.ok
+                ? `✓ ${stage.title} complete — checkpoint saved.${nextStage?.playable ? ' Select Next to continue.' : ''}`
+                : 'Checkpoint could not be saved. Keep this page open and retry.';
+            if (result.ok) {
+                record.disabled = true;
+                next.disabled = !nextStage?.playable;
+                steps.textContent = this.stageProgressText(experiment);
+            }
         };
+
         panel.append(heading, steps);
         if (!sandbox) panel.append(prediction);
         panel.append(status, buttons);
         host.prepend(panel);
-        host.append(modelNote);
+        if (ui.modelNote) host.append(modelNote);
+
         for (const [zoneId, text] of [['side_a', 'CYTOSOL'], ['side_b', 'CV LUMEN']]) {
             const zone = host.querySelector(`[data-experiment-drop-zone="${zoneId}"]`);
             if (zone) {
@@ -87,6 +150,7 @@ const GuidedExperimentView = {
                 zone.append(label);
             }
         }
+        this.mountCarriedParticles(host, experiment);
 
         return {
             canSimulate() {
@@ -95,19 +159,20 @@ const GuidedExperimentView = {
                 prediction.focus();
                 return false;
             },
-            onStateChanged(state) {
+            onStateChanged: state => {
                 if (completedState) return false;
-                const availableAtp = state.particles.filter(particle => particle.materialId === 'lab_atp_supply').length;
-                const pump = state.pumpActivated ? 'energized' : 'not energized';
-                const text = `ATP available: ${availableAtp} · ATP used: ${state.atpConsumed} · Pump: ${pump} · H⁺ pumped into lumen: ${state.totalMembraneTransfers} / ${stage.goal.transfers}`;
+                const text = this.statusText(stage, state);
                 if (status.textContent !== text) status.textContent = text;
                 if (!Manager.meetsGoal(stage, state)) return false;
                 completedState = structuredClone(state);
-                status.textContent = sandbox ? 'Stage 1 observed. Re-examine does not save or reward.' : 'Stage 1 goal reached — save your checkpoint to retain this result.';
+                status.textContent = sandbox
+                    ? `${stage.title} observed. Re-examine does not save or reward.`
+                    : `${stage.title} goal reached — save your checkpoint to retain this result.`;
                 record.disabled = sandbox;
                 return true;
             }
         };
     }
 };
+
 export default GuidedExperimentView;

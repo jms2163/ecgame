@@ -577,6 +577,7 @@ const ParticleSimulationEngine = {
             atpConsumed: 0,
             pumpActivated: false,
             pumpActivationDelayRemainingMs: 0,
+            exchangeCycles: 0,
 
             elapsedMs: 0,
 
@@ -903,14 +904,100 @@ const ParticleSimulationEngine = {
 
     },
 
-    // After a failed approach in an energy-coupled teaching model,
+    // After a failed approach in a coupled-transport teaching model,
     // change the vertical component so the next pass can encounter
     // the visible pump instead of repeating one specular path forever.
-    guideNextPumpApproach(nextParticle, pore) {
+    guideNextProteinApproach(nextParticle, pore) {
         if (!pore) return;
         const direction = Math.sign(pore.y - nextParticle.position.y) || 1;
         nextParticle.velocity.y =
             direction * Math.max(Math.abs(nextParticle.velocity.y), DEFAULT_SPEED * 0.55);
+    },
+
+    getCoupledTransportParticipant(particle, simulation) {
+        return simulation?.coupledTransportRule?.participants?.find(
+            participant =>
+                participant.materialId === particle.materialId &&
+                participant.sourceZoneId === particle.zoneId
+        ) ?? null;
+    },
+
+    queueCoupledTransportParticle(nextParticle, pore, simulation, exchange) {
+        if (!exchange?.waitingMaterialIds) return false;
+        const participant =
+            this.getCoupledTransportParticipant(nextParticle, simulation);
+        if (!participant || nextParticle.membraneCrossingLocked) return false;
+
+        const membrane = this.getMembraneBounds(simulation);
+        const direction =
+            participant.sourceZoneId === "side_a" && participant.targetZoneId === "side_b"
+                ? 1
+                : participant.sourceZoneId === "side_b" && participant.targetZoneId === "side_a"
+                    ? -1
+                    : 0;
+        const reachedMembrane =
+            direction > 0
+                ? nextParticle.velocity.x > 0 && nextParticle.position.x >= membrane.start - MEMBRANE_CLEARANCE
+                : direction < 0 && nextParticle.velocity.x < 0 && nextParticle.position.x <= membrane.end + MEMBRANE_CLEARANCE;
+        if (!direction || !reachedMembrane) return false;
+
+        const nearPore =
+            pore &&
+            (
+                nextParticle.exchangeApproachGuided ||
+                Math.abs(nextParticle.position.y - pore.y) <= pore.radius
+            );
+        const slotOccupied =
+            exchange?.waitingMaterialIds?.has(nextParticle.materialId);
+
+        if (!nearPore || slotOccupied) {
+            this.reflectFromMembrane(nextParticle, direction, simulation);
+            nextParticle.exchangeApproachGuided = true;
+            this.guideNextProteinApproach(nextParticle, pore);
+            return true;
+        }
+
+        exchange.waitingMaterialIds.add(nextParticle.materialId);
+        nextParticle.preExchangeVelocity = { ...nextParticle.velocity };
+        nextParticle.velocity = { x: 0, y: 0 };
+        nextParticle.position.x =
+            direction > 0
+                ? membrane.start - MEMBRANE_CLEARANCE
+                : membrane.end + MEMBRANE_CLEARANCE;
+        nextParticle.position.y = pore.y;
+        nextParticle.zoneId = "membrane";
+        nextParticle.isExchangeWaiting = true;
+        nextParticle.exchangeDirection = direction;
+        nextParticle.membraneTargetZoneId = participant.targetZoneId;
+        delete nextParticle.exchangeApproachGuided;
+        return true;
+    },
+
+    startReadyCoupledExchange(particles, pore, simulation) {
+        const rule = simulation?.coupledTransportRule;
+        if (!rule || !pore) return particles;
+
+        const waitingParticles = (rule.participants ?? []).map(participant =>
+            particles.find(particle =>
+                particle.isExchangeWaiting &&
+                particle.materialId === participant.materialId));
+        if (waitingParticles.some(particle => !particle)) return particles;
+
+        waitingParticles.forEach(particle => {
+            particle.postPoreVelocity =
+                particle.preExchangeVelocity ?? this.createInitialVelocity(0);
+            delete particle.preExchangeVelocity;
+            particle.velocity = {
+                x: particle.exchangeDirection * DEFAULT_SPEED * pore.speedMultiplier,
+                y: 0
+            };
+            particle.position.y = pore.y;
+            particle.isExchangeWaiting = false;
+            particle.isMembraneTransit = true;
+            delete particle.exchangeDirection;
+        });
+
+        return particles;
     },
 
     advanceParticle(
@@ -919,7 +1006,8 @@ const ParticleSimulationEngine = {
         gradient,
         pore,
         simulation,
-        energy = null
+        energy = null,
+        exchange = null
     ) {
 
         const elapsedSeconds =
@@ -939,6 +1027,10 @@ const ParticleSimulationEngine = {
 
         const membrane =
             this.getMembraneBounds(simulation);
+
+        if (nextParticle.isExchangeWaiting) {
+            return nextParticle;
+        }
 
         nextParticle.position.x +=
             nextParticle.velocity.x *
@@ -1043,7 +1135,19 @@ const ParticleSimulationEngine = {
 
             this.reflectFromMembrane(nextParticle, 1, simulation);
             nextParticle.pumpApproachGuided = true;
-            this.guideNextPumpApproach(nextParticle, pore);
+            this.guideNextProteinApproach(nextParticle, pore);
+            return nextParticle;
+        }
+
+        if (
+            simulation?.coupledTransportRule &&
+            this.queueCoupledTransportParticle(
+                nextParticle,
+                pore,
+                simulation,
+                exchange
+            )
+        ) {
             return nextParticle;
         }
 
@@ -1070,7 +1174,7 @@ const ParticleSimulationEngine = {
                     this.reflectFromMembrane(nextParticle, nextParticle.velocity.x > 0 ? 1 : -1, simulation);
                     if (energyRule) {
                         nextParticle.pumpApproachGuided = true;
-                        this.guideNextPumpApproach(nextParticle, pore);
+                        this.guideNextProteinApproach(nextParticle, pore);
                     }
                     return nextParticle;
                 }
@@ -1174,10 +1278,11 @@ const ParticleSimulationEngine = {
         gradient,
         pore,
         simulation,
-        energy = null
+        energy = null,
+        exchange = null
     ) {
 
-        return particles.map(
+        const advancedParticles = particles.map(
             particle =>
                 this.advanceParticle(
                     particle,
@@ -1185,9 +1290,16 @@ const ParticleSimulationEngine = {
                 gradient,
                 pore,
                 simulation,
-                energy
+                energy,
+                exchange
                 )
         ).filter(particle => !particle.isConsumed);
+
+        return this.startReadyCoupledExchange(
+            advancedParticles,
+            pore,
+            simulation
+        );
 
     },
 
@@ -1236,6 +1348,8 @@ const ParticleSimulationEngine = {
                 if (
                     first.isMembraneTransit ||
                     second.isMembraneTransit ||
+                    first.isExchangeWaiting ||
+                    second.isExchangeWaiting ||
                     first.zoneId !==
                     second.zoneId
                 ) {
@@ -1388,6 +1502,14 @@ const ParticleSimulationEngine = {
             )
         };
 
+        const exchange = {
+            waitingMaterialIds: new Set(
+                nextState.particles
+                    .filter(particle => particle.isExchangeWaiting)
+                    .map(particle => particle.materialId)
+            )
+        };
+
         nextState.particles =
             this.resolveParticleCollisions(
                 this.advanceParticles(
@@ -1396,7 +1518,8 @@ const ParticleSimulationEngine = {
                     gradient,
                     nextState.pore,
                     nextState.simulation,
-                    energy
+                    energy,
+                    exchange
                 )
             );
 
@@ -1426,6 +1549,15 @@ const ParticleSimulationEngine = {
                 particle =>
                     particle.materialId === "water"
             ).length;
+
+        if (nextState.simulation?.coupledTransportRule) {
+            const cycleMaterialId =
+                nextState.simulation.coupledTransportRule.cycleCounterMaterialId;
+            nextState.exchangeCycles ??= 0;
+            nextState.exchangeCycles += completedTransfers.filter(
+                particle => particle.materialId === cycleMaterialId
+            ).length;
+        }
 
         completedTransfers.forEach(
             particle => {
