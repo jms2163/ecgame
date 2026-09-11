@@ -51,5 +51,6 @@
 .guided-zone-label { position: absolute; z-index: 3; top: 8px; pointer-events: none; color: #f7efff; font-weight: bold; }
 .guided-zone-label--side_a { left: 8px; }
 .guided-zone-label--side_b { right: 8px; }
+.guided-carried-particle-cluster { position: absolute; left: 50%; top: 50%; display: grid; grid-template-columns: repeat(3, 1.3rem); gap: 0.3rem; transform: translate(-50%, -50%); pointer-events: none; }
 @media (max-width: 760px) { #organelle-workspace { grid-template-columns: 1fr; } #organelle-experiment-stage { min-height: 28rem; } #organelle-experiment-stage-content { min-height: 20rem; } }
 @media (max-width: 560px) { #organelle-experiment-stage-header { align-items: flex-start; flex-direction: column; } #organelle-experiment-stage-controls { justify-content: flex-start; } .organelle-experiment-activity-layout { grid-template-columns: 1fr; } .organelle-experiment-label-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

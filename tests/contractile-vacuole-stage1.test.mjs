@@ -67,7 +67,7 @@ const guidedViewSource = fs.readFileSync(new URL('../src/app/GuidedExperimentVie
 const stageSource = fs.readFileSync(new URL('../src/app/OrganelleExperimentStage.js', import.meta.url), 'utf8');
 assert.match(passiveRendererSource, /ExperimentMaterialCanvasRenderer/);
 assert.match(particleRendererSource, /ExperimentMaterialCanvasRenderer/);
-assert.match(guidedViewSource, /lumen_head_cytosol/);
+assert.ok(stage.guidedUi.predictionChoices.some(choice => choice.id === 'lumen_head_cytosol'));
 assert.match(guidedViewSource, /textContent = 'Hint'/);
 assert.match(guidedViewSource, /textContent = 'Save'/);
 assert.match(guidedViewSource, /textContent = 'Next'/);
@@ -95,8 +95,8 @@ try {
     Object.assign(gameState, serialized);
     assert.equal(Manager.read(Catalog.id).checkpoints.proton_gradient.transfers, 6);
     assert.equal(Manager.read(Catalog.id).checkpoints.proton_gradient.predictionId, 'lumen_head_cytosol');
-    assert.equal(Manager.resolve(Catalog).guidedStageId, 'proton_gradient');
-    assert.throws(() => Manager.resolve(Catalog, 'sodium_exchange'));
+    assert.equal(Manager.resolve(Catalog).guidedStageId, 'sodium_exchange');
+    assert.equal(Manager.resolve(Catalog, 'sodium_exchange').guidedStageId, 'sodium_exchange');
     assert.equal(Research.completeExperiment(Catalog.id).reason, 'experiment-in-development');
     assert.equal(gameState.player.xp, xp);
 } finally {

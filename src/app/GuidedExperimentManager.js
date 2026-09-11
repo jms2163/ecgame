@@ -10,18 +10,50 @@ const GuidedExperimentManager = {
         const stages = experiment.sequence?.stages ?? [];
         const progress = this.read(experiment.id);
         const stage = stageId ? stages.find(item => item.id === stageId)
-            : stages.find(item => item.playable && !progress.checkpoints[item.id]) ?? stages.find(item => item.playable);
+            : stages.find(item => item.playable && !progress.checkpoints[item.id]) ?? stages.filter(item => item.playable).at(-1);
         if (!stage?.playable) throw new Error('Guided stage is not available');
         const index = stages.indexOf(stage);
         if (stages.slice(0, index).some(item => !progress.checkpoints[item.id])) throw new Error('Prior stage incomplete');
         return { ...experiment, ...stage, id: experiment.id, sequence: experiment.sequence,
             title: `${experiment.title} — ${stage.title}`, guidedStageId: stage.id };
     },
+    prepareSimulationSnapshot(experiment, snapshot = { components: [] }) {
+        const carryRule = experiment?.simulation?.carryForward;
+        if (!carryRule) return structuredClone(snapshot);
+
+        const checkpoint =
+            this.read(experiment.id)
+                .checkpoints[carryRule.fromStageId];
+        const materialIds = new Set(carryRule.materialIds ?? []);
+        const carried = (checkpoint?.particles ?? [])
+            .filter(particle =>
+                materialIds.has(particle.materialId) &&
+                (!carryRule.targetZoneId || particle.zoneId === carryRule.targetZoneId))
+            .map((particle, index, particles) => ({
+                id: particle.materialId,
+                zoneId: particle.zoneId,
+                position: {
+                    x: 0.5 + ((index % 3) - 1) * 0.10,
+                    y: 0.5 + (Math.floor(index / 3) - (Math.ceil(particles.length / 3) - 1) / 2) * 0.14
+                },
+                carriedFromStageId: carryRule.fromStageId
+            }));
+
+        return {
+            ...structuredClone(snapshot),
+            components: [
+                ...(snapshot.components ?? []).map(component => structuredClone(component)),
+                ...carried
+            ]
+        };
+    },
     meetsGoal(stage, state) {
         const goal = stage.goal;
-        return Boolean(goal && state?.simulation?.stageId === stage.id &&
-            (state.totalMembraneTransfers ?? 0) >= goal.transfers &&
-            (state.atpConsumed ?? 0) >= goal.atpConsumed);
+        if (!goal || state?.simulation?.stageId !== stage.id) return false;
+        if (goal.transfers !== undefined && (state.totalMembraneTransfers ?? 0) < goal.transfers) return false;
+        if (goal.atpConsumed !== undefined && (state.atpConsumed ?? 0) < goal.atpConsumed) return false;
+        if (goal.exchangeCycles !== undefined && (state.exchangeCycles ?? 0) < goal.exchangeCycles) return false;
+        return true;
     },
     checkpoint(experiment, stage, state, { sandbox = false, predictionId = null } = {}) {
         if (sandbox) return { ok: false, reason: 'sandbox' };
@@ -39,6 +71,7 @@ const GuidedExperimentManager = {
         research.guidedExperiments ??= {};
         progress.checkpoints[stage.id] = { completedAtMs: Date.now(),
             transfers: state.totalMembraneTransfers, atpConsumed: state.atpConsumed,
+            exchangeCycles: state.exchangeCycles ?? 0,
             predictionId,
             particles: state.particles.map(p => ({ materialId: p.materialId, zoneId: p.zoneId })) };
         research.guidedExperiments[experiment.id] = progress;
