@@ -3,7 +3,7 @@
 // Renders and runs experiments for one organelle
 // --------------------------------------------------
 
-import CellMapLayout from "./CellMapLayout.js";
+import organelleLibrary from "../data/organelleLibrary.js";
 import OrganelleExperimentLibrary
     from "./OrganelleExperimentLibrary.js";
 import ResearchManager from "./ResearchManager.js";
@@ -84,17 +84,11 @@ const OrganelleExperimentPanel = {
     },
 
     // --------------------------------------------------
-    // Read an organelle's map label
+    // Read the selected laboratory profile's display name
     // --------------------------------------------------
     getOrganelleLabel(organelleId) {
 
-        const feature =
-            CellMapLayout.features.find(
-                candidate =>
-                    candidate.id === organelleId
-            );
-
-        return feature?.label ??
+        return organelleLibrary[organelleId]?.name ??
             "Unknown Organelle";
 
     },
@@ -575,6 +569,7 @@ starElement.setAttribute(
             `${organelleLabel} Lab`;
 
         this.summaryElement.textContent =
+            organelleLibrary[organelleId]?.shortSummary ??
             "Experiments reveal how molecular structure affects cell function.";
 
         const experimentStatuses =
