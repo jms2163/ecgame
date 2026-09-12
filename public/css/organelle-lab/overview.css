@@ -1,0 +1,133 @@
+/* --------------------------------------------------
+   Selected organelle overview
+   -------------------------------------------------- */
+
+.organelle-overview {
+    display: grid;
+    gap: 16px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 18px;
+    color: #f7efff;
+    font-family: monospace;
+}
+
+.organelle-overview-status {
+    margin: 0;
+    padding: 12px 14px;
+    border: 1px solid;
+    border-radius: 6px;
+    font-weight: bold;
+    line-height: 1.5;
+}
+
+.organelle-overview-status--available {
+    background: rgba(94, 227, 141, 0.08);
+    border-color: #5ee38d;
+    color: #bff7d1;
+}
+
+.organelle-overview-status--locked {
+    background: rgba(223, 128, 255, 0.08);
+    border-color: #df80ff;
+    color: #f1c8ff;
+}
+
+.organelle-overview-classification {
+    margin: 0;
+    color: #df80ff;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.organelle-overview-description {
+    margin: 0;
+    color: #f7efff;
+    font-size: 14px;
+    line-height: 1.65;
+}
+
+.organelle-overview-figure {
+    margin: 0;
+    padding: 12px;
+    background: #f7efff;
+    border: 2px solid #df80ff;
+    border-radius: 8px;
+}
+
+.organelle-overview-image {
+    display: block;
+    width: 100%;
+    max-height: 32rem;
+    object-fit: contain;
+}
+
+.organelle-overview-caption {
+    margin-top: 10px;
+    color: #2b103d;
+    font-size: 12px;
+    line-height: 1.45;
+    text-align: center;
+}
+
+.organelle-overview-section {
+    padding-top: 14px;
+    border-top: 1px solid rgba(223, 128, 255, 0.35);
+}
+
+.organelle-overview-heading {
+    margin: 0 0 10px;
+    color: #df80ff;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.organelle-overview-component-list {
+    display: grid;
+    grid-template-columns: minmax(9rem, 0.45fr) minmax(0, 1fr);
+    gap: 8px 16px;
+    margin: 0;
+}
+
+.organelle-overview-component-list dt {
+    color: #f7efff;
+    font-weight: bold;
+}
+
+.organelle-overview-component-list dd {
+    margin: 0;
+    color: #d8cbe2;
+    line-height: 1.45;
+}
+
+.organelle-overview-benefit {
+    padding: 12px;
+    background: rgba(94, 227, 141, 0.07);
+    border: 1px solid rgba(94, 227, 141, 0.55);
+    border-radius: 6px;
+}
+
+.organelle-overview-benefit h4 {
+    margin: 0 0 6px;
+    color: #5ee38d;
+    font-size: 14px;
+}
+
+.organelle-overview-benefit p {
+    margin: 0;
+    color: #e8f8ed;
+    line-height: 1.5;
+}
+
+@media (max-width: 800px) {
+    .organelle-overview-component-list {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .organelle-overview-component-list dd {
+        margin-bottom: 8px;
+    }
+}

@@ -2,7 +2,7 @@
 // Null figure.src means no PNG has been supplied. The overview renderer must
 // omit the image until a real asset path is assigned.
 // Deferred unlocks and planned benefits are descriptive ONLY. Empty requirements
-// do not grant access. Existing game rules remain authoritative in Milestone 2.
+// do not grant access. Existing game rules remain authoritative in Milestone 3.
 // Each key is an existing labFocusId. Map feature IDs and geometry stay in
 // CellMapLayout; ectoplasm/endoplasm share cytoplasm, pseudopodia shares cytoskeleton.
 
@@ -48,7 +48,8 @@ const organelleLibrary = {
             "status": "deferred",
             "mode": "all",
             "requirements": [],
-            "proposal": "Retain the existing plasma membrane access rule."
+            "proposal": "Retain the existing plasma membrane access rule.",
+            "displayRequirement": null
         }
     },
     "cytoplasm": {
@@ -104,7 +105,8 @@ const organelleLibrary = {
             "status": "deferred",
             "mode": "all",
             "requirements": [],
-            "proposal": "Synthesize a DNA polymer; resolve its recipe and synthesis record before activating this rule."
+            "proposal": "Synthesize a DNA polymer; resolve its recipe and synthesis record before activating this rule.",
+            "displayRequirement": "synthesize a DNA polymer."
         }
     },
     "contractile_vacuole": {
@@ -163,7 +165,8 @@ const organelleLibrary = {
             "status": "deferred",
             "mode": "all",
             "requirements": [],
-            "proposal": "Complete Aquaporin-Facilitated Water Diffusion. Resolve the exact experiment ID from the experiment catalog before activating this rule."
+            "proposal": "Complete Aquaporin-Facilitated Water Diffusion. Resolve the exact experiment ID from the experiment catalog before activating this rule.",
+            "displayRequirement": "complete Aquaporin-Facilitated Water Diffusion."
         }
     },
     "food_vacuole": {
@@ -442,7 +445,8 @@ const organelleLibrary = {
             "status": "deferred",
             "mode": "all",
             "requirements": [],
-            "proposal": "Move into the photosynthetic zone; discuss whether entry alone or a symbiont encounter grants the permanent discovery."
+            "proposal": "Move into the photosynthetic zone; discuss whether entry alone or a symbiont encounter grants the permanent discovery.",
+            "displayRequirement": "enter a photosynthetic region and encounter a photosynthetic symbiont."
         }
     },
     "endosome": {

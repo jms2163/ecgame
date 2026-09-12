@@ -429,6 +429,12 @@ starElement.setAttribute(
 
             const details = [];
 
+            if (status.organelleLocked) {
+                details.push(
+                    "Unlock the selected organelle first."
+                );
+            }
+
             if (
                 status.missingDiscoveries.length > 0
             ) {
@@ -505,7 +511,8 @@ starElement.setAttribute(
             onReviewSubmission = null,
             onReexamineExperiment = null,
             onRegradeAssessment = null,
-            actionMessage = ""
+            actionMessage = "",
+            organelleAvailable = true
         } = {}
     ) {
 
@@ -573,14 +580,29 @@ starElement.setAttribute(
             "Experiments reveal how molecular structure affects cell function.";
 
         const experimentStatuses =
-            experiments.map(experiment => ({
-                experiment,
+            experiments.map(experiment => {
 
-                status:
+                const experimentStatus =
                     ResearchManager.getExperimentStatus(
                         experiment.id
-                    )
-            }));
+                    );
+
+                return {
+                    experiment,
+
+                    status: {
+                        ...experimentStatus,
+
+                        organelleLocked:
+                            !organelleAvailable,
+
+                        available:
+                            organelleAvailable &&
+                            experimentStatus.available
+                    }
+                };
+
+            });
 
         const unlockedExperiments =
             experimentStatuses.filter(

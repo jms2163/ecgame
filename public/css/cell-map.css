@@ -66,17 +66,18 @@
 }
 
 .cell-map-feature-node {
-    fill: #2b103d;
-    stroke: #df80ff;
-    stroke-width: 3;
+    fill: transparent;
+    stroke: #2b103d;
+    stroke-width: 4;
+    transition:
+        stroke 0.15s ease,
+        stroke-width 0.15s ease,
+        opacity 0.15s ease;
 }
 
-.cell-map-feature-placeholder {
-    fill: #f7efff;
-    font-family: monospace;
-    font-size: 26px;
-    font-weight: bold;
-    pointer-events: none;
+.cell-map-feature {
+    cursor: pointer;
+    outline: none;
 }
 /* --------------------------------------------------
    Discovered Cell Map Labels
@@ -97,31 +98,43 @@
     pointer-events: none;
 }
 
-/* Discovered: dark-purple hollow ring. */
+/* Available structures use the stronger dark-purple outline. */
 .cell-map-feature--discovered
 .cell-map-feature-node {
-    fill: transparent;
     stroke: #2b103d;
-    stroke-width: 4;
 }
 
-/* Undiscovered: dark-purple filled circle behind the ? marker. */
+/* Locked structures remain visible as muted hollow outlines. */
 .cell-map-feature--undiscovered
 .cell-map-feature-node {
-    fill: #2b103d;
-    stroke: #df80ff;
-    stroke-width: 3;
+    stroke: #8c729c;
+    stroke-dasharray: 8 5;
+    opacity: 0.9;
 }
 
-/* Discovered: light-purple hollow ring on hover or keyboard focus. */
-.cell-map-feature--discovered:hover
+.cell-map-feature--undiscovered
+.cell-map-feature-label-line {
+    stroke: #8c729c;
+    stroke-dasharray: 6 5;
+}
+
+.cell-map-feature--undiscovered
+.cell-map-feature-label {
+    fill: #65506f;
+}
+
+/* Every feature provides the same pointer and keyboard focus feedback. */
+.cell-map-feature:hover
 .cell-map-feature-node,
 
-.cell-map-feature--discovered:focus
+.cell-map-feature:focus
+.cell-map-feature-node,
+
+.cell-map-feature:focus-visible
 .cell-map-feature-node {
-    fill: transparent;
     stroke: #df80ff;
-    stroke-width: 5;
+    stroke-width: 6;
+    opacity: 1;
 }
 
 /* --------------------------------------------------

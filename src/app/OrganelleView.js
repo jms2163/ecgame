@@ -8,6 +8,12 @@ import OrganelleExperimentPanel
     from "./OrganelleExperimentPanel.js";
 import OrganelleExperimentStage
     from "./OrganelleExperimentStage.js";
+import OrganelleOverviewView
+    from "./OrganelleOverviewView.js";
+import GameStateManager
+    from "./GameStateManager.js";
+import organelleLibrary
+    from "../data/organelleLibrary.js";
 
 const DEFAULT_ORGANELLE_ID =
     "plasma_membrane";
@@ -128,11 +134,45 @@ const OrganelleView = {
         element.dataset.focusId =
             this.focusedOrganelleId;
 
+        const profile =
+            organelleLibrary[
+                this.focusedOrganelleId
+            ] ?? null;
+
+        const organelleAvailable =
+            Boolean(
+                profile &&
+                GameStateManager.hasDiscovery(
+                    this.focusedOrganelleId
+                )
+            );
+
         OrganelleExperimentStage.clear();
+
+        OrganelleExperimentStage.setIdleStage(
+            false
+        );
+
+        OrganelleOverviewView.render({
+            profile,
+            available:
+                organelleAvailable
+        });
+
+        const lockedMessage =
+            profile && !organelleAvailable
+                ? OrganelleOverviewView
+                    .getUnlockMessage(
+                        profile
+                    )
+                : "";
 
         OrganelleExperimentPanel.render(
             this.focusedOrganelleId,
             {
+                organelleAvailable,
+                actionMessage:
+                    lockedMessage,
                 onOpenExperiment:
                     experiment =>
                         this.openExperiment(
