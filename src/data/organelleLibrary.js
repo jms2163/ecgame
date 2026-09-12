@@ -162,10 +162,16 @@ const organelleLibrary = {
             }
         ],
         "unlock": {
-            "status": "deferred",
+            "status": "active",
             "mode": "all",
-            "requirements": [],
-            "proposal": "Complete Aquaporin-Facilitated Water Diffusion. Resolve the exact experiment ID from the experiment catalog before activating this rule.",
+            "requirements": [
+                {
+                    "type": "discovery",
+                    "id": "facilitated_diffusion_level_1",
+                    "label": "complete Aquaporin-Facilitated Water Diffusion"
+                }
+            ],
+            "proposal": null,
             "displayRequirement": "complete Aquaporin-Facilitated Water Diffusion."
         }
     },

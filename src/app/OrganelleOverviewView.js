@@ -247,7 +247,8 @@ const OrganelleOverviewView = {
 
     render({
         profile,
-        available
+        available,
+        message = ""
     }) {
 
         const {
@@ -312,11 +313,14 @@ const OrganelleOverviewView = {
                     : "locked"
                 }`,
 
-                available
-                    ? "Select an available experiment from the organelle panel to begin."
-                    : this.getUnlockMessage(
-                        profile
-                    )
+                message ||
+                (
+                    available
+                        ? "Select an available experiment from the organelle panel to begin."
+                        : this.getUnlockMessage(
+                            profile
+                        )
+                )
             );
 
         const classification =

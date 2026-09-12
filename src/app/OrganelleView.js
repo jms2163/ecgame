@@ -10,8 +10,8 @@ import OrganelleExperimentStage
     from "./OrganelleExperimentStage.js";
 import OrganelleOverviewView
     from "./OrganelleOverviewView.js";
-import GameStateManager
-    from "./GameStateManager.js";
+import OrganelleProgressionManager
+    from "./OrganelleProgressionManager.js";
 import organelleLibrary
     from "../data/organelleLibrary.js";
 
@@ -139,13 +139,21 @@ const OrganelleView = {
                 this.focusedOrganelleId
             ] ?? null;
 
-        const organelleAvailable =
-            Boolean(
-                profile &&
-                GameStateManager.hasDiscovery(
+        const organelleStatus =
+            OrganelleProgressionManager
+                .getStatus(
                     this.focusedOrganelleId
-                )
-            );
+                );
+
+        const organelleAvailable =
+            organelleStatus.available;
+
+        const overviewMessage =
+            OrganelleProgressionManager
+                .getUnlockMessage(
+                    profile,
+                    organelleStatus
+                );
 
         OrganelleExperimentStage.clear();
 
@@ -156,23 +164,20 @@ const OrganelleView = {
         OrganelleOverviewView.render({
             profile,
             available:
-                organelleAvailable
-        });
+                organelleAvailable,
 
-        const lockedMessage =
-            profile && !organelleAvailable
-                ? OrganelleOverviewView
-                    .getUnlockMessage(
-                        profile
-                    )
-                : "";
+            message:
+                overviewMessage
+        });
 
         OrganelleExperimentPanel.render(
             this.focusedOrganelleId,
             {
                 organelleAvailable,
                 actionMessage:
-                    lockedMessage,
+                    organelleAvailable
+                        ? ""
+                        : overviewMessage,
                 onOpenExperiment:
                     experiment =>
                         this.openExperiment(

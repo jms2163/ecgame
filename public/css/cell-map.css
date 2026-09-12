@@ -99,26 +99,26 @@
 }
 
 /* Available structures use the stronger dark-purple outline. */
-.cell-map-feature--discovered
+.cell-map-feature--available
 .cell-map-feature-node {
     stroke: #2b103d;
 }
 
 /* Locked structures remain visible as muted hollow outlines. */
-.cell-map-feature--undiscovered
+.cell-map-feature--locked
 .cell-map-feature-node {
     stroke: #8c729c;
     stroke-dasharray: 8 5;
     opacity: 0.9;
 }
 
-.cell-map-feature--undiscovered
+.cell-map-feature--locked
 .cell-map-feature-label-line {
     stroke: #8c729c;
     stroke-dasharray: 6 5;
 }
 
-.cell-map-feature--undiscovered
+.cell-map-feature--locked
 .cell-map-feature-label {
     fill: #65506f;
 }

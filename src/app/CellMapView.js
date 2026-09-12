@@ -3,7 +3,8 @@
 // Renders the static amoeba cell map
 // --------------------------------------------------
 
-import GameStateManager from "./GameStateManager.js";
+import OrganelleProgressionManager
+    from "./OrganelleProgressionManager.js";
 import CellMapLayout from "./CellMapLayout.js";
 
 const SVG_NAMESPACE =
@@ -38,7 +39,7 @@ const CellMapView = {
     bindSelection(
         featureGroup,
         feature,
-        discovered,
+        available,
         onFeatureSelected
     ) {
 
@@ -54,7 +55,7 @@ const CellMapView = {
 
         featureGroup.setAttribute(
             "aria-label",
-            discovered
+            available
                 ? `Open ${feature.label} lab`
                 : `View locked ${feature.label} lab`
         );
@@ -164,10 +165,14 @@ const CellMapView = {
         CellMapLayout.features.forEach(
             feature => {
 
-                const discovered =
-                    GameStateManager.hasDiscovery(
-                        feature.discoveryId
-                    );
+                const organelleStatus =
+                    OrganelleProgressionManager
+                        .getStatus(
+                            feature.labFocusId
+                        );
+
+                const available =
+                    organelleStatus.available;
 
                 const defaultHotspotDiameter =
                     feature.type === "boundary"
@@ -185,9 +190,9 @@ const CellMapView = {
                             class:
                                 `cell-map-feature ` +
                                 `cell-map-feature--${feature.type} ` +
-                                `cell-map-feature--${discovered
-                                    ? "discovered"
-                                    : "undiscovered"
+                                `cell-map-feature--${available
+                                    ? "available"
+                                    : "locked"
                                 }`,
 
                             "data-feature-id":
@@ -200,7 +205,7 @@ const CellMapView = {
                                 hotspotDiameter,
 
                             "data-availability":
-                                discovered
+                                available
                                     ? "available"
                                     : "locked"
                         }
@@ -297,7 +302,7 @@ const CellMapView = {
                 this.bindSelection(
                     featureGroup,
                     feature,
-                    discovered,
+                    available,
                     onFeatureSelected
                 );
 
