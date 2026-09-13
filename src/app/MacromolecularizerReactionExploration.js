@@ -1,5 +1,4 @@
-// Interactive, replayable carbohydrate dehydration exploration.
-// Future categories have separate discovery IDs but no activity yet.
+// Interactive, replayable carbohydrate and protein dehydration explorations.
 
 const CATEGORY_IDS = Object.freeze({
     carbs: "dehydration-1",
@@ -8,14 +7,24 @@ const CATEGORY_IDS = Object.freeze({
     nucleotides: "dehydration-4"
 });
 
-const INSTRUCTIONS = [
-    "Drag the first glucose to the left dotted template.",
-    "Drag the second glucose to the right dotted template.",
-    "Drag the OH from carbon 1 of the left glucose to the collection tray.",
-    "Drag the H from carbon 4 of the right glucose to the collection tray.",
-    "Drag the remaining O on the right glucose to the dangling C on the left.",
-    "Glycosidic bond discovered! The two glucose molecules formed a 1→4 linkage."
-];
+const INSTRUCTIONS = Object.freeze({
+    carbs: [
+        "Drag the first glucose to the left dotted template.",
+        "Drag the second glucose to the right dotted template.",
+        "Drag the OH from carbon 1 of the left glucose to the collection tray.",
+        "Drag the H from carbon 4 of the right glucose to the collection tray.",
+        "Drag the remaining O on the right glucose to the dangling C on the left.",
+        "Glycosidic bond discovered! The two glucose molecules formed a 1→4 linkage."
+    ],
+    motifs: [
+        "Drag the first amino acid to the left dotted template.",
+        "Drag the second amino acid to the right dotted template.",
+        "Drag OH from the left carboxyl group to the collection tray.",
+        "Drag the upper H from the right amino group to the collection tray.",
+        "Drag the right amino nitrogen to the left carboxyl carbon to form a peptide bond.",
+        "Peptide bond discovered! The amino acids joined and released H₂O."
+    ]
+});
 
 const ACTIONS = ["left", "right", "oh", "h", "bond"];
 const TARGETS = ["left", "right", "waste", "waste", "carbon"];
@@ -34,6 +43,56 @@ function templateMarkup(side) {
     return `<button type="button" class="macro-exp-template" data-explore-drop="${side}" aria-label="Dotted template for ${side === "left" ? "first" : "second"} glucose">
         <svg viewBox="0 0 150 136" focusable="false" aria-hidden="true">
             <polygon points="38,5 112,5 145,68 112,131 38,131 5,68" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="7 7" />
+        </svg>
+    </button>`;
+}
+
+function aminoAcidMarkup(side, docked, removedOH = false, removedH = false, bonded = false) {
+    const isLeft = side === "left";
+    const interactiveCarbon = docked && isLeft;
+    const interactiveNitrogen = docked && !isLeft;
+    const removableOH = interactiveCarbon && !removedOH;
+    const removableH = interactiveNitrogen && !removedH;
+    const svg = `<svg class="macro-exp-amino-svg" viewBox="0 0 180 150" aria-hidden="true" focusable="false">
+        <g class="macro-aa-bonds">
+            <line x1="37" y1="76" x2="64" y2="76" />
+            <line x1="90" y1="76" x2="117" y2="76" />
+            <line x1="77" y1="63" x2="77" y2="39" />
+            <line x1="77" y1="89" x2="77" y2="110" />
+            <line x1="17" y1="65" x2="14" y2="48" ${removedH && interactiveNitrogen ? 'hidden' : ''} />
+            <line x1="17" y1="87" x2="14" y2="103" />
+            <line x1="140" y1="86" x2="153" y2="106" ${removedOH && interactiveCarbon ? 'hidden' : ''} />
+            <line class="macro-aa-double" x1="140" y1="68" x2="155" y2="48" />
+            <line class="macro-aa-double" x1="144" y1="71" x2="159" y2="51" />
+        </g>
+        ${interactiveNitrogen ? '' : '<circle class="macro-aa-n" cx="23" cy="76" r="13" /><text x="23" y="81">N</text>'}
+        ${interactiveCarbon ? '' : '<circle class="macro-aa-c" cx="130" cy="76" r="13" /><text x="130" y="81">C</text>'}
+        <circle class="macro-aa-c" cx="77" cy="76" r="13" /><text x="77" y="81">C</text>
+        <circle class="macro-aa-h" cx="77" cy="28" r="10" /><text x="77" y="32">H</text>
+        ${removableH || (removedH && interactiveNitrogen) ? '' : '<circle class="macro-aa-h" cx="14" cy="38" r="10" /><text x="14" y="42">H</text>'}
+        <circle class="macro-aa-h" cx="14" cy="113" r="10" /><text x="14" y="117">H</text>
+        <rect class="macro-aa-r" x="62" y="111" width="30" height="28" /><text x="77" y="130">R</text>
+        <circle class="macro-aa-o" cx="164" cy="38" r="11" /><text x="164" y="42">O</text>
+        ${removableOH || (removedOH && interactiveCarbon) ? '' : '<circle class="macro-aa-o" cx="162" cy="116" r="16" /><text x="162" y="120">OH</text>'}
+    </svg>`;
+    const inner = `${svg}<span class="macro-exp-amino-name">Amino acid ${isLeft ? "1" : "2"}</span>
+        ${interactiveCarbon ? bonded
+            ? '<span class="macro-exp-amino-atom macro-exp-amino-atom--carbon" aria-label="Carboxyl carbon">C</span>'
+            : '<button type="button" class="macro-exp-amino-atom macro-exp-amino-atom--carbon" data-explore-drop="carbon" aria-label="Carboxyl carbon, peptide bond target">C</button>' : ''}
+        ${removableOH ? '<button type="button" class="macro-exp-amino-atom macro-exp-amino-atom--oh" data-explore-drag="oh" aria-label="Detach OH from left carboxyl group">OH</button>' : ''}
+        ${interactiveNitrogen ? removedH && !bonded
+            ? '<button type="button" class="macro-exp-amino-atom macro-exp-amino-atom--nitrogen" data-explore-drag="bond" aria-label="Drag amino nitrogen to the carboxyl carbon">N</button>'
+            : '<span class="macro-exp-amino-atom macro-exp-amino-atom--nitrogen" aria-label="Amino nitrogen">N</span>' : ''}
+        ${removableH ? '<button type="button" class="macro-exp-amino-atom macro-exp-amino-atom--h" data-explore-drag="h" aria-label="Detach upper H from right amino nitrogen">H</button>' : ''}`;
+    return docked
+        ? `<div class="macro-exp-amino macro-exp-amino--docked" aria-label="Amino acid ${isLeft ? "1" : "2"} placed">${inner}</div>`
+        : `<button type="button" class="macro-exp-amino" data-explore-drag="${side}" aria-label="Drag amino acid ${isLeft ? "1" : "2"} to the ${side} template">${inner}</button>`;
+}
+
+function aminoTemplateMarkup(side) {
+    return `<button type="button" class="macro-exp-template macro-exp-template--amino" data-explore-drop="${side}" aria-label="Dotted rectangle for amino acid ${side === "left" ? "1" : "2"}">
+        <svg viewBox="0 0 180 150" focusable="false" aria-hidden="true">
+            <rect x="8" y="8" width="164" height="134" rx="6" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="7 7" />
         </svg>
     </button>`;
 }
@@ -77,11 +136,12 @@ const MacromolecularizerReactionExploration = {
         window.addEventListener("resize", () => {
             this.positionReactantBond();
             this.positionGlycosidicBond();
+            this.positionPeptideBond();
         });
     },
 
     open(category) {
-        this.category = CATEGORY_IDS[category] ? category : "motifs";
+        this.category = Object.hasOwn(CATEGORY_IDS, category) ? category : "motifs";
         this.step = 0;
         this.completed = false;
         this.selectedToken = null;
@@ -93,21 +153,25 @@ const MacromolecularizerReactionExploration = {
         if (status) status.textContent = message;
     },
 
+    instructions() {
+        return INSTRUCTIONS[this.category] ?? INSTRUCTIONS.carbs;
+    },
+
     accept(token, target) {
-        if (this.category !== "carbs" || this.completed) return false;
+        if (!Object.hasOwn(INSTRUCTIONS, this.category) || this.completed) return false;
         if (token !== ACTIONS[this.step] || target !== TARGETS[this.step]) {
-            this.announce(INSTRUCTIONS[this.step]);
+            this.announce(this.instructions()[this.step]);
             return false;
         }
         this.selectedToken = null;
         this.step += 1;
         if (this.step === ACTIONS.length) {
             this.completed = true;
-            const result = this.onComplete("carbs");
+            const result = this.onComplete(this.category);
             this.render();
             const message = result?.saved === false
                 ? "The bond formed, but the discovery could not be saved. Please retry."
-                : INSTRUCTIONS[this.step];
+                : this.instructions()[this.step];
             this.announce(message);
         } else {
             this.render();
@@ -149,7 +213,7 @@ const MacromolecularizerReactionExploration = {
                         e.clientY >= r.top - 16 && e.clientY <= r.bottom + 16;
                 });
             if (!target || !this.accept(token, target.dataset.exploreDrop)) {
-                this.announce(INSTRUCTIONS[this.step]);
+                this.announce(this.instructions()[this.step]);
             }
         };
         const cancel = () => {
@@ -214,14 +278,74 @@ const MacromolecularizerReactionExploration = {
         line.style.width = `${Math.max(0, oxygenRect.left - carbonRect.right)}px`;
     },
 
+    positionPeptideBond() {
+        const field = this.element?.querySelector(".macro-exp-field--amino");
+        const line = field?.querySelector(".macro-exp-peptide-bond");
+        const carbon = field?.querySelector(".macro-exp-amino-atom--carbon");
+        const nitrogen = field?.querySelector(".macro-exp-amino-atom--nitrogen");
+        if (!line || !carbon || !nitrogen) return;
+
+        const fieldRect = field.getBoundingClientRect();
+        const c = carbon.getBoundingClientRect();
+        const n = nitrogen.getBoundingClientRect();
+        const cx = c.left + c.width / 2;
+        const cy = c.top + c.height / 2;
+        const nx = n.left + n.width / 2;
+        const ny = n.top + n.height / 2;
+        const dx = nx - cx;
+        const dy = ny - cy;
+        const distance = Math.hypot(dx, dy);
+        const cRadius = c.width / 2;
+        const nRadius = n.width / 2;
+        if (distance <= cRadius + nRadius) return;
+        line.style.left = `${cx + dx / distance * cRadius - fieldRect.left}px`;
+        line.style.top = `${cy + dy / distance * cRadius - fieldRect.top}px`;
+        line.style.width = `${distance - cRadius - nRadius}px`;
+        line.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
+    },
+
+    renderProtein() {
+        const leftDocked = this.step >= 1;
+        const rightDocked = this.step >= 2;
+        const removedOH = this.step >= 3;
+        const removedH = this.step >= 4;
+        const bonded = this.step >= 5;
+        this.element.innerHTML = `
+            <div class="macro-exp-heading"><span>Reaction exploration · proteins</span>
+                <button type="button" data-explore-exit>Return to synthesis</button></div>
+            <div class="macro-exp-progress" aria-label="Reaction progress">${Math.min(this.step, 5)} / 5 steps</div>
+            <p class="macro-exp-instruction" role="status" aria-live="polite">${this.instructions()[this.step]}</p>
+            <div class="macro-exp-field macro-exp-field--amino" aria-label="Amino acid reaction field">
+                ${bonded ? '<span class="macro-exp-peptide-bond" role="img" aria-label="Peptide bond between carboxyl carbon and amino nitrogen"></span>' : ""}
+                <div class="macro-exp-slot" data-side="left">
+                    ${leftDocked ? aminoAcidMarkup("left", true, removedOH, false, bonded) : aminoTemplateMarkup("left")}
+                </div>
+                <div class="macro-exp-slot" data-side="right">
+                    ${rightDocked ? aminoAcidMarkup("right", true, false, removedH, bonded) : aminoTemplateMarkup("right")}
+                </div>
+            </div>
+            <div class="macro-exp-toolbar macro-exp-toolbar--amino">
+                <div class="macro-exp-supply" aria-label="Amino acid supply">${!leftDocked ? aminoAcidMarkup("left", false) : ""}${!rightDocked ? aminoAcidMarkup("right", false) : ""}</div>
+                <button type="button" class="macro-exp-collection" data-explore-drop="waste" aria-label="Collection tray for OH and H">
+                    ${removedH ? '<span class="macro-exp-water">H₂O ↑</span>' : removedOH ? "OH + H → H₂O" : "OH + H collection tray"}
+                </button>
+            </div>
+            ${bonded ? '<div class="macro-exp-reveal" role="status">PEPTIDE BOND DISCOVERED!<small>Carboxyl C—N linkage · dehydration releases H₂O</small></div>' : ""}`;
+        if (bonded) this.positionPeptideBond();
+    },
+
     render() {
         if (!this.element) return;
+        if (this.category === "motifs") {
+            this.renderProtein();
+            return;
+        }
         if (this.category !== "carbs") {
-            const categoryName = this.category === "nucleotides" ? "nucleic acid" : "protein";
+            const categoryName = this.category === "nucleotides" ? "nucleic acid" : "lipid";
             this.element.innerHTML = `
                 <div class="macro-exp-heading"><span>Reaction exploration · ${categoryName}</span>
                     <button type="button" data-explore-exit>Return to synthesis</button></div>
-                <p class="macro-exp-instruction" role="status">This reaction exploration is coming later. Select C to explore carbohydrate dehydration now.</p>`;
+                <p class="macro-exp-instruction" role="status">This reaction exploration is coming later. Select C or P to explore dehydration now.</p>`;
             return;
         }
         const leftDocked = this.step >= 1;
@@ -233,7 +357,7 @@ const MacromolecularizerReactionExploration = {
             <div class="macro-exp-heading"><span>Reaction exploration · carbohydrates</span>
                 <button type="button" data-explore-exit>Return to synthesis</button></div>
             <div class="macro-exp-progress" aria-label="Reaction progress">${Math.min(this.step, 5)} / 5 steps</div>
-            <p class="macro-exp-instruction" role="status" aria-live="polite">${INSTRUCTIONS[this.step]}</p>
+            <p class="macro-exp-instruction" role="status" aria-live="polite">${this.instructions()[this.step]}</p>
             <div class="macro-exp-field" aria-label="Glucose reaction field">
                 ${bonded ? '<span class="macro-exp-bond" role="img" aria-label="Glycosidic bond between carbon on glucose 1 and oxygen on glucose 2"></span>' : ""}
                 <div class="macro-exp-slot" data-side="left">
