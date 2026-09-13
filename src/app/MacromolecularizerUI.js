@@ -9,6 +9,8 @@ import MacromolecularizerManager
 import MoleculeRecipeCatalog from "../data/MoleculeRecipeCatalog.js";
 import MotifVisualCatalog
     from "../data/MotifVisualCatalog.js";
+import MacromolecularizerReactionExploration
+    from "./MacromolecularizerReactionExploration.js";
 
 const MacromolecularizerUI = {
 
@@ -21,6 +23,7 @@ const MacromolecularizerUI = {
     synthesisFeedbackMessage: "",
     upgradeFeedbackMessage: "",
     chamberViewMode: "synthesis",
+    reactionExplorationActive: false,
     helixFramePreload: null,
     observationImagePreloads: {},
     observationLayers: {
@@ -52,6 +55,21 @@ const MacromolecularizerUI = {
 
         this.buildStaticUI();
         this.cacheElements();
+        MacromolecularizerReactionExploration.initialize(
+            this.elements.reactionExploration,
+            {
+                onComplete: category => {
+                    const result = MacromolecularizerManager
+                        .completeDehydrationExploration(category);
+                    this.render();
+                    return result;
+                },
+                onExit: () => {
+                    this.reactionExplorationActive = false;
+                    this.render();
+                }
+            }
+        );
         this.bindEvents();
         this.subscribe();
 
@@ -239,11 +257,12 @@ const MacromolecularizerUI = {
                     <header class="macro-panel-heading macro-chamber-heading">
                         <div>
                             <p class="macro-kicker">Assembly Core</p>
-                            <h2>Synthesis Chamber</h2>
+                            <h2 id="macromolecularizer-workspace-heading">Synthesis Chamber</h2>
                         </div>
                         <span class="macro-panel-code">CHM-01</span>
                     </header>
 
+                    <div id="macromolecularizer-synthesis-content">
                     <section
                         id="macromolecularizer-chamber"
                         class="macro-chamber"
@@ -470,6 +489,13 @@ const MacromolecularizerUI = {
                             </details>
                         </div>
                     </section>
+                    </div>
+                    <section
+                        id="macromolecularizer-reaction-exploration"
+                        class="macro-exploration"
+                        aria-label="Reaction exploration"
+                        hidden
+                    ></section>
                 </main>
 
                 <aside
@@ -688,6 +714,12 @@ const MacromolecularizerUI = {
                         "[data-reaction-id]"
                     )
                 ),
+            workspaceHeading:
+                this.rootElement.querySelector("#macromolecularizer-workspace-heading"),
+            synthesisContent:
+                this.rootElement.querySelector("#macromolecularizer-synthesis-content"),
+            reactionExploration:
+                this.rootElement.querySelector("#macromolecularizer-reaction-exploration"),
             chamber:
                 this.rootElement.querySelector(
                     "#macromolecularizer-chamber"
@@ -863,6 +895,9 @@ const MacromolecularizerUI = {
                     const result = MacromolecularizerManager.selectMotif(recipe.id);
                     if (result.success) this.chamberViewMode = "synthesis";
                     else this.synthesisFeedbackMessage = result.message;
+                    if (result.success && this.reactionExplorationActive) {
+                        MacromolecularizerReactionExploration.open(button.dataset.assemblyCategory);
+                    }
                     this.render();
                 }
             });
@@ -937,6 +972,14 @@ const MacromolecularizerUI = {
                 button.addEventListener(
                     "click",
                     () => {
+                        if (button.dataset.reactionId === "dehydration") {
+                            this.reactionExplorationActive = true;
+                            const category = MacromolecularizerManager
+                                .getStatus().selectedMotif?.definition.category ?? "motifs";
+                            MacromolecularizerReactionExploration.open(category);
+                            this.render();
+                            return;
+                        }
                         const result =
                             MacromolecularizerManager
                                 .discoverReaction(
@@ -1241,6 +1284,12 @@ const MacromolecularizerUI = {
             status.motifInventoryStatus
         );
 
+        this.elements.synthesisContent.hidden = this.reactionExplorationActive;
+        this.elements.reactionExploration.hidden = !this.reactionExplorationActive;
+        this.elements.workspaceHeading.textContent = this.reactionExplorationActive
+            ? "Reaction Exploration"
+            : "Synthesis Chamber";
+
         this.elements.reactionButtons
             .forEach(button => {
                 const reactionId =
@@ -1253,17 +1302,20 @@ const MacromolecularizerUI = {
                         ]
                     );
 
-                button.disabled =
-                    discovered;
+                button.disabled = discovered && reactionId !== "dehydration";
+                button.dataset.discovered = String(discovered);
 
                 button.setAttribute(
                     "aria-pressed",
                     String(discovered)
                 );
 
-                if (discovered) {
-                    button.textContent =
-                        `${this.formatReactionName(reactionId)} Discovered`;
+                if (reactionId === "dehydration") {
+                    button.textContent = discovered
+                        ? "Explore Dehydration Again"
+                        : "Explore Dehydration";
+                } else if (discovered) {
+                    button.textContent = `${this.formatReactionName(reactionId)} Discovered`;
                 } else {
                     button.textContent =
                         `Discover ${this.formatReactionName(reactionId)}`;
