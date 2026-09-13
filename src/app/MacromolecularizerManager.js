@@ -1709,6 +1709,52 @@ const MacromolecularizerManager = {
 
     },
 
+    // Complete the carbohydrate activity without changing older saves' gates.
+    // The generic dehydration flag remains the synthesis prerequisite.
+    completeDehydrationExploration(category) {
+
+        if (category !== "carbs") {
+            return {
+                success: false,
+                saved: false,
+                reason: "activity-unavailable",
+                message: "This reaction exploration is not available yet."
+            };
+        }
+
+        const discoveryId = "dehydration-1";
+        const newActivity = !this.hasReactionDiscovery(discoveryId);
+        const newGate = !this.hasReactionDiscovery("dehydration");
+
+        if (newActivity && !DiscoveryManager.record("reactions", discoveryId)) {
+            return { success: false, saved: false, message: "The discovery could not be recorded." };
+        }
+
+        if (newGate && !DiscoveryManager.record("reactions", "dehydration")) {
+            return { success: false, saved: false, message: "The reaction gate could not be recorded." };
+        }
+
+        // Retry the write on replay, including after a previous failed save.
+        const saved = SaveManager.save({
+            reason: "macromolecularizer-dehydration-1-discovered"
+        });
+
+        this.notifyStateChange("reaction-discovered", {
+            reactionId: discoveryId,
+            saved
+        });
+
+        return {
+            success: saved,
+            saved,
+            discoveryId,
+            message: saved
+                ? "Glycosidic bond discovered!"
+                : "The bond formed, but the browser save failed."
+        };
+
+    },
+
     // --------------------------------------------------
     // Read a safe development snapshot
     // --------------------------------------------------
