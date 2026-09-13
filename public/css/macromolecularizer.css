@@ -1940,3 +1940,134 @@
 @media (prefers-reduced-motion: reduce) {
     .macro-exp-water, .macro-exp-reveal, .macro-exp-bond { animation: none; }
 }
+
+/* Protein dehydration: amino acids are drawn as scalable SVG structures. */
+
+.macro-exp-field--amino {
+    gap: 28px;
+}
+
+.macro-exp-template--amino {
+    width: 180px;
+    height: 150px;
+}
+
+.macro-exp-toolbar--amino {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.macro-exp-amino {
+    position: relative;
+    display: block;
+    flex: 0 0 180px;
+    width: 180px;
+    height: 180px;
+    padding: 0;
+    color: var(--macro-text);
+    border: 0;
+    background: transparent;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+}
+
+.macro-exp-amino--docked {
+    cursor: default;
+}
+
+.macro-exp-amino-svg {
+    display: block;
+    width: 180px;
+    height: 150px;
+    overflow: visible;
+}
+
+.macro-aa-bonds line {
+    stroke: #eef3fb;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+}
+
+.macro-aa-bonds .macro-aa-double {
+    stroke-width: 2.3;
+}
+
+.macro-exp-amino-svg .macro-aa-n { fill: #087cbd; stroke: #7bd7ff; stroke-width: 1.5; }
+.macro-exp-amino-svg .macro-aa-c { fill: #46505f; stroke: #b5c1d1; stroke-width: 1.5; }
+.macro-exp-amino-svg .macro-aa-h { fill: #758393; stroke: #d6e0eb; stroke-width: 1.5; }
+.macro-exp-amino-svg .macro-aa-o { fill: #a2282b; stroke: #ffaaaa; stroke-width: 1.5; }
+.macro-exp-amino-svg .macro-aa-r { fill: #111923; stroke: #e6eef7; stroke-width: 1.5; }
+
+.macro-exp-amino-svg text {
+    fill: #fff;
+    text-anchor: middle;
+    font: 700 12px "Oxanium", sans-serif;
+    pointer-events: none;
+}
+
+.macro-exp-amino-name {
+    position: absolute;
+    bottom: 2px;
+    left: 0;
+    width: 100%;
+    color: var(--macro-text);
+    text-align: center;
+    font: 700 0.78rem "Courier New", monospace;
+}
+
+.macro-exp-amino-atom {
+    position: absolute;
+    z-index: 4;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    color: white;
+    border: 2px solid #d6e0eb;
+    border-radius: 50%;
+    background: #46505f;
+    font: 700 0.75rem "Oxanium", sans-serif;
+    transform: translate(-50%, -50%);
+    touch-action: none;
+    cursor: grab;
+}
+
+.macro-exp-amino-atom--carbon { left: 130px; top: 76px; width: 26px; height: 26px; cursor: pointer; }
+.macro-exp-amino-atom--oh { left: 162px; top: 116px; width: 32px; height: 32px; border-color: #ffaaaa; background: #a2282b; }
+.macro-exp-amino-atom--nitrogen { left: 23px; top: 76px; width: 26px; height: 26px; border-color: #7bd7ff; background: #087cbd; }
+.macro-exp-amino-atom--h { left: 14px; top: 38px; width: 20px; height: 20px; border-color: #d6e0eb; background: #758393; }
+.macro-exp-amino--docked span.macro-exp-amino-atom { cursor: default; }
+
+/* The shared pointer-drag code appends a clone to the exploration panel. */
+.macro-exp-amino.macro-exp-drag-ghost,
+.macro-exp-amino-atom.macro-exp-drag-ghost {
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.85;
+    transform: translate(-50%, -50%);
+}
+
+.macro-exp-peptide-bond {
+    position: absolute;
+    z-index: 5;
+    height: 3px;
+    background: #fff;
+    box-shadow: 0 0 12px var(--macro-accent-bright);
+    transform-origin: left center;
+    animation: macro-exp-peptide-reveal 650ms ease-out both;
+    pointer-events: none;
+}
+
+@keyframes macro-exp-peptide-reveal {
+    from { opacity: 0; clip-path: inset(0 100% 0 0); }
+    to { opacity: 1; clip-path: inset(0 0 0 0); }
+}
+
+@media (max-width: 520px) {
+    .macro-exp-field--amino { grid-template-columns: 1fr; }
+    .macro-exp-field--amino .macro-exp-slot { min-height: 195px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .macro-exp-peptide-bond { animation: none; }
+}

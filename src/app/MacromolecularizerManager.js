@@ -27,6 +27,16 @@ const REACTION_DISCOVERY_IDS = Object.freeze([
     "dehydration",
     "hydrolysis"
 ]);
+const DEHYDRATION_EXPLORATION_IDS = Object.freeze({
+    carbs: "dehydration-1",
+    motifs: "dehydration-2"
+});
+const DEHYDRATION_DISCOVERY_IDS = Object.freeze([
+    "dehydration-1",
+    "dehydration-2",
+    "dehydration-3",
+    "dehydration-4"
+]);
 
 function isRecord(value) {
 
@@ -1599,9 +1609,10 @@ const MacromolecularizerManager = {
 
         if (
             typeof reactionId !== "string" ||
-            !REACTION_DISCOVERY_IDS.includes(
-                reactionId.trim()
-            )
+            ![
+                ...REACTION_DISCOVERY_IDS,
+                ...DEHYDRATION_DISCOVERY_IDS
+            ].includes(reactionId.trim())
         ) {
             return false;
         }
@@ -1709,11 +1720,14 @@ const MacromolecularizerManager = {
 
     },
 
-    // Complete the carbohydrate activity without changing older saves' gates.
+    // Complete an exploration without changing older saves' synthesis gates.
     // The generic dehydration flag remains the synthesis prerequisite.
     completeDehydrationExploration(category) {
 
-        if (category !== "carbs") {
+        const discoveryId = Object.hasOwn(DEHYDRATION_EXPLORATION_IDS, category)
+            ? DEHYDRATION_EXPLORATION_IDS[category]
+            : null;
+        if (!discoveryId) {
             return {
                 success: false,
                 saved: false,
@@ -1722,7 +1736,6 @@ const MacromolecularizerManager = {
             };
         }
 
-        const discoveryId = "dehydration-1";
         const newActivity = !this.hasReactionDiscovery(discoveryId);
         const newGate = !this.hasReactionDiscovery("dehydration");
 
@@ -1736,7 +1749,7 @@ const MacromolecularizerManager = {
 
         // Retry the write on replay, including after a previous failed save.
         const saved = SaveManager.save({
-            reason: "macromolecularizer-dehydration-1-discovered"
+            reason: `macromolecularizer-${discoveryId}-discovered`
         });
 
         this.notifyStateChange("reaction-discovered", {
@@ -1749,7 +1762,9 @@ const MacromolecularizerManager = {
             saved,
             discoveryId,
             message: saved
-                ? "Glycosidic bond discovered!"
+                ? category === "motifs"
+                    ? "Peptide bond discovered!"
+                    : "Glycosidic bond discovered!"
                 : "The bond formed, but the browser save failed."
         };
 

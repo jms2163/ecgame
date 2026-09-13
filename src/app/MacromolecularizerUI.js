@@ -12,6 +12,13 @@ import MotifVisualCatalog
 import MacromolecularizerReactionExploration
     from "./MacromolecularizerReactionExploration.js";
 
+const DEHYDRATION_DISCOVERY_BY_CATEGORY = Object.freeze({
+    carbs: "dehydration-1",
+    motifs: "dehydration-2",
+    lipids: "dehydration-3",
+    nucleotides: "dehydration-4"
+});
+
 const MacromolecularizerUI = {
 
     initialized: false,
@@ -32,6 +39,14 @@ const MacromolecularizerUI = {
         atoms: false
     },
     activeVisualMotifId: null,
+
+    dehydrationExplorationDiscovered(category) {
+        const discoveryId = DEHYDRATION_DISCOVERY_BY_CATEGORY[category];
+        return Boolean(
+            discoveryId &&
+            MacromolecularizerManager.hasReactionDiscovery(discoveryId)
+        );
+    },
 
     // --------------------------------------------------
     // Initialize the persistent zone shell once
@@ -1295,12 +1310,9 @@ const MacromolecularizerUI = {
                 const reactionId =
                     button.dataset.reactionId;
 
-                const discovered =
-                    Boolean(
-                        status.reactionDiscoveries[
-                            reactionId
-                        ]
-                    );
+                const discovered = reactionId === "dehydration"
+                    ? this.dehydrationExplorationDiscovered(activeCategory)
+                    : Boolean(status.reactionDiscoveries[reactionId]);
 
                 button.disabled = discovered && reactionId !== "dehydration";
                 button.dataset.discovered = String(discovered);
