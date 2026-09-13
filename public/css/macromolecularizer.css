@@ -235,10 +235,8 @@
 
 .macro-lab-grid {
     display: grid;
-    grid-template-columns: minmax(220px, 0.72fr) minmax(440px, 1.65fr) minmax(250px, 0.82fr);
-    grid-template-areas:
-        "recipes chamber inventory"
-        "controls controls controls";
+    grid-template-columns: minmax(220px, 0.72fr) minmax(440px, 1.65fr) minmax(300px, 0.95fr);
+    grid-template-areas: "recipes chamber controls";
     align-items: stretch;
     gap: 12px;
 }
@@ -259,10 +257,6 @@
 .macro-synthesis-workspace {
     grid-area: chamber;
     background: rgba(10, 15, 24, 0.98);
-}
-
-.macro-inventory-tray {
-    grid-area: inventory;
 }
 
 .macro-control-deck {
@@ -1280,7 +1274,46 @@
     opacity: 0.85;
 }
 
-/* Inventory tray */
+/* Expandable inventory inside the right-side control panel */
+
+.macro-inventory-disclosure {
+    border-top: 1px solid var(--macro-border-soft);
+}
+
+.macro-inventory-disclosure > summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 54px;
+    padding: 13px 15px;
+    color: var(--macro-text);
+    background: rgba(10, 15, 24, 0.56);
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.035em;
+    list-style: none;
+    text-transform: uppercase;
+}
+
+.macro-inventory-disclosure > summary::-webkit-details-marker {
+    display: none;
+}
+
+.macro-inventory-disclosure > summary::after {
+    margin-left: auto;
+    color: var(--macro-accent-bright);
+    content: "▾";
+}
+
+.macro-inventory-disclosure[open] > summary::after {
+    content: "▴";
+}
+
+.macro-inventory-content {
+    max-height: 410px;
+    overflow-y: auto;
+}
 
 .macro-inventory-meters {
     display: grid;
@@ -1415,28 +1448,20 @@
     background: rgba(10, 15, 24, 0.25);
 }
 
-/* Bottom controls */
+/* Right-side lab controls */
 
 .macro-control-deck {
-    display: grid;
-    grid-template-columns: 190px minmax(300px, 0.9fr) minmax(440px, 1.45fr);
-    min-height: 178px;
+    align-self: start;
 }
 
 .macro-control-heading {
-    min-height: 100%;
-    border-right: 1px solid var(--macro-border-soft);
-    border-bottom: 0;
+    min-height: 70px;
 }
 
 .macro-control-module {
     min-width: 0;
     padding: 15px;
-    border-right: 1px solid var(--macro-border-soft);
-}
-
-.macro-control-module:last-child {
-    border-right: 0;
+    border-bottom: 1px solid var(--macro-border-soft);
 }
 
 .macro-module-heading {
@@ -1474,7 +1499,6 @@
 
 .macromolecularizer-reaction-actions {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 7px;
 }
 
@@ -1492,17 +1516,14 @@
 }
 
 .macro-upgrade-module {
-    display: grid;
-    grid-template-columns: minmax(155px, 0.58fr) minmax(230px, 1fr) minmax(210px, 0.9fr);
-    align-items: start;
-    gap: 14px;
+    display: block;
 }
 
 .macro-upgrade-stats {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 5px;
-    margin: 0;
+    margin: 0 0 12px;
 }
 
 .macro-upgrade-stats > div {
@@ -1598,7 +1619,7 @@
     }
 
     .macro-lab-grid {
-        grid-template-columns: minmax(205px, 0.68fr) minmax(410px, 1.52fr) minmax(235px, 0.78fr);
+        grid-template-columns: minmax(205px, 0.68fr) minmax(410px, 1.52fr) minmax(290px, 0.9fr);
         gap: 8px;
     }
 
@@ -1618,21 +1639,6 @@
         min-height: 365px;
     }
 
-    .macro-control-deck {
-        grid-template-columns: 160px minmax(280px, 0.9fr) minmax(390px, 1.4fr);
-    }
-
-    .macro-upgrade-module {
-        grid-template-columns: 145px minmax(210px, 1fr);
-    }
-
-    .macro-upgrade-action {
-        grid-column: 1 / -1;
-        display: grid;
-        grid-template-columns: minmax(190px, 0.7fr) 1fr;
-        align-items: center;
-        gap: 10px;
-    }
 }
 
 @media (max-width: 980px) {
@@ -1653,36 +1659,11 @@
         grid-template-columns: minmax(205px, 0.64fr) minmax(470px, 1.36fr);
         grid-template-areas:
             "recipes chamber"
-            "inventory inventory"
             "controls controls";
     }
 
-    .macro-inventory-tray {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .macro-inventory-tray > .macro-panel-heading {
-        grid-column: 1 / -1;
-        min-height: 70px;
-        border-bottom: 1px solid var(--macro-border-soft);
-    }
-
-    .macro-inventory-meters {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .macro-active-job,
-    .macro-tray-section {
-        border-bottom: 1px solid var(--macro-border-soft);
-    }
-
-    .macro-components-section {
-        display: none;
-    }
-
     .macro-control-deck {
-        grid-template-columns: 160px minmax(270px, 0.9fr) minmax(380px, 1.4fr);
+        align-self: stretch;
     }
 }
 
