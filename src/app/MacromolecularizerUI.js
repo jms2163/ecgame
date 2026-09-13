@@ -473,70 +473,9 @@ const MacromolecularizerUI = {
                 </main>
 
                 <aside
-                    class="macro-panel macro-inventory-tray"
-                    aria-label="Macromolecularizer status"
+                    class="macro-panel macro-control-deck"
+                    aria-label="Lab controls and inventory"
                 >
-                    <header class="macro-panel-heading">
-                        <div>
-                            <p class="macro-kicker">Cold Storage</p>
-                            <h2>Inventory Tray</h2>
-                        </div>
-                        <span class="macro-panel-code">INV-01</span>
-                    </header>
-
-                    <div class="macro-inventory-meters">
-                        <div>
-                            <span>Product types</span>
-                            <strong id="macromolecularizer-inventory-count">0</strong>
-                        </div>
-                        <div>
-                            <span>Total copies</span>
-                            <strong id="macromolecularizer-inventory-total">0</strong>
-                        </div>
-                    </div>
-
-                    <div class="macro-active-job">
-                        <span class="macro-dossier-label">Active synthesis</span>
-                        <strong id="macromolecularizer-active-synthesis">None</strong>
-                    </div>
-
-                    <section
-                        class="macro-tray-section"
-                        aria-labelledby="macromolecularizer-inventory-heading"
-                    >
-                        <div class="macro-tray-heading">
-                            <h3 id="macromolecularizer-inventory-heading">Completed Products</h3>
-                            <span>Physical inventory</span>
-                        </div>
-                        <p id="macromolecularizer-inventory-empty" class="macro-empty-slot">
-                            No completed products yet.
-                        </p>
-                        <ul id="macromolecularizer-inventory-list" class="macro-inventory-list"></ul>
-                    </section>
-
-                    <section
-                        class="macro-tray-section"
-                        aria-labelledby="macromolecularizer-known-aa-heading"
-                    >
-                        <div class="macro-tray-heading">
-                            <h3 id="macromolecularizer-known-aa-heading">Known Amino Acids</h3>
-                            <span>Knowledge · not consumed</span>
-                        </div>
-                        <ul id="macromolecularizer-known-amino-acids" class="macro-amino-acid-grid"></ul>
-                    </section>
-
-                    <section class="macro-tray-section macro-components-section">
-                        <div class="macro-tray-heading">
-                            <h3>Components</h3>
-                            <span>Future inventory</span>
-                        </div>
-                        <div class="macro-empty-slot">
-                            Monomer synthesis knowledge is required; no stored monomers are consumed.
-                        </div>
-                    </section>
-                </aside>
-
-                <footer class="macro-panel macro-control-deck">
                     <header class="macro-panel-heading macro-control-heading">
                         <div>
                             <p class="macro-kicker">Operator Console</p>
@@ -623,7 +562,66 @@ const MacromolecularizerUI = {
                             ></p>
                         </div>
                     </section>
-                </footer>
+
+                    <details class="macro-inventory-disclosure">
+                        <summary>
+                            <span>Inventory Tray</span>
+                            <span class="macro-panel-code">INV-01</span>
+                        </summary>
+                        <div class="macro-inventory-content">
+                            <div class="macro-inventory-meters">
+                                <div>
+                                    <span>Product types</span>
+                                    <strong id="macromolecularizer-inventory-count">0</strong>
+                                </div>
+                                <div>
+                                    <span>Total copies</span>
+                                    <strong id="macromolecularizer-inventory-total">0</strong>
+                                </div>
+                            </div>
+
+                            <div class="macro-active-job">
+                                <span class="macro-dossier-label">Active synthesis</span>
+                                <strong id="macromolecularizer-active-synthesis">None</strong>
+                            </div>
+
+                            <section
+                                class="macro-tray-section"
+                                aria-labelledby="macromolecularizer-inventory-heading"
+                            >
+                                <div class="macro-tray-heading">
+                                    <h3 id="macromolecularizer-inventory-heading">Completed Products</h3>
+                                    <span>Physical inventory</span>
+                                </div>
+                                <p id="macromolecularizer-inventory-empty" class="macro-empty-slot">
+                                    No completed products yet.
+                                </p>
+                                <ul id="macromolecularizer-inventory-list" class="macro-inventory-list"></ul>
+                            </section>
+
+                            <section
+                                class="macro-tray-section"
+                                aria-labelledby="macromolecularizer-known-aa-heading"
+                            >
+                                <div class="macro-tray-heading">
+                                    <h3 id="macromolecularizer-known-aa-heading">Known Amino Acids</h3>
+                                    <span>Knowledge · not consumed</span>
+                                </div>
+                                <ul id="macromolecularizer-known-amino-acids" class="macro-amino-acid-grid"></ul>
+                            </section>
+
+                            <section class="macro-tray-section macro-components-section">
+                                <div class="macro-tray-heading">
+                                    <h3>Components</h3>
+                                    <span>Future inventory</span>
+                                </div>
+                                <div class="macro-empty-slot">
+                                    Monomer synthesis knowledge is required; no stored monomers are consumed.
+                                </div>
+                            </section>
+                        </div>
+                    </details>
+                </aside>
                 </div>
             </div>
         `;

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Mol* Smart Inspector</title>
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/molstar@latest/build/viewer/molstar.css" />
+  <script src="https://unpkg.com/molstar@latest/build/viewer/molstar.js"></script>
+  <style>
+    body { background-color: #111; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    #viewer { width: 800px; height: 500px; border: 1px solid #333; position: relative; }
+  </style>
+</head>
+<body>
+
+<div id="viewer"></div>
+
+<script>
+  molstar.Viewer.create('viewer', {
+    layoutIsExpanded: false,
+    layoutShowControls: false,
+    layoutShowRemoteState: false,
+    layoutShowSequence: false,
+    layoutShowLog: false,
+    layoutShowLeftPanel: false,
+    viewportBackgroundColor: 0x000000
+  }).then(async viewer => {
+    const plugin = viewer.plugin;
+    window.myViewer = viewer;
+    window.molPlugin = plugin;
+
+    // Explicitly configure the 3D viewport canvas background renderer property
+    plugin.canvas3d?.setProps({
+      renderer: { backgroundColor: 0x000000 }
+    });
+
+    await viewer.loadPdb('253L');
+
+    const structureManager = plugin.managers.structure.hierarchy;
+    const componentsToRemove = [];
+    let polymerComponent = null;
+
+    // Clean water, ions, and ligands
+    structureManager.current.structures.forEach(structureGroup => {
+      structureGroup.components.forEach(component => {
+        const label = (component.cell.obj?.label || '').toLowerCase();
+        if (label === 'water' || label === 'ligand' || label === 'ion') {
+          componentsToRemove.push(component);
+        } else if (label === 'polymer') {
+          polymerComponent = component;
+        }
+      });
+    });
+
+    if (componentsToRemove.length > 0) {
+      structureManager.remove(componentsToRemove);
+    }
+
+    if (polymerComponent) {
+      plugin.managers.structure.component.updateRepresentationsTheme(
+        [polymerComponent], 
+        { color: 'secondary-structure' } 
+      );
+    }
+
+    // Advanced Click Interceptor with Universal OrderedSet Handler
+    window.molPlugin.behaviors.interaction.click.subscribe((event) => {
+      const loci = event.current?.loci;
+      
+      if (!loci || loci.kind === 'empty-loci') {
+        console.log("Clicked: Empty space");
+        return;
+      }
+
+      console.log(`=== Clicked Type: ${loci.kind} ===`);
+
+      // 1. Handle Atoms, Residues, and Secondary Structures (Helix/Sheet/Loop)
+      if (loci.kind === 'element-loci') {
+        for (const xs of loci.elements) {
+          const unit = xs.unit;
+          const model = unit.model;
+          const atomicHierarchy = model.atomicHierarchy;
+          
+          const indices = xs.indices;
+          let firstIdx = undefined;
+
+          // Universal extractor for Mol* OrderedSet (Interval vs SortedArray)
+          if (indices) {
+            if (typeof indices.min === 'number') {
+              firstIdx = indices.min; // Interval type
+            } else if (indices.ref && typeof indices.offset === 'number') {
+              firstIdx = indices.ref[indices.offset]; // SortedArray buffer reference
+            } else if (typeof indices.get === 'function' && indices.length > 0) {
+              firstIdx = indices.get(0);
+            } else if (indices.length > 0 && typeof indices[0] === 'number') {
+              firstIdx = indices[0]; // Standard array
+            }
+          }
+
+          if (firstIdx === undefined) continue;
+
+          const atomIndex = unit.elements ? unit.elements[firstIdx] : firstIdx;
+          const resIdx = unit.getResidueIndex(firstIdx);
+          
+          const atoms = atomicHierarchy.atoms;
+          const residues = atomicHierarchy.residues;
+          
+          const atomName = atoms.auth_atom_id?.value(atomIndex) ?? atoms.label_atom_id?.value(atomIndex) ?? "?";
+          const resName = residues.auth_comp_id?.value(resIdx) ?? residues.label_comp_id?.value(resIdx) ?? "?";
+          const resSeq = residues.auth_seq_id?.value(resIdx) ?? "?";
+
+          // Secondary Structure Classification via model.secondaryStructure flags
+          let secStrucStr = "Coil / Loop";
+          try {
+            const sStruct = model.secondaryStructure;
+            if (sStruct && sStruct.flags) {
+              const flags = sStruct.flags.value(resIdx);
+              if (sStruct.isHelix(flags)) {
+                secStrucStr = "Alpha Helix";
+              } else if (sStruct.isSheet(flags)) {
+                secStrucStr = "Beta Sheet";
+              } else if (sStruct.isTurn && sStruct.isTurn(flags)) {
+                secStrucStr = "Turn";
+              } else {
+                secStrucStr = "Coil / Loop";
+              }
+            }
+          } catch (err) {
+            secStrucStr = "Unassigned";
+          }
+
+          console.log(`[Residue & Structure] Residue: ${resName} ${resSeq} | Structural Type: ${secStrucStr} | Atom: ${atomName}`);
+          break; // Log primary target once per click event
+        }
+      } 
+      // 2. Handle Hydrogen Bonds and Computed Interactions
+      else if (loci.kind === 'data-loci') {
+        console.log("[Interaction / H-Bond Clicked]", loci.data);
+      }
+      // 3. Handle Covalent Direct Bonds
+      else if (loci.kind === 'bond-loci') {
+        console.log("[Direct Bond Clicked]");
+      }
+    });
+
+    console.log("Ready! Click on any Helix, Sheet, Loop, or H-Bond line.");
+  });
+</script>
+
+</body>
+</html>
