@@ -796,7 +796,7 @@ handleControlAction(actionId) {
 
     // --------------------------------------------------
     // Submit the current configuration for scoring.
-    // Only a perfect submission completes research.
+    // Experiments may set a completion threshold; the default is 100%.
     // --------------------------------------------------
     submitExperiment() {
 
@@ -853,7 +853,9 @@ handleControlAction(actionId) {
         const attemptSnapshot =
             this.getAttemptSnapshot();
 
-        if (!report.isPerfect) {
+        if (!ResearchManager.meetsCompletionThreshold(
+            experiment, report
+        )) {
             OrganelleExperimentSubmissionManager
                 .recordSubmission(
                     {
@@ -905,7 +907,7 @@ handleControlAction(actionId) {
                         "Experiment Completed",
 
                     message:
-                        `Perfect score: ${report.scorePoints} / ${report.scoreMaximum}. ${completion.xpAwarded} XP awarded.`
+                        `Score: ${report.scorePoints} / ${report.scoreMaximum} (${report.scorePercent}%). ${completion.xpAwarded} XP awarded.`
                 }
             );
 
@@ -921,7 +923,7 @@ handleControlAction(actionId) {
                     completion.reason ===
                     "already-completed"
                         ? "This experiment was already completed."
-                        : "Your model earned a perfect score, but its research reward could not be applied."
+                        : "Your model met the completion score, but its research reward could not be applied."
             }
         );
 
@@ -937,9 +939,13 @@ handleControlAction(actionId) {
             snapshot: submission.placementSnapshot,
             reflectionResponses: submission.attemptSnapshot?.reflectionResponses
         }) }));
-        const perfect = results.find(result => result.report.isPerfect);
+        const qualifying = results.find(result =>
+            ResearchManager.meetsCompletionThreshold(
+                experiment, result.report
+            )
+        );
         let completion = null;
-        if (perfect) completion = ResearchManager.completeExperiment(experiment.id);
+        if (qualifying) completion = ResearchManager.completeExperiment(experiment.id);
         const outcome = OrganelleExperimentSubmissionManager.applyRegrade({ experiment, results });
         SaveManager.save();
         return outcome;

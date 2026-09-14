@@ -455,7 +455,12 @@ starElement.setAttribute(
                     .forEach(experimentId => {
 
                         details.push(
-                            `Requires: 100% ${
+                            `Requires: ${
+                                OrganelleExperimentLibrary[
+                                    experimentId
+                                ]?.assessment
+                                    ?.completionThresholdPercent ?? 100
+                            }% ${
                                 this.getExperimentTitle(
                                     experimentId
                                 )
@@ -560,6 +565,12 @@ starElement.setAttribute(
             );
 
             return;
+        }
+
+        if (organelleId === "plasma_membrane") {
+            ResearchManager.promoteSavedDynamicMovement();
+            ResearchManager.promoteSavedWaterDiffusion();
+            ResearchManager.promoteSavedAquaporinDiffusion();
         }
 
         const organelleLabel =
