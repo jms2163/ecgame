@@ -9,6 +9,9 @@ import MacromolecularizerManager
 import MoleculeRecipeCatalog from "../data/MoleculeRecipeCatalog.js";
 import MotifVisualCatalog
     from "../data/MotifVisualCatalog.js";
+import LipidRecipeCatalog, { LIPID_GROUPS }
+    from "../data/LipidRecipeCatalog.js";
+import LipidVisualCatalog from "../data/LipidVisualCatalog.js";
 import MacromolecularizerReactionExploration
     from "./MacromolecularizerReactionExploration.js";
 
@@ -245,6 +248,18 @@ const MacromolecularizerUI = {
                             <strong>N</strong>
                             <span>Nucleic Acids</span>
                             <small>8 recipes</small>
+                        </button>
+                        <button
+                            id="macromolecularizer-lipid-tab"
+                            data-assembly-category="lipids"
+                            type="button"
+                            role="tab"
+                            aria-selected="false"
+                            aria-controls="macromolecularizer-protein-recipes"
+                        >
+                            <strong>L</strong>
+                            <span>Lipids</span>
+                            <small>Coming soon</small>
                         </button>
                     </div>
 
@@ -908,7 +923,12 @@ const MacromolecularizerUI = {
                 const recipe = status.motifCatalog.find(item => item.definition.category === button.dataset.assemblyCategory);
                 if (recipe) {
                     const result = MacromolecularizerManager.selectMotif(recipe.id);
-                    if (result.success) this.chamberViewMode = "synthesis";
+                    if (result.success) {
+                        this.chamberViewMode = "synthesis";
+                        if (button.dataset.assemblyCategory === "lipids") {
+                            this.reactionExplorationActive = false;
+                        }
+                    }
                     else this.synthesisFeedbackMessage = result.message;
                     if (result.success && this.reactionExplorationActive) {
                         MacromolecularizerReactionExploration.open(button.dataset.assemblyCategory);
@@ -1221,22 +1241,24 @@ const MacromolecularizerUI = {
         }
 
         this.elements.selectedMotif
-            .textContent =
-                `Selected: ${selectedMotif?.definition.name ?? status.selectedMotifId}`;
+            .textContent = `Selected: ${selectedMotif?.definition.name ?? status.selectedMotifId}`;
 
         const activeCategory = selectedMotif?.definition.category ?? "motifs";
         this.rootElement.querySelectorAll("[data-assembly-category]").forEach(button => {
             const selected = button.dataset.assemblyCategory === activeCategory;
             button.setAttribute("aria-selected", String(selected));
             button.classList.toggle("is-selected", selected);
-            const count = status.motifCatalog.filter(item => item.definition.category === button.dataset.assemblyCategory).length;
+            const count = button.dataset.assemblyCategory === "lipids"
+                ? LipidRecipeCatalog.getAll().length
+                : status.motifCatalog.filter(item => item.definition.category === button.dataset.assemblyCategory).length;
             button.querySelector("small").textContent = `${count} ${count === 1 ? "recipe" : "recipes"}`;
             button.disabled = Boolean(status.activeSynthesis && !selected);
         });
         const categoryTabIds = {
             carbs: "macromolecularizer-carb-tab",
             motifs: "macromolecularizer-protein-tab",
-            nucleotides: "macromolecularizer-nucleotide-tab"
+            nucleotides: "macromolecularizer-nucleotide-tab",
+            lipids: "macromolecularizer-lipid-tab"
         };
         this.rootElement.querySelector("#macromolecularizer-protein-recipes")
             .setAttribute(
@@ -1248,13 +1270,23 @@ const MacromolecularizerUI = {
                 ? "Known Monosaccharides"
                 : activeCategory === "nucleotides"
                     ? "Known Nucleotide Components"
-                    : "Known Amino Acids";
+                    : activeCategory === "lipids"
+                        ? "Known Lipid Components"
+                        : "Known Amino Acids";
 
-        this.renderMotifCards(
-            status.motifCatalog.filter(item => item.definition.category === activeCategory),
-            status.selectedMotifId,
-            status.activeSynthesis
-        );
+        if (activeCategory === "lipids") {
+            this.renderPlannedLipidCards(
+                status.motifCatalog.filter(item => item.definition.category === "lipids"),
+                status.selectedMotifId,
+                status.activeSynthesis
+            );
+        } else {
+            this.renderMotifCards(
+                status.motifCatalog.filter(item => item.definition.category === activeCategory),
+                status.selectedMotifId,
+                status.activeSynthesis
+            );
+        }
 
         this.elements.inventoryCount
             .textContent =
@@ -1314,7 +1346,13 @@ const MacromolecularizerUI = {
                     ? this.dehydrationExplorationDiscovered(activeCategory)
                     : Boolean(status.reactionDiscoveries[reactionId]);
 
-                button.disabled = discovered && reactionId !== "dehydration";
+                button.disabled = (activeCategory === "lipids" && reactionId === "dehydration") ||
+                    (discovered && reactionId !== "dehydration");
+                if (activeCategory === "lipids" && reactionId === "dehydration") {
+                    button.title = "Lipid reaction exploration is coming later; existing dehydration knowledge applies to lipid synthesis.";
+                } else {
+                    button.removeAttribute("title");
+                }
                 button.dataset.discovered = String(discovered);
 
                 button.setAttribute(
@@ -1354,6 +1392,80 @@ const MacromolecularizerUI = {
         }
 
         return true;
+
+    },
+
+    // --------------------------------------------------
+    // Playable lipid recipes and disabled future products share the same groups.
+    // --------------------------------------------------
+    renderPlannedLipidCards(implementedLipids = [], selectedMotifId = null, activeSynthesis = null) {
+
+        const content = LIPID_GROUPS.map(group => {
+            const section = document.createElement("section");
+            section.className = "macro-lipid-group";
+            section.setAttribute("aria-label", group.label);
+
+            const heading = document.createElement("h3");
+            heading.className = "macro-lipid-group-heading";
+            heading.textContent = group.label;
+            section.append(heading);
+
+            LipidRecipeCatalog.getByGroup(group.id).forEach(recipe => {
+                const playable = implementedLipids.find(item => item.id === recipe.id);
+                const card = document.createElement("button");
+                card.type = "button";
+                card.className = `macro-recipe-card macro-lipid-card${playable ? " macro-recipe-card--selectable" : ""}`;
+                card.disabled = !playable || Boolean(activeSynthesis && activeSynthesis.motifId !== recipe.id);
+                card.dataset.status = playable?.lifecycleStatus ?? "coming-soon";
+                if (playable) {
+                    card.dataset.motifId = recipe.id;
+                    card.setAttribute("aria-pressed", String(selectedMotifId === recipe.id));
+                }
+                const visual = LipidVisualCatalog.get(recipe);
+                const available = recipe.precursors
+                    .filter(precursor => precursor.availableInMoleculeLab)
+                    .map(precursor => precursor.id === "OleicAcid" ? "Oleic Acid" : precursor.name);
+                const pending = recipe.precursors
+                    .filter(precursor => !precursor.availableInMoleculeLab)
+                    .map(precursor => precursor.name);
+
+                const title = document.createElement("span");
+                title.className = "macro-lipid-card-title";
+                const icon = document.createElement("span");
+                icon.className = "macro-recipe-icon";
+                icon.textContent = visual.icon;
+                icon.setAttribute("aria-hidden", "true");
+                const name = document.createElement("span");
+                name.textContent = recipe.id === "ErgosterolOleate"
+                    ? "Sterol esters — Ergosterol oleate"
+                    : `${recipe.name} (${recipe.id})`;
+                title.append(icon, name);
+
+                const description = document.createElement("span");
+                description.className = "macro-recipe-specs";
+                description.textContent = recipe.description;
+
+                const ingredients = document.createElement("span");
+                ingredients.className = "macro-lipid-ingredients";
+                ingredients.textContent = playable
+                    ? `Molecule Lab components: ${available.join(", ")}.`
+                    : `Molecule Lab components: ${available.join(", ") || "none yet"}. Still to add: ${pending.join(", ") || "pathway and activity"}.`;
+
+                const badge = document.createElement("span");
+                badge.className = "macro-lipid-coming-soon";
+                badge.textContent = playable
+                    ? `${playable.inventory.quantity} stored · ${recipe.atpCost} ATP · ${this.formatLifecycleStatus(playable.lifecycleStatus, playable.inventory.quantity)}`
+                    : "Coming Soon · Synthesis unavailable";
+
+                card.append(title, description, ingredients, badge);
+                section.append(card);
+            });
+
+            return section;
+        });
+
+        this.elements.motifCardList.replaceChildren(...content);
+        return content.length;
 
     },
 
@@ -1538,13 +1650,14 @@ const MacromolecularizerUI = {
                 motif.reactionDiscoveries
                     .dehydration
             );
+        const showPreflight = dehydrationKnown || definition.category === "lipids";
 
         this.elements.recipeGate.hidden =
-            dehydrationKnown;
+            showPreflight;
         this.elements.recipeDetails.hidden =
-            !dehydrationKnown;
+            !showPreflight;
 
-        if (!dehydrationKnown) {
+        if (!showPreflight) {
             this.elements.recipeGate
                 .textContent =
                     "Discover dehydration before reviewing synthesis requirements.";
@@ -1560,18 +1673,22 @@ const MacromolecularizerUI = {
                 definition.description;
         this.elements.bondCalculation
             .textContent =
-                `${definition.monomerCount} ${definition.category === "carbs"
-                    ? "sugar units"
-                    : definition.category === "nucleotides"
-                        ? "components"
-                        : "amino acids"} form ${definition.bondCount} ${definition.bondType} bond${definition.bondCount === 1 ? "" : "s"}, requiring ${definition.atpCost} ATP.`;
+                definition.category === "lipids"
+                    ? `${definition.monomerCount} known components model ${definition.bondCount} lipid linkages (${definition.bondType}); ${definition.atpCost} ATP is a game cost, not the cellular reaction stoichiometry.`
+                    : `${definition.monomerCount} ${definition.category === "carbs"
+                        ? "sugar units"
+                        : definition.category === "nucleotides"
+                            ? "components"
+                            : "amino acids"} form ${definition.bondCount} ${definition.bondType} bond${definition.bondCount === 1 ? "" : "s"}, requiring ${definition.atpCost} ATP.`;
         this.elements.compositionLabel
             .textContent =
                 definition.category === "carbs"
                     ? "Monosaccharide composition"
                     : definition.category === "nucleotides"
                         ? "Nucleotide components"
-                        : "Amino-acid composition";
+                        : definition.category === "lipids"
+                            ? "Lipid component composition"
+                            : "Amino-acid composition";
 
         this.elements
             .aminoAcidRequirements
@@ -1606,7 +1723,7 @@ const MacromolecularizerUI = {
 
         this.elements.synthesisTiming
             .textContent =
-                `${this.formatDuration(motif.timing.durationMs)} at ${motif.timing.speedMultiplier}× speed (${motif.timing.baseSecondsPerBond} seconds per ${definition.bondType} bond at base speed).`;
+                `${this.formatDuration(motif.timing.durationMs)} at ${motif.timing.speedMultiplier}× speed (${motif.timing.baseSecondsPerBond} seconds per modeled ${definition.category === "lipids" ? "connection" : `${definition.bondType} bond`} at base speed).`;
 
         const selectedJob =
             activeSynthesis
@@ -1665,6 +1782,9 @@ const MacromolecularizerUI = {
                 .eligibilityFeedback
                 .textContent =
                     `${definition.id} synthesis is running. Monomer prerequisites remain available and are not consumed.`;
+        } else if (definition.category === "lipids" && motif.missingReactionIds.length > 0) {
+            this.elements.eligibilityFeedback.textContent =
+                `Discover dehydration through the C or P reaction exploration before synthesizing ${definition.id}. The lipid-specific exploration will be added later.`;
         } else if (
             motif.missingAminoAcidIds
                 .length > 0
@@ -1688,6 +1808,8 @@ const MacromolecularizerUI = {
                         ? "monosaccharide"
                         : definition.category === "nucleotides"
                             ? "component"
+                            : definition.category === "lipids"
+                                ? "lipid component"
                             : "amino-acid"} types once in Molecule Lab: ${missingNames.join(", ")}. Recipe quantities describe the product and are not consumed.`;
         } else if (!motif.atp.canAfford) {
             this.elements
@@ -1760,10 +1882,9 @@ const MacromolecularizerUI = {
                 "observation" &&
             (
                 motif.inventory.quantity < 1 ||
-                !MotifVisualCatalog
-                    .supportsObservation(
-                        motif.definition.id
-                    )
+                !(motif.definition.category === "lipids"
+                    ? LipidVisualCatalog.get(motif.definition).schematic
+                    : MotifVisualCatalog.supportsObservation(motif.definition.id))
             )
         ) {
             this.chamberViewMode =
@@ -1799,9 +1920,9 @@ const MacromolecularizerUI = {
             motif.definition.name;
 
         const motifVisual =
-            MotifVisualCatalog.get(
-                motif.definition.id
-            );
+            motif.definition.category === "lipids"
+                ? LipidVisualCatalog.get(motif.definition)
+                : MotifVisualCatalog.get(motif.definition.id);
 
         this.elements.chamberClassification.textContent =
             `${motif.definition.id} // ${motifVisual?.classification ?? "Protein structural motif"}`;
@@ -1818,10 +1939,9 @@ const MacromolecularizerUI = {
         const observationAvailable =
             !selectedJob &&
             motif.inventory.quantity > 0 &&
-            MotifVisualCatalog
-                .supportsObservation(
-                    motif.definition.id
-                );
+            (motif.definition.category === "lipids"
+                ? motifVisual.schematic
+                : MotifVisualCatalog.supportsObservation(motif.definition.id));
 
         this.elements.observeStructureButton.disabled =
             !observationAvailable;
@@ -2083,9 +2203,9 @@ const MacromolecularizerUI = {
             motif.definition;
 
         const visual =
-            MotifVisualCatalog.get(
-                definition.id
-            );
+            definition.category === "lipids"
+                ? LipidVisualCatalog.get(definition)
+                : MotifVisualCatalog.get(definition.id);
 
         this.elements.helixFrame.hidden =
             true;
@@ -2104,10 +2224,15 @@ const MacromolecularizerUI = {
                     : motif.inventory.quantity > 0
                         ? "stored"
                         : "awaiting";
-        this.elements.genericMotifIcon
-            .textContent =
-                visual?.icon ??
-                "◆";
+        if (visual?.svgMarkup) {
+            if (this.elements.genericMotifIcon.dataset.visualMotifId !== definition.id) {
+                this.elements.genericMotifIcon.innerHTML = visual.svgMarkup;
+                this.elements.genericMotifIcon.dataset.visualMotifId = definition.id;
+            }
+        } else {
+            this.elements.genericMotifIcon.textContent = visual?.icon ?? "◆";
+            delete this.elements.genericMotifIcon.dataset.visualMotifId;
+        }
         this.elements.genericMotifName
             .textContent =
                 definition.name;
@@ -2115,6 +2240,10 @@ const MacromolecularizerUI = {
             .textContent =
                 selectedJob
                     ? `${Math.floor(selectedJob.progress * 100)}% assembled`
+                    : this.chamberViewMode === "observation" && visual?.schematic
+                        ? definition.id === "ErgosterolOleate"
+                            ? "Sterol rings · oleate tail"
+                            : "Polar head · two fatty-acid tails"
                     : motif.inventory.quantity > 0
                         ? `${motif.inventory.quantity} stored`
                         : "Awaiting synthesis";
@@ -2593,6 +2722,8 @@ const MacromolecularizerUI = {
                         ? "Monosaccharide"
                         : motif.definition.category === "nucleotides"
                             ? "Nucleotide-component"
+                            : motif.definition.category === "lipids"
+                                ? "Lipid-component"
                             : "Amino-acid"} synthesis knowledge — ${motif.requirements.aminoAcids.synthesizedTypes} of ${motif.requirements.aminoAcids.requiredTypes} types complete${missingAminoAcidNames.length > 0
                         ? `; missing ${missingAminoAcidNames.join(", ")}`
                         : ""}`
@@ -2794,6 +2925,10 @@ const MacromolecularizerUI = {
     },
 
     getMotifIcon(motifId) {
+
+        if (LipidRecipeCatalog.get(motifId)) {
+            return LipidVisualCatalog.get(LipidRecipeCatalog.get(motifId)).icon;
+        }
 
         return MotifVisualCatalog
             .get(motifId)
