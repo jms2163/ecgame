@@ -2,6 +2,7 @@
 import MotifRecipeCatalog from "./MotifRecipeCatalog.js";
 import CarbohydrateRecipeCatalog from "./CarbohydrateRecipeCatalog.js";
 import NucleotideRecipeCatalog from "./NucleotideRecipeCatalog.js";
+import LipidRecipeCatalog from "./LipidRecipeCatalog.js";
 
 const definitions = Object.freeze([
     ...MotifRecipeCatalog.getImplemented().map(recipe => Object.freeze({
@@ -20,12 +21,13 @@ const definitions = Object.freeze([
         monomerCount: recipe.componentCount,
         bondCount: recipe.assemblyBondCount,
         bondType: recipe.bondType
-    }))
+    })),
+    ...LipidRecipeCatalog.getAll()
 ]);
 
 export default Object.freeze({
     get(id) { return definitions.find(recipe => recipe.id === id) ?? null; },
     has(id) { return Boolean(this.get(id)); },
-    getImplemented() { return definitions; },
+    getImplemented() { return definitions.filter(recipe => recipe.implemented); },
     getAll() { return definitions; }
 });

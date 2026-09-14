@@ -187,7 +187,7 @@ function normalizeActiveSynthesis(job) {
             expectedCompletesAtMs ||
         job.atpCost !==
             definition.atpCost ||
-        (definition.category === "carbs"
+        (["carbs", "lipids"].includes(definition.category)
             ? job.bondCount !== definition.bondCount || job.bondType !== definition.bondType
             : job.peptideBondCount !== definition.peptideBondCount) ||
         (job.secondsPerBond ?? job.secondsPerPeptideBond) !==
@@ -211,7 +211,7 @@ function normalizeActiveSynthesis(job) {
         baseDurationMs,
         atpCost:
             definition.atpCost,
-        ...(definition.category === "carbs"
+        ...(["carbs", "lipids"].includes(definition.category)
             ? { bondCount: definition.bondCount, bondType: definition.bondType, secondsPerBond: BASE_SECONDS_PER_BOND }
             : { peptideBondCount: definition.peptideBondCount, secondsPerPeptideBond: BASE_SECONDS_PER_BOND }),
         speedUpgradeLevel,
@@ -301,7 +301,7 @@ const MacromolecularizerManager = {
             );
         }
 
-        if (!["motifs", "carbs"].includes(state.activeCategory)) {
+        if (!["motifs", "carbs", "nucleotides", "lipids"].includes(state.activeCategory)) {
             state.activeCategory =
                 DEFAULT_CATEGORY;
         }
@@ -786,7 +786,7 @@ const MacromolecularizerManager = {
         ) {
             blockingReasons.push({
                 type:
-                    definition.category === "carbs" ? "monomers" : "amino-acids",
+                    definition.category === "motifs" ? "amino-acids" : "monomers",
                 ids:
                     [...missingMonomerIds]
             });
@@ -1248,7 +1248,7 @@ const MacromolecularizerManager = {
             return {
                 success: false,
                 reason:
-                    definition.category === "carbs" ? "missing-monomers" : "missing-amino-acids",
+                    definition.category === "motifs" ? "missing-amino-acids" : "missing-monomers",
                 missingMonomerIds: eligibility.missingMonomerIds,
                 missingAminoAcidIds:
                     eligibility
@@ -1311,7 +1311,7 @@ const MacromolecularizerManager = {
                 ),
             atpCost:
                 definition.atpCost,
-            ...(definition.category === "carbs"
+            ...(["carbs", "lipids"].includes(definition.category)
                 ? { bondCount: definition.bondCount, bondType: definition.bondType, secondsPerBond: BASE_SECONDS_PER_BOND }
                 : { peptideBondCount: definition.peptideBondCount, secondsPerPeptideBond: BASE_SECONDS_PER_BOND }),
             speedUpgradeLevel:
@@ -1503,7 +1503,11 @@ const MacromolecularizerManager = {
             });
 
         GameStateObserver.notify(
-            completedDefinition.category === "carbs" ? "carbohydrate-synthesized" : "motif-synthesized",
+            completedDefinition.category === "carbs"
+                ? "carbohydrate-synthesized"
+                : completedDefinition.category === "lipids"
+                    ? "lipid-synthesized"
+                    : "motif-synthesized",
             {
                 jobId:
                     job.jobId,

@@ -298,7 +298,7 @@
 
 .macro-category-tabs {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 4px;
     padding: 9px;
     border-bottom: 1px solid var(--macro-border-soft);
@@ -455,6 +455,64 @@
 .macro-recipe-card--future {
     opacity: 0.34;
     filter: grayscale(1);
+}
+
+.macro-lipid-group {
+    display: grid;
+    gap: 9px;
+}
+
+.macro-lipid-group-heading {
+    margin: 12px 0 0;
+    padding-bottom: 6px;
+    color: var(--macro-accent-bright);
+    border-bottom: 1px solid var(--macro-border-soft);
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.macro-lipid-card {
+    display: grid;
+    width: 100%;
+    gap: 8px;
+    color: var(--macro-text);
+    text-align: left;
+    cursor: not-allowed;
+    opacity: 0.78;
+}
+
+.macro-lipid-card.macro-recipe-card--selectable {
+    opacity: 1;
+    cursor: pointer;
+}
+
+.macro-generic-motif-icon svg {
+    display: block;
+    width: min(85px, 100%);
+    height: 110px;
+    margin: 0 auto;
+    filter: drop-shadow(0 0 8px var(--macro-accent-glow));
+}
+
+.macro-lipid-card-title {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 0.83rem;
+    font-weight: 700;
+}
+
+.macro-lipid-ingredients {
+    color: var(--macro-muted);
+    font: 0.64rem/1.5 "Courier New", monospace;
+}
+
+.macro-lipid-coming-soon {
+    color: var(--macro-accent-bright);
+    font: 700 0.62rem "Courier New", monospace;
+    letter-spacing: 0.035em;
+    text-transform: uppercase;
 }
 
 .macro-recipe-card-topline,
