@@ -101,7 +101,9 @@ const GuidedExperimentView = {
             ? `Continue to ${nextStage.title}`
             : `${nextStage?.title ?? 'The next stage'} will be available in a later milestone`;
         next.disabled = !stored || !nextStage?.playable;
-        next.onclick = () => onNextStage?.();
+        next.onclick = () => {
+            if (nextStage?.playable) onNextStage?.(nextStage.id);
+        };
 
         const hint = document.createElement('button');
         hint.type = 'button';
