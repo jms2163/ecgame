@@ -1852,12 +1852,27 @@ stage.append(
     },
 
     // --------------------------------------------------
+    // Start guided re-examination at the beginning of the sequence.
+    // Regular attempts still resume the next unfinished stage.
+    // --------------------------------------------------
+    resolveGuidedStage(experiment, { mode = "attempt", guidedStageId = null } = {}) {
+        if (!experiment?.sequence) return experiment;
+
+        const selectedStageId = guidedStageId ?? (mode === "reexamine"
+            ? experiment.sequence.stages.find(stage => stage.playable)?.id
+            : null);
+
+        return GuidedExperimentManager.resolve(experiment, selectedStageId);
+    },
+
+    // --------------------------------------------------
     // Open one experiment on the stage
     // --------------------------------------------------
     open(
         experiment,
         {
-            mode = "attempt"
+            mode = "attempt",
+            guidedStageId = null
         } = {}
     ) {
 
@@ -1893,9 +1908,10 @@ stage.append(
             return;
         }
 
-        const stageExperiment = experiment.sequence
-            ? GuidedExperimentManager.resolve(experiment)
-            : experiment;
+        const stageExperiment = this.resolveGuidedStage(experiment, {
+            mode,
+            guidedStageId
+        });
 
         const resolvedExperiment = {
 
@@ -2066,9 +2082,12 @@ this.contentElement.appendChild(
                 resolvedExperiment,
                 {
                     sandbox: this.isReexamineMode,
-                    onNextStage: () => this.open(
+                    onNextStage: nextStageId => this.open(
                         this.activeExperiment,
-                        { mode: this.isReexamineMode ? 'reexamine' : 'attempt' }
+                        {
+                            mode: this.isReexamineMode ? 'reexamine' : 'attempt',
+                            guidedStageId: nextStageId
+                        }
                     )
                 }
             );
