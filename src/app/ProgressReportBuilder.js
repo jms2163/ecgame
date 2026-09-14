@@ -6,6 +6,8 @@
 import gameState from "./GameState.js";
 import PlayerProfileManager
     from "./PlayerProfileManager.js";
+import OrganelleExperimentLibrary
+    from "./OrganelleExperimentLibrary.js";
 
 const REPORT_SCHEMA_VERSION = "1.0";
 const ACTIVITY_ID = "ecgame-bio101-beta";
@@ -705,12 +707,18 @@ const ProgressReportBuilder = {
         if (!Array.isArray(journal)) {
             return {
                 recordCount: 0,
+                experimentEntries:
+                    this.buildExperimentJournalEntries(),
                 records: []
             };
         }
 
         return {
             recordCount: journal.length,
+            // Full, saved student work lives in research submissions and
+            // passive diffusion trials; the journal rows above are concise.
+            experimentEntries:
+                this.buildExperimentJournalEntries(),
             records: journal.map(
                 (entry, index) => {
                     const record =
@@ -722,6 +730,12 @@ const ProgressReportBuilder = {
 
                     return {
                         recordIndex: index,
+                        type:
+                            this.toSafeString(record.type),
+                        title:
+                            this.toSafeString(record.title),
+                        submissionId:
+                            this.toSafeString(record.submissionId),
                         journalId:
                             this.firstSafeString(
                                 record.journalId,
@@ -739,8 +753,22 @@ const ProgressReportBuilder = {
                         score:
                             this.firstFiniteNumber(
                                 record.score,
-                                record.points
+                                record.points,
+                                record.scorePoints
                             ),
+                        scoreMaximum:
+                            this.toFiniteNumber(record.scoreMaximum),
+                        isPerfect:
+                            typeof record.isPerfect === "boolean"
+                                ? record.isPerfect : null,
+                        completedResearch:
+                            typeof record.completedResearch === "boolean"
+                                ? record.completedResearch : null,
+                        earnedStar:
+                            typeof record.earnedStar === "boolean"
+                                ? record.earnedStar : null,
+                        xpAwarded:
+                            this.toFiniteNumber(record.xpAwarded),
                         createdAt:
                             this.toISOString(
                                 record.createdAtMs
@@ -757,6 +785,76 @@ const ProgressReportBuilder = {
                 }
             )
         };
+
+    },
+
+    buildExperimentJournalEntries() {
+
+        const research = gameState.registry?.research ?? {};
+        const entries = [];
+
+        for (const [experimentId, value] of Object.entries(
+            research.experimentSubmissions ?? {}
+        )) {
+            for (const submission of Array.isArray(value) ? value : value ? [value] : []) {
+                if (!submission || typeof submission !== "object") continue;
+
+                const responses = submission.attemptSnapshot?.reflectionResponses ?? {};
+                const question = OrganelleExperimentLibrary[experimentId]
+                    ?.assessment?.reflection;
+
+                entries.push({
+                    type: "organelle-experiment-submission",
+                    experimentId,
+                    experimentTitle: submission.experimentTitle ??
+                        OrganelleExperimentLibrary[experimentId]?.title ?? experimentId,
+                    submissionId: submission.id ?? null,
+                    submittedAt: this.toISOString(submission.submittedAtMs),
+                    scorePoints: this.toFiniteNumber(submission.scorePoints),
+                    scoreMaximum: this.toFiniteNumber(submission.scoreMaximum),
+                    scorePercent: this.toFiniteNumber(submission.scorePercent),
+                    isPerfect: Boolean(submission.isPerfect),
+                    rubricVersion: submission.rubricVersion ?? null,
+                    reflections: Object.entries(responses).map(([id, answer]) => ({
+                        questionId: id,
+                        prompt: id === question?.id ? question.prompt : null,
+                        response: typeof answer === "string" ? answer : String(answer ?? "")
+                    })),
+                    placementSnapshot: structuredClone(submission.placementSnapshot ?? {}),
+                    simulation: structuredClone(submission.attemptSnapshot?.simulation ?? {}),
+                    assessmentReport: structuredClone(submission.report ?? {}),
+                    technicalVocabularyMatches: structuredClone(
+                        submission.technicalVocabularyMatches ?? []
+                    ),
+                    researchCompletion: structuredClone(submission.researchCompletion ?? null)
+                });
+            }
+        }
+
+        for (const trial of research.passiveDiffusionTrials ?? []) {
+            if (!trial || typeof trial !== "object") continue;
+
+            entries.push({
+                type: "passive-diffusion-trial",
+                experimentId: trial.experimentId ?? "passive_diffusion",
+                experimentTitle: OrganelleExperimentLibrary.passive_diffusion?.title ??
+                    "Passive Diffusion",
+                trialId: trial.id ?? null,
+                recordedAt: this.toISOString(trial.recordedAtMs),
+                substanceId: trial.substanceId ?? null,
+                substanceName: trial.substanceName ?? null,
+                startingSide: trial.startingSide ?? null,
+                prediction: trial.prediction ?? null,
+                predictionText: trial.predictionText ?? null,
+                predictionCorrect: trial.predictionCorrect ?? null,
+                observation: structuredClone(trial.observation ?? null),
+                feedback: trial.feedback ?? null,
+                reflection: typeof trial.reflection === "string" ? trial.reflection : "",
+                modelVersion: trial.modelVersion ?? null
+            });
+        }
+
+        return entries;
 
     },
 

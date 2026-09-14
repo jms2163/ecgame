@@ -247,15 +247,29 @@ const ExperimentPlacementEvaluator = {
         context
     ) {
 
+        const sourcePlacements = rule.zoneOfMaterialId
+            ? this.getPlacements(context.snapshot, "material")
+                .filter(material =>
+                    material.id === rule.zoneOfMaterialId &&
+                    ["side_a", "side_b"].includes(material.zoneId)
+                )
+            : [];
+
+        const zoneId = rule.zoneOfMaterialId
+            ? sourcePlacements.length === 1
+                ? sourcePlacements[0].zoneId
+                : null
+            : rule.zoneId;
+
         const count =
-            this.getMaterialCount(
+            zoneId ? this.getMaterialCount(
                 context.snapshot,
                 rule.materialId,
-                rule.zoneId
-            );
+                zoneId
+            ) : 0;
 
         const passed =
-            count === rule.exactCount;
+            Boolean(zoneId) && count === rule.exactCount;
 
         return {
             id: rule.id,
@@ -271,7 +285,7 @@ const ExperimentPlacementEvaluator = {
                 materialId:
                     rule.materialId,
                 zoneId:
-                    rule.zoneId,
+                    zoneId,
                 count,
                 exactCount:
                     rule.exactCount
@@ -871,7 +885,8 @@ const ExperimentPlacementEvaluator = {
     // --------------------------------------------------
     evaluateReflection(
         reflection,
-        reflectionResponses
+        reflectionResponses,
+        context
     ) {
 
         if (!reflection) {
@@ -883,9 +898,34 @@ const ExperimentPlacementEvaluator = {
                 reflection.id
             ] ?? "";
 
+        const sourcePlacements = reflection.directionSourceMaterialId
+            ? this.getPlacements(context?.snapshot, "material")
+                .filter(material =>
+                    material.id === reflection.directionSourceMaterialId &&
+                    ["side_a", "side_b"].includes(material.zoneId)
+                )
+            : [];
+        const sourceZoneId = sourcePlacements.length === 1
+            ? sourcePlacements[0].zoneId
+            : null;
+        const gradedReflection = reflection.directionSourceMaterialId
+            ? {
+                ...reflection,
+                conceptGroups: reflection.conceptGroups.map(group => ({
+                    ...group,
+                    terms: group.termsBySourceZone
+                        ? group.termsBySourceZone[sourceZoneId] ?? []
+                        : group.terms,
+                    patterns: group.patternsBySourceZone
+                        ? group.patternsBySourceZone[sourceZoneId] ?? []
+                        : group.patterns
+                }))
+            }
+            : reflection;
+
         const matchReport =
             ReflectionConceptMatcher.evaluate(
-                reflection,
+                gradedReflection,
                 response
             );
 
@@ -1029,7 +1069,8 @@ const ExperimentPlacementEvaluator = {
         const reflectionCriterion =
             this.evaluateReflection(
                 assessment.reflection,
-                reflectionResponses
+                reflectionResponses,
+                context
             );
 
         if (reflectionCriterion) {

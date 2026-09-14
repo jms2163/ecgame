@@ -7,6 +7,7 @@ import gameState from "./GameState.js";
 import GameStateManager from "./GameStateManager.js";
 import XPManager from "./XPManager.js";
 import CellSystemManager from "./CellSystemManager.js";
+import SaveManager from "./SaveManager.js";
 import OrganelleExperimentLibrary
     from "./OrganelleExperimentLibrary.js";
 
@@ -87,6 +88,68 @@ const ResearchManager = {
                 ]
         );
 
+    },
+
+    // Use an experiment-specific threshold when one is defined.
+    // All other labs continue to require a perfect submission.
+    meetsCompletionThreshold(experiment, report) {
+
+        const threshold = experiment?.assessment
+            ?.completionThresholdPercent ?? 100;
+
+        return Number.isFinite(report?.scorePoints) &&
+            Number.isFinite(report?.scoreMaximum) &&
+            report.scoreMaximum > 0 &&
+            report.scorePoints / report.scoreMaximum * 100 >= threshold;
+
+    },
+
+    // Reconcile older saves after a lab's completion threshold changes.
+    // Previously earned scores stay intact; the completion reward is
+    // applied and saved only once.
+    promoteSavedCompletion(experimentId) {
+
+        if (this.isExperimentCompleted(experimentId)) return null;
+
+        const experiment = this.getExperiment(experimentId);
+        if (!Number.isFinite(
+            experiment?.assessment?.completionThresholdPercent
+        )) return null;
+
+        const submissions = gameState.registry?.research
+            ?.experimentSubmissions?.[experimentId] ?? [];
+
+        if (!Array.isArray(submissions) || !submissions.some(
+            submission => this.meetsCompletionThreshold(
+                experiment, submission
+            )
+        )) return null;
+
+        const previousState = structuredClone(gameState);
+        const completion = this.completeExperiment(experimentId);
+
+        if (!completion.completed) return completion;
+
+        if (!SaveManager.save({ reason: `${experimentId}-80-percent` })) {
+            for (const key of Object.keys(gameState)) delete gameState[key];
+            Object.assign(gameState, previousState);
+            return { completed: false, reason: "save-failed" };
+        }
+
+        return completion;
+
+    },
+
+    promoteSavedDynamicMovement() {
+        return this.promoteSavedCompletion("dynamic_movement");
+    },
+
+    promoteSavedWaterDiffusion() {
+        return this.promoteSavedCompletion("water_passive_diffusion");
+    },
+
+    promoteSavedAquaporinDiffusion() {
+        return this.promoteSavedCompletion("aquaporin_facilitated_diffusion");
     },
 
     // --------------------------------------------------

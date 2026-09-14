@@ -504,6 +504,33 @@ const ParticleSimulationEngine = {
                 ? snapshot.components
                 : [];
 
+        // Some selective channels take their transport direction from
+        // the placed sample. Keep fixed-direction pump rules untouched.
+        const selectiveRule = simulation.selectiveTransportRule;
+        const sourceComponents = selectiveRule?.sourceMaterialId
+            ? components.filter(component =>
+                component.id === selectiveRule.sourceMaterialId &&
+                ["side_a", "side_b"].includes(component.zoneId)
+            )
+            : [];
+        const sourceZoneId = sourceComponents.length === 1
+            ? sourceComponents[0].zoneId
+            : null;
+        const resolvedSimulation = selectiveRule?.sourceMaterialId
+            ? {
+                ...simulation,
+                selectiveTransportRule: {
+                    ...selectiveRule,
+                    sourceZoneId,
+                    targetZoneId: sourceZoneId === "side_a"
+                        ? "side_b"
+                        : sourceZoneId === "side_b"
+                            ? "side_a"
+                            : null
+                }
+            }
+            : simulation;
+
         // Structures such as aquaporins participate in
         // simulation rules but are not moving particles.
         // Each experiment may explicitly choose the materials
@@ -534,7 +561,7 @@ const ParticleSimulationEngine = {
                 "default",
 
             simulation:
-                structuredClone(simulation),
+                structuredClone(resolvedSimulation),
 
             particles: (() => {
                 let particleIndex = 0;

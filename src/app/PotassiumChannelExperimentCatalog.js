@@ -101,8 +101,8 @@ const PotassiumChannelExperiment = {
             allowedMaterialIds: [
                 "potassium_ion"
             ],
-            sourceZoneId: "side_a",
-            targetZoneId: "side_b"
+            // The KCl sample determines the source side for this attempt.
+            sourceMaterialId: "potassium_chloride"
         }
 
     },
@@ -113,39 +113,39 @@ const PotassiumChannelExperiment = {
             40,
 
         rubricVersion:
-            "potassium-channel-v1",
+            "potassium-channel-v2",
 
         feedback: {
             movingSubstance:
                 "Identify which dissolved ion moves through the channel.",
             destinationSide:
-                "Place all three salt samples on side A so their ions encounter the channel.",
+                "Place all three salt samples together on either side so their ions encounter the channel.",
             membraneSpanningOrientation:
                 "Place the K⁺ channel in the membrane and rotate it so it spans the bilayer."
         },
 
         setupRules: [
             {
-                id: "nacl_on_side_a",
+                id: "nacl_on_source_side",
                 type: "exact_material_count_in_zone",
                 materialId: "sodium_chloride",
-                zoneId: "side_a",
+                zoneOfMaterialId: "potassium_chloride",
                 exactCount: 1,
                 points: 5
             },
             {
-                id: "cacl2_on_side_a",
+                id: "cacl2_on_source_side",
                 type: "exact_material_count_in_zone",
                 materialId: "calcium_chloride",
-                zoneId: "side_a",
+                zoneOfMaterialId: "potassium_chloride",
                 exactCount: 1,
                 points: 5
             },
             {
-                id: "kcl_on_side_a",
+                id: "kcl_on_source_side",
                 type: "exact_material_count_in_zone",
                 materialId: "potassium_chloride",
-                zoneId: "side_a",
+                zoneOfMaterialId: "potassium_chloride",
                 exactCount: 1,
                 points: 5
             },
@@ -179,17 +179,36 @@ const PotassiumChannelExperiment = {
             maximumPoints:
                 15,
 
+            // Grade the stated direction against the KCl placement.
+            directionSourceMaterialId: "potassium_chloride",
+
             conceptGroups: [
                 {
-                    id: "potassium_moves_a_to_b",
-                    terms: [
-                        "potassium moves from side a to side b",
-                        "k+ moves from side a to side b",
-                        "potassium crosses from side a to side b"
-                    ],
-                    patterns: [
-                        "\\b(potassium|k\\+?)\\b.{0,35}\\b(crosses|moves|passes|travels)\\b.{0,35}\\b(side\\s*a.{0,12}side\\s*b|a\\s+to\\s+b)\\b"
-                    ]
+                    id: "potassium_moves_between_sides",
+                    termsBySourceZone: {
+                        side_a: [
+                            "potassium moves from side a to side b",
+                            "k+ moves from side a to side b",
+                            "potassium crosses from side a to side b",
+                            "potassium moves from left to right",
+                            "k+ moves left to right"
+                        ],
+                        side_b: [
+                            "potassium moves from side b to side a",
+                            "k+ moves from side b to side a",
+                            "potassium crosses from side b to side a",
+                            "potassium moves from right to left",
+                            "k+ moves right to left"
+                        ]
+                    },
+                    patternsBySourceZone: {
+                        side_a: [
+                            "\\b(potassium|k\\+?)\\b.{0,35}\\b(crosses|moves|passes|travels)\\b.{0,35}\\b(side\\s*a.{0,12}side\\s*b|a\\s+to\\s+b|left\\s+to\\s+right)\\b"
+                        ],
+                        side_b: [
+                            "\\b(potassium|k\\+?)\\b.{0,35}\\b(crosses|moves|passes|travels)\\b.{0,35}\\b(side\\s*b.{0,12}side\\s*a|b\\s+to\\s+a|right\\s+to\\s+left)\\b"
+                        ]
+                    }
                 },
                 {
                     id: "sodium_blocked",
@@ -229,7 +248,7 @@ const PotassiumChannelExperiment = {
             ],
 
             feedbackByKeywordGroup: [
-                "State that K⁺ moves from side A through the channel to side B.",
+                "State which side K⁺ starts on and which side it reaches through the channel.",
                 "Describe what happens to Na⁺ at the membrane.",
                 "Describe what happens to Ca²⁺ at the membrane.",
                 "Describe what happens to Cl⁻ at the membrane.",
@@ -267,7 +286,7 @@ const PotassiumChannelExperiment = {
         title:
             "Ion Channels Are Selective",
         description:
-            "The salts dissociate into ions. K⁺ moves from side A to side B through the correctly oriented potassium channel, while Na⁺, Ca²⁺, and Cl⁻ bounce away from the membrane.",
+            "The salts dissociate into ions. K⁺ moves from the salt-sample side through the correctly oriented potassium channel to the other side, while Na⁺, Ca²⁺, and Cl⁻ bounce away from the membrane.",
         takeaway:
             "A membrane channel can permit one ion while excluding other ions, even when they are dissolved together."
     }
