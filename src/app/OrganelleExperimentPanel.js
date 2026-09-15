@@ -456,10 +456,7 @@ starElement.setAttribute(
 
                         details.push(
                             `Requires: ${
-                                OrganelleExperimentLibrary[
-                                    experimentId
-                                ]?.assessment
-                                    ?.completionThresholdPercent ?? 100
+                                ResearchManager.getCompletionThresholdPercent(experimentId)
                             }% ${
                                 this.getExperimentTitle(
                                     experimentId
