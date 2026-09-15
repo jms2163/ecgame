@@ -14,27 +14,47 @@ const organelleLibrary = {
         "shortSummary": "Controls exchange between the cell and its environment.",
         "description": "A phospholipid bilayer and its associated proteins form a selectively permeable boundary. Transport proteins help regulate the movement of substances between the cytoplasm and the environment.",
         "figure": {
-            "src": null,
-            "alt": "Labeled plasma membrane with a phospholipid bilayer, transport proteins, and an aquaporin.",
-            "caption": "Selective permeability and membrane transport."
-        },
-        "components": [
-            {
-                "id": "phospholipid_bilayer",
-                "label": "Phospholipid Bilayer",
-                "description": "Forms the membrane’s structural framework and hydrophobic interior."
-            },
-            {
-                "id": "transport_proteins",
-                "label": "Transport Proteins",
-                "description": "Provide pathways or mechanisms for moving selected substances across the membrane."
-            },
-            {
-                "id": "aquaporin",
-                "label": "Aquaporin",
-                "description": "A channel protein that facilitates water movement across the membrane."
-            }
-        ],
+    "src": "./public/assets/organelles/plasma-membrane-labeled.png",
+    "alt": "Diagram of the plasma membrane labeling the phospholipid bilayer, transport proteins, and aquaporin.",
+    "caption": "Major structural and transport components of the plasma membrane."
+},
+       "components": [
+    {
+        "id": "phospholipid_bilayer",
+        "label": "Phospholipid Bilayer",
+        "description": "Forms the fundamental structural framework and selective barrier of the membrane."
+    },
+    {
+        "id": "cholesterol",
+        "label": "Cholesterol",
+        "description": "Regulates membrane fluidity and stability under varying temperatures."
+    },
+    {
+        "id": "integral_protein",
+        "label": "Integral Protein",
+        "description": "Spans the phospholipid bilayer, facilitating transport of substances, cell signaling, and structural support."
+    },
+    {
+        "id": "peripheral_protein",
+        "label": "Peripheral Protein",
+        "description": "Attaches loosely to the membrane’s inner or outer surface, assisting in cellular signaling and structural linkage."
+    },
+    {
+        "id": "carbohydrate",
+        "label": "Carbohydrate",
+        "description": "Acts as a cellular identifier or marker, contributing to cellular recognition and interaction on the extracellular surface."
+    },
+    {
+        "id": "glycoprotein",
+        "label": "Glycoprotein",
+        "description": "A protein with attached carbohydrate chains, playing a vital role in cell-cell recognition, adhesion, and signaling."
+    },
+    {
+        "id": "glycolipid",
+        "label": "Glycolipid",
+        "description": "A lipid with attached carbohydrate chains, helping to stabilize the membrane and facilitate cellular recognition."
+    }
+],
         "benefits": [
             {
                 "id": "plasma_membrane_benefit",
@@ -87,11 +107,42 @@ const organelleLibrary = {
         "shortSummary": "Houses the cell’s nuclear DNA.",
         "description": "Houses the cell’s nuclear DNA.",
         "figure": {
-            "src": null,
-            "alt": "",
-            "caption": ""
-        },
-        "components": [],
+    "src": "./public/assets/organelles/nucleus-labeled.png",
+    "alt": "Diagram of the cell nucleus and surrounding endoplasmic reticulum, labeling the endoplasmic reticulum, nucleolus, chromatin, nucleoplasm, nuclear pore, and nuclear envelope.",
+    "caption": "Major structural and functional components of the cell nucleus and the closely associated endoplasmic reticulum."
+},
+        "components": [
+    {
+        "id": "endoplasmic_reticulum",
+        "label": "Endoplasmic Reticulum",
+        "description": "A continuous network of membranous sacs and tubules continuous with the nuclear envelope, involved in protein and lipid synthesis."
+    },
+    {
+        "id": "nucleolus",
+        "label": "Nucleolus",
+        "description": "A dense, non-membrane-bound region within the nucleus dedicated to the assembly of ribosomal subunits."
+    },
+    {
+        "id": "chromatin",
+        "label": "Chromatin",
+        "description": "A complex of DNA and proteins that condenses to form chromosomes, carrying the cell’s genetic blueprint."
+    },
+    {
+        "id": "nucleoplasm",
+        "label": "Nucleoplasm",
+        "description": "The semi-solid, gel-like matrix inside the nucleus that suspends and protects the chromatin and nucleolus."
+    },
+    {
+        "id": "nuclear_pore",
+        "label": "Nuclear Pore",
+        "description": "Small, protein-lined channels spanning the nuclear envelope that regulate the exchange of materials between the nucleoplasm and cytoplasm."
+    },
+    {
+        "id": "nuclear_envelope",
+        "label": "Nuclear Envelope",
+        "description": "A double-membrane barrier encloses the genetic material and separates the nucleus' contents from the cytoplasm."
+    }
+],
         "benefits": [
             {
                 "id": "nucleus_benefit",
@@ -116,7 +167,7 @@ const organelleLibrary = {
         "shortSummary": "Collects and expels excess water to support osmotic balance.",
         "description": "The filling experiment explores how proton pumping, sodium/proton exchange, chloride entry, and aquaporin-mediated water movement contribute to vacuole filling. Expulsion removes collected water from the cell.",
         "figure": {
-            "src": null,
+            "src": "./public/assets/organelles/contractile-vacuole-labeled.png",
             "alt": "Labeled contractile vacuole with lumen, membrane, V-ATPase, sodium/proton exchanger, chloride channel, and aquaporin.",
             "caption": "Components explored in the four-stage filling experiment."
         },
@@ -238,11 +289,37 @@ const organelleLibrary = {
         "shortSummary": "Support ATP production through cellular respiration.",
         "description": "Support ATP production through cellular respiration.",
         "figure": {
-            "src": null,
-            "alt": "",
-            "caption": ""
+            "src": "./public/assets/organelles/mitochondria-labeled.png",
+            "alt": "A three-dimensional cutaway illustration of a mitochondrion with labels pointing to its key structural components: the smooth outer membrane, the folded inner membrane, the folds known as cristae, the fluid-filled matrix, and the intermembrane space between the two membranes.",
+"caption": "Structural features of a mitochondrion, highlighting the outer and inner membranes, folds called cristae, the intermembrane space, and the internal matrix."
         },
-        "components": [],
+        "components": [
+    {
+        "id": "outer_membrane",
+        "label": "Outer Membrane",
+        "description": "The smooth, continuous outermost boundary that encloses the mitochondrion and regulates the transport of molecules into and out of the organelle."
+    },
+    {
+        "id": "inner_membrane",
+        "label": "Inner Membrane",
+        "description": "The highly folded internal membrane that contains the proteins and complexes necessary for the electron transport chain and ATP synthesis."
+    },
+    {
+        "id": "cristae",
+        "label": "Cristae",
+        "description": "The numerosas folds of the inner membrane that significantly increase its surface area, maximizing the capacity for ATP generation."
+    },
+    {
+        "id": "intermembrane_space",
+        "label": "Intermembrane Space",
+        "description": "The narrow region between the outer and inner membranes where protons accumulate to create an electrochemical gradient during cellular respiration."
+    },
+    {
+        "id": "matrix",
+        "label": "Matrix",
+        "description": "The gel-like internal fluid enclosed by the inner membrane, containing mitochondrial DNA, ribosomes, and the enzymes responsible for the citric acid (Krebs) cycle."
+    }
+],
         "benefits": [
             {
                 "id": "mitochondria_benefit",
@@ -266,7 +343,7 @@ const organelleLibrary = {
         "shortSummary": "Modifies and sorts cellular cargo for delivery.",
         "description": "Modifies and sorts cellular cargo for delivery.",
         "figure": {
-            "src": null,
+            "src": "./public/assets/organelles/golgi-apparatus-labeled.png",
             "alt": "",
             "caption": ""
         },
@@ -310,7 +387,7 @@ const organelleLibrary = {
         "shortSummary": "Supports synthesis and processing of many membrane and secreted proteins.",
         "description": "Supports synthesis and processing of many membrane and secreted proteins.",
         "figure": {
-            "src": null,
+            "src": "./public/assets/organelles/rough-ER-labeled",
             "alt": "",
             "caption": ""
         },
@@ -338,7 +415,7 @@ const organelleLibrary = {
         "shortSummary": "Participates in lipid synthesis and other metabolic processes.",
         "description": "Participates in lipid synthesis and other metabolic processes.",
         "figure": {
-            "src": null,
+            "src": "./public/assets/organelles/smooth-ER-labeled.png",
             "alt": "",
             "caption": ""
         },
@@ -394,7 +471,7 @@ const organelleLibrary = {
         "shortSummary": "Break down cellular materials using digestive enzymes.",
         "description": "Break down cellular materials using digestive enzymes.",
         "figure": {
-            "src": null,
+            "src": "./public/assets/organelles/lysosome-labeled.png",
             "alt": "",
             "caption": ""
         },
