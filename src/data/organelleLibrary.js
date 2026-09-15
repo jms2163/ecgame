@@ -409,17 +409,48 @@ const organelleLibrary = {
         }
     },
     "smooth_endoplasmic_reticulum": {
-        "id": "smooth_endoplasmic_reticulum",
-        "name": "Smooth ER",
-        "classification": "organelle",
-        "shortSummary": "Participates in lipid synthesis and other metabolic processes.",
-        "description": "Participates in lipid synthesis and other metabolic processes.",
-        "figure": {
-            "src": "./public/assets/organelles/smooth-ER-labeled.png",
-            "alt": "",
-            "caption": ""
+    "id": "smooth_endoplasmic_reticulum",
+    "name": "Smooth ER",
+    "classification": "organelle",
+    "shortSummary": "Participates in lipid synthesis and other metabolic processes.",
+    "description": "Participates in lipid synthesis and other metabolic processes.",
+    "figure": {
+        "src": "./public/assets/organelles/smooth-ER-labeled.png",
+        "alt": "Diagram of the smooth endoplasmic reticulum showing its branching tubular structure and internal lumen, continuous with the ribosome-studded rough ER and the nuclear membrane.",
+        "caption": "Structural organization of the smooth endoplasmic reticulum, featuring interconnected tubules, internal lumen, and its physical integration with the rough ER and nucleus."
+    },
+    "components": [
+        {
+            "id": "smooth_er",
+            "label": "Smooth ER",
+            "description": "A ribosome-free membranous network responsible for lipid synthesis, carbohydrate metabolism, calcium storage, and detoxification."
         },
-        "components": [],
+        {
+            "id": "tubules",
+            "label": "Tubules",
+            "description": "Interconnected tubular membrane structures that form the characteristic branching framework of the smooth endoplasmic reticulum."
+        },
+        {
+            "id": "lumen",
+            "label": "Lumen",
+            "description": "The internal, fluid-filled compartment enclosed by the endoplasmic reticulum membrane where chemical modifications occur."
+        },
+        {
+            "id": "rough_er",
+            "label": "Rough ER",
+            "description": "The contiguous region of the endoplasmic reticulum studded with ribosomes, dedicated to protein folding and transport."
+        },
+        {
+            "id": "ribosomes",
+            "label": "Ribosomes",
+            "description": "Small protein-RNA complexes bound to the outer surface of the rough ER that synthesize polypeptides."
+        },
+        {
+            "id": "nucleus",
+            "label": "Nucleus",
+            "description": "The membrane-bound organelle storing genetic material, physically connected to the endoplasmic reticulum system."
+        }
+    ],
         "benefits": [
             {
                 "id": "smooth_endoplasmic_reticulum_benefit",
@@ -437,17 +468,53 @@ const organelleLibrary = {
         }
     },
     "ribosomes": {
-        "id": "ribosomes",
-        "name": "Ribosomes",
-        "classification": "cell structure group",
-        "shortSummary": "Translate messenger RNA into polypeptides.",
-        "description": "Translate messenger RNA into polypeptides.",
-        "figure": {
-            "src": null,
-            "alt": "",
-            "caption": ""
+    "id": "ribosomes",
+    "name": "Ribosomes",
+    "classification": "cell structure group",
+    "shortSummary": "Translate messenger RNA into polypeptides.",
+    "description": "Translate messenger RNA into polypeptides.",
+    "figure": {
+        "src": "./public/assets/organelles/ribosome-labeled.png",
+        "alt": "Diagram of a ribosome showing the large and small subunits, the tRNA docking sites labeled E (Exit), P (Peptidyl), and A (Aminoacyl), and the mRNA binding site.",
+        "caption": "Structural components and functional active sites of a ribosome during protein translation."
+    },
+    "components": [
+        {
+            "id": "large_subunit",
+            "label": "Large Subunit",
+            "description": "The top ribosomal subunit that catalyzes peptide bond formation and houses the tRNA docking cavities."
         },
-        "components": [],
+        {
+            "id": "small_subunit",
+            "label": "Small Subunit",
+            "description": "The bottom ribosomal subunit responsible for binding messenger RNA and ensuring accurate decoding during translation."
+        },
+        {
+            "id": "aminoacyl_site",
+            "label": "Aminoacyl Site (A Site)",
+            "description": "The entry site for incoming aminoacyl-tRNA carrying the next amino acid to be added to the growing polypeptide."
+        },
+        {
+            "id": "peptidyl_site",
+            "label": "Peptidyl Site (P Site)",
+            "description": "The central binding site that holds the tRNA carrying the growing polypeptide chain."
+        },
+        {
+            "id": "exit_site",
+            "label": "Exit Site (E Site)",
+            "description": "The final binding site where deacylated (uncharged) tRNA resides briefly prior to its release from the ribosome."
+        },
+        {
+            "id": "trna_docking_sites",
+            "label": "tRNA Docking Sites",
+            "description": "The functional cavities (A, P, and E sites) spanning the subunits that accommodate transfer RNA molecules during synthesis."
+        },
+        {
+            "id": "mrna_binding_site",
+            "label": "mRNA Binding Site",
+            "description": "A specialized groove on the small subunit that positions messenger RNA for translation."
+        }
+    ],
         "benefits": [
             {
                 "id": "ribosomes_benefit",
@@ -465,17 +532,33 @@ const organelleLibrary = {
         }
     },
     "lysosomes": {
-        "id": "lysosomes",
-        "name": "Lysosomes",
-        "classification": "organelle group",
-        "shortSummary": "Break down cellular materials using digestive enzymes.",
-        "description": "Break down cellular materials using digestive enzymes.",
-        "figure": {
-            "src": "./public/assets/organelles/lysosome-labeled.png",
-            "alt": "",
-            "caption": ""
+    "id": "lysosomes",
+    "name": "Lysosomes",
+    "classification": "organelle group",
+    "shortSummary": "Break down cellular materials using digestive enzymes.",
+    "description": "Break down cellular materials using digestive enzymes.",
+    "figure": {
+        "src": "./public/assets/organelles/lysosome-labeled.png",
+        "alt": "Diagram of a lysosome showing its outer lipid bilayer, internal hydrolytic enzymes, and membrane transport proteins.",
+        "caption": "Structural components of a lysosome involved in cellular waste breakdown and material transport."
+    },
+    "components": [
+        {
+            "id": "lipid_bilayer",
+            "label": "Lipid Bilayer",
+            "description": "A protective single phospholipid membrane that isolates acidic hydrolytic enzymes from the rest of the cytoplasm."
         },
-        "components": [],
+        {
+            "id": "hydrolytic_enzymes",
+            "label": "Hydrolytic Enzymes",
+            "description": "Acidic digestive proteins within the internal lumen that break down biomolecules, cellular waste, and foreign pathogens."
+        },
+        {
+            "id": "transport_proteins",
+            "label": "Transport Proteins",
+            "description": "Membrane-bound channels and pumps that maintain internal pH and shuttle recycled molecules back into the cytosol."
+        }
+    ],
         "benefits": [
             {
                 "id": "lysosomes_benefit",
