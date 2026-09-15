@@ -11,6 +11,10 @@ import SaveManager from "./SaveManager.js";
 import OrganelleExperimentLibrary
     from "./OrganelleExperimentLibrary.js";
 
+// One shared mastery threshold controls scored Organelle Lab completion,
+// downstream experiment access, and the requirement text shown in the UI.
+const DEFAULT_COMPLETION_THRESHOLD_PERCENT = 80;
+
 const ResearchManager = {
 
     // --------------------------------------------------
@@ -28,6 +32,9 @@ const ResearchManager = {
 
         gameState.registry.research
             .completedExperiments ??= {};
+
+        gameState.registry.research
+            .bestExperimentScores ??= {};
 
     },
 
@@ -155,6 +162,53 @@ const ResearchManager = {
     // --------------------------------------------------
     // Describe whether an experiment can run
     // --------------------------------------------------
+    // Scored labs use the shared mastery percentage. Ungraded activities
+    // continue to require their normal completion/checkpoint record.
+    getCompletionThresholdPercent(experimentOrId) {
+        const experiment = typeof experimentOrId === "string"
+            ? this.getExperiment(experimentOrId)
+            : experimentOrId;
+
+        if (!experiment?.assessment ||
+            !Number.isFinite(experiment.assessment.scoreMaximum)) {
+            return null;
+        }
+
+        const configured = experiment.assessment.completionThresholdPercent;
+        return Number.isFinite(configured) && configured >= 0 && configured <= 100
+            ? configured
+            : DEFAULT_COMPLETION_THRESHOLD_PERCENT;
+    },
+
+    meetsCompletionThreshold(experiment, report) {
+        const threshold = this.getCompletionThresholdPercent(experiment);
+        return Number.isFinite(threshold) &&
+            Number.isFinite(report?.scorePoints) &&
+            Number.isFinite(report?.scoreMaximum) &&
+            report.scoreMaximum > 0 &&
+            report.scorePoints / report.scoreMaximum * 100 >= threshold;
+    },
+
+    getBestScorePercent(experimentId) {
+        this.ensureRegistryStructures();
+        const best = gameState.registry.research.bestExperimentScores[experimentId];
+        if (Number.isFinite(best?.scorePercent)) return best.scorePercent;
+        if (Number.isFinite(best?.scorePoints) &&
+            Number.isFinite(best?.scoreMaximum) && best.scoreMaximum > 0) {
+            return best.scorePoints / best.scoreMaximum * 100;
+        }
+        return null;
+    },
+
+    hasMetExperimentRequirement(experimentId) {
+        if (this.isExperimentCompleted(experimentId)) return true;
+        const threshold = this.getCompletionThresholdPercent(experimentId);
+        const bestScore = this.getBestScorePercent(experimentId);
+        return Number.isFinite(threshold) &&
+            Number.isFinite(bestScore) && bestScore >= threshold;
+    },
+
+
     getExperimentStatus(experimentId) {
 
         const experiment =
@@ -188,7 +242,7 @@ const ResearchManager = {
         const incompleteExperiments =
             requiredExperiments.filter(
                 requiredExperimentId =>
-                    !this.isExperimentCompleted(
+                    !this.hasMetExperimentRequirement(
                         requiredExperimentId
                     )
             );

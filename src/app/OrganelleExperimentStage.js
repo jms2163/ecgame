@@ -855,7 +855,7 @@ handleControlAction(actionId) {
         const attemptSnapshot =
             this.getAttemptSnapshot();
 
-        if (!report.isPerfect) {
+        if (!ResearchManager.meetsCompletionThreshold(experiment, report)) {
             OrganelleExperimentSubmissionManager
                 .recordSubmission(
                     {
@@ -907,7 +907,7 @@ handleControlAction(actionId) {
                         "Experiment Completed",
 
                     message:
-                        `Perfect score: ${report.scorePoints} / ${report.scoreMaximum}. ${completion.xpAwarded} XP awarded.`
+                        `Mastery score reached: ${report.scorePoints} / ${report.scoreMaximum} (${report.scorePercent}%). ${completion.xpAwarded} XP awarded.`
                 }
             );
 
@@ -923,7 +923,7 @@ handleControlAction(actionId) {
                     completion.reason ===
                     "already-completed"
                         ? "This experiment was already completed."
-                        : "Your model earned a perfect score, but its research reward could not be applied."
+                        : "Your model reached the mastery score, but its research reward could not be applied."
             }
         );
 
@@ -939,9 +939,13 @@ handleControlAction(actionId) {
             snapshot: submission.placementSnapshot,
             reflectionResponses: submission.attemptSnapshot?.reflectionResponses
         }) }));
-        const perfect = results.find(result => result.report.isPerfect);
+        const qualifyingResult = results.find(result =>
+            ResearchManager.meetsCompletionThreshold(experiment, result.report)
+        );
         let completion = null;
-        if (perfect) completion = ResearchManager.completeExperiment(experiment.id);
+        if (qualifyingResult) {
+            completion = ResearchManager.completeExperiment(experiment.id);
+        }
         const outcome = OrganelleExperimentSubmissionManager.applyRegrade({ experiment, results });
         SaveManager.save();
         return outcome;
