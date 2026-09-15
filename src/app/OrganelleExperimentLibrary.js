@@ -4,6 +4,7 @@
 // --------------------------------------------------
 
 import PassiveDiffusionExperiment from "./PassiveDiffusionCatalog.js";
+import CytoskeletonTransportExperiment from "./CytoskeletonTransportCatalog.js";
 import ContractileVacuoleExperiment from './ContractileVacuoleExperimentCatalog.js';
 import PotassiumChannelExperiment
     from "./PotassiumChannelExperimentCatalog.js";
@@ -29,6 +30,8 @@ const MEMBRANE_TRANSPORT_LABELS = [
 const OrganelleExperimentLibrary = {
 
     contractile_vacuole_filling: ContractileVacuoleExperiment,
+
+    cytoskeleton_transport: CytoskeletonTransportExperiment,
 
     // --------------------------------------------------
     // Plasma membrane foundations: molecular motion
@@ -110,11 +113,7 @@ const OrganelleExperimentLibrary = {
                 25,
 
             rubricVersion:
-                "dynamic-movement-v2",
-
-            // An 80% submission completes this introductory lab and
-            // unlocks Passive Diffusion; stars still require perfection.
-            completionThresholdPercent: 80,
+                "dynamic-movement-v1",
 
             feedback: {
                 movingSubstance:
@@ -172,18 +171,11 @@ const OrganelleExperimentLibrary = {
                             "constant movement",
                             "constant motion",
                             "continuous movement",
-                            "continuous motion",
-                            "constantly moving",
-                            "moving constantly",
-                            "moving randomly",
-                            "randomly moving",
-                            "keep moving"
+                            "continuous motion"
                         ],
                         patterns: [
                             "\\b(move|moves|moving|motion)\\b.{0,35}\\b(random|different|many|all)\\s+directions?\\b",
-                            "\\b(constant|constantly|continuous|continuously|always)\\b.{0,25}\\b(move|moves|moving|motion)\\b",
-                            "\\b(move|moves|moving)\\b.{0,25}\\b(constantly|continuously|randomly)\\b",
-                            "\\b(keep|keeps|continue|continues)\\s+(moving|to move)\\b"
+                            "\\b(constant|constantly|continuous|continuously|always)\\b.{0,25}\\b(move|moves|moving|motion)\\b"
                         ]
                     },
                     {
@@ -193,18 +185,11 @@ const OrganelleExperimentLibrary = {
                             "evenly distributed",
                             "homogeneous mixture",
                             "uniform mixture",
-                            "mixed evenly",
-                            "spread out",
-                            "spreads out",
-                            "spreading out",
-                            "spread throughout",
-                            "evenly dispersed",
-                            "well mixed"
+                            "mixed evenly"
                         ],
                         patterns: [
                             "\\b(spread|spreads|spreading|distribute|distributed)\\b.{0,25}\\b(evenly|uniformly|throughout)\\b",
-                            "\\b(even|uniform|homogeneous)\\b.{0,20}\\b(distribution|mixture|solution)\\b",
-                            "\\b(spread|spreads|spreading)\\b.{0,25}\\b(out|across|throughout)\\b"
+                            "\\b(even|uniform|homogeneous)\\b.{0,20}\\b(distribution|mixture|solution)\\b"
                         ]
                     }
                 ],
@@ -333,9 +318,6 @@ const OrganelleExperimentLibrary = {
 
     rubricVersion:
         "water-passive-v2",
-
-    // 48/60 is enough to continue to the aquaporin comparison.
-    completionThresholdPercent: 80,
 
     feedback: {
         movingSubstance: "Revisit the relationship between water, the solute difference, and net movement into the cell.",
@@ -983,9 +965,6 @@ simulation: {
     rubricVersion:
         "aquaporin-v2",
 
-    // 60/75 completes this lab and unlocks the K⁺ Channel experiment.
-    completionThresholdPercent: 80,
-
     feedback: {
         movingSubstance: "Revisit how the external solute difference affects net water movement through the membrane.",
         drivingGradient: "Recheck which side has the higher solute concentration and how that drives water movement out of the amoeba.",
@@ -1368,9 +1347,9 @@ simulation: {
 
         requirements: {
 
-            // Aquaporin is discovered by completing this experiment.
-            // Requiring it here would make the lab impossible to unlock.
-            discoveries: [],
+            discoveries: [
+                "aquaporin"
+            ],
 
             completedExperiments: [
                 "water_passive_diffusion"

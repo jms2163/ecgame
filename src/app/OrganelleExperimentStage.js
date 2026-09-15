@@ -32,6 +32,7 @@ import SaveManager
 import ProblemReportManager
     from "./ProblemReportManager.js";
 import PassiveDiffusionView from "./PassiveDiffusionView.js";
+import CytoskeletonTransportView from "./CytoskeletonTransportView.js";
 import GuidedExperimentManager from './GuidedExperimentManager.js';
 import GuidedExperimentView from './GuidedExperimentView.js';
 import PlasmaMembraneVisualCatalog from "./PlasmaMembraneVisualCatalog.js";
@@ -108,6 +109,7 @@ const OrganelleExperimentStage = {
     stopParticleSimulation() {
 
         PassiveDiffusionView.clear();
+        CytoskeletonTransportView.clear();
 
         this.simulationStructureResizeObserver?.disconnect();
 
@@ -796,7 +798,7 @@ handleControlAction(actionId) {
 
     // --------------------------------------------------
     // Submit the current configuration for scoring.
-    // Experiments may set a completion threshold; the default is 100%.
+    // Only a perfect submission completes research.
     // --------------------------------------------------
     submitExperiment() {
 
@@ -853,9 +855,7 @@ handleControlAction(actionId) {
         const attemptSnapshot =
             this.getAttemptSnapshot();
 
-        if (!ResearchManager.meetsCompletionThreshold(
-            experiment, report
-        )) {
+        if (!report.isPerfect) {
             OrganelleExperimentSubmissionManager
                 .recordSubmission(
                     {
@@ -907,7 +907,7 @@ handleControlAction(actionId) {
                         "Experiment Completed",
 
                     message:
-                        `Score: ${report.scorePoints} / ${report.scoreMaximum} (${report.scorePercent}%). ${completion.xpAwarded} XP awarded.`
+                        `Perfect score: ${report.scorePoints} / ${report.scoreMaximum}. ${completion.xpAwarded} XP awarded.`
                 }
             );
 
@@ -923,7 +923,7 @@ handleControlAction(actionId) {
                     completion.reason ===
                     "already-completed"
                         ? "This experiment was already completed."
-                        : "Your model met the completion score, but its research reward could not be applied."
+                        : "Your model earned a perfect score, but its research reward could not be applied."
             }
         );
 
@@ -939,13 +939,9 @@ handleControlAction(actionId) {
             snapshot: submission.placementSnapshot,
             reflectionResponses: submission.attemptSnapshot?.reflectionResponses
         }) }));
-        const qualifying = results.find(result =>
-            ResearchManager.meetsCompletionThreshold(
-                experiment, result.report
-            )
-        );
+        const perfect = results.find(result => result.report.isPerfect);
         let completion = null;
-        if (qualifying) completion = ResearchManager.completeExperiment(experiment.id);
+        if (perfect) completion = ResearchManager.completeExperiment(experiment.id);
         const outcome = OrganelleExperimentSubmissionManager.applyRegrade({ experiment, results });
         SaveManager.save();
         return outcome;
@@ -1852,27 +1848,12 @@ stage.append(
     },
 
     // --------------------------------------------------
-    // Start guided re-examination at the beginning of the sequence.
-    // Regular attempts still resume the next unfinished stage.
-    // --------------------------------------------------
-    resolveGuidedStage(experiment, { mode = "attempt", guidedStageId = null } = {}) {
-        if (!experiment?.sequence) return experiment;
-
-        const selectedStageId = guidedStageId ?? (mode === "reexamine"
-            ? experiment.sequence.stages.find(stage => stage.playable)?.id
-            : null);
-
-        return GuidedExperimentManager.resolve(experiment, selectedStageId);
-    },
-
-    // --------------------------------------------------
     // Open one experiment on the stage
     // --------------------------------------------------
     open(
         experiment,
         {
-            mode = "attempt",
-            guidedStageId = null
+            mode = "attempt"
         } = {}
     ) {
 
@@ -1896,6 +1877,17 @@ stage.append(
         this.isReexamineMode =
             mode === "reexamine";
 
+        if (experiment.stage?.template === "cytoskeleton_transport") {
+            this.stopParticleSimulation();
+            OrganelleExperimentPlacementController.reset();
+            OrganelleExperimentAttemptManager.reset();
+            this.activeResolvedExperiment = experiment;
+            this.titleElement.textContent = `${experiment.title}${this.isReexamineMode ? " - Re-examine" : ""}`;
+            this.controlsElement.replaceChildren();
+            CytoskeletonTransportView.mount(this.contentElement, { sandbox: this.isReexamineMode });
+            return;
+        }
+
         if (experiment.stage?.template === "passive_diffusion_exploration") {
             this.stopParticleSimulation();
             OrganelleExperimentPlacementController.reset();
@@ -1908,10 +1900,9 @@ stage.append(
             return;
         }
 
-        const stageExperiment = this.resolveGuidedStage(experiment, {
-            mode,
-            guidedStageId
-        });
+        const stageExperiment = experiment.sequence
+            ? GuidedExperimentManager.resolve(experiment)
+            : experiment;
 
         const resolvedExperiment = {
 
@@ -2082,12 +2073,9 @@ this.contentElement.appendChild(
                 resolvedExperiment,
                 {
                     sandbox: this.isReexamineMode,
-                    onNextStage: nextStageId => this.open(
+                    onNextStage: () => this.open(
                         this.activeExperiment,
-                        {
-                            mode: this.isReexamineMode ? 'reexamine' : 'attempt',
-                            guidedStageId: nextStageId
-                        }
+                        { mode: this.isReexamineMode ? 'reexamine' : 'attempt' }
                     )
                 }
             );
@@ -2149,6 +2137,15 @@ this.contentElement.appendChild(
         this.isReviewMode = true;
 
         this.isReexamineMode = false;
+
+        if (experiment.stage?.template === "cytoskeleton_transport") {
+            OrganelleExperimentPlacementController.reset();
+            OrganelleExperimentAttemptManager.reset();
+            this.titleElement.textContent = `${experiment.title} - Submission Review`;
+            this.controlsElement.replaceChildren();
+            CytoskeletonTransportView.mount(this.contentElement, { review: true });
+            return;
+        }
 
         if (experiment.stage?.template === "passive_diffusion_exploration") {
             OrganelleExperimentPlacementController.reset();

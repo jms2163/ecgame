@@ -225,7 +225,7 @@ const organelleLibrary = {
             }
         ],
         "unlock": {
-            "status": "deferred",
+            "status": "active",
             "mode": "all",
             "requirements": [],
             "proposal": null
