@@ -254,6 +254,50 @@ body.player-drawer-open {
     font-size: 12px;
 }
 
+.player-backup-button,
+.player-recovery-button,
+.player-setup-recovery-button {
+    margin-top: 10px;
+}
+
+.player-recovery-details > summary {
+    color: #efb5ff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.player-recovery-details[open] > summary {
+    margin-bottom: 14px;
+}
+
+.player-recovery-input {
+    display: block;
+    width: 100%;
+    min-height: 9rem;
+    box-sizing: border-box;
+    padding: 10px;
+    resize: vertical;
+    color: #f7efff;
+    background: #0d0715;
+    border: 1px solid #815b98;
+    border-radius: 5px;
+    font: 12px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+.player-recovery-input:focus-visible {
+    border-color: #efb5ff;
+    box-shadow: 0 0 0 3px rgba(223, 128, 255, 0.2);
+    outline: none;
+}
+
+.player-recovery-file-label {
+    display: grid;
+    gap: 6px;
+    margin-top: 10px;
+    color: #d4c8dc;
+    font-size: 12px;
+}
+
 /* --------------------------------------------------
    Form controls and actions
 -------------------------------------------------- */

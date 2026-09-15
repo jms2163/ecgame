@@ -11,6 +11,10 @@ import GameStateObserver
     from "./GameStateObserver.js";
 import ProgressReportExporter
     from "./ProgressReportExporter.js";
+import GameBackupManager
+    from "./GameBackupManager.js";
+import InstructorRecoveryManager
+    from "./InstructorRecoveryManager.js";
 
 const UTILITY_CONTROL_ID = "player-badge";
 const DIALOG_ID = "player-badge-drawer";
@@ -477,11 +481,15 @@ const PlayerBadgeDrawer = {
                     profile
                 ),
                 this.renderSaveSection(),
-                this.renderReportSection()
+                this.renderReportSection(),
+                this.renderRecoverySection()
             );
         } else {
-            body.appendChild(
-                this.renderSetup()
+            body.append(
+                this.renderSetup(),
+                this.renderRecoverySection({
+                    setupMode: true
+                })
             );
         }
 
@@ -694,11 +702,54 @@ const PlayerBadgeDrawer = {
             }
         );
 
+        const recoveryButton =
+            this.createElement(
+                "button",
+                {
+                    className:
+                        "player-drawer-secondary player-setup-recovery-button",
+                    text:
+                        "Use Instructor Recovery",
+                    attributes: {
+                        type: "button"
+                    }
+                }
+            );
+
+        recoveryButton.addEventListener(
+            "click",
+            () => {
+                const recoveryDetails =
+                    this.dialog?.querySelector(
+                        ".player-recovery-details"
+                    );
+
+                if (!recoveryDetails) {
+                    return;
+                }
+
+                recoveryDetails.open = true;
+                recoveryDetails.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+
+                requestAnimationFrame(() => {
+                    recoveryDetails
+                        .querySelector(
+                            ".player-recovery-input"
+                        )
+                        ?.focus();
+                });
+            }
+        );
+
         container.append(
             heading,
             explanation,
             localNotice,
-            startButton
+            startButton,
+            recoveryButton
         );
 
         return container;
@@ -1766,6 +1817,68 @@ const PlayerBadgeDrawer = {
                 }
             );
 
+        const backupButton =
+            this.createElement(
+                "button",
+                {
+                    className:
+                        "player-drawer-secondary player-backup-button",
+                    text: "Download Backup File",
+                    attributes: {
+                        type: "button",
+                        "data-backup-game": ""
+                    }
+                }
+            );
+
+        backupButton.addEventListener(
+            "click",
+            async () => {
+                backupButton.disabled = true;
+                backupButton.textContent =
+                    "Preparing Backup…";
+
+                try {
+                    const saved = SaveManager.save({
+                        reason:
+                            "player-drawer-backup"
+                    });
+
+                    if (!saved) {
+                        throw new Error(
+                            "The current game could not be saved before backup."
+                        );
+                    }
+
+                    const result =
+                        await GameBackupManager
+                            .downloadBackup();
+
+                    this.feedback = {
+                        tone: "success",
+                        message: result.message
+                    };
+                } catch (error) {
+                    console.error(
+                        "Game backup download failed:",
+                        error
+                    );
+
+                    this.feedback = {
+                        tone: "error",
+                        message:
+                            "The backup file could not be prepared."
+                    };
+                }
+
+                if (this.dialog?.open) {
+                    this.renderDialog(
+                        "[data-backup-game]"
+                    );
+                }
+            }
+        );
+
         const details =
             this.createElement(
                 "details",
@@ -1796,6 +1909,7 @@ const PlayerBadgeDrawer = {
             heading,
             statusElement,
             saveButton,
+            backupButton,
             explanation,
             details
         );
@@ -1932,6 +2046,224 @@ const PlayerBadgeDrawer = {
             reportButton,
             details
         );
+
+        return section;
+
+    },
+
+    renderRecoverySection({
+        setupMode = false
+    } = {}) {
+
+        const section =
+            this.createElement(
+                "section",
+                {
+                    className:
+                        "player-drawer-section player-recovery-section",
+                    attributes: {
+                        "aria-labelledby":
+                            setupMode
+                                ? "player-setup-recovery-heading"
+                                : "player-recovery-heading"
+                    }
+                }
+            );
+
+        const details =
+            this.createElement(
+                "details",
+                {
+                    className:
+                        "player-recovery-details"
+                }
+            );
+
+        const summary =
+            this.createElement(
+                "summary",
+                {
+                    text:
+                        setupMode
+                            ? "Restore an instructor-approved profile"
+                            : "Instructor Recovery"
+                }
+            );
+
+        const heading =
+            this.createElement(
+                "h3",
+                {
+                    text: "Instructor Recovery",
+                    attributes: {
+                        id:
+                            setupMode
+                                ? "player-setup-recovery-heading"
+                                : "player-recovery-heading"
+                    }
+                }
+            );
+
+        const explanation =
+            this.createElement(
+                "p",
+                {
+                    className:
+                        "player-drawer-note",
+                    text:
+                        "Use only recovery content issued by your instructor. Progress reports and ordinary backup files are not accepted here."
+                }
+            );
+
+        const textarea =
+            this.createElement(
+                "textarea",
+                {
+                    className:
+                        "player-recovery-input",
+                    attributes: {
+                        rows: "7",
+                        spellcheck: "false",
+                        autocomplete: "off",
+                        "aria-label":
+                            "Instructor recovery content",
+                        placeholder:
+                            "Paste ECGAME INSTRUCTOR RECOVERY content here"
+                    }
+                }
+            );
+
+        const fileLabel =
+            this.createElement(
+                "label",
+                {
+                    className:
+                        "player-recovery-file-label",
+                    text:
+                        "Or select a recovery file"
+                }
+            );
+
+        const fileInput =
+            this.createElement(
+                "input",
+                {
+                    className:
+                        "player-recovery-file",
+                    attributes: {
+                        type: "file",
+                        accept:
+                            ".txt,text/plain"
+                    }
+                }
+            );
+
+        fileInput.addEventListener(
+            "change",
+            async () => {
+                const file = fileInput.files?.[0];
+                if (!file) return;
+                textarea.value = await file.text();
+            }
+        );
+
+        fileLabel.appendChild(fileInput);
+
+        const applyButton =
+            this.createElement(
+                "button",
+                {
+                    className:
+                        "player-drawer-secondary player-recovery-button",
+                    text:
+                        "Verify Instructor Recovery",
+                    attributes: {
+                        type: "button",
+                        "data-instructor-recovery": ""
+                    }
+                }
+            );
+
+        applyButton.addEventListener(
+            "click",
+            async () => {
+                const recoveryText =
+                    textarea.value.trim();
+
+                if (!recoveryText) {
+                    this.feedback = {
+                        tone: "error",
+                        message:
+                            "Paste or select the instructor recovery content first."
+                    };
+                    this.renderDialog(
+                        ".player-recovery-input"
+                    );
+                    return;
+                }
+
+                applyButton.disabled = true;
+                applyButton.textContent =
+                    "Verifying…";
+
+                try {
+                    const inspection =
+                        await InstructorRecoveryManager
+                            .inspectRecoveryText(
+                                recoveryText
+                            );
+
+                    const confirmed =
+                        window.confirm(
+                            `Verified instructor recovery for ${inspection.summary.student} (${inspection.summary.gamertag}).\n\n` +
+                            `Source: ${inspection.summary.sourceType}\n` +
+                            `Mode: ${inspection.summary.mode}\n\n` +
+                            "Apply this recovery and replace/merge the approved progress?"
+                        );
+
+                    if (!confirmed) {
+                        throw new Error(
+                            "Recovery cancelled. No game data was changed."
+                        );
+                    }
+
+                    const result =
+                        await InstructorRecoveryManager
+                            .applyRecoveryText(
+                                recoveryText
+                            );
+
+                    window.alert(
+                        `${result.message}\n\nA pre-recovery backup was stored in this browser.`
+                    );
+                    window.location.reload();
+                } catch (error) {
+                    console.error(
+                        "Instructor recovery failed:",
+                        error
+                    );
+                    this.feedback = {
+                        tone: "error",
+                        message:
+                            error?.message ||
+                            "The instructor recovery could not be applied."
+                    };
+                    this.renderDialog(
+                        ".player-recovery-input"
+                    );
+                }
+            }
+        );
+
+        details.append(
+            summary,
+            heading,
+            explanation,
+            textarea,
+            fileLabel,
+            applyButton
+        );
+        section.appendChild(details);
 
         return section;
 
