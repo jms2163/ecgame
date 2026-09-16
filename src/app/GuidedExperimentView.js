@@ -51,7 +51,11 @@ const GuidedExperimentView = {
         return `ATP available: ${availableAtp} · ATP used: ${state.atpConsumed} · Pump: ${pump} · H⁺ pumped into lumen: ${state.totalMembraneTransfers} / ${stage.goal.transfers}`;
     },
 
-    mount(host, experiment, { sandbox = false, onNextStage = null } = {}) {
+    mount(host, experiment, {
+        sandbox = false,
+        onNextStage = null,
+        onCheckpointSaved = null
+    } = {}) {
         const stage = experiment.sequence.stages.find(item => item.id === experiment.guidedStageId);
         const stageIndex = experiment.sequence.stages.indexOf(stage);
         const nextStage = experiment.sequence.stages[stageIndex + 1] ?? null;
@@ -101,9 +105,7 @@ const GuidedExperimentView = {
             ? `Continue to ${nextStage.title}`
             : `${nextStage?.title ?? 'The next stage'} will be available in a later milestone`;
         next.disabled = !stored || !nextStage?.playable;
-        next.onclick = () => {
-            if (nextStage?.playable) onNextStage?.(nextStage.id);
-        };
+        next.onclick = () => onNextStage?.(nextStage?.id ?? null);
 
         const hint = document.createElement('button');
         hint.type = 'button';
@@ -137,13 +139,20 @@ const GuidedExperimentView = {
             const rewardText = result.completion?.completed
                 ? ` Investigation complete — ${result.completion.xpAwarded.toLocaleString()} XP awarded.`
                 : '';
+            const scoreText = result.score
+                ? ` Current score: ${result.score.scorePoints} / ${result.score.scoreMaximum} (${result.score.scorePercent}%).`
+                : '';
+            const starText = result.starAwarded
+                ? ' ★ Exceptional Work star earned!'
+                : '';
             status.textContent = result.ok
-                ? `✓ ${stage.title} complete — checkpoint saved.${rewardText}${nextStage?.playable ? ' Select Next to continue.' : ''}`
+                ? `✓ ${stage.title} complete — checkpoint saved.${rewardText}${scoreText}${starText}${nextStage?.playable ? ' Select Next to continue.' : ''}`
                 : 'Checkpoint could not be saved. Keep this page open and retry.';
             if (result.ok) {
                 record.disabled = true;
                 next.disabled = !nextStage?.playable;
                 steps.textContent = this.stageProgressText(experiment);
+                onCheckpointSaved?.(result);
             }
         };
 

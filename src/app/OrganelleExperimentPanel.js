@@ -11,6 +11,8 @@ import OrganelleExperimentSubmissionManager
     from "./OrganelleExperimentSubmissionManager.js";
 import PassiveDiffusionTrialManager
     from "./PassiveDiffusionTrialManager.js";
+import GuidedExperimentManager
+    from "./GuidedExperimentManager.js";
 import SaveManager
     from "./SaveManager.js";
 
@@ -130,6 +132,16 @@ const OrganelleExperimentPanel = {
     getBestScore(experimentId) {
 
         let changed = false;
+
+        const experiment =
+            OrganelleExperimentLibrary[experimentId];
+
+        if (experiment?.sequence?.stages) {
+            changed =
+                GuidedExperimentManager
+                    .synchronizeScore(experiment)
+                    .changed;
+        }
 
         if (experimentId === "passive_diffusion") {
             changed =
@@ -419,7 +431,8 @@ const OrganelleExperimentPanel = {
                     "click",
                     () => {
                         this.onOpenExperiment?.(
-                            experiment
+                            experiment,
+                            { mode: "improve" }
                         );
                     }
                 );

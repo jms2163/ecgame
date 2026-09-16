@@ -8,6 +8,13 @@ export default {
     catalogReward: '1200 XP after all four stages are completed',
     requirements: { discoveries: [], completedExperiments: ['aquaporin_facilitated_diffusion'] },
     grants: { xp: 1200, discoveries: ['contractile_vacuole_filling'], achievements: [], metricEffects: [] },
+    assessment: {
+        rubricVersion: 'contractile-vacuole-guided-v2',
+        scoreMaximum: 100,
+        completionThresholdPercent: 80,
+        guidedStageCompletionPoints: 20,
+        guidedStagePredictionPoints: 5
+    },
     sequence: {
         stages: [
             {
@@ -34,6 +41,7 @@ export default {
                 },
                 goal: { transfers: 6, atpConsumed: 6 },
                 guidedUi: {
+                    correctPredictionId: 'lumen_head_cytosol',
                     predictionPrompt: 'Before you simulate: predict which side will accumulate H⁺ and which side the ATP-binding head should face.',
                     predictionChoices: [
                         { id: 'lumen_head_cytosol', text: 'H⁺ accumulates in the CV lumen; the ATP-binding head faces the cytosol.' },
@@ -49,7 +57,7 @@ export default {
                 id: 'sodium_exchange', title: 'Stage 2: Na⁺/H⁺ Exchange', playable: true,
                 objective: 'Use the proton gradient from Stage 1 to exchange six lumen H⁺ for six cytosolic Na⁺. Place Na⁺ in the cytosol (left), place the Na⁺/H⁺ exchanger in the membrane, orient it correctly, and simulate.',
                 stage: { template: 'membrane_transport', materials: [
-                    { id: 'sodium_ion_sample', maxPlacements: 1 },
+                    { id: 'sodium_ion_sample', maxPlacements: 1, placementVisualCount: 6 },
                     { id: 'sodium_hydrogen_exchanger', maxPlacements: 1 }
                 ], labels: [], controls: ['rotate', 'simulate', 'reset'] },
                 simulation: {
@@ -71,6 +79,7 @@ export default {
                 },
                 goal: { exchangeCycles: 6 },
                 guidedUi: {
+                    correctPredictionId: 'sodium_in_proton_out',
                     predictionPrompt: 'Before you simulate: predict how Na⁺ and H⁺ will move through the exchanger.',
                     predictionChoices: [
                         { id: 'sodium_in_proton_out', text: 'Na⁺ moves from cytosol to CV lumen while H⁺ moves from CV lumen to cytosol.' },
@@ -86,7 +95,7 @@ export default {
                 id: 'chloride_entry', title: 'Stage 3: Cl⁻ Entry', playable: true,
                 objective: 'Use the positive charge established by lumen Na⁺ to move six cytosolic Cl⁻ through a chloride channel into the contractile-vacuole lumen.',
                 stage: { template: 'membrane_transport', materials: [
-                    { id: 'chloride_ion_sample', maxPlacements: 1 },
+                    { id: 'chloride_ion_sample', maxPlacements: 1, placementVisualCount: 6 },
                     { id: 'chloride_channel', maxPlacements: 1 }
                 ], labels: [], controls: ['rotate', 'simulate', 'reset'] },
                 simulation: {
@@ -105,6 +114,7 @@ export default {
                 },
                 goal: { transfers: 6 },
                 guidedUi: {
+                    correctPredictionId: 'chloride_enters_lumen',
                     predictionPrompt: 'Before you simulate: predict what Cl⁻ will do after Na⁺ has accumulated in the CV lumen.',
                     predictionChoices: [
                         { id: 'chloride_enters_lumen', text: 'Cl⁻ moves through its channel from the cytosol into the CV lumen.' },
@@ -139,6 +149,7 @@ export default {
                 },
                 goal: { waterTransfers: 6 },
                 guidedUi: {
+                    correctPredictionId: 'water_enters_lumen',
                     predictionPrompt: 'Before you simulate: predict how water will move after Na⁺ and Cl⁻ have accumulated in the CV lumen.',
                     predictionChoices: [
                         { id: 'water_enters_lumen', text: 'Water moves from the cytosol through aquaporin into the CV lumen.' },
