@@ -9,6 +9,10 @@ import OrganelleExperimentLibrary
 import ResearchManager from "./ResearchManager.js";
 import OrganelleExperimentSubmissionManager
     from "./OrganelleExperimentSubmissionManager.js";
+import PassiveDiffusionTrialManager
+    from "./PassiveDiffusionTrialManager.js";
+import SaveManager
+    from "./SaveManager.js";
 
 const OrganelleExperimentPanel = {
 
@@ -24,6 +28,7 @@ const OrganelleExperimentPanel = {
     onReviewSubmission: null,
     onReexamineExperiment: null,
     onRegradeAssessment: null,
+    currentRenderOptions: null,
 
     // --------------------------------------------------
     // Find Organelle Lab display elements
@@ -124,6 +129,28 @@ const OrganelleExperimentPanel = {
     // --------------------------------------------------
     getBestScore(experimentId) {
 
+        let changed = false;
+
+        if (experimentId === "passive_diffusion") {
+            changed =
+                PassiveDiffusionTrialManager
+                    .synchronizeProgressScore()
+                    .changed;
+        }
+
+        changed =
+            OrganelleExperimentSubmissionManager
+                .ensurePerfectScoreStar(
+                    experimentId
+                ) || changed;
+
+        if (changed) {
+            SaveManager.save({
+                reason:
+                    "organelle-score-reconciliation"
+            });
+        }
+
         return OrganelleExperimentSubmissionManager
             .getBestScore(experimentId);
 
@@ -205,7 +232,10 @@ const OrganelleExperimentPanel = {
             card.appendChild(review);
         }
 
-        if (state === "available") {
+        if (
+            state === "available" ||
+            state === "completed"
+        ) {
 
             const bestScore =
                 this.getBestScore(
@@ -219,32 +249,57 @@ const OrganelleExperimentPanel = {
                 score.className =
                     "organelle-experiment-best-score";
 
+                const scorePercent =
+                    Number.isFinite(
+                        bestScore.scorePercent
+                    )
+                        ? bestScore.scorePercent
+                        : bestScore.scoreMaximum > 0
+                            ? Math.round(
+                                bestScore.scorePoints /
+                                bestScore.scoreMaximum *
+                                10000
+                            ) / 100
+                            : null;
+
                 score.textContent =
-                    ` · Highest score: ${bestScore.scorePoints} / ${bestScore.scoreMaximum}`;
+                    (
+                        state === "available"
+                            ? " · "
+                            : ""
+                    ) +
+                    `Highest score: ${bestScore.scorePoints} / ${bestScore.scoreMaximum}` +
+                    (
+                        Number.isFinite(scorePercent)
+                            ? ` (${scorePercent}%) · `
+                            : " · "
+                    );
 
                 statusElement.appendChild(score);
 
-                const reviewLink =
-                    document.createElement("a");
+                if (state === "available") {
+                    const reviewLink =
+                        document.createElement("a");
 
-                reviewLink.href = "#";
-                reviewLink.className =
-                    "organelle-experiment-review-link";
-                reviewLink.textContent =
-                    "Review submission";
+                    reviewLink.href = "#";
+                    reviewLink.className =
+                        "organelle-experiment-review-link";
+                    reviewLink.textContent =
+                        "Review submission";
 
-                reviewLink.addEventListener("click", event => {
-                    event.preventDefault();
-                    const submissions =
-                        OrganelleExperimentSubmissionManager
-                            .getSubmissions(experiment.id);
-                    this.onReviewSubmission?.(
-                        experiment,
-                        submissions.at(-1) ?? null
-                    );
-                });
+                    reviewLink.addEventListener("click", event => {
+                        event.preventDefault();
+                        const submissions =
+                            OrganelleExperimentSubmissionManager
+                                .getSubmissions(experiment.id);
+                        this.onReviewSubmission?.(
+                            experiment,
+                            submissions.at(-1) ?? null
+                        );
+                    });
 
-                statusElement.appendChild(reviewLink);
+                    statusElement.appendChild(reviewLink);
+                }
             }
 
         }
@@ -330,6 +385,49 @@ const OrganelleExperimentPanel = {
             card.appendChild(
                 reexamineButton
             );
+
+            const bestScore =
+                this.getBestScore(
+                    experiment.id
+                );
+
+            const bestPercent =
+                Number.isFinite(
+                    bestScore?.scorePercent
+                )
+                    ? bestScore.scorePercent
+                    : bestScore?.scoreMaximum > 0
+                        ? bestScore.scorePoints /
+                            bestScore.scoreMaximum * 100
+                        : null;
+
+            if (
+                experiment.assessment &&
+                Number.isFinite(bestPercent) &&
+                bestPercent < 100
+            ) {
+                const improveButton =
+                    document.createElement("button");
+
+                improveButton.type = "button";
+                improveButton.className =
+                    "organelle-experiment-run-button";
+                improveButton.textContent =
+                    "Improve Score";
+
+                improveButton.addEventListener(
+                    "click",
+                    () => {
+                        this.onOpenExperiment?.(
+                            experiment
+                        );
+                    }
+                );
+
+                card.appendChild(
+                    improveButton
+                );
+            }
 
             const star =
                 OrganelleExperimentSubmissionManager
@@ -454,14 +552,26 @@ starElement.setAttribute(
                 status.incompleteExperiments
                     .forEach(experimentId => {
 
-                        details.push(
-                            `Requires: ${
-                                ResearchManager.getCompletionThresholdPercent(experimentId)
-                            }% ${
-                                this.getExperimentTitle(
+                        const requiredScorePercent =
+                            ResearchManager
+                                .getCompletionThresholdPercent(
                                     experimentId
-                                )
-                            } score.`
+                                );
+
+                        details.push(
+                            Number.isFinite(
+                                requiredScorePercent
+                            )
+                                ? `Requires: ${requiredScorePercent}% ${
+                                    this.getExperimentTitle(
+                                        experimentId
+                                    )
+                                } score.`
+                                : `Requires completion: ${
+                                    this.getExperimentTitle(
+                                        experimentId
+                                    )
+                                }.`
                         );
 
                     });
@@ -536,6 +646,15 @@ starElement.setAttribute(
 
         this.onRegradeAssessment = onRegradeAssessment;
 
+        this.currentRenderOptions = {
+            onOpenExperiment,
+            onReviewSubmission,
+            onReexamineExperiment,
+            onRegradeAssessment,
+            actionMessage,
+            organelleAvailable
+        };
+
         this.unlockedListElement.replaceChildren();
 
         this.lockedListElement.replaceChildren();
@@ -562,12 +681,6 @@ starElement.setAttribute(
             );
 
             return;
-        }
-
-        if (organelleId === "plasma_membrane") {
-            ResearchManager.promoteSavedDynamicMovement();
-            ResearchManager.promoteSavedWaterDiffusion();
-            ResearchManager.promoteSavedAquaporinDiffusion();
         }
 
         const organelleLabel =
@@ -679,6 +792,29 @@ starElement.setAttribute(
             );
 
         }
+
+    },
+
+    // --------------------------------------------------
+    // Re-evaluate cards after a score or completion changes research state.
+    // This keeps downstream unlocks and displayed best scores current without
+    // closing the active experiment stage.
+    // --------------------------------------------------
+    refresh() {
+
+        if (
+            !this.currentOrganelleId ||
+            !this.currentRenderOptions
+        ) {
+            return false;
+        }
+
+        this.render(
+            this.currentOrganelleId,
+            this.currentRenderOptions
+        );
+
+        return true;
 
     }
 

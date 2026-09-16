@@ -25,6 +25,11 @@ assert.ok(
 );
 
 assert.equal(
+    experiment.title,
+    "K⁺ Channel — Facilitated Diffusion"
+);
+
+assert.equal(
     experiment.grants.xp,
     100
 );
@@ -231,6 +236,48 @@ const perfectReport =
 assert.equal(perfectReport.scorePoints, 40);
 assert.equal(perfectReport.isPerfect, true);
 
+const instructorResponseReport =
+    ExperimentPlacementEvaluator.evaluate({
+        assessment:
+            experiment.assessment,
+        snapshot,
+        reflectionResponses: {
+            potassium_channel_observation:
+                "Ions are not permeable through the plasma membrane directly, they need an ion channel. the sodium calcium and chloride ions do not pass through the transmembrane channel protein because they are not selective. However the K+ or potassium ion selectively passes through the ion channel in a facilitated diffusion process. Also the potassium ions are only transported one way through this particular ion channel."
+        }
+    });
+
+assert.equal(
+    instructorResponseReport.scorePoints,
+    40,
+    "a scientifically complete collective blocked-ion statement and one-way K+ statement should earn full credit"
+);
+assert.equal(
+    instructorResponseReport.isPerfect,
+    true
+);
+
+const collectiveIonResponseReport =
+    ExperimentPlacementEvaluator.evaluate({
+        assessment:
+            experiment.assessment,
+        snapshot,
+        reflectionResponses: {
+            potassium_channel_observation:
+                "The ions constantly move and do not pass through the lipid membrane. potassium ions are selectively transported through the membrane in a facilitated transport mechanism helped by the K+ channel protein. the potassium ion only passes one way through the lipid membrane."
+        }
+    });
+
+assert.equal(
+    collectiveIonResponseReport.scorePoints,
+    40,
+    "a collective blocked-ion statement with a clearly stated selective K+ exception should earn full credit"
+);
+assert.equal(
+    collectiveIonResponseReport.isPerfect,
+    true
+);
+
 const originalState =
     structuredClone(gameState);
 
@@ -282,5 +329,5 @@ try {
 }
 
 console.log(
-    "PASS: K+ channel salts dissociate, only K+ crosses one way through a correctly rotated pore, scoring is data-driven, and XP/discoveries are one-time rewards."
+    "PASS: K+ channel facilitated diffusion accepts clear collective ion-blocking and one-way selectivity explanations; transport, scoring, and one-time rewards remain data-driven."
 );

@@ -27,6 +27,9 @@ import ResearchManager
 import OrganelleExperimentSubmissionManager
     from "./OrganelleExperimentSubmissionManager.js";
 
+import OrganelleExperimentPanel
+    from "./OrganelleExperimentPanel.js";
+
 import SaveManager
     from "./SaveManager.js";
 import ProblemReportManager
@@ -54,6 +57,30 @@ const OrganelleExperimentStage = {
     isReexamineMode: false,
 
     selectedProteinStatusElement: null,
+
+    // --------------------------------------------------
+    // Gently direct attention to Submit after a reflection draft is saved.
+    // Re-rendering/resetting controls naturally clears this transient state.
+    // --------------------------------------------------
+    setSubmitAttention(active) {
+
+        const submitButton =
+            this.controlsElement?.querySelector(
+                '[data-action="submit"]'
+            );
+
+        if (!submitButton) {
+            return false;
+        }
+
+        submitButton.classList.toggle(
+            "organelle-experiment-control--submit-ready",
+            Boolean(active)
+        );
+
+        return true;
+
+    },
 
     // --------------------------------------------------
     // Keep the landing stage compact while no experiment
@@ -766,6 +793,8 @@ handleControlAction(actionId) {
                 status.textContent =
                     "Draft saved for this attempt.";
             }
+
+            this.setSubmitAttention(true);
         }
 
         return saved;
@@ -798,7 +827,7 @@ handleControlAction(actionId) {
 
     // --------------------------------------------------
     // Submit the current configuration for scoring.
-    // Only a perfect submission completes research.
+    // A submission meeting the configured mastery threshold completes research.
     // --------------------------------------------------
     submitExperiment() {
 
@@ -855,7 +884,13 @@ handleControlAction(actionId) {
         const attemptSnapshot =
             this.getAttemptSnapshot();
 
-        if (!ResearchManager.meetsCompletionThreshold(experiment, report)) {
+        if (
+            !ResearchManager
+                .meetsCompletionThreshold(
+                    experiment,
+                    report
+                )
+        ) {
             OrganelleExperimentSubmissionManager
                 .recordSubmission(
                     {
@@ -868,6 +903,10 @@ handleControlAction(actionId) {
                 );
 
             SaveManager.save();
+
+            this.setSubmitAttention(false);
+
+            OrganelleExperimentPanel.refresh();
 
             this.showSimulationResult(
                 {
@@ -887,7 +926,8 @@ handleControlAction(actionId) {
                 experiment.id
             );
 
-        OrganelleExperimentSubmissionManager
+        const submission =
+            OrganelleExperimentSubmissionManager
             .recordSubmission(
                 {
                     experiment,
@@ -900,6 +940,10 @@ handleControlAction(actionId) {
 
         SaveManager.save();
 
+        this.setSubmitAttention(false);
+
+        OrganelleExperimentPanel.refresh();
+
         if (completion.completed) {
             this.showSimulationResult(
                 {
@@ -907,7 +951,12 @@ handleControlAction(actionId) {
                         "Experiment Completed",
 
                     message:
-                        `Mastery score reached: ${report.scorePoints} / ${report.scoreMaximum} (${report.scorePercent}%). ${completion.xpAwarded} XP awarded.`
+                        `Mastery score reached: ${report.scorePoints} / ${report.scoreMaximum} (${report.scorePercent}%). ${completion.xpAwarded} XP awarded.` +
+                        (
+                            submission?.earnedStar
+                                ? " Exceptional Work star awarded."
+                                : ""
+                        )
                 }
             );
 
@@ -922,7 +971,13 @@ handleControlAction(actionId) {
                 message:
                     completion.reason ===
                     "already-completed"
-                        ? "This experiment was already completed."
+                        ? `Score recorded: ${report.scorePoints} / ${report.scoreMaximum} (${report.scorePercent}%). ` +
+                            "The experiment reward was already granted." +
+                            (
+                                submission?.earnedStar
+                                    ? " Exceptional Work star awarded."
+                                    : ""
+                            )
                         : "Your model reached the mastery score, but its research reward could not be applied."
             }
         );
@@ -939,8 +994,11 @@ handleControlAction(actionId) {
             snapshot: submission.placementSnapshot,
             reflectionResponses: submission.attemptSnapshot?.reflectionResponses
         }) }));
-        const qualifyingResult = results.find(result =>
-            ResearchManager.meetsCompletionThreshold(experiment, result.report)
+        const qualifyingResult = results.find(
+            result => ResearchManager.meetsCompletionThreshold(
+                experiment,
+                result.report
+            )
         );
         let completion = null;
         if (qualifyingResult) {

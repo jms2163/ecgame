@@ -112,6 +112,9 @@ const OrganelleExperimentLibrary = {
             scoreMaximum:
                 25,
 
+            completionThresholdPercent:
+                80,
+
             rubricVersion:
                 "dynamic-movement-v1",
 
