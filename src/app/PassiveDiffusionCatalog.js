@@ -29,6 +29,11 @@ export default {
     objective: "Predict how each substance interacts with a lipid bilayer, then test your prediction by observing its movement.",
     catalogReward: "+250 XP • Discovery: Membrane Permeability",
     stage: { template: "passive_diffusion_exploration", materials: [], labels: [], controls: [] },
+    assessment: {
+        scoreMaximum: 11,
+        completionThresholdPercent: 100,
+        rubricVersion: "passive-diffusion-exploration-v2"
+    },
     requirements: { discoveries: ["H2O"], completedExperiments: ["dynamic_movement"] },
     grants: { xp: 250, discoveries: ["membrane_permeability"], achievements: [], metricEffects: [] }
 };

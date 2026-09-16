@@ -3,6 +3,7 @@ import Engine from "./PassiveDiffusionEngine.js";
 import Renderer from "./PassiveDiffusionRenderer.js";
 import Trials from "./PassiveDiffusionTrialManager.js";
 import PlasmaMembraneVisualCatalog from "./PlasmaMembraneVisualCatalog.js";
+import OrganelleExperimentPanel from "./OrganelleExperimentPanel.js";
 
 const View = {
     frame: null,
@@ -140,7 +141,13 @@ const View = {
         for (const node of this.root.querySelectorAll(".pd-left,.pd-right,.pd-sample,input")) node.disabled = false;
         if (clearPrediction) for (const radio of this.root.querySelectorAll("input")) radio.checked = false;
         this.root.querySelector(".pd-properties").textContent = `${substances[this.select.value].name}: ${substances[this.select.value].properties}.`;
-        this.root.querySelector(".pd-progress").textContent = this.sandbox ? "" : `${Trials.progress().length} / 11 substances explored and saved.`;
+        const exploredCount = Trials.progress().length;
+        const scorePercent = Number(
+            (exploredCount / 11 * 100).toFixed(2)
+        );
+        this.root.querySelector(".pd-progress").textContent = this.sandbox
+            ? ""
+            : `${exploredCount} / 11 substances explored and saved · Score: ${exploredCount} / 11 (${scorePercent}%).`;
         this.response.hidden = true;
         const textarea = this.response.querySelector("textarea"); if (textarea) { textarea.value = ""; textarea.disabled = false; }
         this.status.textContent = "Choose a prediction, then place one sample. You can reposition it before Simulate.";
@@ -200,16 +207,27 @@ const View = {
         this.saved = true; this.recordButton.disabled = true;
         this.select.disabled = false;
         this.response.querySelector("textarea").disabled = true;
-        this.root.querySelector(".pd-progress").textContent = `${Trials.progress().length} / 11 substances explored and saved.`;
+        this.root.querySelector(".pd-progress").textContent =
+            `${result.scorePoints} / ${result.scoreMaximum} substances explored and saved · ` +
+            `Score: ${result.scorePoints} / ${result.scoreMaximum} (${result.scorePercent}%).`;
         this.refreshSubstanceOptions();
+        OrganelleExperimentPanel.refresh();
         this.status.textContent = result.completed
-            ? `All substances explored. ${result.xpAwarded ? "250 XP awarded. " : ""}Return to the lab catalog to review your observations or Re-examine.`
-            : "Observation saved. Select another substance to continue, or choose New trial / Reset to repeat this one.";
+            ? `All substances explored. Score: ${result.scorePoints} / ${result.scoreMaximum} (100%). ` +
+                `${result.starAwarded ? "Exceptional Work star awarded. " : ""}` +
+                `${result.xpAwarded ? "250 XP awarded. " : ""}` +
+                "Return to the lab catalog to review your observations or Re-examine."
+            : `Observation saved. Score: ${result.scorePoints} / ${result.scoreMaximum} (${result.scorePercent}%). ` +
+                "Select another substance to continue, or choose New trial / Reset to repeat this one.";
     },
 
     review() {
         const intro = document.createElement("p");
-        intro.textContent = "Saved exploration observations — ungraded predictions and reflections. No assessment regrading applies.";
+        const exploredCount = Trials.progress().length;
+        intro.textContent =
+            `Saved exploration observations — completion score: ${exploredCount} / 11 ` +
+            `(${Number((exploredCount / 11 * 100).toFixed(2))}%). ` +
+            "Predictions and reflections are ungraded; no assessment regrading applies.";
         this.root.append(intro);
         const records = Trials.records();
         if (!records.length) { intro.textContent += " No observations saved yet."; return; }

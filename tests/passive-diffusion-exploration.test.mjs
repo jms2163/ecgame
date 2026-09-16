@@ -94,10 +94,38 @@ try {
     SaveManager.save = () => true;
     const startingXP = gameState.player.xp;
     const ids = Object.keys(substances);
-    for (const id of ids.slice(0, -1)) {
+    ids.slice(0, -1).forEach((id, index) => {
         // Wrong/unsure predictions still count as exploration.
-        assert.equal(Trials.record({ id, state: observed(id), prediction: "unsure", reflection: "I will compare the structures." }).ok, true);
-    }
+        const recorded = Trials.record({
+            id,
+            state: observed(id),
+            prediction: "unsure",
+            reflection: "I will compare the structures."
+        });
+        assert.equal(recorded.ok, true);
+        assert.equal(recorded.scorePoints, index + 1);
+        assert.equal(recorded.scoreMaximum, 11);
+    });
+
+    delete gameState.registry.research
+        .bestExperimentScores.passive_diffusion;
+
+    const reconciledLegacyProgress =
+        Trials.synchronizeProgressScore();
+
+    assert.equal(
+        reconciledLegacyProgress.changed,
+        true
+    );
+    assert.equal(
+        reconciledLegacyProgress.score.scorePoints,
+        10,
+        "ten legacy saved observations should become a visible 10/11 score"
+    );
+    assert.equal(
+        reconciledLegacyProgress.score.scorePercent,
+        90.91
+    );
     const beforeCompletion = SaveManager.export();
     SaveManager.save = () => false;
     result = Trials.record({ id: "last", state: observed(ids.at(-1)), prediction: "stays" });
@@ -109,6 +137,10 @@ try {
     assert.equal(gameState.player.xp, startingXP + 250);
     assert.ok(ResearchManager.isExperimentCompleted(experiment.id));
     assert.equal(Trials.progress().length, 11);
+    assert.equal(result.scorePoints, 11);
+    assert.equal(result.scoreMaximum, 11);
+    assert.equal(result.scorePercent, 100);
+    assert.equal(result.starAwarded, true);
     View.select = {
         options: Object.keys(substances).map(value => ({
             value,
@@ -124,8 +156,27 @@ try {
     assert.equal(Trials.record({ id: "last", state: observed(ids.at(-1)), prediction: "stays" }).duplicate, true);
     assert.equal(Trials.record({ id: "repeated", state: gas, prediction: "crosses" }).xpAwarded, 0);
     assert.equal(gameState.player.xp, startingXP + 250);
-    assert.equal(gameState.registry.research.bestExperimentScores?.passive_diffusion, undefined);
-    assert.equal(gameState.registry.research.stars?.passive_diffusion, undefined);
+    assert.deepEqual(
+        gameState.registry.research
+            .bestExperimentScores
+            .passive_diffusion
+            .scorePoints,
+        11
+    );
+    assert.equal(
+        gameState.registry.research
+            .bestExperimentScores
+            .passive_diffusion
+            .scorePercent,
+        100
+    );
+    assert.equal(
+        gameState.registry.research
+            .stars
+            .passive_diffusion
+            .reason,
+        "perfect-score"
+    );
     const saved = JSON.parse(SaveManager.export());
     Object.assign(gameState, saved);
     assert.equal(Trials.progress().length, 11, "progress survives serialization/reload");
@@ -136,4 +187,4 @@ try {
     Object.assign(gameState, originalState);
     SaveManager.save = originalSave;
 }
-console.log("PASS: all 11 substances, both starting sides, bidirectional and limited permeability, embedding, ungraded progress, serialization, duplicate rewards, and save-failure rollback.");
+console.log("PASS: all 11 substances, both starting sides, bidirectional and limited permeability, one-point-per-substance scoring, a perfect-score star, serialization, duplicate rewards, and save-failure rollback.");

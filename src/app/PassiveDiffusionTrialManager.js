@@ -4,8 +4,9 @@ import ResearchManager from "./ResearchManager.js";
 import experiment, { substances, predictions } from "./PassiveDiffusionCatalog.js";
 import Engine from "./PassiveDiffusionEngine.js";
 
-// Only this module writes exploration records. Prediction accuracy never
-// contributes to a score, star, or eligibility for the completion reward.
+// Only this module writes exploration records. Each uniquely explored
+// substance earns one of eleven completion points. Prediction accuracy remains
+// ungraded and never changes the score.
 const Manager = {
     records() {
         return structuredClone(gameState.registry?.research?.passiveDiffusionTrials ?? []);
@@ -14,6 +15,93 @@ const Manager = {
     progress() {
         const explored = new Set(this.records().map(trial => trial.substanceId));
         return Object.keys(substances).filter(id => explored.has(id));
+    },
+
+    // --------------------------------------------------
+    // Derive the new 11-point score from observations saved by older builds.
+    // The caller decides when to persist the reconciled state.
+    // --------------------------------------------------
+    synchronizeProgressScore() {
+        ResearchManager.ensureRegistryStructures();
+        const research = gameState.registry.research;
+        const records = Array.isArray(
+            research.passiveDiffusionTrials
+        )
+            ? research.passiveDiffusionTrials
+            : [];
+        const validIds = new Set(
+            records
+                .map(trial => trial?.substanceId)
+                .filter(id => Object.hasOwn(substances, id))
+        );
+        const scorePoints = validIds.size;
+        const scoreMaximum = Object.keys(substances).length;
+
+        if (scorePoints === 0) {
+            return {
+                changed: false,
+                score: null,
+                starAwarded: false
+            };
+        }
+
+        const scorePercent = Number(
+            (scorePoints / scoreMaximum * 100).toFixed(2)
+        );
+        const isPerfect =
+            scorePoints === scoreMaximum;
+        const existing =
+            research.bestExperimentScores[experiment.id];
+        let changed = false;
+
+        if (
+            !existing ||
+            scorePoints > existing.scorePoints ||
+            existing.scoreMaximum !== scoreMaximum
+        ) {
+            research.bestExperimentScores[experiment.id] = {
+                submissionId: null,
+                scorePoints,
+                scoreMaximum,
+                scorePercent,
+                isPerfect,
+                achievedAtMs: Date.now(),
+                rubricVersion:
+                    experiment.assessment.rubricVersion,
+                source: "saved-substance-observations"
+            };
+            changed = true;
+        }
+
+        let starAwarded = false;
+        research.stars ??= {};
+        if (
+            isPerfect &&
+            !research.stars[experiment.id]
+        ) {
+            research.stars[experiment.id] = {
+                awardedAtMs: Date.now(),
+                sourceTrialId:
+                    records.at(-1)?.id ?? null,
+                reason:
+                    "retroactive-perfect-score",
+                scorePoints,
+                scoreMaximum
+            };
+            changed = true;
+            starAwarded = true;
+        }
+
+        return {
+            changed,
+            score:
+                structuredClone(
+                    research.bestExperimentScores[
+                        experiment.id
+                    ]
+                ),
+            starAwarded
+        };
     },
 
     feedback(state, prediction) {
@@ -41,6 +129,7 @@ const Manager = {
         if (!status.available && !status.completed) return { ok: false, reason: "requirements-not-met" };
         const backup = structuredClone(gameState);
         try {
+            ResearchManager.ensureRegistryStructures();
             const research = gameState.registry.research;
             research.passiveDiffusionTrials ??= [];
             const feedback = this.feedback(state, prediction);
@@ -52,7 +141,48 @@ const Manager = {
                 observation: Engine.summary(state), reflection: String(reflection).slice(0, 1500),
                 recordedAtMs: Date.now(), modelVersion: "passive-diffusion-v1"
             });
-            const allExplored = this.progress().length === Object.keys(substances).length;
+            const scorePoints = this.progress().length;
+            const scoreMaximum = Object.keys(substances).length;
+            const scorePercent = Number(
+                (scorePoints / scoreMaximum * 100).toFixed(2)
+            );
+            const allExplored = scorePoints === scoreMaximum;
+            const previousBest =
+                research.bestExperimentScores[experiment.id];
+
+            if (
+                !previousBest ||
+                scorePoints > previousBest.scorePoints
+            ) {
+                research.bestExperimentScores[experiment.id] = {
+                    submissionId: null,
+                    scorePoints,
+                    scoreMaximum,
+                    scorePercent,
+                    isPerfect: allExplored,
+                    achievedAtMs: Date.now(),
+                    rubricVersion:
+                        experiment.assessment.rubricVersion,
+                    source: "saved-substance-observations"
+                };
+            }
+
+            let starAwarded = false;
+            research.stars ??= {};
+            if (
+                allExplored &&
+                !research.stars[experiment.id]
+            ) {
+                research.stars[experiment.id] = {
+                    awardedAtMs: Date.now(),
+                    sourceTrialId: id,
+                    reason: "perfect-score",
+                    scorePoints,
+                    scoreMaximum
+                };
+                starAwarded = true;
+            }
+
             let completion = null;
             if (allExplored && !status.completed) {
                 completion = ResearchManager.completeExperiment(experiment.id);
@@ -65,7 +195,15 @@ const Manager = {
                 });
             }
             if (!SaveManager.save({ reason: "passive-diffusion-trial" })) throw new Error("Save failed");
-            return { ok: true, completed: allExplored, xpAwarded: completion?.xpAwarded ?? 0 };
+            return {
+                ok: true,
+                completed: allExplored,
+                xpAwarded: completion?.xpAwarded ?? 0,
+                scorePoints,
+                scoreMaximum,
+                scorePercent,
+                starAwarded
+            };
         } catch (error) {
             // Restore the live save object, including any attempted XP reward.
             for (const key of Object.keys(gameState)) delete gameState[key];

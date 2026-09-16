@@ -49,6 +49,56 @@ const OrganelleExperimentSubmissionManager = {
     },
 
     // --------------------------------------------------
+    // Give older perfect-score records the star now awarded by current rules.
+    // Returns true only when a new derived star record was created.
+    // --------------------------------------------------
+    ensurePerfectScoreStar(experimentId) {
+
+        this.ensureRegistryStructures();
+
+        const research =
+            gameState.registry.research;
+
+        if (research.stars[experimentId]) {
+            return false;
+        }
+
+        const best =
+            research.bestExperimentScores[
+                experimentId
+            ];
+
+        const isPerfect =
+            Boolean(best?.isPerfect) ||
+            (
+                Number.isFinite(best?.scorePoints) &&
+                Number.isFinite(best?.scoreMaximum) &&
+                best.scoreMaximum > 0 &&
+                best.scorePoints === best.scoreMaximum
+            );
+
+        if (!isPerfect) {
+            return false;
+        }
+
+        research.stars[experimentId] = {
+            awardedAtMs:
+                best.achievedAtMs ?? Date.now(),
+            sourceSubmissionId:
+                best.submissionId ?? null,
+            reason:
+                "retroactive-perfect-score",
+            scorePoints:
+                best.scorePoints,
+            scoreMaximum:
+                best.scoreMaximum
+        };
+
+        return true;
+
+    },
+
+    // --------------------------------------------------
     // Match optional technical vocabulary without making
     // it part of the score required for completion.
     // --------------------------------------------------
@@ -182,14 +232,8 @@ const OrganelleExperimentSubmissionManager = {
             experimentId
         ] ??= [];
 
-        research.experimentSubmissions[
-            experimentId
-        ].push(submission);
-
         const earnsStar =
-            submission.isPerfect &&
-            submission.technicalVocabularyMatches
-                .length > 0;
+            submission.isPerfect;
 
         const wasStarAwarded =
             earnsStar &&
@@ -199,7 +243,7 @@ const OrganelleExperimentSubmissionManager = {
             research.stars[experimentId] = {
                 awardedAtMs: submittedAtMs,
                 sourceSubmissionId: submission.id,
-                reason: "technical-vocabulary",
+                reason: "perfect-score",
                 matchedTerms:
                     structuredClone(
                         submission
@@ -207,6 +251,13 @@ const OrganelleExperimentSubmissionManager = {
                     )
             };
         }
+
+        submission.earnedStar =
+            wasStarAwarded;
+
+        research.experimentSubmissions[
+            experimentId
+        ].push(submission);
 
         const currentBest =
             research.bestExperimentScores[
@@ -303,11 +354,12 @@ const OrganelleExperimentSubmissionManager = {
             rubricVersion: experiment.assessment?.rubricVersion ?? "unversioned",
             regradedAtMs: Date.now()
         };
-        const eligible = results.find(result => result.report.isPerfect &&
-            this.getTechnicalVocabularyMatches(experiment, result.submission.attemptSnapshot).length);
+        const eligible = results.find(
+            result => result.report.isPerfect
+        );
         if (eligible && !research.stars[experiment.id]) research.stars[experiment.id] = {
             awardedAtMs: Date.now(), sourceSubmissionId: eligible.submission.id,
-            reason: "technical-vocabulary-regrade",
+            reason: "perfect-score-regrade",
             matchedTerms: this.getTechnicalVocabularyMatches(experiment, eligible.submission.attemptSnapshot)
         };
         return structuredClone({ best, starAwarded: Boolean(eligible) });
