@@ -34,6 +34,7 @@ const PolymerizerUI = {
 
         this.buildStaticUI();
         this.cacheElements();
+        this.bindEvents();
 
         GameStateObserver.on(
             "polymerizer-state-changed",
@@ -91,7 +92,7 @@ const PolymerizerUI = {
                     </div>
                     <div class="poly-status-chip" aria-label="Development status">
                         <span aria-hidden="true"></span>
-                        Milestone 2 State Foundation
+                        Milestone 3 Assembly Lifecycle
                     </div>
                 </header>
 
@@ -122,7 +123,7 @@ const PolymerizerUI = {
                                 <h2 id="polymerizer-product-name">Aquaporin</h2>
                                 <p id="polymerizer-product-class"></p>
                             </div>
-                            <span class="poly-chamber-lock">Preview Only</span>
+                            <span id="polymerizer-chamber-mode" class="poly-chamber-lock">Development</span>
                         </div>
 
                         <div class="poly-chamber-viewport">
@@ -131,10 +132,16 @@ const PolymerizerUI = {
                             <img id="polymerizer-product-image" alt="">
                         </div>
 
+                        <div id="polymerizer-progress-panel" class="poly-progress-panel" hidden>
+                            <label for="polymerizer-progress">Assembly progress</label>
+                            <progress id="polymerizer-progress" max="1" value="0"></progress>
+                            <strong id="polymerizer-countdown">15 seconds remaining</strong>
+                        </div>
+
                         <p id="polymerizer-product-description" class="poly-description"></p>
                         <p id="polymerizer-chamber-status" class="poly-chamber-status" role="status"></p>
                         <button id="polymerizer-assemble-button" class="poly-assemble-button" type="button" disabled>
-                            Assembly Disabled — Milestone 2
+                            Assemble Aquaporin · 15 ATP
                         </button>
                     </main>
 
@@ -181,6 +188,14 @@ const PolymerizerUI = {
                 find("polymerizer-product-class"),
             productImage:
                 find("polymerizer-product-image"),
+            chamberMode:
+                find("polymerizer-chamber-mode"),
+            progressPanel:
+                find("polymerizer-progress-panel"),
+            progress:
+                find("polymerizer-progress"),
+            countdown:
+                find("polymerizer-countdown"),
             productDescription:
                 find("polymerizer-product-description"),
             chamberStatus:
@@ -194,6 +209,22 @@ const PolymerizerUI = {
             outputMessage:
                 find("polymerizer-output-message")
         };
+
+    },
+
+    bindEvents() {
+
+        this.elements.assembleButton
+            ?.addEventListener(
+                "click",
+                () => {
+                    PolymerizerManager
+                        .startAssembly(
+                            "Aquaporin"
+                        );
+                    this.render();
+                }
+            );
 
     },
 
@@ -234,11 +265,13 @@ const PolymerizerUI = {
 
         PolymerizerProductView.renderCatalog(
             this.elements.productList,
-            status.products
+            status.products,
+            status.activeAssembly
         );
         PolymerizerProductView.renderChamber(
             this.elements,
-            product
+            product,
+            status.activeAssembly
         );
         PolymerizerProductView.renderPreflight(
             this.elements.requirements,

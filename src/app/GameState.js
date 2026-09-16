@@ -343,7 +343,11 @@ atomizer: {
                 // Polymerizer owns completed functional proteins.
                 // Upstream motif levels remain authoritative in
                 // Macromolecularizer and are never copied here.
-                productInventory: {}
+                productInventory: {},
+
+                // Only one assembly chamber exists. Wall-clock
+                // timestamps make the short job safe across reloads.
+                activeAssembly: null
             }
         },
 

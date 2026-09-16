@@ -268,6 +268,39 @@
     line-height: 1.55;
 }
 
+.poly-progress-panel {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px 14px;
+    align-items: center;
+    margin: 0 0 16px;
+    padding: 12px;
+    border: 1px solid rgba(32, 214, 208, 0.34);
+    border-radius: 10px;
+    background: rgba(32, 214, 208, 0.07);
+}
+
+.poly-progress-panel[hidden] {
+    display: none;
+}
+
+.poly-progress-panel label {
+    color: var(--poly-accent-bright);
+    font-size: 0.78rem;
+}
+
+.poly-progress-panel strong {
+    color: var(--poly-text);
+    font-size: 0.78rem;
+}
+
+.poly-progress-panel progress {
+    grid-column: 1 / -1;
+    width: 100%;
+    height: 12px;
+    accent-color: var(--poly-accent);
+}
+
 .poly-chamber-status {
     min-height: 2.8em;
     margin: 0 0 12px;
@@ -285,6 +318,18 @@
     color: var(--poly-muted);
     background: #142431;
     font: inherit;
+}
+
+.poly-assemble-button:not(:disabled) {
+    cursor: pointer;
+    border-color: rgba(32, 214, 208, 0.65);
+    color: #061215;
+    background: linear-gradient(120deg, var(--poly-accent), var(--poly-accent-bright));
+    box-shadow: 0 8px 22px rgba(32, 214, 208, 0.18);
+}
+
+.poly-assemble-button:not(:disabled):hover {
+    filter: brightness(1.08);
 }
 
 .poly-side-stack {
