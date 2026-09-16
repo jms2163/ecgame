@@ -80,7 +80,8 @@ assert.deepEqual(
         unlocked: false,
         completed: false,
         state: {
-            productInventory: {}
+            productInventory: {},
+            activeAssembly: null
         }
     }
 );
@@ -122,7 +123,7 @@ const ready =
             "Aquaporin"
         );
 assert.equal(ready.eligible, true);
-assert.equal(ready.canStart, false);
+assert.equal(ready.canStart, true);
 assert(ready.motifs.every(
     motif => motif.consumed === false
 ));

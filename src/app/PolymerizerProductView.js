@@ -13,7 +13,11 @@ const MOTIF_NAMES = Object.freeze({
 
 const PolymerizerProductView = {
 
-    renderCatalog(container, products = []) {
+    renderCatalog(
+        container,
+        products = [],
+        activeAssembly = null
+    ) {
 
         if (!container) return;
 
@@ -38,9 +42,14 @@ const PolymerizerProductView = {
             const status =
                 document.createElement("span");
             status.textContent =
-                product.eligible
-                    ? "Requirements met · Preview"
-                    : "Requirements incomplete";
+                activeAssembly
+                    ?.productId === product.id
+                    ? activeAssembly.complete
+                        ? "Assembly time complete"
+                        : "Assembling"
+                    : product.eligible
+                        ? "Requirements met · Ready"
+                        : "Requirements incomplete";
 
             button.append(name, status);
             return button;
@@ -50,7 +59,11 @@ const PolymerizerProductView = {
 
     },
 
-    renderChamber(elements, product) {
+    renderChamber(
+        elements,
+        product,
+        activeAssembly = null
+    ) {
 
         if (!product) return;
 
@@ -73,14 +86,49 @@ const PolymerizerProductView = {
                 visual.alt;
         }
 
+        if (activeAssembly) {
+            elements.progressPanel.hidden = false;
+            elements.progress.value =
+                activeAssembly.progress;
+            elements.countdown.textContent =
+                activeAssembly.complete
+                    ? "Assembly time complete"
+                    : `${Math.ceil(activeAssembly.remainingMs / 1000)} seconds remaining`;
+            elements.chamberMode.textContent =
+                activeAssembly.complete
+                    ? "Ready to Finalize"
+                    : "Assembly Active";
+            elements.chamberStatus.textContent =
+                activeAssembly.complete
+                    ? "Assembly time is complete. Product finalization and discovery arrive in Milestone 4."
+                    : "Aquaporin is assembling. Motif levels remain available in Macromolecularizer.";
+            elements.assembleButton.disabled = true;
+            elements.assembleButton.textContent =
+                activeAssembly.complete
+                    ? "Awaiting Milestone 4 Finalization"
+                    : "Assembling Aquaporin…";
+            return;
+        }
+
+        elements.progressPanel.hidden = true;
+        elements.progress.value = 0;
+        elements.countdown.textContent =
+            "15 seconds remaining";
+        elements.chamberMode.textContent =
+            product.eligible
+                ? "Ready"
+                : "Blocked";
         elements.chamberStatus.textContent =
             product.eligible
-                ? "Structural levels and ATP are ready. Assembly activates in a later milestone."
-                : "Increase the missing motif levels in Macromolecularizer before assembly.";
+                ? "Structural levels and ATP are ready for a 15-second assembly."
+                : "Increase the missing motif levels or ATP before assembly.";
 
-        elements.assembleButton.disabled = true;
+        elements.assembleButton.disabled =
+            !product.canStart;
         elements.assembleButton.textContent =
-            "Assembly Disabled — Milestone 2";
+            product.canStart
+                ? "Assemble Aquaporin · 15 ATP"
+                : "Assembly Requirements Incomplete";
 
     },
 

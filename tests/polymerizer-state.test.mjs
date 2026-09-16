@@ -42,7 +42,8 @@ delete gameState.zones.polymerizer;
 let state =
     PolymerizerManager.ensureState();
 assert.deepEqual(state, {
-    productInventory: {}
+    productInventory: {},
+    activeAssembly: null
 });
 assert.equal(
     gameState.zones.polymerizer.unlocked,
@@ -60,6 +61,19 @@ assert.deepEqual(
         .productInventory,
     {}
 );
+
+// Malformed or tampered active jobs are rejected rather than resumed.
+state.activeAssembly = {
+    jobId: "broken-job",
+    productId: "Aquaporin",
+    startedAtMs: 100,
+    completesAtMs: 200,
+    durationMs: 100,
+    atpCost: 15,
+    motifRequirements: []
+};
+PolymerizerManager.ensureState();
+assert.equal(state.activeAssembly, null);
 
 // Numeric legacy values become records, timestamps are repaired, and
 // zero/invalid entries are removed without rejecting future product IDs.
