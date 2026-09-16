@@ -339,7 +339,12 @@ atomizer: {
         polymerizer: {
             unlocked: false,
             completed: false,
-            state: {}
+            state: {
+                // Polymerizer owns completed functional proteins.
+                // Upstream motif levels remain authoritative in
+                // Macromolecularizer and are never copied here.
+                productInventory: {}
+            }
         },
 
         metabolism: {

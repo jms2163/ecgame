@@ -91,7 +91,7 @@ const PolymerizerUI = {
                     </div>
                     <div class="poly-status-chip" aria-label="Development status">
                         <span aria-hidden="true"></span>
-                        Milestone 1 Preview
+                        Milestone 2 State Foundation
                     </div>
                 </header>
 
@@ -134,7 +134,7 @@ const PolymerizerUI = {
                         <p id="polymerizer-product-description" class="poly-description"></p>
                         <p id="polymerizer-chamber-status" class="poly-chamber-status" role="status"></p>
                         <button id="polymerizer-assemble-button" class="poly-assemble-button" type="button" disabled>
-                            Assembly Disabled — Milestone 1
+                            Assembly Disabled — Milestone 2
                         </button>
                     </main>
 
