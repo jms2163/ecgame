@@ -76,6 +76,16 @@ const ZONE_DEFINITIONS = Object.freeze([
     }),
 
     Object.freeze({
+        id: "signaling",
+        label: "Signaling",
+        releaseState: RELEASE_STATE.COMING_SOON,
+        lockedMessage:
+            "Complete the required Polymerizer activities first.",
+        comingSoonMessage:
+            "Cell signaling activities are planned for a later release."
+    }),
+
+    Object.freeze({
         id: "metabolism",
         label: "Metabolism",
         releaseState: RELEASE_STATE.COMING_SOON,
