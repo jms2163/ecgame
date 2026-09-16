@@ -226,6 +226,43 @@ const GameStateManager = {
 
     },
 
+    /**
+     * Remove one legacy discovery string.
+     *
+     * This deliberately narrow inverse exists for transactional rollback:
+     * if a manager grants a discovery and its enclosing save fails, the
+     * manager can restore memory to the last persisted state. Normal game
+     * progression should add discoveries and should not call this method.
+     */
+    removeDiscovery(discoveryId) {
+
+        if (
+            typeof discoveryId !== "string" ||
+            discoveryId.trim() === "" ||
+            !Array.isArray(
+                gameState.registry?.discoveries
+            )
+        ) {
+            return false;
+        }
+
+        const normalizedId =
+            discoveryId.trim();
+        const index =
+            gameState.registry.discoveries
+                .indexOf(normalizedId);
+
+        if (index === -1) return false;
+
+        gameState.registry.discoveries.splice(
+            index,
+            1
+        );
+
+        return true;
+
+    },
+
     unlockDiscovery(discoveryId) {
 
         return this.addDiscovery(
