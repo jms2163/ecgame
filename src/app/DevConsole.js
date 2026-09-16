@@ -86,6 +86,12 @@ import Macromolecularizer
     from "./Macromolecularizer.js";
 import MacromolecularizerUI
     from "./MacromolecularizerUI.js";
+import PolymerizerManager
+    from "./PolymerizerManager.js";
+import Polymerizer
+    from "./Polymerizer.js";
+import PolymerizerUI
+    from "./PolymerizerUI.js";
 import MoleculeLab from "./MoleculeLab.js";
 import MoleculeLabUI from "./MoleculeLabUI.js";
 import MoleculeBuilderView from "./MoleculeBuilderView.js";
@@ -149,6 +155,9 @@ const DevConsole = {
             MacromolecularizerManager,
             Macromolecularizer,
             MacromolecularizerUI,
+            PolymerizerManager,
+            Polymerizer,
+            PolymerizerUI,
             MoleculeLab,
             MoleculeLabUI,
             MoleculeBuilderView,

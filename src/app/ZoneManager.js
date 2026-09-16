@@ -11,6 +11,8 @@ import Atomizer from "./Atomizer.js";
 import MoleculeLab from "./MoleculeLab.js";
 import Macromolecularizer
     from "./Macromolecularizer.js";
+import Polymerizer
+    from "./Polymerizer.js";
 import GameStateManager
     from "./GameStateManager.js";
 import GameStateObserver
@@ -64,6 +66,14 @@ const ZONE_REGISTRY = new Map([
         {
             module: Macromolecularizer,
             rootId: "macromolecularizer-zone",
+            persistCurrentZone: true
+        }
+    ],
+    [
+        "polymerizer",
+        {
+            module: Polymerizer,
+            rootId: "polymerizer-zone",
             persistCurrentZone: true
         }
     ],
