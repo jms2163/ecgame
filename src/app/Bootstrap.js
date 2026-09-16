@@ -23,6 +23,8 @@ import AtomizerUI from "./AtomizerUI.js";
 import MoleculeLabManager from "./MoleculeLabManager.js";
 import MacromolecularizerManager
     from "./MacromolecularizerManager.js";
+import PolymerizerManager
+    from "./PolymerizerManager.js";
 import PlayerProfileManager from "./PlayerProfileManager.js";
 import PlayerBadgeDrawer from "./PlayerBadgeDrawer.js";
 
@@ -65,6 +67,9 @@ const Bootstrap = {
         // Normalize the future Macromolecularizer state
         // after the local save has been loaded.
         MacromolecularizerManager.initialize();
+        // Reconcile persisted Polymerizer jobs globally so a completed
+        // 15-second assembly finalizes even when another zone is open.
+        PolymerizerManager.initialize();
 
         const requestedZoneId =
             GameStateManager.getCurrentZoneId();

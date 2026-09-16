@@ -1,11 +1,11 @@
 // --------------------------------------------------
 // PolymerizerManager.js
-// Milestone 3 domain authority and assembly-start lifecycle.
+// Milestone 4 domain authority and complete assembly lifecycle.
 //
 // This milestone evaluates permanent Macromolecularizer motif levels and
 // owns completed Polymerizer products. It starts one reload-safe 15-second
-// assembly job and spends ATP atomically, but completion and discovery
-// grants remain intentionally reserved for Milestone 4.
+// assembly job, spends ATP at start, and atomically grants output plus the
+// existing Aquaporin discovery when the elapsed job completes.
 // --------------------------------------------------
 
 import GameStateManager from "./GameStateManager.js";
@@ -19,6 +19,8 @@ const ZONE_ID = "polymerizer";
 const DEFAULT_PRODUCT_ID = "Aquaporin";
 const ASSEMBLY_DURATION_MS = 15_000;
 const PROGRESS_EVENT_INTERVAL_MS = 100;
+const COMPLETION_RETRY_INTERVAL_MS = 1_000;
+const AQUAPORIN_DISCOVERY_ID = "aquaporin";
 
 function safeCount(value) {
 
@@ -204,6 +206,7 @@ const PolymerizerManager = {
     active: false,
     subscribed: false,
     lastProgressEventAtMs: 0,
+    lastCompletionAttempt: null,
 
     initialize() {
 
@@ -214,6 +217,11 @@ const PolymerizerManager = {
         }
 
         this.initialized = true;
+
+        // Bootstrap initializes this manager after the save is loaded. An
+        // expired job can therefore complete immediately, even if the
+        // player has not opened the Polymerizer development zone.
+        this.reconcileAssembly();
         return true;
 
     },
@@ -471,7 +479,7 @@ const PolymerizerManager = {
                 !this.ensureState()
                     .activeAssembly,
             implementationStatus:
-                "milestone-3-active-job",
+                "milestone-4-completion",
             output: {
                 quantity:
                     safeCount(
@@ -771,7 +779,184 @@ const PolymerizerManager = {
 
     },
 
-    // Milestone 3 exposes completed timing but does not yet award output.
+    // --------------------------------------------------
+    // Atomically award one completed product and its discovery
+    // --------------------------------------------------
+    finishAssembly(
+        jobId,
+        nowMs = Date.now()
+    ) {
+
+        if (
+            !Number.isFinite(nowMs) ||
+            nowMs < 0
+        ) {
+            return {
+                success: false,
+                reason: "invalid-completion-time"
+            };
+        }
+
+        const state = this.ensureState();
+        const job = state.activeAssembly;
+
+        if (
+            !job ||
+            typeof jobId !== "string" ||
+            job.jobId !== jobId
+        ) {
+            return {
+                success: false,
+                reason: "active-job-mismatch"
+            };
+        }
+
+        if (nowMs < job.completesAtMs) {
+            return {
+                success: false,
+                reason: "assembly-not-complete",
+                activeAssembly:
+                    this.getActiveAssemblyProgress(
+                        nowMs
+                    )
+            };
+        }
+
+        const productId = job.productId;
+        const hadProductRecord =
+            Object.prototype.hasOwnProperty.call(
+                state.productInventory,
+                productId
+            );
+        const previousProductRecord =
+            hadProductRecord
+                ? structuredClone(
+                    state.productInventory[
+                        productId
+                    ]
+                )
+                : null;
+        const completionTimestamp =
+            job.completesAtMs;
+        const previousCount = safeCount(
+            previousProductRecord?.count
+        );
+
+        state.activeAssembly = null;
+        state.productInventory[productId] = {
+            count: previousCount + 1,
+            firstCompletedAtMs:
+                previousProductRecord
+                    ?.firstCompletedAtMs ??
+                completionTimestamp,
+            lastCompletedAtMs:
+                completionTimestamp
+        };
+
+        const discoveryAlreadyKnown =
+            GameStateManager.hasDiscovery(
+                AQUAPORIN_DISCOVERY_ID
+            );
+        const discoveryGranted =
+            discoveryAlreadyKnown
+                ? false
+                : GameStateManager.addDiscovery(
+                    AQUAPORIN_DISCOVERY_ID
+                );
+
+        // A failed grant must not leave a completed product whose required
+        // progression flag was never recorded.
+        if (
+            !discoveryAlreadyKnown &&
+            !discoveryGranted
+        ) {
+            state.activeAssembly = job;
+
+            if (hadProductRecord) {
+                state.productInventory[
+                    productId
+                ] = previousProductRecord;
+            } else {
+                delete state.productInventory[
+                    productId
+                ];
+            }
+
+            return {
+                success: false,
+                reason: "discovery-grant-failed"
+            };
+        }
+
+        const saved = SaveManager.save({
+            reason:
+                "polymerizer-assembly-completed"
+        });
+
+        if (!saved) {
+            state.activeAssembly = job;
+
+            if (hadProductRecord) {
+                state.productInventory[
+                    productId
+                ] = previousProductRecord;
+            } else {
+                delete state.productInventory[
+                    productId
+                ];
+            }
+
+            if (discoveryGranted) {
+                GameStateManager.removeDiscovery(
+                    AQUAPORIN_DISCOVERY_ID
+                );
+            }
+
+            return {
+                success: false,
+                reason: "save-failed",
+                message:
+                    "Completion could not be saved. The active assembly was preserved for retry."
+            };
+        }
+
+        this.lastCompletionAttempt = null;
+        this.notifyStateChange(
+            "assembly-completed"
+        );
+        GameStateObserver.notify(
+            "polymerizer-product-completed",
+            {
+                productId,
+                quantity:
+                    previousCount + 1,
+                discoveryId:
+                    AQUAPORIN_DISCOVERY_ID,
+                discoveryGranted,
+                completedAtMs:
+                    completionTimestamp
+            }
+        );
+
+        return {
+            success: true,
+            reason: "assembly-completed",
+            saved: true,
+            productId,
+            quantity: previousCount + 1,
+            discoveryId:
+                AQUAPORIN_DISCOVERY_ID,
+            discoveryGranted,
+            completedAtMs:
+                completionTimestamp,
+            message:
+                "Aquaporin assembly complete. Product stored and discovery recorded."
+        };
+
+    },
+
+    // Reconcile progress from wall-clock timestamps. Completion runs even
+    // while another zone is open because this manager initializes globally.
     reconcileAssembly(
         nowMs = Date.now()
     ) {
@@ -783,6 +968,43 @@ const PolymerizerManager = {
 
         if (!progress) return false;
 
+        if (progress.complete) {
+            const lastAttempt =
+                this.lastCompletionAttempt;
+            const retryBlocked =
+                lastAttempt?.jobId ===
+                    progress.jobId &&
+                nowMs >=
+                    lastAttempt.attemptedAtMs &&
+                nowMs -
+                    lastAttempt.attemptedAtMs <
+                    COMPLETION_RETRY_INTERVAL_MS;
+
+            if (retryBlocked) {
+                return progress;
+            }
+
+            this.lastCompletionAttempt = {
+                jobId: progress.jobId,
+                attemptedAtMs: nowMs
+            };
+
+            const completion =
+                this.finishAssembly(
+                    progress.jobId,
+                    nowMs
+                );
+
+            if (!completion.success &&
+                this.active) {
+                this.notifyStateChange(
+                    "assembly-completion-pending"
+                );
+            }
+
+            return completion;
+        }
+
         if (
             this.active &&
             nowMs -
@@ -792,9 +1014,7 @@ const PolymerizerManager = {
             this.lastProgressEventAtMs =
                 nowMs;
             this.notifyStateChange(
-                progress.complete
-                    ? "assembly-ready-to-finalize"
-                    : "assembly-progress"
+                "assembly-progress"
             );
         }
 
@@ -817,6 +1037,9 @@ const PolymerizerManager = {
             "game-state-loaded",
             () => {
                 this.ensureState();
+                this.lastCompletionAttempt =
+                    null;
+                this.reconcileAssembly();
 
                 if (this.active) {
                     this.notifyStateChange(

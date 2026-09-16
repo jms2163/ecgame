@@ -92,7 +92,7 @@ const PolymerizerUI = {
                     </div>
                     <div class="poly-status-chip" aria-label="Development status">
                         <span aria-hidden="true"></span>
-                        Milestone 3 Assembly Lifecycle
+                        Milestone 4 Functional Completion
                     </div>
                 </header>
 

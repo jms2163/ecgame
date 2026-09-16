@@ -54,18 +54,25 @@ try {
         structuredClone(
             gameState.registry.discoveries
         );
+    const startedAtMs = Date.now();
 
     const started =
         PolymerizerManager.startAssembly(
             "Aquaporin",
-            1_000
+            startedAtMs
         );
 
     assert.equal(started.success, true);
     assert.equal(started.saved, true);
     assert.equal(started.activeAssembly.productId, "Aquaporin");
-    assert.equal(started.activeAssembly.startedAtMs, 1_000);
-    assert.equal(started.activeAssembly.completesAtMs, 16_000);
+    assert.equal(
+        started.activeAssembly.startedAtMs,
+        startedAtMs
+    );
+    assert.equal(
+        started.activeAssembly.completesAtMs,
+        startedAtMs + 15_000
+    );
     assert.equal(started.activeAssembly.durationMs, 15_000);
     assert.equal(started.activeAssembly.atpCost, 15);
     assert.equal(started.activeAssembly.progress, 0);
@@ -87,7 +94,7 @@ try {
     const duplicate =
         PolymerizerManager.startAssembly(
             "Aquaporin",
-            2_000
+            startedAtMs + 1_000
         );
     assert.equal(duplicate.success, false);
     assert.equal(
@@ -102,7 +109,7 @@ try {
     const halfway =
         PolymerizerManager
             .getActiveAssemblyProgress(
-                8_500
+                startedAtMs + 7_500
             );
     assert.equal(halfway.progress, 0.5);
     assert.equal(halfway.remainingMs, 7_500);
@@ -111,23 +118,11 @@ try {
     const elapsed =
         PolymerizerManager
             .getActiveAssemblyProgress(
-                16_000
+                startedAtMs + 15_000
             );
     assert.equal(elapsed.progress, 1);
     assert.equal(elapsed.remainingMs, 0);
     assert.equal(elapsed.complete, true);
-
-    // Milestone 3 intentionally leaves elapsed work active and grants no
-    // product or discovery until the Milestone 4 completion transaction.
-    PolymerizerManager.reconcileAssembly(
-        20_000
-    );
-    assert(state.activeAssembly);
-    assert.deepEqual(state.productInventory, {});
-    assert.deepEqual(
-        gameState.registry.discoveries,
-        discoveriesBefore
-    );
 
     // Reload preserves the exact job and derives elapsed progress from time.
     assert.equal(SaveManager.load(), true);
@@ -135,7 +130,7 @@ try {
     const reloaded =
         PolymerizerManager
             .getActiveAssemblyProgress(
-                8_500
+                startedAtMs + 7_500
             );
     assert.equal(reloaded.jobId, started.activeAssembly.jobId);
     assert.equal(reloaded.progress, 0.5);
@@ -216,5 +211,5 @@ try {
 }
 
 console.log(
-    "PASS: Polymerizer Milestone 3 starts one reload-safe 15-second Aquaporin job, spends 15 ATP atomically, preserves permanent motif levels, blocks duplicates, rolls back failed saves, and grants no premature product or discovery."
+    "PASS: Polymerizer starts one reload-safe 15-second Aquaporin job, spends 15 ATP atomically, preserves permanent motif levels, blocks duplicates, rolls back failed starts, and grants no reward before completion."
 );

@@ -45,7 +45,7 @@ const PolymerizerProductView = {
                 activeAssembly
                     ?.productId === product.id
                     ? activeAssembly.complete
-                        ? "Assembly time complete"
+                        ? "Finalizing"
                         : "Assembling"
                     : product.eligible
                         ? "Requirements met · Ready"
@@ -92,20 +92,20 @@ const PolymerizerProductView = {
                 activeAssembly.progress;
             elements.countdown.textContent =
                 activeAssembly.complete
-                    ? "Assembly time complete"
+                    ? "Assembly complete · finalizing"
                     : `${Math.ceil(activeAssembly.remainingMs / 1000)} seconds remaining`;
             elements.chamberMode.textContent =
                 activeAssembly.complete
-                    ? "Ready to Finalize"
+                    ? "Finalizing"
                     : "Assembly Active";
             elements.chamberStatus.textContent =
                 activeAssembly.complete
-                    ? "Assembly time is complete. Product finalization and discovery arrive in Milestone 4."
+                    ? "Recording the completed Aquaporin and its discovery."
                     : "Aquaporin is assembling. Motif levels remain available in Macromolecularizer.";
             elements.assembleButton.disabled = true;
             elements.assembleButton.textContent =
                 activeAssembly.complete
-                    ? "Awaiting Milestone 4 Finalization"
+                    ? "Finalizing Aquaporin…"
                     : "Assembling Aquaporin…";
             return;
         }
@@ -210,7 +210,7 @@ const PolymerizerProductView = {
         elements.outputMessage.textContent =
             product.output.quantity > 0
                 ? `${product.definition.name} × ${product.output.quantity} stored in Polymerizer output inventory.`
-                : "No completed proteins yet. Output inventory activates with functional assembly.";
+                : "No completed proteins yet. Finish an assembly to place Aquaporin in this output tray.";
 
     }
 
