@@ -42,13 +42,14 @@ assert.deepEqual(
 assert.equal(recipe.motifCount, 15);
 assert.equal(recipe.atpCost, 15);
 assert.equal(recipe.consumesMotifs, false);
+assert.equal(recipe.discoveryId, "aquaporin");
 
 const visual =
     PolymerizerVisualCatalog.get(
         "Aquaporin"
     );
 assert(visual.imageUrl.endsWith(
-    "/public/assets/experiments/proteins/aquaporin.png"
+    "/public/assets/polymerizer/proteins/1RC2-0.png"
 ));
 
 assert.equal(

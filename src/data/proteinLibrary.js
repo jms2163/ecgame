@@ -20,7 +20,7 @@ export const proteinLibrary =  Object.freeze({
     "Tier": 1,
     "Location": "PlasmaMembrane",
     "Requires": ["AminoAcids", "BasicTranscription"],
-    "Source": "",
+    "Source": "4LDS",
     "Models": {},
     "Info": "Carrier protein that facilitates passive transport of glucose across the plasma membrane down its concentration gradient."
   },
