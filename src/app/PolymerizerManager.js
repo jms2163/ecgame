@@ -1,10 +1,10 @@
 // --------------------------------------------------
 // PolymerizerManager.js
-// Read-only Milestone 1 domain authority.
+// Milestone 2 domain authority and output-inventory normalizer.
 //
-// This milestone evaluates permanent Macromolecularizer motif levels.
-// It does not consume motifs, spend ATP, create jobs, grant discoveries,
-// or add Polymerizer-owned persistent fields.
+// This milestone evaluates permanent Macromolecularizer motif levels and
+// owns completed Polymerizer products. It does not consume motifs, spend
+// ATP, create jobs, complete products, or grant discoveries.
 // --------------------------------------------------
 
 import GameStateManager from "./GameStateManager.js";
@@ -24,6 +24,83 @@ function safeCount(value) {
 
 }
 
+function isRecord(value) {
+
+    return Boolean(
+        value &&
+        typeof value === "object" &&
+        !Array.isArray(value)
+    );
+
+}
+
+function safeTimestamp(value) {
+
+    return Number.isFinite(value) &&
+        value >= 0
+        ? value
+        : null;
+
+}
+
+function normalizeProductRecord(value) {
+
+    const source = isRecord(value)
+        ? value
+        : Number.isFinite(value)
+            ? { count: value }
+            : null;
+
+    if (!source) return null;
+
+    const count = safeCount(source.count);
+
+    // Zero-count entries are not completed products and do not belong
+    // in the authoritative output inventory.
+    if (count === 0) return null;
+
+    let firstCompletedAtMs =
+        safeTimestamp(
+            source.firstCompletedAtMs
+        );
+    let lastCompletedAtMs =
+        safeTimestamp(
+            source.lastCompletedAtMs
+        );
+
+    if (firstCompletedAtMs === null &&
+        lastCompletedAtMs !== null) {
+        firstCompletedAtMs =
+            lastCompletedAtMs;
+    } else if (
+        lastCompletedAtMs === null &&
+        firstCompletedAtMs !== null
+    ) {
+        lastCompletedAtMs =
+            firstCompletedAtMs;
+    } else if (
+        firstCompletedAtMs !== null &&
+        lastCompletedAtMs !== null &&
+        firstCompletedAtMs >
+            lastCompletedAtMs
+    ) {
+        [
+            firstCompletedAtMs,
+            lastCompletedAtMs
+        ] = [
+            lastCompletedAtMs,
+            firstCompletedAtMs
+        ];
+    }
+
+    return {
+        count,
+        firstCompletedAtMs,
+        lastCompletedAtMs
+    };
+
+}
+
 const PolymerizerManager = {
 
     initialized: false,
@@ -32,8 +109,22 @@ const PolymerizerManager = {
 
     initialize() {
 
-        // Older saves may not contain the future zone. Creating only the
-        // established empty zone envelope is additive and needs no migration.
+        this.ensureState();
+
+        if (!this.subscribed) {
+            this.subscribe();
+        }
+
+        this.initialized = true;
+        return true;
+
+    },
+
+    // --------------------------------------------------
+    // Normalize only Polymerizer-owned output inventory
+    // --------------------------------------------------
+    ensureState() {
+
         const state =
             GameStateManager.ensureZoneState(
                 ZONE_ID
@@ -45,12 +136,35 @@ const PolymerizerManager = {
             );
         }
 
-        if (!this.subscribed) {
-            this.subscribe();
+        if (!isRecord(
+            state.productInventory
+        )) {
+            state.productInventory = {};
         }
 
-        this.initialized = true;
-        return true;
+        Object.entries(
+            state.productInventory
+        ).forEach(([productId, record]) => {
+
+            const normalized =
+                normalizeProductRecord(
+                    record
+                );
+
+            if (!normalized) {
+                delete state.productInventory[
+                    productId
+                ];
+                return;
+            }
+
+            state.productInventory[
+                productId
+            ] = normalized;
+
+        });
+
+        return state;
 
     },
 
@@ -84,12 +198,78 @@ const PolymerizerManager = {
 
     getProductInventory() {
 
-        // productInventory is intentionally not created in Milestone 1.
-        // This read path is ready for the later functional milestone.
-        return GameStateManager
-            .getZoneSnapshot(ZONE_ID)
-            ?.state
-            ?.productInventory ?? {};
+        return structuredClone(
+            this.ensureState()
+                .productInventory
+        );
+
+    },
+
+    getProductRecord(productId) {
+
+        if (
+            typeof productId !== "string" ||
+            productId.trim() === ""
+        ) {
+            return null;
+        }
+
+        const record =
+            this.ensureState()
+                .productInventory[
+                    productId.trim()
+                ];
+
+        return record
+            ? structuredClone(record)
+            : {
+                count: 0,
+                firstCompletedAtMs: null,
+                lastCompletedAtMs: null
+            };
+
+    },
+
+    getProductInventoryStatus() {
+
+        const inventory =
+            this.getProductInventory();
+
+        const items = Object.entries(
+            inventory
+        ).map(([productId, record]) => {
+
+            const definition =
+                PolymerizerRecipeCatalog.get(
+                    productId
+                );
+
+            return {
+                id: productId,
+                name:
+                    definition?.name ??
+                    productId,
+                count: record.count,
+                firstCompletedAtMs:
+                    record.firstCompletedAtMs,
+                lastCompletedAtMs:
+                    record.lastCompletedAtMs,
+                knownProduct:
+                    Boolean(definition)
+            };
+
+        });
+
+        return {
+            items,
+            storedTypes: items.length,
+            totalQuantity:
+                items.reduce(
+                    (total, item) =>
+                        total + item.count,
+                    0
+                )
+        };
 
     },
 
@@ -152,9 +332,9 @@ const PolymerizerManager = {
             definition.atpCost;
 
         const outputRecord =
-            this.getProductInventory()[
+            this.getProductRecord(
                 productId
-            ];
+            );
 
         return {
             id: productId,
@@ -182,7 +362,7 @@ const PolymerizerManager = {
                 canAffordATP,
             canStart: false,
             implementationStatus:
-                "milestone-1-preview",
+                "milestone-2-preview",
             output: {
                 quantity:
                     safeCount(
@@ -238,9 +418,9 @@ const PolymerizerManager = {
                     DEFAULT_PRODUCT_ID
                 ),
             productInventory:
-                structuredClone(
-                    this.getProductInventory()
-                )
+                this.getProductInventory(),
+            productInventoryStatus:
+                this.getProductInventoryStatus()
         };
 
     },
@@ -250,7 +430,7 @@ const PolymerizerManager = {
         return {
             success: false,
             reason:
-                "milestone-1-preview",
+                "milestone-2-preview",
             message:
                 "Aquaporin assembly is not enabled in this development milestone."
         };
@@ -271,9 +451,7 @@ const PolymerizerManager = {
         GameStateObserver.on(
             "game-state-loaded",
             () => {
-                GameStateManager.ensureZoneState(
-                    ZONE_ID
-                );
+                this.ensureState();
 
                 if (this.active) {
                     this.notifyStateChange(

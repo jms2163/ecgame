@@ -70,8 +70,8 @@ assert.equal(
     false
 );
 
-// A legacy save can omit the future zone. Initialization creates only
-// the empty zone envelope and does not add speculative state fields.
+// A legacy save can omit the future zone. Initialization creates the
+// zone envelope and the now-authoritative empty product inventory.
 delete gameState.zones.polymerizer;
 PolymerizerManager.initialize();
 assert.deepEqual(
@@ -79,7 +79,9 @@ assert.deepEqual(
     {
         unlocked: false,
         completed: false,
-        state: {}
+        state: {
+            productInventory: {}
+        }
     }
 );
 

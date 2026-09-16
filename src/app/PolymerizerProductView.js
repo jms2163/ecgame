@@ -80,7 +80,7 @@ const PolymerizerProductView = {
 
         elements.assembleButton.disabled = true;
         elements.assembleButton.textContent =
-            "Assembly Disabled — Milestone 1";
+            "Assembly Disabled — Milestone 2";
 
     },
 
@@ -161,7 +161,7 @@ const PolymerizerProductView = {
 
         elements.outputMessage.textContent =
             product.output.quantity > 0
-                ? "Completed Aquaporin proteins"
+                ? `${product.definition.name} × ${product.output.quantity} stored in Polymerizer output inventory.`
                 : "No completed proteins yet. Output inventory activates with functional assembly.";
 
     }
