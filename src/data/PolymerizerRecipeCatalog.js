@@ -15,9 +15,21 @@ const MOTIF_ID_BY_SYMBOL = Object.freeze({
 });
 
 const ATP_PER_MOTIF_UNIT = 1;
-const IMPLEMENTED_PRODUCT_IDS = Object.freeze([
-    "Aquaporin"
-]);
+const PRODUCT_CONFIGS = Object.freeze({
+    Aquaporin: Object.freeze({
+        name: "Aquaporin",
+        implemented: true,
+        discoveryId: "aquaporin",
+        lockedMessage: null
+    }),
+    GlucoseTransporter: Object.freeze({
+        name: "Glucose Transporter",
+        implemented: false,
+        discoveryId: null,
+        lockedMessage:
+            "Coming Soon — the C and B structural motif mappings and ATP cost have not been approved."
+    })
+});
 
 function safeCount(value) {
 
@@ -42,6 +54,7 @@ function countPPCSymbols(ppc = "") {
 
 function createDefinition(id, protein) {
 
+    const config = PRODUCT_CONFIGS[id];
     const recipe = protein?.Recipe ?? {};
     const ppcCounts = countPPCSymbols(
         protein?.PPC
@@ -93,7 +106,7 @@ function createDefinition(id, protein) {
 
     return Object.freeze({
         id,
-        name: id,
+        name: config?.name ?? id,
         category: "proteins",
         className:
             protein?.Class ?? "Protein",
@@ -112,9 +125,14 @@ function createDefinition(id, protein) {
                 motifRequirements
             ),
         motifCount,
+        // Only released recipes receive a gameplay ATP cost. Locked catalog
+        // entries may contain preliminary biological structure data, but
+        // Polymerizer must not turn that into an unapproved playable cost.
         atpCost:
-            motifCount *
-            ATP_PER_MOTIF_UNIT,
+            config?.implemented
+                ? motifCount *
+                    ATP_PER_MOTIF_UNIT
+                : null,
         consumesMotifs: false,
         recipeMatchesPPC,
         valid:
@@ -122,15 +140,18 @@ function createDefinition(id, protein) {
             recipeMatchesPPC &&
             motifCount > 0,
         implemented:
-            IMPLEMENTED_PRODUCT_IDS
-                .includes(id)
+            Boolean(config?.implemented),
+        discoveryId:
+            config?.discoveryId ?? null,
+        lockedMessage:
+            config?.lockedMessage ?? null
     });
 
 }
 
 const DEFINITIONS = Object.freeze(
     Object.fromEntries(
-        IMPLEMENTED_PRODUCT_IDS.map(
+        Object.keys(PRODUCT_CONFIGS).map(
             id => [
                 id,
                 createDefinition(

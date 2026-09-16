@@ -14,6 +14,9 @@ const PolymerizerUI = {
     active: false,
     rootElement: null,
     elements: {},
+    // Product browsing is presentation-only and intentionally does not add
+    // a speculative selection field to persistent Polymerizer save state.
+    selectedProductId: "Aquaporin",
 
     initialize() {
 
@@ -258,15 +261,40 @@ const PolymerizerUI = {
 
         if (!this.rootElement) return false;
 
-        const status =
-            PolymerizerManager.getStatus();
+        let status =
+            PolymerizerManager.getStatus(
+                this.selectedProductId
+            );
+
+        // Keep the active job visible while it is assembling. Product cards
+        // are disabled during this interval, so the timer and image sequence
+        // always describe the job that is actually running.
+        if (
+            status.activeAssembly &&
+            status.activeAssembly.productId !==
+                status.selectedProductId
+        ) {
+            this.selectedProductId =
+                status.activeAssembly.productId;
+            status =
+                PolymerizerManager.getStatus(
+                    this.selectedProductId
+                );
+        }
+
         const product =
             status.selectedProduct;
 
         PolymerizerProductView.renderCatalog(
             this.elements.productList,
             status.products,
-            status.activeAssembly
+            status.activeAssembly,
+            status.selectedProductId,
+            productId => {
+                this.selectedProductId =
+                    productId;
+                this.render();
+            }
         );
         PolymerizerProductView.renderChamber(
             this.elements,

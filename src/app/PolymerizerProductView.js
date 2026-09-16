@@ -11,12 +11,100 @@ const MOTIF_NAMES = Object.freeze({
     L_loop: "Loop Motif"
 });
 
+// Avoid requesting a missing development asset on every 100 ms progress
+// render. A page reload clears this cache after new image files are added.
+const failedImageUrls = new Set();
+
+function renderProductImage(
+    elements,
+    product,
+    activeAssembly
+) {
+
+    const visual =
+        PolymerizerVisualCatalog.get(
+            product.id
+        );
+
+    if (!visual) {
+        elements.productImage.hidden = true;
+        elements.productImage.removeAttribute(
+            "src"
+        );
+        return;
+    }
+
+    const productAssembly =
+        activeAssembly?.productId ===
+            product.id
+            ? activeAssembly
+            : null;
+    const requestedImageUrl =
+        PolymerizerVisualCatalog
+            .resolveImageUrl(
+                product.id,
+                {
+                    progress:
+                        productAssembly
+                            ?.progress ??
+                        null,
+                    completed:
+                        !productAssembly &&
+                        product.output.quantity > 0
+                }
+            );
+
+    if (
+        failedImageUrls.has(
+            requestedImageUrl
+        ) &&
+        !visual.fallbackImageUrl
+    ) {
+        elements.productImage.hidden = true;
+        elements.productImage.removeAttribute(
+            "src"
+        );
+        return;
+    }
+
+    const imageUrl =
+        failedImageUrls.has(
+            requestedImageUrl
+        )
+            ? visual.fallbackImageUrl
+            : requestedImageUrl;
+
+    elements.productImage.hidden = false;
+    elements.productImage.alt = visual.alt;
+    elements.productImage.onerror = () => {
+        failedImageUrls.add(
+            requestedImageUrl
+        );
+
+        if (
+            visual.fallbackImageUrl &&
+            elements.productImage.src !==
+                visual.fallbackImageUrl
+        ) {
+            elements.productImage.src =
+                visual.fallbackImageUrl;
+            return;
+        }
+
+        elements.productImage.hidden = true;
+    };
+    elements.productImage.src = imageUrl;
+
+}
+
 const PolymerizerProductView = {
 
     renderCatalog(
         container,
         products = [],
-        activeAssembly = null
+        activeAssembly = null,
+        selectedProductId = null,
+        onSelect = null
     ) {
 
         if (!container) return;
@@ -26,13 +114,28 @@ const PolymerizerProductView = {
                 document.createElement("button");
 
             button.type = "button";
-            button.className =
-                "poly-product-card poly-product-card--selected";
-            button.disabled = true;
-            button.setAttribute(
-                "aria-current",
-                "true"
-            );
+            button.className = [
+                "poly-product-card",
+                product.id ===
+                    selectedProductId
+                    ? "poly-product-card--selected"
+                    : "",
+                product.locked
+                    ? "poly-product-card--locked"
+                    : ""
+            ].filter(Boolean).join(" ");
+            button.disabled =
+                Boolean(activeAssembly);
+
+            if (
+                product.id ===
+                selectedProductId
+            ) {
+                button.setAttribute(
+                    "aria-current",
+                    "true"
+                );
+            }
 
             const name =
                 document.createElement("strong");
@@ -47,11 +150,21 @@ const PolymerizerProductView = {
                     ? activeAssembly.complete
                         ? "Finalizing"
                         : "Assembling"
+                    : product.locked
+                        ? "Coming Soon"
                     : product.eligible
                         ? "Requirements met · Ready"
                         : "Requirements incomplete";
 
             button.append(name, status);
+
+            if (typeof onSelect === "function") {
+                button.addEventListener(
+                    "click",
+                    () => onSelect(product.id)
+                );
+            }
+
             return button;
         });
 
@@ -67,11 +180,6 @@ const PolymerizerProductView = {
 
         if (!product) return;
 
-        const visual =
-            PolymerizerVisualCatalog.get(
-                product.id
-            );
-
         elements.productName.textContent =
             product.definition.name;
         elements.productClass.textContent =
@@ -79,11 +187,25 @@ const PolymerizerProductView = {
         elements.productDescription.textContent =
             product.definition.description;
 
-        if (visual) {
-            elements.productImage.src =
-                visual.imageUrl;
-            elements.productImage.alt =
-                visual.alt;
+        renderProductImage(
+            elements,
+            product,
+            activeAssembly
+        );
+
+        if (product.locked) {
+            elements.progressPanel.hidden = true;
+            elements.progress.value = 0;
+            elements.countdown.textContent =
+                "Assembly timing not configured";
+            elements.chamberMode.textContent =
+                "Coming Soon";
+            elements.chamberStatus.textContent =
+                product.lockedMessage;
+            elements.assembleButton.disabled = true;
+            elements.assembleButton.textContent =
+                `${product.definition.name} · Coming Soon`;
+            return;
         }
 
         if (activeAssembly) {
@@ -100,13 +222,13 @@ const PolymerizerProductView = {
                     : "Assembly Active";
             elements.chamberStatus.textContent =
                 activeAssembly.complete
-                    ? "Recording the completed Aquaporin and its discovery."
-                    : "Aquaporin is assembling. Motif levels remain available in Macromolecularizer.";
+                    ? `Recording the completed ${product.definition.name} and its discovery.`
+                    : `${product.definition.name} is assembling. Motif levels remain available in Macromolecularizer.`;
             elements.assembleButton.disabled = true;
             elements.assembleButton.textContent =
                 activeAssembly.complete
-                    ? "Finalizing Aquaporin…"
-                    : "Assembling Aquaporin…";
+                    ? `Finalizing ${product.definition.name}…`
+                    : `Assembling ${product.definition.name}…`;
             return;
         }
 
@@ -127,7 +249,7 @@ const PolymerizerProductView = {
             !product.canStart;
         elements.assembleButton.textContent =
             product.canStart
-                ? "Assemble Aquaporin · 15 ATP"
+                ? `Assemble ${product.definition.name} · ${product.atp.cost} ATP`
                 : "Assembly Requirements Incomplete";
 
     },
@@ -135,6 +257,31 @@ const PolymerizerProductView = {
     renderPreflight(container, product) {
 
         if (!container || !product) return;
+
+        if (product.locked) {
+            const item =
+                document.createElement("li");
+            item.className =
+                "poly-requirement poly-requirement--locked";
+
+            const label =
+                document.createElement("span");
+            label.textContent =
+                "Development status";
+
+            const count =
+                document.createElement("strong");
+            count.textContent = "Locked";
+
+            const note =
+                document.createElement("small");
+            note.textContent =
+                product.lockedMessage;
+
+            item.append(label, count, note);
+            container.replaceChildren(item);
+            return;
+        }
 
         const rows = product.motifs.map(
             motif => {
@@ -210,7 +357,9 @@ const PolymerizerProductView = {
         elements.outputMessage.textContent =
             product.output.quantity > 0
                 ? `${product.definition.name} × ${product.output.quantity} stored in Polymerizer output inventory.`
-                : "No completed proteins yet. Finish an assembly to place Aquaporin in this output tray.";
+                : product.locked
+                    ? `${product.definition.name} output is unavailable until its recipe is implemented.`
+                    : `No completed ${product.definition.name} proteins yet.`;
 
     }
 

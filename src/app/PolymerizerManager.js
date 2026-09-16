@@ -20,7 +20,6 @@ const DEFAULT_PRODUCT_ID = "Aquaporin";
 const ASSEMBLY_DURATION_MS = 15_000;
 const PROGRESS_EVENT_INTERVAL_MS = 100;
 const COMPLETION_RETRY_INTERVAL_MS = 1_000;
-const AQUAPORIN_DISCOVERY_ID = "aquaporin";
 
 function safeCount(value) {
 
@@ -394,8 +393,57 @@ const PolymerizerManager = {
                 productId
             );
 
-        if (!definition?.implemented) {
+        if (!definition) {
             return null;
+        }
+
+        const outputRecord =
+            this.getProductRecord(
+                productId
+            );
+
+        if (!definition.implemented) {
+            const atp =
+                ResourceManager.getATPStatus();
+
+            return {
+                id: productId,
+                definition:
+                    structuredClone(
+                        definition
+                    ),
+                implemented: false,
+                locked: true,
+                lockedMessage:
+                    definition.lockedMessage,
+                motifs: [],
+                motifLevelsMet: false,
+                atp: {
+                    current: atp.current,
+                    maximum: atp.maximum,
+                    cost: null,
+                    canAfford: false,
+                    missing: null
+                },
+                eligible: false,
+                canStart: false,
+                implementationStatus:
+                    "coming-soon",
+                output: {
+                    quantity:
+                        safeCount(
+                            outputRecord?.count
+                        ),
+                    firstCompletedAtMs:
+                        outputRecord
+                            ?.firstCompletedAtMs ??
+                        null,
+                    lastCompletedAtMs:
+                        outputRecord
+                            ?.lastCompletedAtMs ??
+                        null
+                }
+            };
         }
 
         const inventory =
@@ -443,17 +491,15 @@ const PolymerizerManager = {
             atp.current >=
             definition.atpCost;
 
-        const outputRecord =
-            this.getProductRecord(
-                productId
-            );
-
         return {
             id: productId,
             definition:
                 structuredClone(
                     definition
                 ),
+            implemented: true,
+            locked: false,
+            lockedMessage: null,
             motifs,
             motifLevelsMet,
             atp: {
@@ -506,12 +552,21 @@ const PolymerizerManager = {
 
     },
 
-    getStatus() {
+    getStatus(
+        selectedProductId =
+            DEFAULT_PRODUCT_ID
+    ) {
 
         const zone =
             GameStateManager.getZoneSnapshot(
                 ZONE_ID
             );
+        const resolvedProductId =
+            PolymerizerRecipeCatalog.has(
+                selectedProductId
+            )
+                ? selectedProductId
+                : DEFAULT_PRODUCT_ID;
 
         return {
             initialized: this.initialized,
@@ -521,10 +576,10 @@ const PolymerizerManager = {
             completed:
                 Boolean(zone?.completed),
             selectedProductId:
-                DEFAULT_PRODUCT_ID,
+                resolvedProductId,
             products:
                 PolymerizerRecipeCatalog
-                    .getImplemented()
+                    .getAll()
                     .map(definition =>
                         this.getProductEligibility(
                             definition.id
@@ -532,7 +587,7 @@ const PolymerizerManager = {
                     ),
             selectedProduct:
                 this.getProductEligibility(
-                    DEFAULT_PRODUCT_ID
+                    resolvedProductId
                 ),
             activeAssembly:
                 this.getActiveAssemblyProgress(),
@@ -631,13 +686,8 @@ const PolymerizerManager = {
             PolymerizerRecipeCatalog.get(
                 productId
             );
-        const eligibility =
-            this.getProductEligibility(
-                productId
-            );
 
-        if (!definition?.implemented ||
-            !eligibility) {
+        if (!definition) {
             return {
                 success: false,
                 reason: "unknown-product",
@@ -645,6 +695,21 @@ const PolymerizerManager = {
                     "That protein is not available for assembly."
             };
         }
+
+        if (!definition.implemented) {
+            return {
+                success: false,
+                reason: "product-locked",
+                message:
+                    definition.lockedMessage ??
+                    "That protein is coming soon."
+            };
+        }
+
+        const eligibility =
+            this.getProductEligibility(
+                productId
+            );
 
         if (!eligibility.motifLevelsMet) {
             return {
@@ -823,6 +888,24 @@ const PolymerizerManager = {
         }
 
         const productId = job.productId;
+        const definition =
+            PolymerizerRecipeCatalog.get(
+                productId
+            );
+        const discoveryId =
+            definition?.discoveryId;
+
+        if (
+            typeof discoveryId !== "string" ||
+            discoveryId.trim() === ""
+        ) {
+            return {
+                success: false,
+                reason:
+                    "missing-product-discovery"
+            };
+        }
+
         const hadProductRecord =
             Object.prototype.hasOwnProperty.call(
                 state.productInventory,
@@ -855,13 +938,13 @@ const PolymerizerManager = {
 
         const discoveryAlreadyKnown =
             GameStateManager.hasDiscovery(
-                AQUAPORIN_DISCOVERY_ID
+                discoveryId
             );
         const discoveryGranted =
             discoveryAlreadyKnown
                 ? false
                 : GameStateManager.addDiscovery(
-                    AQUAPORIN_DISCOVERY_ID
+                    discoveryId
                 );
 
         // A failed grant must not leave a completed product whose required
@@ -908,7 +991,7 @@ const PolymerizerManager = {
 
             if (discoveryGranted) {
                 GameStateManager.removeDiscovery(
-                    AQUAPORIN_DISCOVERY_ID
+                    discoveryId
                 );
             }
 
@@ -931,7 +1014,7 @@ const PolymerizerManager = {
                 quantity:
                     previousCount + 1,
                 discoveryId:
-                    AQUAPORIN_DISCOVERY_ID,
+                    discoveryId,
                 discoveryGranted,
                 completedAtMs:
                     completionTimestamp
@@ -945,12 +1028,12 @@ const PolymerizerManager = {
             productId,
             quantity: previousCount + 1,
             discoveryId:
-                AQUAPORIN_DISCOVERY_ID,
+                discoveryId,
             discoveryGranted,
             completedAtMs:
                 completionTimestamp,
             message:
-                "Aquaporin assembly complete. Product stored and discovery recorded."
+                `${definition.name} assembly complete. Product stored and discovery recorded.`
         };
 
     },

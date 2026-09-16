@@ -176,6 +176,20 @@
 .poly-product-card {
     display: grid;
     gap: 6px;
+    cursor: pointer;
+}
+
+.poly-product-card:disabled {
+    cursor: not-allowed;
+}
+
+.poly-product-card--locked:not(.poly-product-card--selected) {
+    border-color: rgba(139, 124, 255, 0.24);
+    background: rgba(22, 24, 43, 0.62);
+}
+
+.poly-product-card--locked span {
+    color: #c6bdff;
 }
 
 .poly-chamber-panel {
@@ -376,6 +390,14 @@
 
 .poly-requirement--complete strong {
     color: var(--poly-ready);
+}
+
+.poly-requirement--locked {
+    border-color: rgba(139, 124, 255, 0.34);
+}
+
+.poly-requirement--locked strong {
+    color: #c6bdff;
 }
 
 .poly-output-heading strong {
