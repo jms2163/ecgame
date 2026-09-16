@@ -70,10 +70,11 @@ const OrganelleView = {
     // --------------------------------------------------
     // Open one experiment on the stage
     // --------------------------------------------------
-    openExperiment(experiment) {
+    openExperiment(experiment, options = {}) {
 
         OrganelleExperimentStage.open(
-            experiment
+            experiment,
+            options
         );
 
     },
@@ -179,9 +180,10 @@ const OrganelleView = {
                         ? ""
                         : overviewMessage,
                 onOpenExperiment:
-                    experiment =>
+                    (experiment, options) =>
                         this.openExperiment(
-                            experiment
+                            experiment,
+                            options
                         ),
 
                 onReviewSubmission:

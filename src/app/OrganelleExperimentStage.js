@@ -38,6 +38,7 @@ import PassiveDiffusionView from "./PassiveDiffusionView.js";
 import CytoskeletonTransportView from "./CytoskeletonTransportView.js";
 import GuidedExperimentManager from './GuidedExperimentManager.js';
 import GuidedExperimentView from './GuidedExperimentView.js';
+import ContractileVacuoleReviewView from './ContractileVacuoleReviewView.js';
 import PlasmaMembraneVisualCatalog from "./PlasmaMembraneVisualCatalog.js";
 
 const OrganelleExperimentStage = {
@@ -1915,7 +1916,8 @@ stage.append(
     open(
         experiment,
         {
-            mode = "attempt"
+            mode = "attempt",
+            guidedStageId = null
         } = {}
     ) {
 
@@ -1962,8 +1964,15 @@ stage.append(
             return;
         }
 
+        const firstGuidedStageId = experiment.sequence?.stages
+            ?.find(stage => stage.playable)?.id ?? null;
+        const requestedGuidedStageId = guidedStageId ?? (
+            experiment.sequence && (mode === 'improve' || mode === 'reexamine')
+                ? firstGuidedStageId
+                : null
+        );
         const stageExperiment = experiment.sequence
-            ? GuidedExperimentManager.resolve(experiment)
+            ? GuidedExperimentManager.resolve(experiment, requestedGuidedStageId)
             : experiment;
 
         const resolvedExperiment = {
@@ -1999,7 +2008,9 @@ stage.append(
         this.titleElement.textContent =
             this.isReexamineMode
                 ? `${resolvedExperiment.title} - Re-examine`
-                : resolvedExperiment.title;
+                : mode === 'improve'
+                    ? `${resolvedExperiment.title} - Improve Score`
+                    : resolvedExperiment.title;
 
         this.renderControls(
             resolvedExperiment
@@ -2135,10 +2146,14 @@ this.contentElement.appendChild(
                 resolvedExperiment,
                 {
                     sandbox: this.isReexamineMode,
-                    onNextStage: () => this.open(
+                    onNextStage: nextStageId => this.open(
                         this.activeExperiment,
-                        { mode: this.isReexamineMode ? 'reexamine' : 'attempt' }
-                    )
+                        {
+                            mode: this.isReexamineMode ? 'reexamine' : mode,
+                            guidedStageId: nextStageId
+                        }
+                    ),
+                    onCheckpointSaved: () => OrganelleExperimentPanel.refresh()
                 }
             );
             this.guidedStateChanged = guidedView.onStateChanged;
@@ -2199,6 +2214,17 @@ this.contentElement.appendChild(
         this.isReviewMode = true;
 
         this.isReexamineMode = false;
+
+        if (experiment.sequence?.stages) {
+            this.titleElement.textContent =
+                `${experiment.title} - Submission Review`;
+            this.controlsElement.replaceChildren();
+            ContractileVacuoleReviewView.mount(
+                this.contentElement,
+                experiment
+            );
+            return;
+        }
 
         if (experiment.stage?.template === "cytoskeleton_transport") {
             OrganelleExperimentPlacementController.reset();

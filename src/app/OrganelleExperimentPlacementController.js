@@ -854,21 +854,31 @@ placeActiveDrag(
             placement.definitionId
         );
 
-    const particlesPerPlacement =
+    // Some activities use one draggable sample to represent several visible
+    // particles before simulation. Keep that display choice on the resolved
+    // stage material so the same ion can remain a single unit elsewhere.
+    const placementVisualCount =
         Number.isInteger(
-            material?.particlesPerPlacement
+            material?.placementVisualCount
         ) &&
-        material.particlesPerPlacement > 0
-            ? material.particlesPerPlacement
-            : 1;
+        material.placementVisualCount > 0
+            ? material.placementVisualCount
+            : Number.isInteger(material?.particlesPerPlacement) &&
+                material.particlesPerPlacement > 0
+                ? material.particlesPerPlacement
+                : 1;
 
-    if (particlesPerPlacement > 1) {
+    if (placementVisualCount > 1) {
         const cluster = document.createElement("span");
-        cluster.className = "organelle-experiment-water-cluster";
+        cluster.className = "organelle-experiment-particle-cluster";
+        cluster.style.setProperty(
+            "--placement-cluster-columns",
+            Math.ceil(Math.sqrt(placementVisualCount))
+        );
 
         for (
             let index = 0;
-            index < particlesPerPlacement;
+            index < placementVisualCount;
             index += 1
         ) {
             cluster.appendChild(this.createMaterialVisual(material));
