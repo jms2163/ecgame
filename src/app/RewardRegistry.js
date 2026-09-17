@@ -207,6 +207,74 @@ RewardRegistry.register("xp", {
 });
 
 // --------------------------------------------------
+// Legacy research discoveries used by Organelle Lab prerequisites.
+// Already-known discoveries are accepted without creating duplicates.
+// Only discoveries added by this transaction are removed on rollback.
+// --------------------------------------------------
+
+RewardRegistry.register("discoveries", {
+    apply(discoveryIds) {
+        const ids = [
+            ...new Set(
+                (
+                    Array.isArray(discoveryIds)
+                        ? discoveryIds
+                        : [discoveryIds]
+                ).map(id =>
+                    typeof id === "string"
+                        ? id.trim()
+                        : ""
+                )
+            )
+        ];
+
+        if (ids.length === 0 || ids.some(id => id === "")) {
+            throw new Error(
+                "RewardRegistry: discovery rewards require non-empty string IDs"
+            );
+        }
+
+        const alreadyKnown = ids.filter(id =>
+            GameStateManager.hasDiscovery(id)
+        );
+        const added = [];
+
+        try {
+            ids.forEach(id => {
+                if (alreadyKnown.includes(id)) return;
+
+                if (!GameStateManager.addDiscovery(id)) {
+                    throw new Error(
+                        `RewardRegistry: discovery reward was rejected for "${id}"`
+                    );
+                }
+
+                added.push(id);
+            });
+        } catch (error) {
+            added.reverse().forEach(id =>
+                GameStateManager.removeDiscovery(id)
+            );
+            throw error;
+        }
+
+        return {
+            snapshot: { added },
+            result: {
+                granted: [...added],
+                alreadyKnown
+            }
+        };
+    },
+
+    revert({ added = [] }) {
+        [...added].reverse().forEach(id =>
+            GameStateManager.removeDiscovery(id)
+        );
+    }
+});
+
+// --------------------------------------------------
 // Skill points
 // --------------------------------------------------
 

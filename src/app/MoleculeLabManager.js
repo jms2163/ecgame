@@ -264,7 +264,41 @@ const MoleculeLabManager = {
         const missing = requirements.filter(
             moleculeId => !this.hasMoleculeDiscovery(moleculeId)
         );
-        return { id: categoryId, unlocked: missing.length === 0, missing };
+        const synthesisRecipes =
+            MoleculeRecipeCatalog
+                .getByCategory(categoryId)
+                .filter(definition =>
+                    definition.type !== "link" &&
+                    definition.implemented
+                );
+        const synthesized =
+            this.ensureState().synthesized;
+        const synthesizedIds =
+            synthesisRecipes
+                .filter(definition =>
+                    safeInteger(
+                        synthesized[definition.id]
+                            ?.count
+                    ) >= 1
+                )
+                .map(definition =>
+                    definition.id
+                );
+
+        return {
+            id: categoryId,
+            unlocked: missing.length === 0,
+            missing,
+            synthesisTargetCount:
+                synthesisRecipes.length,
+            synthesizedUniqueCount:
+                synthesizedIds.length,
+            synthesizedIds,
+            synthesisComplete:
+                synthesisRecipes.length > 0 &&
+                synthesizedIds.length ===
+                    synthesisRecipes.length
+        };
     },
 
     getActiveSynthesisProgress(nowMs = Date.now()) {

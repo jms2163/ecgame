@@ -28,12 +28,25 @@
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease-in-out;
+    position: relative;
 }
 
 .molecule-lab-tab-label {
     font-family: 'Courier New', Courier, monospace;
     font-size: 1.5rem;
     font-weight: 600;
+}
+
+.molecule-lab-tab-star {
+    position: absolute;
+    top: 2px;
+    right: 4px;
+    color: #ffd84a;
+    font-size: 0.8rem;
+    line-height: 1;
+    text-shadow:
+        0 0 4px rgba(255, 216, 74, 0.9),
+        0 0 8px rgba(255, 159, 28, 0.55);
 }
 
 /* Hover State */
