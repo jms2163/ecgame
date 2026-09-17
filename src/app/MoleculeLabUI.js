@@ -555,15 +555,32 @@ const MoleculeLabUI = {
             button.disabled = !category.unlocked;
             button.dataset.category = category.id;
             button.title = category.unlocked
-                ? category.title
+                ? category.synthesisComplete
+                    ? `${category.title} — all ${category.synthesisTargetCount} recipes synthesized`
+                    : category.title
                 : `Requires ${category.missing.join(" and ")}`;
             button.setAttribute(
                 "aria-label",
                 category.unlocked
-                    ? category.title
+                    ? category.synthesisComplete
+                        ? `${category.title}, all recipes synthesized`
+                        : category.title
                     : `${category.title} locked. ${button.title}`
             );
-            button.innerHTML = `<span class="molecule-lab-tab-label">${category.label}</span>`;
+            const label = document.createElement("span");
+            label.className = "molecule-lab-tab-label";
+            label.textContent = category.label;
+            button.appendChild(label);
+
+            if (category.synthesisComplete) {
+                const star = document.createElement("span");
+                star.className = "molecule-lab-tab-star";
+                star.textContent = "★";
+                star.setAttribute("aria-hidden", "true");
+                star.title =
+                    `${category.title} complete`;
+                button.appendChild(star);
+            }
             button.addEventListener("click", () => {
                 const result = MoleculeLabManager.setActiveCategory(category.id);
                 if (!result.success) {

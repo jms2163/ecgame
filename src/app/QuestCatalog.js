@@ -7,6 +7,10 @@ import { AtomizerQuestCatalog } from "./AtomizerQuestCatalog.js";
 import { MonosaccharideQuestCatalog } from "./MonosaccharideQuestCatalog.js";
 import { AminoAcidQuestCatalog } from "./AminoAcidQuestCatalog.js";
 import { LipidQuestCatalog } from "./LipidQuestCatalog.js";
+import { MacromolecularQuestCatalog }
+    from "./MacromolecularQuestCatalog.js";
+import { PeriodicGroupQuestCatalog }
+    from "./PeriodicGroupQuestCatalog.js";
 
 const QuestCatalog = {
 
@@ -319,7 +323,9 @@ unlock_molecule_lab: {
     ...AtomizerQuestCatalog,
     ...MonosaccharideQuestCatalog,
     ...AminoAcidQuestCatalog,
-    ...LipidQuestCatalog
+    ...LipidQuestCatalog,
+    ...MacromolecularQuestCatalog,
+    ...PeriodicGroupQuestCatalog
 
 };
 

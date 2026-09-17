@@ -7,6 +7,8 @@ import gameState from "./GameState.js";
 import ParticleInventoryManager from "./ParticleInventoryManager.js";
 import MoleculeRecipeCatalog
     from "../data/MoleculeRecipeCatalog.js";
+import MacromolecularRecipeCatalog
+    from "../data/MacromolecularRecipeCatalog.js";
 
 
 const handlers = new Map();
@@ -248,6 +250,65 @@ ObjectiveRegistry.register(
     }
 );
 
+// A fixed set of distinct synthesized elements. Current categorized atom
+// discovery records are authoritative; isotopes and repeated syntheses do not
+// add extra progress. Historical syntheses count immediately.
+ObjectiveRegistry.register(
+    "atom-synthesis-set",
+    {
+        events: [
+            "atom-synthesis-changed",
+            "discovery-made"
+        ],
+
+        evaluate({ objective }) {
+            const atomIds = [
+                ...new Set(
+                    objective.atomIds ?? []
+                )
+            ];
+
+            if (
+                atomIds.length === 0 ||
+                atomIds.length !== objective.target ||
+                atomIds.some(atomId =>
+                    typeof atomId !== "string" ||
+                    atomId.trim() === ""
+                )
+            ) {
+                return {
+                    current: 0,
+                    target: objective.target ?? 1,
+                    complete: false,
+                    error: "invalid-atom-set"
+                };
+            }
+
+            const discoveries =
+                gameState.discoveries?.atoms ?? {};
+            const completedIds = atomIds.filter(
+                atomId =>
+                    Number.isFinite(
+                        discoveries[atomId]?.count
+                    ) &&
+                    discoveries[atomId].count >= 1
+            );
+
+            return {
+                ...normalizeProgress(
+                    completedIds.length,
+                    atomIds.length
+                ),
+                completedIds,
+                missingIds: atomIds.filter(
+                    atomId =>
+                        !completedIds.includes(atomId)
+                )
+            };
+        }
+    }
+);
+
 // --------------------------------------------------
 // Guided Quantum Identification
 // --------------------------------------------------
@@ -460,6 +521,63 @@ ObjectiveRegistry.register("molecule-synthesis-set", {
         };
     }
 });
+
+// Counts a completed Macromolecularizer product from its authoritative
+// inventory. Existing synthesis counts qualify, and evaluation is read-only:
+// motifs remain permanent levels and are never consumed by this quest.
+ObjectiveRegistry.register(
+    "macromolecular-product-synthesis",
+    {
+        events: [
+            "motif-synthesized",
+            "macromolecularizer-state-changed"
+        ],
+
+        evaluate({ objective }) {
+            const definition =
+                MacromolecularRecipeCatalog.get(
+                    objective.productId
+                );
+
+            if (
+                !definition?.implemented ||
+                definition.category !== "motifs"
+            ) {
+                return {
+                    current: 0,
+                    target: objective.target ?? 1,
+                    complete: false,
+                    error:
+                        "invalid-macromolecular-product"
+                };
+            }
+
+            const count =
+                gameState.zones
+                    ?.macromolecularizer
+                    ?.state
+                    ?.motifInventory
+                    ?.[objective.productId] ?? 0;
+
+            return {
+                ...normalizeProgress(
+                    Math.floor(
+                        Number.isFinite(count)
+                            ? Math.max(0, count)
+                            : 0
+                    ),
+                    objective.target
+                ),
+                productId: objective.productId,
+                inventoryCount:
+                    Number.isFinite(count)
+                        ? Math.max(0, Math.floor(count))
+                        : 0,
+                consumed: false
+            };
+        }
+    }
+);
 
 export {
     createBaselineKey,

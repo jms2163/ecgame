@@ -485,6 +485,30 @@ const QuestDrawerUI = {
             );
         }
 
+        if (
+            Array.isArray(
+                quest.rewards.discoveries
+            ) &&
+            quest.rewards.discoveries.length > 0
+        ) {
+            const discoveryLabels =
+                quest.rewards.discoveries.map(
+                    discoveryId =>
+                        discoveryId
+                            .split("_")
+                            .map(word =>
+                                word.charAt(0)
+                                    .toUpperCase() +
+                                word.slice(1)
+                            )
+                            .join(" ")
+                );
+
+            rewardParts.push(
+                `Discovery: ${discoveryLabels.join(", ")}`
+            );
+        }
+
         if (quest.rewards.sp) {
             rewardParts.push(
                 `${quest.rewards.sp} SP`
