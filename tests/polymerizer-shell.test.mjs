@@ -10,6 +10,8 @@ import PolymerizerVisualCatalog
     from "../src/data/PolymerizerVisualCatalog.js";
 import PolymerizerManager
     from "../src/app/PolymerizerManager.js";
+import { proteinLibrary }
+    from "../src/data/proteinLibrary.js";
 
 let saveWrites = 0;
 globalThis.localStorage = {
@@ -53,6 +55,57 @@ assert.equal(
     glucoseTransporterRecipe.motifCount,
     6
 );
+assert.equal(
+    glucoseTransporterRecipe.valid,
+    true
+);
+assert.equal(
+    glucoseTransporterRecipe
+        .simplifiedStructure,
+    "HBLLHB"
+);
+assert.deepEqual(
+    glucoseTransporterRecipe
+        .motifRequirements
+        .map(requirement => ({
+            symbol: requirement.symbol,
+            productId:
+                requirement.productId,
+            quantity: requirement.quantity
+        })),
+    [
+        {
+            symbol: "B",
+            productId: "B_sheet",
+            quantity: 2
+        },
+        {
+            symbol: "L",
+            productId: "L_loop",
+            quantity: 2
+        },
+        {
+            symbol: "H",
+            productId: "H_helix",
+            quantity: 2
+        }
+    ]
+);
+
+Object.values(proteinLibrary)
+    .forEach(protein => {
+        assert.doesNotMatch(
+            protein.PPC,
+            /C/
+        );
+        assert.equal(
+            Object.hasOwn(
+                protein.Recipe,
+                "C"
+            ),
+            false
+        );
+    });
 
 const visual =
     PolymerizerVisualCatalog.get(

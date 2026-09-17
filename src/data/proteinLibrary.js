@@ -1,3 +1,6 @@
+// Simplified structural stubs use only the three Macromolecularizer motifs:
+// H (alpha helix), B (beta sheet), and L (loop). These are gameplay-scale
+// placeholders until each protein receives a PDB-based recipe.
 export const proteinLibrary =  Object.freeze({
   "Aquaporin": {
     "PPC": "HLHLHLHLHLHLHLH",
@@ -13,8 +16,8 @@ export const proteinLibrary =  Object.freeze({
     "Info": "Integral membrane channel protein that selectively conducts water molecules while preventing proton passage. Essential for cellular osmotic balance."
   },
   "GlucoseTransporter": {
-    "PPC": "CBLLHB",
-    "Recipe": {"C": 1, "B": 2, "L": 2, "H": 1},
+    "PPC": "HBLLHB",
+    "Recipe": {"B": 2, "L": 2, "H": 2},
     "Class": "Transport",
     "Function": "Moves glucose into cytosol",
     "Tier": 1,
@@ -45,8 +48,8 @@ export const proteinLibrary =  Object.freeze({
    ============================================================ */
 
 "SodiumPotassiumPump": {
-  "PPC": "BBHCLBC",
-  "Recipe": {"B": 3, "C": 2, "H": 1, "L": 1},
+  "PPC": "BBHHLBH",
+  "Recipe": {"B": 3, "H": 3, "L": 1},
   "Class": "ActiveTransport",
   "Function": "Maintains ion gradients; consumes ATP",
   "Tier": 2,
@@ -58,8 +61,8 @@ export const proteinLibrary =  Object.freeze({
 },
 
 "ProtonPump": {
-  "PPC": "BHBBC",
-  "Recipe": {"B": 3, "H": 1, "C": 1},
+  "PPC": "BHBBH",
+  "Recipe": {"B": 3, "H": 2},
   "Class": "ActiveTransport",
   "Function": "Acidifies vacuole; drives water influx",
   "Tier": 2,
@@ -71,8 +74,8 @@ export const proteinLibrary =  Object.freeze({
 },
 
 "CalciumPump": {
-  "PPC": "BBHCLC",
-  "Recipe": {"B": 3, "C": 2, "H": 1, "L": 1},
+  "PPC": "BBHHLH",
+  "Recipe": {"B": 3, "H": 3, "L": 1},
   "Class": "ActiveTransport",
   "Function": "Resets Ca2+ spikes; maintains low cytosolic Ca2+",
   "Tier": 2,
@@ -84,8 +87,8 @@ export const proteinLibrary =  Object.freeze({
 },
 
 "IP3Receptor": {
-  "PPC": "BBHHC",
-  "Recipe": {"B": 3, "H": 2, "C": 1},
+  "PPC": "BBHHH",
+  "Recipe": {"B": 3, "H": 3},
   "Class": "Channel",
   "Function": "Releases Ca2+ from ER stores",
   "Tier": 2,
@@ -97,8 +100,8 @@ export const proteinLibrary =  Object.freeze({
 },
 
 "ChlorideTransporter": {
-  "PPC": "BBHCL",
-  "Recipe": {"B": 2, "C": 2, "L": 1},
+  "PPC": "BBHHL",
+  "Recipe": {"B": 2, "L": 1, "H": 2},
   "Class": "ActiveTransport",
   "Function": "Raises vacuole osmolarity",
   "Tier": 2,
@@ -109,8 +112,8 @@ export const proteinLibrary =  Object.freeze({
   "Info": "Cl- transporter that increases osmolarity inside the contractile vacuole, enhancing water uptake and supporting exocytosis."
 },
   "CalciumChannel": {
-    "PPC": "CLBBHC",
-    "Recipe": {"C": 2, "B": 2, "H": 1, "L": 1},
+    "PPC": "HLBBHH",
+    "Recipe": {"B": 2, "H": 3, "L": 1},
     "Class": "Transport",
     "Function": "Calcium signaling; triggers vesicle release",
     "Tier": 2,
@@ -121,8 +124,8 @@ export const proteinLibrary =  Object.freeze({
     "Info": "Voltage- or ligand-gated channel that mediates calcium ion influx into the cytosol, serving as a primary intracellular second messenger."
   },
   "Actin": {
-    "PPC": "LLHCCB",
-    "Recipe": {"L": 2, "H": 1, "C": 2, "B": 1},
+    "PPC": "LLHHHB",
+    "Recipe": {"L": 2, "H": 3, "B": 1},
     "Class": "Cytoskeleton",
     "Function": "Structural support; vesicle highway anchor",
     "Tier": 1,
@@ -132,8 +135,8 @@ export const proteinLibrary =  Object.freeze({
     "Info": "Abundant microfilament protein forming dynamic networks beneath the plasma membrane to maintain cell shape and drive motility."
   },
   "Tubulin": {
-    "PPC": "BCLLHB",
-    "Recipe": {"B": 2, "C": 1, "L": 2, "H": 1},
+    "PPC": "BHLLHB",
+    "Recipe": {"B": 2, "L": 2, "H": 2},
     "Class": "Cytoskeleton",
     "Function": "Microtubule formation; vesicle transport",
     "Tier": 2,
@@ -154,8 +157,8 @@ export const proteinLibrary =  Object.freeze({
     "Info": "Fibrous structural protein featuring a triple helix architecture that provides high tensile strength to connective tissues."
   },
   "Elastin": {
-    "PPC": "LHLCLC",
-    "Recipe": {"L": 3, "H": 1, "C": 2},
+    "PPC": "LHLHLH",
+    "Recipe": {"L": 3, "H": 3},
     "Class": "ECM",
     "Function": "Elasticity; reduces damage from stress",
     "Tier": 2,
@@ -165,8 +168,8 @@ export const proteinLibrary =  Object.freeze({
     "Info": "Highly elastic extracellular matrix protein allowing tissues and organs to resume their shape after stretching or contracting."
   },
   "GProtein": {
-    "PPC": "CLHBLC",
-    "Recipe": {"C": 2, "L": 2, "H": 1, "B": 1},
+    "PPC": "HLHBLH",
+    "Recipe": {"L": 2, "H": 3, "B": 1},
     "Class": "Signaling",
     "Function": "Signal relay; boosts tissue communication",
     "Tier": 2,
@@ -176,8 +179,8 @@ export const proteinLibrary =  Object.freeze({
     "Info": "Heterotrimeric molecular switch proteins that transmit extracellular signals received by GPCRs to internal downstream effector enzymes."
   },
   "Kinase": {
-    "PPC": "BCLHBC",
-    "Recipe": {"B": 2, "C": 2, "L": 1, "H": 1},
+    "PPC": "BHLHBH",
+    "Recipe": {"B": 2, "L": 1, "H": 3},
     "Class": "Enzyme",
     "Function": "Phosphorylation; boosts metabolic reactions",
     "Tier": 2,
@@ -187,8 +190,8 @@ export const proteinLibrary =  Object.freeze({
     "Info": "Enzyme that transfers phosphate groups from high-energy donor molecules like ATP to specific target substrate proteins."
   },
   "Phosphatase": {
-    "PPC": "LBCCHL",
-    "Recipe": {"L": 2, "B": 2, "C": 1, "H": 1},
+    "PPC": "LBHHHL",
+    "Recipe": {"L": 2, "B": 2, "H": 2},
     "Class": "Enzyme",
     "Function": "Dephosphorylation; resets signaling pathways",
     "Tier": 2,
@@ -198,8 +201,8 @@ export const proteinLibrary =  Object.freeze({
     "Info": "Regulatory enzyme that removes phosphate groups from phosphorylated target proteins, acting as a molecular off-switch."
   },
   "ReceptorTyrosineKinase": {
-    "PPC": "BBHLLBC",
-    "Recipe": {"B": 3, "L": 2, "H": 1, "C": 1},
+    "PPC": "BBHLLBH",
+    "Recipe": {"B": 3, "L": 2, "H": 2},
     "Class": "Signaling",
     "Function": "Growth signals; boosts clan tissue bonuses",
     "Tier": 3,
@@ -209,8 +212,8 @@ export const proteinLibrary =  Object.freeze({
     "Info": "High-affinity cell surface receptor that binds peptide growth factors and triggers intracellular kinase cascades for cell division."
   },
   "Hexokinase": {
-    "PPC": "CLBHLB",
-    "Recipe": {"C": 2, "L": 2, "B": 1, "H": 1},
+    "PPC": "HLBHLB",
+    "Recipe": {"L": 2, "B": 1, "H": 3},
     "Class": "Metabolism",
     "Function": "First step of glycolysis; glucose → G6P",
     "Tier": 1,
@@ -220,8 +223,8 @@ export const proteinLibrary =  Object.freeze({
     "Info": "Cytosolic enzyme that phosphorylates glucose to trap it inside the cell and initiate cellular respiration pathways."
   },
   "Phosphofructokinase": {
-    "PPC": "BCLCLHB",
-    "Recipe": {"C": 3, "B": 2, "L": 1, "H": 1},
+    "PPC": "BHLHLHB",
+    "Recipe": {"B": 2, "L": 1, "H": 4},
     "Class": "Metabolism",
     "Function": "Rate‑limiting glycolysis enzyme",
     "Tier": 2,
@@ -243,8 +246,8 @@ export const proteinLibrary =  Object.freeze({
     "Info": "Remarkable rotary nanomachine that synthesizes ATP from ADP and inorganic phosphate using energy from a transmembrane proton flux."
   },
   "CytochromeC": {
-    "PPC": "LBBHLC",
-    "Recipe": {"B": 2, "L": 2, "H": 1, "C": 1},
+    "PPC": "LBBHLH",
+    "Recipe": {"B": 2, "L": 2, "H": 2},
     "Class": "Respiration",
     "Function": "Electron transport chain carrier",
     "Tier": 2,
@@ -254,8 +257,8 @@ export const proteinLibrary =  Object.freeze({
     "Info": "Small heme protein associated with the inner mitochondrial membrane that shuttles electrons between Complex III and Complex IV."
   },
   "NADH_Dehydrogenase": {
-    "PPC": "BHBCLBC",
-    "Recipe": {"B": 3, "C": 2, "H": 1, "L": 1},
+    "PPC": "BHBHLBH",
+    "Recipe": {"B": 3, "H": 3, "L": 1},
     "Class": "Respiration",
     "Function": "ETC Complex I; generates proton gradient",
     "Tier": 3,
@@ -265,8 +268,8 @@ export const proteinLibrary =  Object.freeze({
     "Info": "Massive multi-subunit membrane enzyme complex that initiates the electron transport chain by oxidizing NADH."
   },
   "RuBisCO": {
-    "PPC": "CLBBHLC",
-    "Recipe": {"C": 3, "B": 2, "L": 1, "H": 1},
+    "PPC": "HLBBHLH",
+    "Recipe": {"B": 2, "L": 1, "H": 4},
     "Class": "Photosynthesis",
     "Function": "Carbon fixation; Calvin cycle entry",
     "Tier": 3,
@@ -277,8 +280,8 @@ export const proteinLibrary =  Object.freeze({
     "Info": "Primary carbon-fixing enzyme of photosynthesis, catalyzing the addition of atmospheric carbon dioxide to ribulose bisphosphate."
   },
   "PhotosystemII": {
-    "PPC": "BBHHLBC",
-    "Recipe": {"B": 3, "H": 2, "L": 1, "C": 1},
+    "PPC": "BBHHLBH",
+    "Recipe": {"B": 3, "H": 3, "L": 1},
     "Class": "Photosynthesis",
     "Function": "Splits water; generates electrons",
     "Tier": 3,
@@ -289,8 +292,8 @@ export const proteinLibrary =  Object.freeze({
     "Info": "Light-driven water-plastoquinone oxidoreductase complex that performs the initial photolysis of water in plant chloroplasts."
   },
   "PhotosystemI": {
-    "PPC": "BCLHBHB",
-    "Recipe": {"B": 3, "H": 2, "C": 1, "L": 1},
+    "PPC": "BHLHBHB",
+    "Recipe": {"B": 3, "H": 3, "L": 1},
     "Class": "Photosynthesis",
     "Function": "Produces NADPH",
     "Tier": 3,
@@ -313,8 +316,8 @@ export const proteinLibrary =  Object.freeze({
     "Info": "Chloroplast-localized rotary motor engine that harnesses light-induced proton motive force to produce chemical energy currency."
   },
   "DNA_Polymerase": {
-    "PPC": "BCLHBLC",
-    "Recipe": {"C": 2, "B": 2, "L": 1, "H": 1},
+    "PPC": "BHLHBLH",
+    "Recipe": {"B": 2, "L": 1, "H": 3},
     "Class": "Replication",
     "Function": "Copies DNA during prestige",
     "Tier": 3,
@@ -324,8 +327,8 @@ export const proteinLibrary =  Object.freeze({
     "Info": "Essential enzyme family that synthesizes DNA molecules from deoxyribonucleotides, ensuring accurate genomic duplication."
   },
   "RNA_Polymerase": {
-    "PPC": "CLHBHBC",
-    "Recipe": {"C": 2, "H": 2, "B": 2, "L": 1},
+    "PPC": "HLHBHBH",
+    "Recipe": {"H": 4, "B": 2, "L": 1},
     "Class": "Transcription",
     "Function": "Creates mRNA from DNA",
     "Tier": 2,
@@ -335,8 +338,8 @@ export const proteinLibrary =  Object.freeze({
     "Info": "Multi-subunit enzyme that synthesizes messenger RNA strands by reading genetic sequences along a DNA template strand."
   },
   "Helicase": {
-    "PPC": "LCLBHB",
-    "Recipe": {"L": 2, "C": 2, "B": 1, "H": 1},
+    "PPC": "LHLBHB",
+    "Recipe": {"L": 2, "B": 1, "H": 3},
     "Class": "Replication",
     "Function": "Unwinds DNA",
     "Tier": 2,
@@ -346,8 +349,8 @@ export const proteinLibrary =  Object.freeze({
     "Info": "Motor protein that uses ATP hydrolysis to separate double-stranded nucleic acid polymers during replication forks."
   },
   "Ligase": {
-    "PPC": "CLCLHB",
-    "Recipe": {"C": 3, "L": 2, "H": 1, "B": 1},
+    "PPC": "HLHLHB",
+    "Recipe": {"L": 2, "H": 4, "B": 1},
     "Class": "Replication",
     "Function": "Seals DNA fragments",
     "Tier": 1,
@@ -357,8 +360,8 @@ export const proteinLibrary =  Object.freeze({
     "Info": "Specialized enzyme that joins broken DNA strand fragments together by catalyzing phosphodiester bond formation."
   },
   "Antibody": {
-    "PPC": "BBLLHBC",
-    "Recipe": {"B": 3, "L": 2, "H": 1, "C": 1},
+    "PPC": "BBLLHBH",
+    "Recipe": {"B": 3, "L": 2, "H": 2},
     "Class": "Defense",
     "Function": "Neutralizes pathogens; boosts tissue immunity",
     "Tier": 3,
@@ -368,8 +371,8 @@ export const proteinLibrary =  Object.freeze({
     "Info": "Y-shaped immune system protein produced by plasma cells to identify and neutralize foreign antigens like bacteria and viruses."
   },
   "Chaperonin": {
-    "PPC": "LHBCLHB",
-    "Recipe": {"L": 2, "H": 2, "B": 1, "C": 1},
+    "PPC": "LHBHLHB",
+    "Recipe": {"L": 2, "H": 3, "B": 1},
     "Class": "Folding",
     "Function": "Improves PPC folding success rate",
     "Tier": 3,
@@ -379,8 +382,8 @@ export const proteinLibrary =  Object.freeze({
     "Info": "Barrel-shaped protein complex that assists the proper physical folding of newly translated proteins inside cells."
   },
   "Ubiquitin": {
-    "PPC": "LCLLC",
-    "Recipe": {"L": 3, "C": 2},
+    "PPC": "LHLLH",
+    "Recipe": {"L": 3, "H": 2},
     "Class": "Regulation",
     "Function": "Marks damaged proteins for recycling",
     "Tier": 1,

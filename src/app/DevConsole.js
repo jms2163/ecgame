@@ -98,6 +98,8 @@ import Metabolism
     from "./Metabolism.js";
 import MetabolismUI
     from "./MetabolismUI.js";
+import MetabolismPathwayView
+    from "./MetabolismPathwayView.js";
 import MetabolismPathwayCatalog
     from "../data/MetabolismPathwayCatalog.js";
 import MoleculeLab from "./MoleculeLab.js";
@@ -169,6 +171,7 @@ const DevConsole = {
             MetabolismManager,
             Metabolism,
             MetabolismUI,
+            MetabolismPathwayView,
             MetabolismPathwayCatalog,
             MoleculeLab,
             MoleculeLabUI,

@@ -119,7 +119,7 @@ assert.equal(glucoseRecipe.atpCost, null);
 assert.equal(glucoseRecipe.discoveryId, null);
 assert.match(
     glucoseRecipe.lockedMessage,
-    /C and B structural motif mappings/
+    /PDB-based motif recipe/
 );
 
 ResourceManager.initialize();

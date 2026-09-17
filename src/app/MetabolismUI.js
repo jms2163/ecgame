@@ -1,12 +1,14 @@
 // --------------------------------------------------
 // MetabolismUI.js
-// Console-only Milestone 1 shell for the Metabolism zone.
+// Console-only Milestone 2 shell and pathway-map orchestration.
 // --------------------------------------------------
 
 import GameStateObserver
     from "./GameStateObserver.js";
 import MetabolismManager
     from "./MetabolismManager.js";
+import MetabolismPathwayView
+    from "./MetabolismPathwayView.js";
 
 const MetabolismUI = {
 
@@ -14,6 +16,11 @@ const MetabolismUI = {
     active: false,
     rootElement: null,
     pathwayListElement: null,
+    pathwayMapElement: null,
+    chemistryElement: null,
+    mapTitleElement: null,
+    mapStatusElement: null,
+    selectedPathwayId: "glycolysis",
 
     initialize() {
 
@@ -37,6 +44,22 @@ const MetabolismUI = {
         this.pathwayListElement =
             this.rootElement.querySelector(
                 "#metabolism-pathway-list"
+            );
+        this.pathwayMapElement =
+            this.rootElement.querySelector(
+                "#metabolism-pathway-map"
+            );
+        this.chemistryElement =
+            this.rootElement.querySelector(
+                "#metabolism-chemistry-summary"
+            );
+        this.mapTitleElement =
+            this.rootElement.querySelector(
+                "#metabolism-map-heading"
+            );
+        this.mapStatusElement =
+            this.rootElement.querySelector(
+                "#metabolism-map-status"
             );
 
         GameStateObserver.on(
@@ -98,7 +121,7 @@ const MetabolismUI = {
                     </div>
                     <div class="metabolism-status-chip" aria-label="Development status">
                         <span aria-hidden="true"></span>
-                        Milestone 1 · Catalog Shell
+                        Milestone 2 · Static Pathway Map
                     </div>
                 </header>
 
@@ -109,15 +132,28 @@ const MetabolismUI = {
                         <div id="metabolism-pathway-list" class="metabolism-pathway-list"></div>
                     </aside>
 
-                    <main class="metabolism-panel metabolism-map-preview" aria-labelledby="metabolism-map-heading">
-                        <p class="metabolism-panel-kicker">Pathway Workspace</p>
-                        <h2 id="metabolism-map-heading">Glycolysis Map</h2>
-                        <div class="metabolism-map-placeholder" aria-hidden="true">
-                            <span>1</span><i></i><span>2</span><i></i><span>3</span>
+                    <main class="metabolism-panel metabolism-map-panel" aria-labelledby="metabolism-map-heading">
+                        <div class="metabolism-map-heading">
+                            <div>
+                                <p class="metabolism-panel-kicker">Pathway Workspace</p>
+                                <h2 id="metabolism-map-heading">Glycolysis Map</h2>
+                            </div>
+                            <span id="metabolism-map-status" class="metabolism-map-status">Read-only Preview</span>
                         </div>
-                        <p>
-                            The enzyme-slot map and drag-and-drop tray arrive in later milestones. This preview is intentionally read-only.
+
+                        <div class="metabolism-connection-legend" aria-label="Connection legend">
+                            <span><i class="metabolism-legend-line metabolism-legend-line--adjacent"></i>Adjacent cards</span>
+                            <span><i class="metabolism-legend-line metabolism-legend-line--gap"></i>Pathway gap</span>
+                            <span><i class="metabolism-legend-line metabolism-legend-line--complete"></i>Complete pathway</span>
+                        </div>
+
+                        <div id="metabolism-pathway-map" class="metabolism-pathway-map"></div>
+
+                        <p class="metabolism-map-guidance">
+                            Enzyme slots are shown in pathway order. The Polymerizer inventory tray and card placement controls arrive in Milestone 3.
                         </p>
+
+                        <div id="metabolism-chemistry-summary" class="metabolism-chemistry-summary"></div>
                     </main>
                 </div>
             </div>
@@ -170,6 +206,35 @@ const MetabolismUI = {
             )
         );
 
+        const selectedPathway =
+            pathways.find(pathway =>
+                pathway.id ===
+                    this.selectedPathwayId
+            ) ?? pathways[0];
+
+        if (!selectedPathway) {
+            return false;
+        }
+
+        this.selectedPathwayId =
+            selectedPathway.id;
+        this.mapTitleElement.textContent =
+            `${selectedPathway.name} Map`;
+        this.mapStatusElement.textContent =
+            selectedPathway.available
+                ? "Available · Read-only Preview"
+                : "Locked · Read-only Preview";
+
+        MetabolismPathwayView.render(
+            this.pathwayMapElement,
+            selectedPathway
+        );
+        MetabolismPathwayView
+            .renderChemistry(
+                this.chemistryElement,
+                selectedPathway
+            );
+
         return true;
 
     },
@@ -177,7 +242,7 @@ const MetabolismUI = {
     createPathwayCard(pathway) {
 
         const card = document.createElement(
-            "article"
+            "button"
         );
         const requirement =
             pathway.unlockStatus;
@@ -188,6 +253,14 @@ const MetabolismUI = {
                 ? "metabolism-pathway-card--available"
                 : "metabolism-pathway-card--locked"
         ].join(" ");
+        card.type = "button";
+        card.setAttribute(
+            "aria-pressed",
+            String(
+                pathway.id ===
+                    this.selectedPathwayId
+            )
+        );
 
         card.innerHTML = `
             <div class="metabolism-card-heading">
@@ -203,9 +276,18 @@ const MetabolismUI = {
                 <span>${requirement.currentCount} / ${requirement.minimumCount}</span>
             </div>
             <small>
-                Completed in Polymerizer · This product is not consumed
+                Completed in Polymerizer · This product is not consumed · Select to inspect map
             </small>
         `;
+
+        card.addEventListener(
+            "click",
+            () => {
+                this.selectedPathwayId =
+                    pathway.id;
+                this.render();
+            }
+        );
 
         return card;
 
