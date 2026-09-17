@@ -174,7 +174,12 @@ const ObjectiveRegistry = {
 };
 
 // --------------------------------------------------
-// Atom Harvest (Atomizer State)
+// Atom Inventory (Atomizer State)
+//
+// This objective deliberately uses the currently available whole-atom count.
+// Earlier versions captured a quest-activation baseline and required two more
+// atoms. That could never complete at a full Atomizer because its cap prevented
+// any additional production.
 // --------------------------------------------------
 
 ObjectiveRegistry.register(
@@ -187,29 +192,7 @@ ObjectiveRegistry.register(
             "atomizer-updated"
         ],
 
-        captureBaseline({
-            objective,
-            objectiveIndex,
-            record
-        }) {
-            const key = createBaselineKey(objective, objectiveIndex);
-            const targetAtom = objective.atomId || "H";
-
-            const rawCount =
-                gameState.zones?.atomizer?.state?.atoms?.[targetAtom]?.count ??
-                gameState.inventory?.atoms?.[targetAtom] ??
-                0;
-
-            record.objectiveBaselines[key] = Math.floor(rawCount);
-        },
-
-        evaluate({
-            objective,
-            objectiveIndex,
-            record
-        }) {
-            const key = createBaselineKey(objective, objectiveIndex);
-            const baseline = record?.objectiveBaselines?.[key]; // <-- Retreive baseline from record
+        evaluate({ objective }) {
             const targetAtom = objective.atomId || "H";
 
             const rawCount =
@@ -220,15 +203,13 @@ ObjectiveRegistry.register(
             const currentCount = Math.floor(rawCount);
 
             const progress = normalizeProgress(
-                Number.isFinite(baseline)
-                    ? Math.max(0, currentCount - baseline)
-                    : currentCount,
+                currentCount,
                 objective.target
             );
 
             return {
                 ...progress,
-                baseline: Number.isFinite(baseline) ? baseline : null,
+                baseline: null,
                 currentCount
             };
         }

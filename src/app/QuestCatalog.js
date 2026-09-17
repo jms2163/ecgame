@@ -82,7 +82,7 @@ unlock_molecule_lab: {
     category: "main", // Thematic category line
     releaseState: "playable",
 
-    description: "Harvest 2 Hydrogen atoms from the Atomizer to unlock the Molecular Laboratory.",
+    description: "Have at least 2 Hydrogen atoms available in the Atomizer to unlock the Molecular Laboratory.",
 
     prerequisites: ["q2_hydrogen"],
 
@@ -90,7 +90,7 @@ unlock_molecule_lab: {
         {
             type: "atom-harvest",
             atomId: "H",
-            label: "Hydrogen harvested",
+            label: "Hydrogen atoms available",
             target: 2
         }
     ],
