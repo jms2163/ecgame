@@ -887,7 +887,7 @@ handleControlAction(actionId) {
 
         if (
             !ResearchManager
-                .meetsCompletionThreshold(
+                .meetsSubmissionCompletionRequirement(
                     experiment,
                     report
                 )
@@ -995,12 +995,11 @@ handleControlAction(actionId) {
             snapshot: submission.placementSnapshot,
             reflectionResponses: submission.attemptSnapshot?.reflectionResponses
         }) }));
-        const qualifyingResult = results.find(
-            result => ResearchManager.meetsCompletionThreshold(
+        const qualifyingResult =
+            ResearchManager.meetsRecordedCompletionRequirement(
                 experiment,
-                result.report
-            )
-        );
+                results.map(result => result.report)
+            );
         let completion = null;
         if (qualifyingResult) {
             completion = ResearchManager.completeExperiment(experiment.id);

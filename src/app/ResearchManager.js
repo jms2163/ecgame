@@ -14,6 +14,8 @@ import OrganelleExperimentLibrary
 // One shared mastery threshold controls scored Organelle Lab completion,
 // downstream experiment access, and the requirement text shown in the UI.
 const DEFAULT_COMPLETION_THRESHOLD_PERCENT = 80;
+const DEFAULT_RETRY_THRESHOLD_PERCENT = 60;
+const DEFAULT_RETRY_ATTEMPT_COUNT = 3;
 
 const ResearchManager = {
 
@@ -35,6 +37,9 @@ const ResearchManager = {
 
         gameState.registry.research
             .bestExperimentScores ??= {};
+
+        gameState.registry.research
+            .experimentSubmissions ??= {};
 
     },
 
@@ -97,20 +102,6 @@ const ResearchManager = {
 
     },
 
-    // Use an experiment-specific threshold when one is defined.
-    // All other labs continue to require a perfect submission.
-    meetsCompletionThreshold(experiment, report) {
-
-        const threshold = experiment?.assessment
-            ?.completionThresholdPercent ?? 100;
-
-        return Number.isFinite(report?.scorePoints) &&
-            Number.isFinite(report?.scoreMaximum) &&
-            report.scoreMaximum > 0 &&
-            report.scorePoints / report.scoreMaximum * 100 >= threshold;
-
-    },
-
     // Reconcile older saves after a lab's completion threshold changes.
     // Previously earned scores stay intact; the completion reward is
     // applied and saved only once.
@@ -123,21 +114,16 @@ const ResearchManager = {
             experiment?.assessment?.completionThresholdPercent
         )) return null;
 
-        const submissions = gameState.registry?.research
-            ?.experimentSubmissions?.[experimentId] ?? [];
-
-        if (!Array.isArray(submissions) || !submissions.some(
-            submission => this.meetsCompletionThreshold(
-                experiment, submission
-            )
-        )) return null;
+        if (!this.meetsRecordedCompletionRequirement(experiment)) {
+            return null;
+        }
 
         const previousState = structuredClone(gameState);
         const completion = this.completeExperiment(experimentId);
 
         if (!completion.completed) return completion;
 
-        if (!SaveManager.save({ reason: `${experimentId}-80-percent` })) {
+        if (!SaveManager.save({ reason: `${experimentId}-progression-threshold` })) {
             for (const key of Object.keys(gameState)) delete gameState[key];
             Object.assign(gameState, previousState);
             return { completed: false, reason: "save-failed" };
@@ -200,12 +186,106 @@ const ResearchManager = {
         return null;
     },
 
+    // Count submitted, scored attempts without adding another save field.
+    // Existing student saves already keep these records in this array.
+    getSubmissionCount(experimentId) {
+        this.ensureRegistryStructures();
+        const submissions = gameState.registry.research
+            .experimentSubmissions[experimentId];
+        return Array.isArray(submissions)
+            ? submissions.length
+            : 0;
+    },
+
+    // Scored Organelle Lab progression has two paths:
+    // 1. reach the normal mastery threshold on any submission; or
+    // 2. after three genuine submissions, reach at least 60% as the
+    //    highest score. A perfect score is still required for a star.
+    getProgressionPolicy(experimentOrId) {
+        const experiment = typeof experimentOrId === "string"
+            ? this.getExperiment(experimentOrId)
+            : experimentOrId;
+        const primaryThresholdPercent =
+            this.getCompletionThresholdPercent(experiment);
+
+        if (!Number.isFinite(primaryThresholdPercent)) return null;
+
+        return {
+            primaryThresholdPercent,
+            retryThresholdPercent: DEFAULT_RETRY_THRESHOLD_PERCENT,
+            retryAttemptCount: DEFAULT_RETRY_ATTEMPT_COUNT
+        };
+    },
+
+    getReportScorePercent(report) {
+        if (Number.isFinite(report?.scorePercent)) {
+            return report.scorePercent;
+        }
+        if (Number.isFinite(report?.scorePoints) &&
+            Number.isFinite(report?.scoreMaximum) &&
+            report.scoreMaximum > 0) {
+            return report.scorePoints / report.scoreMaximum * 100;
+        }
+        return null;
+    },
+
+    // Evaluate a submission before it is recorded. The projected attempt
+    // count includes this submission, and the projected best preserves a
+    // higher score earned on an earlier attempt.
+    meetsSubmissionCompletionRequirement(experiment, report) {
+        if (this.meetsCompletionThreshold(experiment, report)) return true;
+
+        const policy = this.getProgressionPolicy(experiment);
+        const reportPercent = this.getReportScorePercent(report);
+        const savedBestPercent = this.getBestScorePercent(experiment?.id);
+        const projectedBestPercent = Math.max(
+            Number.isFinite(savedBestPercent) ? savedBestPercent : 0,
+            Number.isFinite(reportPercent) ? reportPercent : 0
+        );
+        const projectedAttemptCount =
+            this.getSubmissionCount(experiment?.id) + 1;
+
+        return Boolean(policy) &&
+            projectedAttemptCount >= policy.retryAttemptCount &&
+            projectedBestPercent >= policy.retryThresholdPercent;
+    },
+
+    // Evaluate attempts that are already stored. This supports existing
+    // saves immediately and also keeps rubric regrading consistent.
+    meetsRecordedCompletionRequirement(experimentOrId, reports = null) {
+        const experiment = typeof experimentOrId === "string"
+            ? this.getExperiment(experimentOrId)
+            : experimentOrId;
+        if (!experiment) return false;
+
+        const storedSubmissions = gameState.registry?.research
+            ?.experimentSubmissions?.[experiment.id] ?? [];
+        const evaluatedReports = Array.isArray(reports)
+            ? reports
+            : storedSubmissions;
+        const scorePercents = evaluatedReports
+            .map(report => this.getReportScorePercent(report))
+            .filter(Number.isFinite);
+        const bestPercent = scorePercents.length > 0
+            ? Math.max(...scorePercents)
+            : this.getBestScorePercent(experiment.id);
+        const attemptCount = Array.isArray(reports)
+            ? reports.length
+            : this.getSubmissionCount(experiment.id);
+        const policy = this.getProgressionPolicy(experiment);
+
+        return Boolean(policy) && Number.isFinite(bestPercent) && (
+            bestPercent >= policy.primaryThresholdPercent ||
+            (
+                attemptCount >= policy.retryAttemptCount &&
+                bestPercent >= policy.retryThresholdPercent
+            )
+        );
+    },
+
     hasMetExperimentRequirement(experimentId) {
         if (this.isExperimentCompleted(experimentId)) return true;
-        const threshold = this.getCompletionThresholdPercent(experimentId);
-        const bestScore = this.getBestScorePercent(experimentId);
-        return Number.isFinite(threshold) &&
-            Number.isFinite(bestScore) && bestScore >= threshold;
+        return this.meetsRecordedCompletionRequirement(experimentId);
     },
 
 
