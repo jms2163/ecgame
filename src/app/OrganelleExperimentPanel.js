@@ -565,21 +565,19 @@ starElement.setAttribute(
                 status.incompleteExperiments
                     .forEach(experimentId => {
 
-                        const requiredScorePercent =
+                        const progressionPolicy =
                             ResearchManager
-                                .getCompletionThresholdPercent(
+                                .getProgressionPolicy(
                                     experimentId
                                 );
 
                         details.push(
-                            Number.isFinite(
-                                requiredScorePercent
-                            )
-                                ? `Requires: ${requiredScorePercent}% ${
+                            progressionPolicy
+                                ? `Requires: ${progressionPolicy.primaryThresholdPercent}% ${
                                     this.getExperimentTitle(
                                         experimentId
                                     )
-                                } score.`
+                                } score, or a highest score of at least ${progressionPolicy.retryThresholdPercent}% after ${progressionPolicy.retryAttemptCount} submitted attempts.`
                                 : `Requires completion: ${
                                     this.getExperimentTitle(
                                         experimentId

@@ -10,6 +10,7 @@ try {
     gameState.registry.research ??= {};
     gameState.registry.research.completedExperiments = {};
     gameState.registry.research.bestExperimentScores = {};
+    gameState.registry.research.experimentSubmissions = {};
     gameState.registry.discoveries ??= [];
     gameState.discoveries ??= {};
     gameState.discoveries.molecules ??= {};
@@ -51,6 +52,55 @@ try {
         'an existing 80% Dynamic Movement score should unlock Passive Diffusion'
     );
 
+    gameState.registry.research.bestExperimentScores.dynamic_movement = {
+        scorePoints: 15,
+        scoreMaximum: 25,
+        scorePercent: 60
+    };
+    gameState.registry.research.experimentSubmissions.dynamic_movement = [
+        { scorePoints: 14, scoreMaximum: 25, scorePercent: 56 },
+        { scorePoints: 15, scoreMaximum: 25, scorePercent: 60 }
+    ];
+    assert.equal(
+        ResearchManager.hasMetExperimentRequirement('dynamic_movement'),
+        false,
+        '60% after only two submissions must remain below the retry gate'
+    );
+    assert.equal(
+        ResearchManager.meetsSubmissionCompletionRequirement(
+            ResearchManager.getExperiment('dynamic_movement'),
+            { scorePoints: 14, scoreMaximum: 25, scorePercent: 56 }
+        ),
+        true,
+        'a third submission should use the saved highest score of 60%'
+    );
+    gameState.registry.research.experimentSubmissions.dynamic_movement.push(
+        { scorePoints: 14, scoreMaximum: 25, scorePercent: 56 }
+    );
+    assert.equal(
+        ResearchManager.hasMetExperimentRequirement('dynamic_movement'),
+        true,
+        'a highest score of 60% after three submissions should unlock the next lab'
+    );
+    assert.equal(
+        ResearchManager.getExperimentStatus('passive_diffusion').available,
+        true,
+        'the downstream experiment should release through the three-attempt path'
+    );
+
+    gameState.registry.research.bestExperimentScores.dynamic_movement.scorePercent = 59.99;
+    gameState.registry.research.bestExperimentScores.dynamic_movement.scorePoints = 14.9975;
+    gameState.registry.research.experimentSubmissions.dynamic_movement = [
+        { scorePercent: 59.99 },
+        { scorePercent: 58 },
+        { scorePercent: 57 }
+    ];
+    assert.equal(
+        ResearchManager.hasMetExperimentRequirement('dynamic_movement'),
+        false,
+        'three submissions below 60% must remain below the retry gate'
+    );
+
     gameState.registry.research.bestExperimentScores.water_passive_diffusion = {
         scorePoints: 60,
         scoreMaximum: 75,
@@ -79,14 +129,14 @@ try {
         'utf8'
     );
     assert.doesNotMatch(panelSource, /Requires: 100%/);
-    assert.match(panelSource, /getCompletionThresholdPercent/);
-    assert.match(stageSource, /meetsCompletionThreshold/);
+    assert.match(panelSource, /getProgressionPolicy/);
+    assert.match(stageSource, /meetsSubmissionCompletionRequirement/);
     assert.doesNotMatch(
         stageSource,
         /const perfect = results\.find/
     );
 
-    console.log('PASS: scored Organelle Lab gates use their configured thresholds; saved 80% scores unlock downstream labs; Passive Diffusion completes at 11/11.');
+    console.log('PASS: scored Organelle Lab gates release the next lab at 80%, or at a highest score of 60% after three submitted attempts; Passive Diffusion completes at 11/11.');
 } finally {
     for (const key of Object.keys(gameState)) delete gameState[key];
     Object.assign(gameState, backup);
