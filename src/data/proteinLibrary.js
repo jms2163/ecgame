@@ -212,15 +212,32 @@ export const proteinLibrary =  Object.freeze({
     "Info": "High-affinity cell surface receptor that binds peptide growth factors and triggers intracellular kinase cascades for cell division."
   },
   "Hexokinase": {
-    "PPC": "HLBHLB",
-    "Recipe": {"L": 2, "B": 1, "H": 3},
+    // Motif totals were measured from PDB 1BG3. Their exact linear order is
+    // intentionally left unspecified rather than inventing an H/B/L string.
+    "PPC": "",
+    "Recipe": {"H": 22, "B": 25, "L": 48},
     "Class": "Metabolism",
     "Function": "First step of glycolysis; glucose → G6P",
     "Tier": 1,
+    "Location": "Cytosol",
     "Requires": ["AminoAcids", "GlycolysisUnlocked"],
-    "Source": "",
+    "Source": "1BG3",
     "Models": {},
     "Info": "Cytosolic enzyme that phosphorylates glucose to trap it inside the cell and initiate cellular respiration pathways."
+  },
+  "PhosphoglucoseIsomerase": {
+    // Motif totals were measured from PDB 2PGI. Their exact linear order is
+    // intentionally left unspecified rather than inventing an H/B/L string.
+    "PPC": "",
+    "Recipe": {"H": 14, "B": 10, "L": 25},
+    "Class": "Metabolism",
+    "Function": "Second step of glycolysis; G6P → F6P",
+    "Tier": 1,
+    "Location": "Cytosol",
+    "Requires": ["Hexokinase", "GlycolysisUnlocked"],
+    "Source": "2PGI",
+    "Models": {},
+    "Info": "Cytosolic enzyme that reversibly converts glucose-6-phosphate into fructose-6-phosphate during glycolysis."
   },
   "Phosphofructokinase": {
     "PPC": "BHLHLHB",

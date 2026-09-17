@@ -8,6 +8,7 @@ import PolymerizerVisualCatalog
 
 const MOTIF_NAMES = Object.freeze({
     H_helix: "Alpha Helix Motif",
+    B_sheet: "Beta Sheet Motif",
     L_loop: "Loop Motif"
 });
 
@@ -238,7 +239,9 @@ const PolymerizerProductView = {
                     : "Assembly Active";
             elements.chamberStatus.textContent =
                 activeAssembly.complete
-                    ? `Recording the completed ${product.definition.name} and its discovery.`
+                    ? product.definition.discoveryId
+                        ? `Recording the completed ${product.definition.name} and its discovery.`
+                        : `Recording the completed ${product.definition.name} in Polymerizer inventory.`
                     : `${product.definition.name} is assembling. Motif levels remain available in Macromolecularizer.`;
             elements.assembleButton.disabled = true;
             elements.assembleButton.textContent =

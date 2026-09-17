@@ -92,6 +92,61 @@ assert.deepEqual(
     ]
 );
 
+const hexokinaseRecipe =
+    PolymerizerRecipeCatalog.get(
+        "Hexokinase"
+    );
+assert.equal(hexokinaseRecipe.valid, true);
+assert.equal(
+    hexokinaseRecipe.structureOrderKnown,
+    false
+);
+assert.equal(
+    hexokinaseRecipe.recipeMatchesPPC,
+    null
+);
+assert.equal(hexokinaseRecipe.motifCount, 95);
+assert.equal(hexokinaseRecipe.atpCost, 95);
+assert.equal(
+    hexokinaseRecipe.discoveryId,
+    null
+);
+assert.deepEqual(
+    hexokinaseRecipe.motifRequirements
+        .map(({ productId, quantity }) => ({
+            productId,
+            quantity
+        })),
+    [
+        { productId: "H_helix", quantity: 22 },
+        { productId: "B_sheet", quantity: 25 },
+        { productId: "L_loop", quantity: 48 }
+    ]
+);
+
+const pgiRecipe =
+    PolymerizerRecipeCatalog.get(
+        "PhosphoglucoseIsomerase"
+    );
+assert.equal(pgiRecipe.valid, true);
+assert.equal(pgiRecipe.structureOrderKnown, false);
+assert.equal(pgiRecipe.recipeMatchesPPC, null);
+assert.equal(pgiRecipe.motifCount, 49);
+assert.equal(pgiRecipe.atpCost, 49);
+assert.equal(pgiRecipe.discoveryId, null);
+assert.deepEqual(
+    pgiRecipe.motifRequirements
+        .map(({ productId, quantity }) => ({
+            productId,
+            quantity
+        })),
+    [
+        { productId: "H_helix", quantity: 14 },
+        { productId: "B_sheet", quantity: 10 },
+        { productId: "L_loop", quantity: 25 }
+    ]
+);
+
 Object.values(proteinLibrary)
     .forEach(protein => {
         assert.doesNotMatch(
