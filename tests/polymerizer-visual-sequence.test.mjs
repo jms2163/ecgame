@@ -122,13 +122,58 @@ assert.match(
     /PDB-based motif recipe/
 );
 
+const hexokinaseVisual =
+    PolymerizerVisualCatalog.get(
+        "Hexokinase"
+    );
+assert.equal(hexokinaseVisual.source, "1BG3");
+assert.equal(hexokinaseVisual.firstFrameNumber, 1);
+assert.equal(hexokinaseVisual.lastFrameNumber, 65);
+assert.equal(hexokinaseVisual.frameCount, 65);
+assert.equal(
+    hexokinaseVisual.assemblyFrameCount,
+    64
+);
+assert(hexokinaseVisual.idleImageUrl.endsWith(
+    "/public/assets/polymerizer/proteins/1bg3_motifs/1bg3-1.png"
+));
+assert(hexokinaseVisual.finalImageUrl.endsWith(
+    "/public/assets/polymerizer/proteins/1bg3_motifs/1bg3-65.png"
+));
+
+const pgiVisual =
+    PolymerizerVisualCatalog.get(
+        "PhosphoglucoseIsomerase"
+    );
+assert.equal(pgiVisual.source, "2PGI");
+assert.equal(pgiVisual.firstFrameNumber, 1);
+assert.equal(pgiVisual.lastFrameNumber, 29);
+assert.equal(pgiVisual.frameCount, 29);
+assert.equal(pgiVisual.assemblyFrameCount, 28);
+assert(pgiVisual.idleImageUrl.endsWith(
+    "/public/assets/polymerizer/proteins/2pgi_motifs/2pgi-1.png"
+));
+assert(pgiVisual.finalImageUrl.endsWith(
+    "/public/assets/polymerizer/proteins/2pgi_motifs/2pgi-29.png"
+));
+assert(
+    PolymerizerVisualCatalog
+        .resolveImageUrl(
+            "PhosphoglucoseIsomerase",
+            { progress: 0 }
+        )
+        .endsWith(
+            "/2pgi_motifs/2pgi-2.png"
+        )
+);
+
 ResourceManager.initialize();
 PolymerizerManager.initialize();
 const status =
     PolymerizerManager.getStatus(
         "GlucoseTransporter"
     );
-assert.equal(status.products.length, 2);
+assert.equal(status.products.length, 4);
 assert.equal(
     status.selectedProduct.locked,
     true

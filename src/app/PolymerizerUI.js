@@ -106,7 +106,7 @@ const PolymerizerUI = {
 
                         <nav class="poly-category-list" aria-label="Polymerizer categories">
                             <button type="button" class="poly-category poly-category--active" disabled>
-                                <strong>Proteins</strong><span>1 preview</span>
+                                <strong>Proteins</strong><span>4 structures</span>
                             </button>
                             <button type="button" class="poly-category" disabled>
                                 <strong>Polysaccharides</strong><span>Coming Soon</span>

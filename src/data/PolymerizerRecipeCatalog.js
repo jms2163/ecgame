@@ -29,6 +29,18 @@ const PRODUCT_CONFIGS = Object.freeze({
         discoveryId: null,
         lockedMessage:
             "Coming Soon — its PDB-based motif recipe, ATP cost, and release approval are not configured."
+    }),
+    Hexokinase: Object.freeze({
+        name: "Hexokinase",
+        implemented: true,
+        discoveryId: null,
+        lockedMessage: null
+    }),
+    PhosphoglucoseIsomerase: Object.freeze({
+        name: "Phosphoglucose Isomerase",
+        implemented: true,
+        discoveryId: null,
+        lockedMessage: null
     })
 });
 
@@ -60,6 +72,9 @@ function createDefinition(id, protein) {
     const ppcCounts = countPPCSymbols(
         protein?.PPC
     );
+    const structureOrderKnown =
+        typeof protein?.PPC === "string" &&
+        protein.PPC.trim() !== "";
 
     const motifRequirements =
         Object.entries(recipe).map(
@@ -82,20 +97,29 @@ function createDefinition(id, protein) {
             0
         );
 
+    // Some PDB-derived recipes provide reliable motif totals without a
+    // reliable linear motif order. In that case an empty PPC is honest data,
+    // not a validation failure. Whenever PPC is supplied, it must still match
+    // the counts exactly.
     const recipeMatchesPPC =
-        motifRequirements.every(
-            requirement =>
-                safeCount(
-                    ppcCounts[
-                        requirement.symbol
-                    ]
-                ) === requirement.quantity
-        ) &&
-        Object.keys(ppcCounts).every(
-            symbol =>
-                safeCount(recipe[symbol]) ===
-                    ppcCounts[symbol]
-        );
+        structureOrderKnown
+            ? motifRequirements.every(
+                requirement =>
+                    safeCount(
+                        ppcCounts[
+                            requirement.symbol
+                        ]
+                    ) ===
+                        requirement.quantity
+            ) &&
+                Object.keys(ppcCounts).every(
+                    symbol =>
+                        safeCount(
+                            recipe[symbol]
+                        ) ===
+                            ppcCounts[symbol]
+                )
+            : null;
 
     const recognizedMotifs =
         motifRequirements.every(
@@ -121,6 +145,7 @@ function createDefinition(id, protein) {
             protein?.Source ?? "",
         simplifiedStructure:
             protein?.PPC ?? "",
+        structureOrderKnown,
         motifRequirements:
             Object.freeze(
                 motifRequirements
@@ -138,7 +163,7 @@ function createDefinition(id, protein) {
         recipeMatchesPPC,
         valid:
             recognizedMotifs &&
-            recipeMatchesPPC &&
+            recipeMatchesPPC !== false &&
             motifCount > 0,
         implemented:
             Boolean(config?.implemented),

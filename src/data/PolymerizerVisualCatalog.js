@@ -14,7 +14,8 @@ const PROTEIN_IMAGE_DIRECTORY =
 
 const VISUAL_CONFIGS = Object.freeze({
     Aquaporin: Object.freeze({
-        assemblyFrameCount: 8,
+        firstFrameNumber: 0,
+        lastFrameNumber: 8,
         alt:
             "Aquaporin water-channel protein structural assembly.",
         accent: "cyan",
@@ -23,12 +24,37 @@ const VISUAL_CONFIGS = Object.freeze({
         fallbackFileName: "aquaporin.png"
     }),
     GlucoseTransporter: Object.freeze({
-        assemblyFrameCount: 15,
+        firstFrameNumber: 0,
+        lastFrameNumber: 15,
         alt:
             "Glucose transporter protein structural assembly.",
         accent: "violet",
         placeholderLabel:
             "Glucose transporter structural assembly preview",
+        fallbackFileName: null
+    }),
+    Hexokinase: Object.freeze({
+        directoryName: "1bg3_motifs",
+        filePrefix: "1bg3",
+        firstFrameNumber: 1,
+        lastFrameNumber: 65,
+        alt:
+            "Hexokinase protein motif assembly from PDB 1BG3.",
+        accent: "amber",
+        placeholderLabel:
+            "Hexokinase motif assembly preview",
+        fallbackFileName: null
+    }),
+    PhosphoglucoseIsomerase: Object.freeze({
+        directoryName: "2pgi_motifs",
+        filePrefix: "2pgi",
+        firstFrameNumber: 1,
+        lastFrameNumber: 29,
+        alt:
+            "Phosphoglucose isomerase motif assembly from PDB 2PGI.",
+        accent: "gold",
+        placeholderLabel:
+            "Phosphoglucose isomerase motif assembly preview",
         fallbackFileName: null
     })
 });
@@ -56,26 +82,60 @@ function createVisual(productId, config) {
         );
     }
 
-    const frameUrls = Object.freeze(
+    const firstFrameNumber =
+        config.firstFrameNumber;
+    const lastFrameNumber =
+        config.lastFrameNumber;
+
+    if (
+        !Number.isInteger(firstFrameNumber) ||
+        !Number.isInteger(lastFrameNumber) ||
+        lastFrameNumber < firstFrameNumber
+    ) {
+        throw new Error(
+            `PolymerizerVisualCatalog: ${productId} requires a valid inclusive frame range.`
+        );
+    }
+
+    const filePrefix =
+        config.filePrefix ?? source;
+    const directoryPrefix =
+        config.directoryName
+            ? `${config.directoryName}/`
+            : "";
+    const frameNumbers = Object.freeze(
         Array.from(
             {
                 length:
-                    config.assemblyFrameCount + 1
+                    lastFrameNumber -
+                    firstFrameNumber + 1
             },
-            (_, frameNumber) =>
-                assetUrl(
-                    `${source}-${frameNumber}.png`
-                )
+            (_, index) =>
+                firstFrameNumber + index
+        )
+    );
+    const frameUrls = Object.freeze(
+        frameNumbers.map(frameNumber =>
+            assetUrl(
+                `${directoryPrefix}${filePrefix}-${frameNumber}.png`
+            )
         )
     );
 
     return Object.freeze({
         source,
+        firstFrameNumber,
+        lastFrameNumber,
+        frameCount: frameUrls.length,
         assemblyFrameCount:
-            config.assemblyFrameCount,
+            Math.max(
+                0,
+                frameUrls.length - 1
+            ),
         frameUrls,
-        // Frame zero is the unsynthesized/locked preview. Frames one through
-        // N are distributed evenly across an active assembly timer.
+        // The first available image is the idle preview. Every later image is
+        // distributed evenly across the active assembly timer. This supports
+        // both legacy 0-based folders and PDB motif folders that begin at 1.
         idleImageUrl: frameUrls[0],
         assemblyImageUrls:
             Object.freeze(

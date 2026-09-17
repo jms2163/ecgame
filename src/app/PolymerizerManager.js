@@ -1,11 +1,12 @@
 // --------------------------------------------------
 // PolymerizerManager.js
-// Milestone 4 domain authority and complete assembly lifecycle.
+// Domain authority and complete protein assembly lifecycle.
 //
 // This milestone evaluates permanent Macromolecularizer motif levels and
 // owns completed Polymerizer products. It starts one reload-safe 15-second
-// assembly job, spends ATP at start, and atomically grants output plus the
-// existing Aquaporin discovery when the elapsed job completes.
+// assembly job, spends ATP at start, and atomically grants output. Products
+// may optionally grant a configured discovery (Aquaporin does; metabolic
+// enzymes currently do not).
 // --------------------------------------------------
 
 import GameStateManager from "./GameStateManager.js";
@@ -826,7 +827,7 @@ const PolymerizerManager = {
                     nowMs
                 ),
             message:
-                `${definition.name} assembly started. 15 ATP spent; motif levels were not consumed.`
+                `${definition.name} assembly started. ${definition.atpCost} ATP spent; motif levels were not consumed.`
         };
 
     },
@@ -893,18 +894,11 @@ const PolymerizerManager = {
                 productId
             );
         const discoveryId =
-            definition?.discoveryId;
-
-        if (
-            typeof discoveryId !== "string" ||
-            discoveryId.trim() === ""
-        ) {
-            return {
-                success: false,
-                reason:
-                    "missing-product-discovery"
-            };
-        }
+            typeof definition?.discoveryId ===
+                "string" &&
+            definition.discoveryId.trim() !== ""
+                ? definition.discoveryId.trim()
+                : null;
 
         const hadProductRecord =
             Object.prototype.hasOwnProperty.call(
@@ -937,19 +931,23 @@ const PolymerizerManager = {
         };
 
         const discoveryAlreadyKnown =
-            GameStateManager.hasDiscovery(
-                discoveryId
-            );
-        const discoveryGranted =
-            discoveryAlreadyKnown
-                ? false
-                : GameStateManager.addDiscovery(
+            discoveryId
+                ? GameStateManager.hasDiscovery(
                     discoveryId
-                );
+                )
+                : false;
+        const discoveryGranted =
+            discoveryId &&
+            !discoveryAlreadyKnown
+                ? GameStateManager.addDiscovery(
+                    discoveryId
+                )
+                : false;
 
         // A failed grant must not leave a completed product whose required
         // progression flag was never recorded.
         if (
+            discoveryId &&
             !discoveryAlreadyKnown &&
             !discoveryGranted
         ) {
@@ -1033,7 +1031,9 @@ const PolymerizerManager = {
             completedAtMs:
                 completionTimestamp,
             message:
-                `${definition.name} assembly complete. Product stored and discovery recorded.`
+                discoveryId
+                    ? `${definition.name} assembly complete. Product stored and discovery recorded.`
+                    : `${definition.name} assembly complete. Product stored in Polymerizer inventory.`
         };
 
     },
