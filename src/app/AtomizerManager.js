@@ -24,6 +24,10 @@ const AtomizerManager = {
     initialize() {
         this.ensureState();
         GameStateManager.syncAtomizerUnlocks();
+        // Atomizers already tick globally while the browser game is open.
+        // Reconcile closed-browser time exactly once after loading the save;
+        // doing this again on every zone entry double-counted live play time.
+        this.processOfflineGeneration();
         this.subscribe();
         return true;
     },
@@ -35,10 +39,8 @@ activate() {
     // 1. Sync global discoveries with local atomizer unlock state
     GameStateManager.syncAtomizerUnlocks();
 
-    // 2. Process offline generation using live state
-    this.processOfflineGeneration();
-    
-    // 3. Initialize and render UI
+    // 2. Initialize and render UI. Offline production was reconciled once
+    // during global initialization and must not be repeated on zone entry.
     if (typeof AtomizerUI !== "undefined") {
         AtomizerUI.initialize();
     }
@@ -111,11 +113,28 @@ getSkillPointData() {
     };
 },
 
-    processOfflineGeneration() {
+    processOfflineGeneration(
+        nowMs = Date.now()
+    ) {
         if (!this.state || !this.state.atoms) return;
 
-        const now = Date.now();
-        const elapsedSeconds = Math.min((now - (this.state.lastActiveTimestamp || now)) / 1000, 86400);
+        const now = Number.isFinite(nowMs)
+            ? nowMs
+            : Date.now();
+        const previousTimestamp =
+            Number.isFinite(
+                this.state.lastActiveTimestamp
+            )
+                ? this.state.lastActiveTimestamp
+                : now;
+        const elapsedSeconds = Math.min(
+            Math.max(
+                0,
+                (now - previousTimestamp) /
+                    1000
+            ),
+            86400
+        );
         const changedSymbols = [];
 
         if (elapsedSeconds >= 5) {
@@ -147,6 +166,8 @@ getSkillPointData() {
             });
             this.notifyStateChange("offline-generation", { changedSymbols });
         }
+
+        return changedSymbols;
     },
 
 /**
@@ -281,6 +302,12 @@ tick(deltaSec) {
     if (changedSymbols.length > 0) {
         this.notifyStateChange("timed-generation", { changedSymbols });
     }
+
+    // This timestamp represents the most recent globally processed live tick,
+    // not the last time the Atomizer screen happened to be opened. Any later
+    // save therefore has an accurate boundary for next-startup reconciliation.
+    this.state.lastActiveTimestamp =
+        Date.now();
 },
 
     unlockAtom(symbol) {
