@@ -92,6 +92,14 @@ import Polymerizer
     from "./Polymerizer.js";
 import PolymerizerUI
     from "./PolymerizerUI.js";
+import MetabolismManager
+    from "./MetabolismManager.js";
+import Metabolism
+    from "./Metabolism.js";
+import MetabolismUI
+    from "./MetabolismUI.js";
+import MetabolismPathwayCatalog
+    from "../data/MetabolismPathwayCatalog.js";
 import MoleculeLab from "./MoleculeLab.js";
 import MoleculeLabUI from "./MoleculeLabUI.js";
 import MoleculeBuilderView from "./MoleculeBuilderView.js";
@@ -158,6 +166,10 @@ const DevConsole = {
             PolymerizerManager,
             Polymerizer,
             PolymerizerUI,
+            MetabolismManager,
+            Metabolism,
+            MetabolismUI,
+            MetabolismPathwayCatalog,
             MoleculeLab,
             MoleculeLabUI,
             MoleculeBuilderView,

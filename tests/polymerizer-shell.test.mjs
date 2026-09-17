@@ -43,6 +43,16 @@ assert.equal(recipe.motifCount, 15);
 assert.equal(recipe.atpCost, 15);
 assert.equal(recipe.consumesMotifs, false);
 assert.equal(recipe.discoveryId, "aquaporin");
+assert.equal(recipe.motifCount, 15);
+
+const glucoseTransporterRecipe =
+    PolymerizerRecipeCatalog.get(
+        "GlucoseTransporter"
+    );
+assert.equal(
+    glucoseTransporterRecipe.motifCount,
+    6
+);
 
 const visual =
     PolymerizerVisualCatalog.get(
@@ -144,6 +154,18 @@ const zoneManagerSource = fs.readFileSync(
 assert.match(
     zoneManagerSource,
     /["']polymerizer["']\s*,\s*\{/
+);
+
+const productViewSource = fs.readFileSync(
+    new URL(
+        "../src/app/PolymerizerProductView.js",
+        import.meta.url
+    ),
+    "utf8"
+);
+assert.match(
+    productViewSource,
+    /Lvl:\s*\$\{product\.definition\.motifCount\}/
 );
 
 const signaling =

@@ -144,6 +144,8 @@ const PolymerizerProductView = {
 
             const status =
                 document.createElement("span");
+            status.className =
+                "poly-product-card-status";
             status.textContent =
                 activeAssembly
                     ?.productId === product.id
@@ -156,7 +158,21 @@ const PolymerizerProductView = {
                         ? "Requirements met · Ready"
                         : "Requirements incomplete";
 
-            button.append(name, status);
+            // A protein's level is its total structural-motif count. It is
+            // derived from the authoritative recipe catalog, so this label
+            // never creates or duplicates persistent product state.
+            const level =
+                document.createElement("span");
+            level.className =
+                "poly-product-card-level";
+            level.textContent =
+                `Lvl: ${product.definition.motifCount}`;
+
+            button.append(
+                name,
+                status,
+                level
+            );
 
             if (typeof onSelect === "function") {
                 button.addEventListener(

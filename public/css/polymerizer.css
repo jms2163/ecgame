@@ -167,6 +167,18 @@
     font-size: 0.7rem;
 }
 
+.poly-product-card .poly-product-card-level {
+    width: max-content;
+    padding: 4px 7px;
+    border: 1px solid rgba(32, 214, 208, 0.3);
+    border-radius: 999px;
+    color: var(--poly-accent-bright);
+    background: rgba(32, 214, 208, 0.08);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
 .poly-category--active,
 .poly-product-card--selected {
     border-color: rgba(32, 214, 208, 0.62);
