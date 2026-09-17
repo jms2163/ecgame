@@ -11,6 +11,7 @@ import { proteinLibrary } from "./proteinLibrary.js";
 
 const MOTIF_ID_BY_SYMBOL = Object.freeze({
     H: "H_helix",
+    B: "B_sheet",
     L: "L_loop"
 });
 
@@ -27,7 +28,7 @@ const PRODUCT_CONFIGS = Object.freeze({
         implemented: false,
         discoveryId: null,
         lockedMessage:
-            "Coming Soon — the C and B structural motif mappings and ATP cost have not been approved."
+            "Coming Soon — its PDB-based motif recipe, ATP cost, and release approval are not configured."
     })
 });
 
