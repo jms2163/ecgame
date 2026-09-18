@@ -13,6 +13,7 @@ import GameStateManager from "./GameStateManager.js";
 import GameStateObserver from "./GameStateObserver.js";
 import ResourceManager from "./ResourceManager.js";
 import SaveManager from "./SaveManager.js";
+import QuestManager from "./QuestManager.js";
 import PolymerizerRecipeCatalog
     from "../data/PolymerizerRecipeCatalog.js";
 
@@ -385,6 +386,45 @@ const PolymerizerManager = {
 
     },
 
+    // Read an optional quest-based completion without copying it into
+    // Polymerizer inventory. A quest unlock represents progression knowledge;
+    // only an actual assembly may create a stored product quantity.
+    getQuestCompletion(definition) {
+
+        const questId =
+            definition?.completionQuestId;
+
+        if (
+            typeof questId !== "string" ||
+            questId.trim() === ""
+        ) {
+            return null;
+        }
+
+        const record =
+            QuestManager.getRecord(
+                questId
+            );
+
+        if (record?.status !== "claimed") {
+            return null;
+        }
+
+        return {
+            completed: true,
+            source: "quest",
+            label: "Quest completed",
+            questId,
+            completedAtMs:
+                Number.isFinite(
+                    record.claimedAtMs
+                )
+                    ? record.claimedAtMs
+                    : null
+        };
+
+    },
+
     getProductEligibility(
         productId = DEFAULT_PRODUCT_ID
     ) {
@@ -402,6 +442,33 @@ const PolymerizerManager = {
             this.getProductRecord(
                 productId
             );
+        const outputQuantity =
+            safeCount(
+                outputRecord?.count
+            );
+        const questCompletion =
+            this.getQuestCompletion(
+                definition
+            );
+        const completion =
+            outputQuantity > 0
+                ? {
+                    completed: true,
+                    source: "synthesized",
+                    label: "Synthesized",
+                    questId: null,
+                    completedAtMs:
+                        outputRecord
+                            ?.firstCompletedAtMs ??
+                        null
+                }
+                : questCompletion ?? {
+                    completed: false,
+                    source: null,
+                    label: null,
+                    questId: null,
+                    completedAtMs: null
+                };
 
         if (!definition.implemented) {
             const atp =
@@ -430,11 +497,10 @@ const PolymerizerManager = {
                 canStart: false,
                 implementationStatus:
                     "coming-soon",
+                completion,
                 output: {
                     quantity:
-                        safeCount(
-                            outputRecord?.count
-                        ),
+                        outputQuantity,
                     firstCompletedAtMs:
                         outputRecord
                             ?.firstCompletedAtMs ??
@@ -523,15 +589,15 @@ const PolymerizerManager = {
                 definition.valid &&
                 motifLevelsMet &&
                 canAffordATP &&
+                !questCompletion &&
                 !this.ensureState()
                     .activeAssembly,
             implementationStatus:
                 "milestone-4-completion",
+            completion,
             output: {
                 quantity:
-                    safeCount(
-                        outputRecord?.count
-                    ),
+                    outputQuantity,
                 firstCompletedAtMs:
                     Number.isFinite(
                         outputRecord
@@ -1134,7 +1200,8 @@ const PolymerizerManager = {
 
         [
             "macromolecularizer-state-changed",
-            "atp-changed"
+            "atp-changed",
+            "quest-state-changed"
         ].forEach(eventName => {
             GameStateObserver.on(
                 eventName,

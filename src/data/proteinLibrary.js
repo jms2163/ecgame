@@ -8,6 +8,9 @@ export const proteinLibrary =  Object.freeze({
     "Kilodaltons": 25.4,
     "Class": "Transport",
     "Function": "Water channel; increases osmosis rate",
+    // FunctionDisplay links optional card artwork through
+    // ProteinFunctionCatalog. null means no function badge is available yet.
+    "FunctionDisplay": null,
     "Tier": 1,
     "Location": "PlasmaMembrane",
     "Requires": ["AminoAcids", "BasicTranscription"],
@@ -20,6 +23,7 @@ export const proteinLibrary =  Object.freeze({
     "Recipe": {"B": 2, "L": 2, "H": 2},
     "Class": "Transport",
     "Function": "Moves glucose into cytosol",
+    "FunctionDisplay": "cellEnergy",
     "Tier": 1,
     "Location": "PlasmaMembrane",
     "Requires": ["AminoAcids", "BasicTranscription"],

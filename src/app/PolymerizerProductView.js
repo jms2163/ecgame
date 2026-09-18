@@ -51,7 +51,10 @@ function renderProductImage(
                         null,
                     completed:
                         !productAssembly &&
-                        product.output.quantity > 0
+                        Boolean(
+                            product.completion
+                                ?.completed
+                        )
                 }
             );
 
@@ -123,6 +126,9 @@ const PolymerizerProductView = {
                     : "",
                 product.locked
                     ? "poly-product-card--locked"
+                    : product.completion
+                        ?.source === "quest"
+                        ? "poly-product-card--quest-complete"
                     : ""
             ].filter(Boolean).join(" ");
             button.disabled =
@@ -143,6 +149,11 @@ const PolymerizerProductView = {
             name.textContent =
                 product.definition.name;
 
+            const content =
+                document.createElement("span");
+            content.className =
+                "poly-product-card-content";
+
             const status =
                 document.createElement("span");
             status.className =
@@ -155,6 +166,11 @@ const PolymerizerProductView = {
                         : "Assembling"
                     : product.locked
                         ? "Coming Soon"
+                    : product.completion
+                        ?.source === "quest"
+                        ? "Quest completed"
+                    : product.output.quantity > 0
+                        ? `Synthesized · ${product.output.quantity} stored`
                     : product.eligible
                         ? "Requirements met · Ready"
                         : "Requirements incomplete";
@@ -169,11 +185,60 @@ const PolymerizerProductView = {
             level.textContent =
                 `Lvl: ${product.definition.motifCount}`;
 
-            button.append(
+            content.append(
                 name,
                 status,
                 level
             );
+
+            button.append(content);
+
+            const functionDisplay =
+                product.definition
+                    .functionDisplay;
+
+            if (functionDisplay?.iconUrl) {
+                const badge =
+                    document.createElement("span");
+                badge.className =
+                    "poly-product-function-badge";
+                badge.title = [
+                    functionDisplay.label,
+                    functionDisplay.description
+                ].filter(Boolean).join(": ");
+
+                const icon =
+                    document.createElement("img");
+                icon.className =
+                    "poly-product-function-icon";
+                icon.src =
+                    functionDisplay.iconUrl;
+                icon.alt =
+                    functionDisplay.iconAlt ||
+                    `${functionDisplay.label} icon`;
+                icon.width = 80;
+                icon.height = 80;
+
+                // Development datasets may reference artwork before it is
+                // copied into the local asset folder. Avoid leaving a broken
+                // image or an empty column in that case.
+                icon.addEventListener(
+                    "error",
+                    () => {
+                        button.classList.remove(
+                            "poly-product-card--has-function"
+                        );
+                        badge.remove();
+                    },
+                    { once: true }
+                );
+
+                badge.append(icon);
+                button.append(badge);
+                button.classList.add(
+                    "poly-product-card--has-function"
+                );
+            }
 
             if (typeof onSelect === "function") {
                 button.addEventListener(
@@ -251,6 +316,24 @@ const PolymerizerProductView = {
             return;
         }
 
+        if (
+            product.completion?.source ===
+                "quest"
+        ) {
+            elements.progressPanel.hidden = true;
+            elements.progress.value = 0;
+            elements.countdown.textContent =
+                "Assembly bypassed by quest completion";
+            elements.chamberMode.textContent =
+                "Quest Completed";
+            elements.chamberStatus.textContent =
+                `${product.definition.name} was unlocked through the Protein Building Blocks quest. No Polymerizer product was synthesized or added to output inventory.`;
+            elements.assembleButton.disabled = true;
+            elements.assembleButton.textContent =
+                `${product.definition.name} · Quest Completed`;
+            return;
+        }
+
         elements.progressPanel.hidden = true;
         elements.progress.value = 0;
         elements.countdown.textContent =
@@ -276,6 +359,34 @@ const PolymerizerProductView = {
     renderPreflight(container, product) {
 
         if (!container || !product) return;
+
+        if (
+            product.completion?.source ===
+                "quest"
+        ) {
+            const item =
+                document.createElement("li");
+            item.className =
+                "poly-requirement poly-requirement--complete";
+
+            const label =
+                document.createElement("span");
+            label.textContent =
+                "Protein Building Blocks quest";
+
+            const count =
+                document.createElement("strong");
+            count.textContent = "Complete";
+
+            const note =
+                document.createElement("small");
+            note.textContent =
+                "Aquaporin discovery granted; no motifs or ATP were consumed here.";
+
+            item.append(label, count, note);
+            container.replaceChildren(item);
+            return;
+        }
 
         if (product.locked) {
             const item =
@@ -376,6 +487,9 @@ const PolymerizerProductView = {
         elements.outputMessage.textContent =
             product.output.quantity > 0
                 ? `${product.definition.name} × ${product.output.quantity} stored in Polymerizer output inventory.`
+                : product.completion?.source ===
+                    "quest"
+                    ? `${product.definition.name} was unlocked by quest completion. No synthesized protein is stored in the output tray.`
                 : product.locked
                     ? `${product.definition.name} output is unavailable until its recipe is implemented.`
                     : `No completed ${product.definition.name} proteins yet.`;

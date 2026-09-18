@@ -191,6 +191,36 @@
     cursor: pointer;
 }
 
+.poly-product-card--has-function {
+    grid-template-columns: minmax(0, 1fr) 80px;
+    column-gap: 12px;
+    align-items: center;
+}
+
+.poly-product-card-content {
+    display: grid;
+    min-width: 0;
+    gap: 6px;
+}
+
+.poly-product-function-badge {
+    display: grid;
+    place-items: center;
+    width: 80px;
+    height: 80px;
+    overflow: hidden;
+    border: 1px solid rgba(32, 214, 208, 0.28);
+    border-radius: 10px;
+    background: rgba(7, 18, 26, 0.72);
+}
+
+.poly-product-function-icon {
+    display: block;
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+}
+
 .poly-product-card:disabled {
     cursor: not-allowed;
 }
@@ -202,6 +232,20 @@
 
 .poly-product-card--locked span {
     color: #c6bdff;
+}
+
+.poly-product-card--quest-complete {
+    border-color: rgba(126, 235, 151, 0.72);
+    background: linear-gradient(
+        120deg,
+        rgba(72, 187, 120, 0.16),
+        rgba(32, 214, 208, 0.08)
+    );
+}
+
+.poly-product-card--quest-complete .poly-product-card-status {
+    color: #8ff0aa;
+    font-weight: 700;
 }
 
 .poly-chamber-panel {
