@@ -8,6 +8,8 @@
 // --------------------------------------------------
 
 import { proteinLibrary } from "./proteinLibrary.js";
+import ProteinFunctionCatalog
+    from "./ProteinFunctionCatalog.js";
 
 const MOTIF_ID_BY_SYMBOL = Object.freeze({
     H: "H_helix",
@@ -21,6 +23,8 @@ const PRODUCT_CONFIGS = Object.freeze({
         name: "Aquaporin",
         implemented: true,
         discoveryId: "aquaporin",
+        completionQuestId:
+            "protein_building_blocks",
         lockedMessage: null
     }),
     GlucoseTransporter: Object.freeze({
@@ -75,6 +79,10 @@ function createDefinition(id, protein) {
     const structureOrderKnown =
         typeof protein?.PPC === "string" &&
         protein.PPC.trim() !== "";
+    const functionDisplay =
+        ProteinFunctionCatalog.get(
+            protein?.FunctionDisplay
+        );
 
     const motifRequirements =
         Object.entries(recipe).map(
@@ -139,6 +147,9 @@ function createDefinition(id, protein) {
             protein?.Location ?? "",
         function:
             protein?.Function ?? "",
+        // This is presentation metadata derived from a catalog reference.
+        // It is never copied into Polymerizer save state.
+        functionDisplay,
         description:
             protein?.Info ?? "",
         source:
@@ -169,6 +180,11 @@ function createDefinition(id, protein) {
             Boolean(config?.implemented),
         discoveryId:
             config?.discoveryId ?? null,
+        // A claimed quest may satisfy progression without pretending that a
+        // physical Polymerizer product was assembled. Runtime presentation
+        // derives this alternate completion source from the quest record.
+        completionQuestId:
+            config?.completionQuestId ?? null,
         lockedMessage:
             config?.lockedMessage ?? null
     });
