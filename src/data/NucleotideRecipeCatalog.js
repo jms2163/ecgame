@@ -17,7 +17,6 @@ const IMPLEMENTED_NUCLEOTIDE_IDS =
         "dGMP",
         "dCMP",
         "dTMP",
-        "NMN",
         "NADPlus"
     ]);
 
@@ -131,53 +130,13 @@ const NUCLEOTIDE_METADATA =
         // Nucleotide cofactors
         // ------------------------------------------
 
-        NMN: Object.freeze({
-            name:
-                "Nicotinamide Mononucleotide",
-            abbreviation:
-                "NMN",
-            nucleicAcidType:
-                "COFACTOR",
-            productType:
-                "nucleotide-cofactor",
-            components: Object.freeze([
-                Object.freeze({
-                    id: "Nicotinamide",
-                    quantity: 1,
-                    role: "nicotinamide",
-                    sourceZoneId:
-                        "moleculeLab"
-                }),
-                Object.freeze({
-                    id: "Ribose",
-                    quantity: 1,
-                    role: "pentose-sugar",
-                    sourceZoneId:
-                        "moleculeLab"
-                }),
-                Object.freeze({
-                    id: "PO4",
-                    quantity: 1,
-                    role: "phosphate",
-                    sourceZoneId:
-                        "moleculeLab"
-                })
-            ]),
-            assemblyBondCount: 2,
-            nucleotideCount: 1,
-            bondType:
-                "glycosidic-and-phosphoester",
-            description:
-                "Nicotinamide joined to ribose and phosphate."
-        }),
-
         NADPlus: Object.freeze({
             name:
                 "Nicotinamide Adenine Dinucleotide",
             abbreviation:
                 "NAD+",
             nucleicAcidType:
-                "COFACTOR",
+                "COF",
             productType:
                 "dinucleotide-cofactor",
             components: Object.freeze([
@@ -190,20 +149,36 @@ const NUCLEOTIDE_METADATA =
                         "macromolecularizer"
                 }),
                 Object.freeze({
-                    id: "NMN",
+                    id: "Nicotinamide",
                     quantity: 1,
                     role:
-                        "nicotinamide-nucleotide",
+                        "nicotinamide",
                     sourceZoneId:
-                        "macromolecularizer"
+                        "moleculeLab"
+                }),
+                Object.freeze({
+                    id: "Ribose",
+                    quantity: 1,
+                    role:
+                        "pentose-sugar",
+                    sourceZoneId:
+                        "moleculeLab"
+                }),
+                Object.freeze({
+                    id: "PO4",
+                    quantity: 1,
+                    role:
+                        "phosphate",
+                    sourceZoneId:
+                        "moleculeLab"
                 })
             ]),
-            assemblyBondCount: 1,
+            assemblyBondCount: 3,
             nucleotideCount: 2,
             bondType:
                 "phosphate-bridge",
             description:
-                "AMP joined to NMN to form the dinucleotide cofactor NAD+."
+                "AMP joined with nicotinamide, ribose, and phosphate to form the dinucleotide cofactor NAD+."
         })
 
     });

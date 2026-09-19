@@ -32,8 +32,9 @@ const GLYCOLYSIS = {
     // The early black-box module establishes functional Glycolysis before
     // students reconstruct its ten enzymes individually. NAD+ is required at
     // the GAPDH step and is reduced to NADH; it is not supplied by LDH.
-    // NADPlus is assembled in the Macromolecularizer N category from AMP and
-    // NMN. All three prerequisites below are permanent products and are not
+    // NADPlus is assembled in the Macromolecularizer N category from AMP plus
+    // Molecule Lab nicotinamide, ribose, and phosphate. All three prerequisites
+    // below are permanent products and are not
     // consumed when this black-box module is activated.
     coreModule: {
         id: "glycolysisCore",
