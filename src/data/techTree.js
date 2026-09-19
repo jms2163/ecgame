@@ -129,7 +129,7 @@ export const techTreeData = Object.freeze(
     icon: "C<sub>6</sub>H<sub>6</sub>N<sub>2</sub>O",
     tier: 2,
     researchTime: 122,
-    parents: ["C", "H", "N", "O"],
+    parents: ["CH4", "H2", "N2", "O2"],
     category: "molecules",
     state: "locked",
     affects: [],
