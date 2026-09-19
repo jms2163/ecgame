@@ -47,10 +47,10 @@ function isRecord(value) {
 function getAllSlots(pathway) {
 
     return [
-        ...pathway.coreSlots,
-        ...pathway.regenerationBranches
+        ...(pathway.coreSlots ?? []),
+        ...(pathway.regenerationBranches ?? [])
             .flatMap(branch =>
-                branch.slots
+                branch.slots ?? []
             )
     ];
 
@@ -232,6 +232,282 @@ const MetabolismManager = {
 
     },
 
+    /**
+     * Resolve one catalog requirement against its authoritative owner. This
+     * keeps pathway definitions data-driven while avoiding copied cofactor or
+     * enzyme inventories inside Metabolism state.
+     */
+    getRequirementStatus(requirement) {
+
+        const minimumCount = Math.max(
+            1,
+            safeCount(
+                requirement?.minimumCount ?? 1
+            )
+        );
+        let currentCount = 0;
+
+        if (
+            requirement?.type ===
+                "polymerizer-product"
+        ) {
+            currentCount = this.getProductCount(
+                requirement.productId
+            );
+        } else if (
+            requirement?.type ===
+                "macromolecularizer-product"
+        ) {
+            currentCount =
+                this.getMacromolecularizerProductCount(
+                    requirement.productId
+                );
+        } else if (
+            requirement?.type ===
+                "molecule-discovery"
+        ) {
+            currentCount = GameStateManager
+                .hasDiscoveryInCategory(
+                    "molecules",
+                    requirement.productId
+                )
+                    ? 1
+                    : 0;
+        } else if (
+            requirement?.type ===
+                "metabolism-output"
+        ) {
+            currentCount =
+                this.isMetabolismOutputAvailable(
+                    requirement.sources
+                )
+                    ? 1
+                    : 0;
+        }
+
+        return {
+            ...requirement,
+            minimumCount,
+            currentCount,
+            missing: Math.max(
+                0,
+                minimumCount - currentCount
+            ),
+            complete:
+                currentCount >= minimumCount
+        };
+
+    },
+
+    /**
+     * Metabolic outputs such as NADH and FADH2 are derived capabilities, not
+     * stored consumable inventories. A source becomes available from an
+     * already completed module or a fully reconstructed pathway.
+     */
+    isMetabolismOutputAvailable(
+        sources = []
+    ) {
+
+        if (!Array.isArray(sources)) {
+            return false;
+        }
+
+        return sources.some(source => {
+            if (
+                source?.type ===
+                    "completed-module"
+            ) {
+                return Boolean(
+                    this.ensureState()
+                        .completedModules?.[
+                            source.moduleId
+                        ]?.completed
+                );
+            }
+
+            if (
+                source?.type ===
+                    "completed-pathway"
+            ) {
+                return this
+                    .isPathwayReconstructionComplete(
+                        source.pathwayId
+                    );
+            }
+
+            return false;
+        });
+
+    },
+
+    isPathwayReconstructionComplete(
+        pathwayId
+    ) {
+
+        const pathway =
+            MetabolismPathwayCatalog.get(
+                pathwayId
+            );
+
+        if (
+            !pathway ||
+            pathway.mapType === "network" ||
+            (pathway.coreSlots ?? [])
+                .length === 0
+        ) {
+            return false;
+        }
+
+        const placements =
+            this.ensureState()
+                .pathwayPlacements?.[
+                    pathwayId
+                ] ?? {};
+        const coreComplete =
+            pathway.coreSlots.every(slot =>
+                placements[
+                    String(slot.slot)
+                ] === slot.enzymeId
+            );
+        const requiredBranchId =
+            pathway.completionRule
+                ?.requiredRegenerationBranchId;
+
+        if (!coreComplete) return false;
+        if (!requiredBranchId) return true;
+
+        const requiredBranch =
+            (pathway.regenerationBranches ?? [])
+                .find(branch =>
+                    branch.id ===
+                        requiredBranchId
+                );
+
+        return Boolean(
+            requiredBranch &&
+            (requiredBranch.slots ?? [])
+                .every(slot =>
+                    placements[
+                        String(slot.slot)
+                    ] === slot.enzymeId
+                )
+        );
+
+    },
+
+    /**
+     * Resolve a read-only network map in catalog order. Dependencies point to
+     * earlier nodes, allowing readiness to flow through converging branches
+     * without adding a second saved activation graph.
+     */
+    getNetworkStatus(pathway) {
+
+        if (
+            pathway?.mapType !== "network" ||
+            !pathway.network
+        ) {
+            return null;
+        }
+
+        const resolvedById = new Map();
+        const nodes = pathway.network.nodes.map(
+            node => {
+                const requirements =
+                    (node.activationRequirements ?? [])
+                        .map(requirement =>
+                            this.getRequirementStatus(
+                                requirement
+                            )
+                        );
+                const productCount =
+                    node.productId
+                        ? this.getProductCount(
+                            node.productId
+                        )
+                        : null;
+                const productReady =
+                    !node.productId ||
+                    productCount >= 1;
+                const dependencies =
+                    (node.dependencies ?? [])
+                        .map(dependency => {
+                            const states =
+                                dependency.nodeIds.map(
+                                    nodeId => Boolean(
+                                        resolvedById.get(
+                                            nodeId
+                                        )?.functionReady
+                                    )
+                                );
+                            const complete =
+                                dependency.mode === "any"
+                                    ? states.some(Boolean)
+                                    : states.every(Boolean);
+
+                            return {
+                                ...dependency,
+                                complete
+                            };
+                        });
+                const requirementsMet =
+                    requirements.every(
+                        requirement =>
+                            requirement.complete
+                    );
+                const dependenciesMet =
+                    dependencies.every(
+                        dependency =>
+                            dependency.complete
+                    );
+                const resolved = {
+                    ...node,
+                    productCount,
+                    productReady,
+                    activationRequirements:
+                        requirements,
+                    dependencies,
+                    requirementsMet,
+                    dependenciesMet,
+                    functionReady:
+                        productReady &&
+                        requirementsMet &&
+                        dependenciesMet
+                };
+
+                resolvedById.set(
+                    node.id,
+                    resolved
+                );
+                return resolved;
+            }
+        );
+        const connections =
+            pathway.network.connections.map(
+                connection => ({
+                    ...connection,
+                    active: Boolean(
+                        resolvedById.get(
+                            connection.from
+                        )?.functionReady &&
+                        resolvedById.get(
+                            connection.to
+                        )?.functionReady
+                    )
+                })
+            );
+
+        return {
+            nodes,
+            connections,
+            complete:
+                nodes.length > 0 &&
+                nodes.every(node =>
+                    node.functionReady
+                )
+        };
+
+    },
+
     getCoreModuleStatus(pathway) {
 
         const module = pathway.coreModule;
@@ -239,37 +515,11 @@ const MetabolismManager = {
         if (!module) return null;
 
         const requirements =
-            module.requirements.map(
-                requirement => {
-                    const currentCount =
-                        requirement.type ===
-                            "polymerizer-product"
-                            ? this.getProductCount(
-                                requirement
-                                    .productId
-                            )
-                            : this
-                                .getMacromolecularizerProductCount(
-                                    requirement
-                                        .productId
-                                );
-
-                    return {
-                        ...requirement,
-                        currentCount,
-                        missing:
-                            Math.max(
-                                0,
-                                requirement
-                                    .minimumCount -
-                                currentCount
-                            ),
-                        complete:
-                            currentCount >=
-                            requirement
-                                .minimumCount
-                    };
-                }
+            (module.requirements ?? []).map(
+                requirement =>
+                    this.getRequirementStatus(
+                        requirement
+                    )
             );
         const record = this.ensureState()
             .completedModules[
@@ -312,27 +562,65 @@ const MetabolismManager = {
 
         if (!pathway) return null;
 
-        const requirement =
-            pathway.unlockRequirement;
-        const currentCount =
-            this.getProductCount(
-                requirement.productId
+        const unlockRequirements =
+            (pathway.unlockRequirements ?? [])
+                .map(requirement =>
+                    this.getRequirementStatus(
+                        requirement
+                    )
+                );
+        const requirementsMet =
+            unlockRequirements.every(
+                requirement =>
+                    requirement.complete
             );
-        const missing = Math.max(
-            0,
-            requirement.minimumCount -
-                currentCount
-        );
+        const released =
+            pathway.releaseState !==
+                "coming-soon";
         const placements = {
             ...(this.ensureState()
                 .pathwayPlacements[
                     pathwayId
                 ] ?? {})
         };
-        const allSlots =
-            getAllSlots(pathway);
+        const resolveSlot = slot => {
+            const activationRequirements =
+                (slot.activationRequirements ?? [])
+                    .map(requirement =>
+                        this.getRequirementStatus(
+                            requirement
+                        )
+                    );
+
+            return {
+                ...slot,
+                activationRequirements,
+                functionReady:
+                    activationRequirements.every(
+                        requirement =>
+                            requirement.complete
+                    )
+            };
+        };
+        const resolvedCoreSlots =
+            (pathway.coreSlots ?? [])
+                .map(resolveSlot);
+        const resolvedBranches =
+            (pathway.regenerationBranches ?? [])
+                .map(branch => ({
+                    ...branch,
+                    slots:
+                        (branch.slots ?? [])
+                            .map(resolveSlot)
+                }));
+        const allSlots = [
+            ...resolvedCoreSlots,
+            ...resolvedBranches.flatMap(
+                branch => branch.slots
+            )
+        ];
         const corePlacedCount =
-            pathway.coreSlots.reduce(
+            (pathway.coreSlots ?? []).reduce(
                 (count, slot) =>
                     placements[
                         String(slot.slot)
@@ -344,34 +632,51 @@ const MetabolismManager = {
         const placedEnzymeIds =
             Object.values(placements);
         const availableEnzymes =
-            allSlots.map(slot => ({
-                ...slot,
-                productCount:
-                    this.getProductCount(
-                        slot.enzymeId
-                    ),
-                placed:
-                    placements[
-                        String(slot.slot)
-                    ] === slot.enzymeId,
-                isCore:
-                    pathway.coreSlots
-                        .some(coreSlot =>
-                            coreSlot.slot ===
-                                slot.slot
-                        )
-            })).filter(enzyme =>
+            allSlots.map(slot => {
+                return {
+                    ...slot,
+                    productCount:
+                        this.getProductCount(
+                            slot.enzymeId
+                        ),
+                    placed:
+                        placements[
+                            String(slot.slot)
+                        ] === slot.enzymeId,
+                    isCore:
+                        (pathway.coreSlots ?? [])
+                            .some(coreSlot =>
+                                coreSlot.slot ===
+                                    slot.slot
+                            )
+                };
+            }).filter(enzyme =>
                 enzyme.productCount > 0
             );
+        const requiredCoreEnzymes =
+            (pathway.coreSlots ?? []).length;
+        const rewardPerPlacement =
+            pathway.reward?.implemented
+                ? Number(
+                    pathway.reward
+                        .amountPerCorrectCoreEnzyme
+                ) || 0
+                : 0;
 
         return {
             ...pathway,
-            available: missing === 0,
+            coreSlots: resolvedCoreSlots,
+            regenerationBranches:
+                resolvedBranches,
+            available:
+                released && requirementsMet,
+            selectable: released,
+            unlockRequirements,
             unlockStatus: {
-                ...requirement,
-                currentCount,
-                missing,
-                complete: missing === 0
+                ...(unlockRequirements[0] ?? {}),
+                complete: requirementsMet,
+                requirements:
+                    unlockRequirements
             },
             placements,
             placedEnzymeIds,
@@ -380,29 +685,28 @@ const MetabolismManager = {
                 placedCoreEnzymes:
                     corePlacedCount,
                 requiredCoreEnzymes:
-                    pathway.coreSlots
-                        .length,
+                    requiredCoreEnzymes,
                 percent:
-                    Math.round(
-                        corePlacedCount /
-                        pathway.coreSlots
-                            .length *
-                        100
-                    ),
+                    requiredCoreEnzymes > 0
+                        ? Math.round(
+                            corePlacedCount /
+                            requiredCoreEnzymes *
+                            100
+                        )
+                        : 0,
                 atpPerMinute:
                     corePlacedCount *
-                    pathway.reward
-                        .amountPerCorrectCoreEnzyme,
+                    rewardPerPlacement,
                 complete:
+                    requiredCoreEnzymes > 0 &&
                     corePlacedCount ===
-                    pathway.coreSlots
-                        .length
+                        requiredCoreEnzymes
             },
             regenerationComplete:
-                pathway
-                    .regenerationBranches
+                (pathway
+                    .regenerationBranches ?? [])
                     .every(branch =>
-                        branch.slots.every(
+                        (branch.slots ?? []).every(
                             slot =>
                                 placements[
                                     String(
@@ -414,6 +718,10 @@ const MetabolismManager = {
                     ),
             coreModuleStatus:
                 this.getCoreModuleStatus(
+                    pathway
+                ),
+            networkStatus:
+                this.getNetworkStatus(
                     pathway
                 )
         };
@@ -616,6 +924,28 @@ const MetabolismManager = {
                 success: false,
                 reason:
                     "enzyme-not-synthesized"
+            };
+        }
+
+        const activationRequirements =
+            (expectedSlot.activationRequirements ?? [])
+                .map(requirement =>
+                    this.getRequirementStatus(
+                        requirement
+                    )
+                );
+        const missingRequirements =
+            activationRequirements.filter(
+                requirement =>
+                    !requirement.complete
+            );
+
+        if (missingRequirements.length > 0) {
+            return {
+                success: false,
+                reason:
+                    "enzyme-requirements-missing",
+                missingRequirements
             };
         }
 

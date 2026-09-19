@@ -151,9 +151,29 @@ function createSlotElement(
     element.append(
         number,
         abbreviation,
-        label,
-        status
+        label
     );
+
+    const requirements =
+        slot.activationRequirements ?? [];
+    if (requirements.length > 0) {
+        const requirementNotice =
+            document.createElement("span");
+        requirementNotice.className = [
+            "metabolism-slot-requirements",
+            slot.functionReady
+                ? "metabolism-slot-requirements--complete"
+                : "metabolism-slot-requirements--missing"
+        ].join(" ");
+        requirementNotice.textContent =
+            `Requires: ${requirements.map(
+                requirement =>
+                    requirement.label
+            ).join(" + ")}`;
+        element.append(requirementNotice);
+    }
+
+    element.append(status);
 
     if (branch) {
         const branchLabel = document.createElement(
@@ -246,6 +266,174 @@ function createChemistryGroup(
 
 }
 
+function createNetworkNodeElement(node) {
+
+    const element = document.createElement(
+        "article"
+    );
+    element.className = [
+        "metabolism-network-node",
+        `metabolism-network-node--${node.type}`,
+        node.functionReady
+            ? "metabolism-network-node--ready"
+            : "metabolism-network-node--blocked"
+    ].join(" ");
+    element.dataset.nodeId = node.id;
+
+    const type = document.createElement("span");
+    type.className =
+        "metabolism-network-node-type";
+    type.textContent = node.type
+        .replaceAll("-", " ");
+
+    const abbreviation =
+        document.createElement("strong");
+    abbreviation.className =
+        "metabolism-network-node-abbreviation";
+    abbreviation.textContent =
+        node.abbreviation;
+
+    const label = document.createElement("h3");
+    label.textContent = node.label;
+
+    const effect = document.createElement("p");
+    effect.textContent = node.effect;
+
+    const status = document.createElement("small");
+    const missingRequirements =
+        (node.activationRequirements ?? [])
+            .filter(requirement =>
+                !requirement.complete
+            );
+    const missingDependencies =
+        (node.dependencies ?? [])
+            .filter(dependency =>
+                !dependency.complete
+            );
+
+    if (
+        node.productId &&
+        !node.productReady
+    ) {
+        status.textContent =
+            `Synthesize ${node.label} in Polymerizer.`;
+    } else if (
+        missingRequirements.length > 0
+    ) {
+        status.textContent =
+            `${missingRequirements.map(
+                requirement => requirement.label
+            ).join(" + ")} required.`;
+    } else if (
+        missingDependencies.length > 0
+    ) {
+        status.textContent =
+            `Requires ${missingDependencies.map(
+                dependency => dependency.label
+            ).join(" + ")}.`;
+    } else {
+        status.textContent = node.functionReady
+            ? "Function ready."
+            : "Not yet functional.";
+    }
+
+    element.append(
+        type,
+        abbreviation,
+        label,
+        effect,
+        status
+    );
+    setGridPosition(
+        element,
+        node.position.row,
+        node.position.column
+    );
+    return element;
+
+}
+
+function createNetworkConnectionElement(
+    connection
+) {
+
+    const arrows = {
+        right: "→",
+        "up-right": "↗",
+        "down-right": "↘"
+    };
+    const element = document.createElement(
+        "div"
+    );
+    element.className = [
+        "metabolism-network-connection",
+        connection.active
+            ? "metabolism-network-connection--active"
+            : "metabolism-network-connection--inactive"
+    ].join(" ");
+    element.dataset.fromNode =
+        connection.from;
+    element.dataset.toNode =
+        connection.to;
+    element.setAttribute(
+        "aria-label",
+        `${connection.from} to ${connection.to}: ${connection.label}`
+    );
+    element.innerHTML = `
+        <span>${connection.label}</span>
+        <strong aria-hidden="true">${arrows[connection.direction] ?? "→"}</strong>
+    `;
+    setGridPosition(
+        element,
+        connection.position.row,
+        connection.position.column
+    );
+    return element;
+
+}
+
+function renderNetwork(container, pathway) {
+
+    const status = pathway.networkStatus;
+
+    if (!status) return false;
+
+    const track = document.createElement("div");
+    track.className =
+        "metabolism-network-track";
+    track.setAttribute(
+        "aria-label",
+        `${pathway.name} functional network`
+    );
+
+    status.nodes.forEach(node =>
+        track.appendChild(
+            createNetworkNodeElement(node)
+        )
+    );
+    status.connections.forEach(connection =>
+        track.appendChild(
+            createNetworkConnectionElement(
+                connection
+            )
+        )
+    );
+
+    const abstractionNote =
+        document.createElement("p");
+    abstractionNote.className =
+        "metabolism-network-abstraction";
+    abstractionNote.textContent =
+        "Simplified Bio 101 model: the mobile lipid electron carrier is abstracted in this milestone.";
+
+    container.replaceChildren(
+        track,
+        abstractionNote
+    );
+    return true;
+
+}
+
 const MetabolismPathwayView = {
 
     render(
@@ -260,6 +448,13 @@ const MetabolismPathwayView = {
 
         if (!container || !pathway) {
             return false;
+        }
+
+        if (pathway.mapType === "network") {
+            return renderNetwork(
+                container,
+                pathway
+            );
         }
 
         const occupiedIds = new Set(
@@ -397,11 +592,12 @@ const MetabolismPathwayView = {
         }
 
         const chemistry = pathway.chemistry;
-        const energy = [
-            `${chemistry.atpInvestment} ATP invested`,
-            `${chemistry.atpGross} ATP produced`,
-            `${chemistry.atpNet} ATP net`
-        ];
+        const energy =
+            chemistry.energyAccounting ?? [
+                `${chemistry.atpInvestment} ATP invested`,
+                `${chemistry.atpGross} ATP produced`,
+                `${chemistry.atpNet} ATP net`
+            ];
 
         container.replaceChildren(
             createChemistryGroup(
