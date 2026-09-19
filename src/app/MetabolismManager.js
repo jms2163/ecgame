@@ -15,6 +15,8 @@ import GameStateObserver
 import SaveManager from "./SaveManager.js";
 import MetabolismPathwayCatalog
     from "../data/MetabolismPathwayCatalog.js";
+import MetabolismSystemsCatalog
+    from "../data/MetabolismSystemsCatalog.js";
 
 const ZONE_ID = "metabolism";
 
@@ -730,17 +732,112 @@ const MetabolismManager = {
 
     getStatus() {
 
+        const pathways =
+            MetabolismPathwayCatalog
+                .getAll()
+                .map(pathway =>
+                    this.getPathwayStatus(
+                        pathway.id
+                    )
+                );
+
         return {
-            pathways:
-                MetabolismPathwayCatalog
-                    .getAll()
-                    .map(pathway =>
-                        this.getPathwayStatus(
-                            pathway.id
-                        )
-                    ),
+            pathways,
+            systems:
+                this.getSystemsStatus(
+                    pathways
+                ),
             polymerizerInventory:
                 this.getPolymerizerInventory()
+        };
+
+    },
+
+    /**
+     * Builds a read-only map-of-maps status. It intentionally reports
+     * readiness and reconstruction progress, not pathway activity. Regulation
+     * controls and active flux are deferred and therefore create no state.
+     */
+    getSystemsStatus(pathways = []) {
+
+        const system =
+            MetabolismSystemsCatalog.get();
+        const pathwayById = new Map(
+            pathways.map(pathway => [
+                pathway.id,
+                pathway
+            ])
+        );
+        const nodes = system.nodes.map(node => {
+            if (
+                node.type !== "pathway" ||
+                !node.pathwayId
+            ) {
+                return {
+                    ...node,
+                    interactive: false,
+                    statusLabel:
+                        node.type ===
+                            "flow-signal"
+                            ? "Flow signal"
+                            : "Planned",
+                    progressLabel: null
+                };
+            }
+
+            const pathway =
+                pathwayById.get(
+                    node.pathwayId
+                );
+            const isNetwork =
+                pathway?.mapType ===
+                    "network";
+            const readyNetworkNodes =
+                pathway?.networkStatus
+                    ?.nodes.filter(
+                        networkNode =>
+                            networkNode
+                                .functionReady
+                    ).length ?? 0;
+            const totalNetworkNodes =
+                pathway?.networkStatus
+                    ?.nodes.length ?? 0;
+
+            return {
+                ...node,
+                interactive:
+                    Boolean(
+                        pathway?.selectable
+                    ),
+                available:
+                    Boolean(
+                        pathway?.available
+                    ),
+                statusLabel:
+                    !pathway?.selectable
+                        ? "Coming Soon"
+                        : pathway.available
+                            ? "Open detail"
+                            : "Locked",
+                progressLabel: isNetwork
+                    ? `${readyNetworkNodes} / ${totalNetworkNodes} functional nodes ready`
+                    : `${pathway?.reconstruction?.placedCoreEnzymes ?? 0} / ${pathway?.reconstruction?.requiredCoreEnzymes ?? 0} enzyme cards placed`
+            };
+        });
+
+        return {
+            ...system,
+            nodes,
+            // Edges are conceptual during this milestone. They do not claim
+            // that metabolite flux or pathway activity has been calculated.
+            connections:
+                system.connections.map(
+                    connection => ({
+                        ...connection,
+                        conceptual: true
+                    })
+                ),
+            regulationImplemented: false
         };
 
     },
