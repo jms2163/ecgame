@@ -9,6 +9,11 @@ import MacromolecularizerManager
 import MetabolismManager
     from "../src/app/MetabolismManager.js";
 import ATPManager from "../src/app/ATPManager.js";
+import {
+    getRecipeCardClassLabel,
+    getRecipeCardIconLabel
+}
+    from "../src/app/MacromolecularizerUI.js";
 
 const storage = new Map();
 let rejectWrites = false;
@@ -28,28 +33,49 @@ globalThis.localStorage = {
     removeItem: key => storage.delete(key)
 };
 
-const nmn =
-    NucleotideRecipeCatalog.get("NMN");
 const nad =
     NucleotideRecipeCatalog.get("NADPlus");
 
-assert.equal(nmn.implemented, true);
-assert.equal(nmn.atpCost, 2);
-assert.equal(nmn.consumesComponents, false);
-assert.deepEqual(
-    nmn.components.map(component => [
-        component.id,
-        component.sourceZoneId
-    ]),
-    [
-        ["Nicotinamide", "moleculeLab"],
-        ["Ribose", "moleculeLab"],
-        ["PO4", "moleculeLab"]
-    ]
+["AMP", "GMP", "CMP", "UMP"]
+    .forEach(id => {
+        assert.equal(
+            getRecipeCardClassLabel(
+                NucleotideRecipeCatalog.get(id)
+            ),
+            "RNA"
+        );
+    });
+
+["dAMP", "dGMP", "dCMP", "dTMP"]
+    .forEach(id => {
+        assert.equal(
+            getRecipeCardClassLabel(
+                NucleotideRecipeCatalog.get(id)
+            ),
+            "DNA"
+        );
+    });
+assert.equal(
+    getRecipeCardClassLabel(nad),
+    "COF"
+);
+assert.equal(
+    getRecipeCardIconLabel(
+        NucleotideRecipeCatalog.get("dTMP")
+    ),
+    "T"
+);
+assert.equal(
+    getRecipeCardIconLabel(nad),
+    "NAD+"
+);
+assert.equal(
+    NucleotideRecipeCatalog.get("NMN"),
+    null
 );
 
 assert.equal(nad.implemented, true);
-assert.equal(nad.atpCost, 1);
+assert.equal(nad.atpCost, 3);
 assert.equal(nad.consumesComponents, false);
 assert.deepEqual(
     nad.components.map(component => [
@@ -58,7 +84,9 @@ assert.deepEqual(
     ]),
     [
         ["AMP", "macromolecularizer"],
-        ["NMN", "macromolecularizer"]
+        ["Nicotinamide", "moleculeLab"],
+        ["Ribose", "moleculeLab"],
+        ["PO4", "moleculeLab"]
     ]
 );
 
@@ -102,10 +130,22 @@ assert.deepEqual(
             synthesized: false
         },
         {
-            id: "NMN",
+            id: "Nicotinamide",
             sourceZoneId:
-                "macromolecularizer",
-            synthesized: false
+                "moleculeLab",
+            synthesized: true
+        },
+        {
+            id: "Ribose",
+            sourceZoneId:
+                "moleculeLab",
+            synthesized: true
+        },
+        {
+            id: "PO4",
+            sourceZoneId:
+                "moleculeLab",
+            synthesized: true
         }
     ]
 );
@@ -114,7 +154,6 @@ const macromolecularInventory =
     gameState.zones.macromolecularizer
         .state.motifInventory;
 macromolecularInventory.AMP = 1;
-macromolecularInventory.NMN = 1;
 
 nadEligibility =
     MacromolecularizerManager
@@ -234,5 +273,5 @@ assert.equal(
 );
 
 console.log(
-    "PASS: NMN and NAD+ use non-consuming cross-zone prerequisites, and the Glycolysis Core activates once, preserves inventories, grants +4 ATP/min, and rolls back failed saves."
+    "PASS: NAD+ directly uses AMP plus Molecule Lab nicotinamide, ribose, and phosphate; nucleotide cards show readable class and abbreviation labels; and Glycolysis activation preserves inventories."
 );

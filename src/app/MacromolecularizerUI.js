@@ -22,6 +22,18 @@ const DEHYDRATION_DISCOVERY_BY_CATEGORY = Object.freeze({
     nucleotides: "dehydration-4"
 });
 
+function getRecipeCardClassLabel(definition) {
+    return definition.category === "nucleotides"
+        ? definition.nucleicAcidType ?? definition.id
+        : definition.id;
+}
+
+function getRecipeCardIconLabel(definition) {
+    return definition.category === "nucleotides"
+        ? definition.abbreviation ?? definition.id
+        : null;
+}
+
 const MacromolecularizerUI = {
 
     initialized: false,
@@ -1537,6 +1549,9 @@ const MacromolecularizerUI = {
                         "true"
                     );
                     icon.textContent =
+                        getRecipeCardIconLabel(
+                            definition
+                        ) ??
                         this.getMotifIcon(
                             definition.id
                         );
@@ -1548,7 +1563,9 @@ const MacromolecularizerUI = {
                     code.className =
                         "macro-recipe-code";
                     code.textContent =
-                        definition.id;
+                        getRecipeCardClassLabel(
+                            definition
+                        );
 
                     topline.append(
                         icon,
@@ -2992,6 +3009,11 @@ const MacromolecularizerUI = {
 
     }
 
+};
+
+export {
+    getRecipeCardClassLabel,
+    getRecipeCardIconLabel
 };
 
 export default MacromolecularizerUI;
