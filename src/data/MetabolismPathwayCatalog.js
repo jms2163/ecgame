@@ -28,16 +28,14 @@ const GLYCOLYSIS = {
     // The early black-box module establishes functional Glycolysis before
     // students reconstruct its ten enzymes individually. NAD+ is required at
     // the GAPDH step and is reduced to NADH; it is not supplied by LDH.
-    // NADPlus is intentionally a named future Macromolecularizer N-category
-    // product. Its real AMP + NMN assembly recipe must be implemented before
-    // this module can be completed; the game must not substitute fake
-    // nucleotide chemistry merely to clear this gate.
+    // NADPlus is assembled in the Macromolecularizer N category from AMP and
+    // NMN. All three prerequisites below are permanent products and are not
+    // consumed when this black-box module is activated.
     coreModule: {
         id: "glycolysisCore",
         name: "Glycolysis Core",
-        implemented: false,
-        blockedReason:
-            "NAD+ assembly is not implemented in Macromolecularizer yet.",
+        implemented: true,
+        blockedReason: null,
         requirements: [
             {
                 type:

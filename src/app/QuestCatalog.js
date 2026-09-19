@@ -11,6 +11,8 @@ import { MacromolecularQuestCatalog }
     from "./MacromolecularQuestCatalog.js";
 import { PeriodicGroupQuestCatalog }
     from "./PeriodicGroupQuestCatalog.js";
+import { VitaminQuestCatalog }
+    from "./VitaminQuestCatalog.js";
 
 const QuestCatalog = {
 
@@ -325,7 +327,8 @@ unlock_molecule_lab: {
     ...AminoAcidQuestCatalog,
     ...LipidQuestCatalog,
     ...MacromolecularQuestCatalog,
-    ...PeriodicGroupQuestCatalog
+    ...PeriodicGroupQuestCatalog,
+    ...VitaminQuestCatalog
 
 };
 

@@ -29,15 +29,15 @@ const PRODUCT_CONFIGS = Object.freeze({
     }),
     GlucoseTransporter: Object.freeze({
         name: "Glucose Transporter",
-        implemented: false,
+        implemented: true,
         discoveryId: null,
-        lockedMessage:
-            "Coming Soon — its PDB-based motif recipe, ATP cost, and release approval are not configured."
+        lockedMessage: null
     }),
     EnergyKinase: Object.freeze({
         name: "Energy Kinase",
         implemented: true,
         discoveryId: null,
+        maxCompletions: 1,
         lockedMessage: null
     }),
     Hexokinase: Object.freeze({
@@ -191,6 +191,16 @@ function createDefinition(id, protein) {
         // derives this alternate completion source from the quest record.
         completionQuestId:
             config?.completionQuestId ?? null,
+        // null permits repeat assembly. A positive integer makes a functional
+        // product a one-time unlock while retaining the existing inventory
+        // record as the authoritative completion source.
+        maxCompletions:
+            Number.isSafeInteger(
+                config?.maxCompletions
+            ) &&
+            config.maxCompletions > 0
+                ? config.maxCompletions
+                : null,
         lockedMessage:
             config?.lockedMessage ?? null
     });

@@ -110,7 +110,7 @@ assert.equal(
 );
 assert.equal(
     glycolysis.coreModule.implemented,
-    false
+    true
 );
 assert(
     glycolysis.coreModule
@@ -140,5 +140,5 @@ assert.equal(
 );
 
 console.log(
-    "PASS: Metabolism catalog defines ten independently rewarding Glycolysis enzymes, requires future Macromolecularizer NAD+ for the Core, and reserves LDH regeneration for a future anoxic-survival benefit."
+    "PASS: Metabolism catalog defines ten independently rewarding Glycolysis enzymes, requires Macromolecularizer NAD+ for the Core, and reserves LDH regeneration for a future anoxic-survival benefit."
 );
