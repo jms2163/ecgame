@@ -1474,11 +1474,11 @@ const MacromolecularizerUI = {
             .textContent =
                 definition.category === "lipids"
                     ? `${definition.monomerCount} known components model ${definition.bondCount} lipid linkages (${definition.bondType}); ${definition.atpCost} ATP is a game cost, not the cellular reaction stoichiometry.`
+                    : definition.category === "nucleotides"
+                        ? `${definition.monomerCount} components form ${definition.bondCount} ${definition.bondType} bond${definition.bondCount === 1 ? "" : "s"}; ${definition.atpCost} ATP is a game assembly cost, not the cellular reaction stoichiometry.`
                     : `${definition.monomerCount} ${definition.category === "carbs"
                         ? "sugar units"
-                        : definition.category === "nucleotides"
-                            ? "components"
-                            : "amino acids"} form ${definition.bondCount} ${definition.bondType} bond${definition.bondCount === 1 ? "" : "s"}, requiring ${definition.atpCost} ATP.`;
+                        : "amino acids"} form ${definition.bondCount} ${definition.bondType} bond${definition.bondCount === 1 ? "" : "s"}, requiring ${definition.atpCost} ATP.`;
         this.elements.compositionLabel
             .textContent =
                 definition.category === "carbs"

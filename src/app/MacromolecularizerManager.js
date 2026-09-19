@@ -29,7 +29,8 @@ const REACTION_DISCOVERY_IDS = Object.freeze([
 ]);
 const DEHYDRATION_EXPLORATION_IDS = Object.freeze({
     carbs: "dehydration-1",
-    motifs: "dehydration-2"
+    motifs: "dehydration-2",
+    nucleotides: "dehydration-4"
 });
 const DEHYDRATION_DISCOVERY_IDS = Object.freeze([
     "dehydration-1",
@@ -1828,7 +1829,9 @@ const MacromolecularizerManager = {
             message: saved
                 ? category === "motifs"
                     ? "Peptide bond discovered!"
-                    : "Glycosidic bond discovered!"
+                    : category === "nucleotides"
+                        ? "ADP reacts with phosphate to produce ATP and water."
+                        : "Glycosidic bond discovered!"
                 : "The bond formed, but the browser save failed."
         };
 

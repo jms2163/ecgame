@@ -2129,3 +2129,247 @@
 @media (prefers-reduced-motion: reduce) {
     .macro-exp-peptide-bond { animation: none; }
 }
+
+/* Nucleotide dehydration: ADP gains one phosphate to form stored ATP. */
+
+.macro-exp-field--nucleotide {
+    gap: 34px;
+}
+
+.macro-exp-template--nucleotide {
+    display: grid;
+    width: 190px;
+    height: 126px;
+    place-items: center;
+    color: rgba(78, 230, 168, 0.62);
+    border: 3px dashed currentColor;
+    border-radius: 44px;
+    font: 700 0.8rem "Courier New", monospace;
+    text-transform: uppercase;
+}
+
+.macro-exp-template--nucleotide-left {
+    width: 320px;
+}
+
+.macro-exp-toolbar--nucleotide {
+    grid-template-columns: minmax(0, 1fr) minmax(145px, 0.7fr);
+}
+
+.macro-exp-nucleotide {
+    position: relative;
+    display: grid;
+    flex: 0 0 330px;
+    width: 330px;
+    min-height: 132px;
+    place-items: center;
+    padding: 12px 8px 28px;
+    color: var(--macro-text);
+    border: 0;
+    background: transparent;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+}
+
+.macro-exp-nucleotide--phosphate {
+    flex-basis: 190px;
+    width: 190px;
+}
+
+.macro-exp-nucleotide--docked {
+    cursor: default;
+}
+
+.macro-exp-nucleotide-chain {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.macro-exp-free-phosphate-chain {
+    display: flex;
+    min-width: 170px;
+    align-items: center;
+    justify-content: center;
+}
+
+.macro-exp-nucleotide-unit,
+.macro-exp-free-phosphate-p,
+.macro-exp-free-phosphate-o,
+.macro-exp-free-phosphate-oh,
+.macro-exp-terminal-oxygen,
+.macro-exp-terminal-hydrogen {
+    display: grid;
+    place-items: center;
+    box-sizing: border-box;
+    color: #fff;
+    border: 2px solid #70d5ff;
+    border-radius: 50%;
+    background: #087cbd;
+    font: 700 0.72rem "Oxanium", sans-serif;
+}
+
+.macro-exp-nucleotide-unit--adenosine {
+    width: 74px;
+    height: 52px;
+    border-color: #a3f4c4;
+    border-radius: 16px;
+    background: #23734b;
+}
+
+.macro-exp-nucleotide-unit--phosphate,
+.macro-exp-free-phosphate-p {
+    width: 46px;
+    height: 46px;
+    border-color: #ffcf70;
+    background: #8b5b0a;
+}
+
+.macro-exp-nucleotide-link {
+    width: 18px;
+    flex: 0 0 18px;
+    height: 3px;
+    background: #eef3fb;
+}
+
+.macro-exp-nucleotide-link--short {
+    width: 10px;
+    flex-basis: 10px;
+}
+
+.macro-exp-nucleotide-link--hidden {
+    visibility: hidden;
+}
+
+.macro-exp-nucleotide-name {
+    position: absolute;
+    bottom: 4px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font: 700 0.8rem "Courier New", monospace;
+}
+
+.macro-exp-terminal-oxygen {
+    width: 30px;
+    flex: 0 0 30px;
+    height: 30px;
+    padding: 0;
+    border-color: #ffaaaa;
+    background: #a2282b;
+}
+
+button.macro-exp-terminal-oxygen {
+    cursor: pointer;
+}
+
+.macro-exp-terminal-oxygen--leaving {
+    animation: macro-exp-terminal-oxygen-leave 380ms ease-in forwards;
+}
+
+.macro-exp-terminal-hydrogen {
+    width: 24px;
+    flex: 0 0 24px;
+    height: 24px;
+    padding: 0;
+    border-color: #d6e0eb;
+    background: #758393;
+    cursor: grab;
+}
+
+.macro-exp-free-phosphate-p {
+    flex: 0 0 46px;
+    padding: 0;
+}
+
+.macro-exp-free-phosphate-o {
+    width: 30px;
+    flex: 0 0 30px;
+    height: 30px;
+    border-color: #ffaaaa;
+    background: #a2282b;
+}
+
+.macro-exp-free-phosphate-oh {
+    width: 38px;
+    flex: 0 0 38px;
+    height: 32px;
+    padding: 0;
+    border-color: #ffaaaa;
+    background: #a2282b;
+    cursor: grab;
+}
+
+.macro-exp-free-phosphate-space {
+    width: 38px;
+    flex: 0 0 38px;
+}
+
+.macro-exp-adp-terminal-phosphate {
+    padding: 0;
+}
+
+button.macro-exp-free-phosphate-p {
+    cursor: grab;
+    touch-action: none;
+}
+
+.macro-exp-nucleotide-bond {
+    position: absolute;
+    z-index: 5;
+    height: 3px;
+    background: #fff;
+    box-shadow: 0 0 12px var(--macro-accent-bright);
+    transform-origin: left center;
+    opacity: 0;
+    animation: macro-exp-nucleotide-bond-reveal 650ms 420ms ease-out forwards;
+    pointer-events: none;
+}
+
+@keyframes macro-exp-terminal-oxygen-leave {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0.35); }
+}
+
+@keyframes macro-exp-nucleotide-bond-reveal {
+    from { opacity: 0; clip-path: inset(0 100% 0 0); }
+    to { opacity: 1; clip-path: inset(0 0 0 0); }
+}
+
+.macro-exp-nucleotide.macro-exp-drag-ghost,
+.macro-exp-free-phosphate-p.macro-exp-drag-ghost,
+.macro-exp-free-phosphate-oh.macro-exp-drag-ghost,
+.macro-exp-terminal-hydrogen.macro-exp-drag-ghost {
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.85;
+    transform: translate(-50%, -50%);
+}
+
+@media (max-width: 720px) {
+    .macro-exp-field--nucleotide {
+        grid-template-columns: 1fr;
+    }
+
+    .macro-exp-field--nucleotide .macro-exp-slot {
+        min-height: 160px;
+    }
+
+    .macro-exp-toolbar--nucleotide {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .macro-exp-terminal-oxygen--leaving {
+        opacity: 0;
+        animation: none;
+    }
+
+    .macro-exp-nucleotide-bond {
+        opacity: 1;
+        animation: none;
+    }
+}
