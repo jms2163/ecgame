@@ -9,11 +9,13 @@ import MacromolecularizerManager
 import MoleculeRecipeCatalog from "../data/MoleculeRecipeCatalog.js";
 import MotifVisualCatalog
     from "../data/MotifVisualCatalog.js";
-import LipidRecipeCatalog, { LIPID_GROUPS }
+import LipidRecipeCatalog
     from "../data/LipidRecipeCatalog.js";
 import LipidVisualCatalog from "../data/LipidVisualCatalog.js";
 import MacromolecularizerReactionExploration
     from "./MacromolecularizerReactionExploration.js";
+import MacromolecularizerRecipeCardsView
+    from "./MacromolecularizerRecipeCardsView.js";
 
 const DEHYDRATION_DISCOVERY_BY_CATEGORY = Object.freeze({
     carbs: "dehydration-1",
@@ -21,18 +23,6 @@ const DEHYDRATION_DISCOVERY_BY_CATEGORY = Object.freeze({
     lipids: "dehydration-3",
     nucleotides: "dehydration-4"
 });
-
-function getRecipeCardClassLabel(definition) {
-    return definition.category === "nucleotides"
-        ? definition.nucleicAcidType ?? definition.id
-        : definition.id;
-}
-
-function getRecipeCardIconLabel(definition) {
-    return definition.category === "nucleotides"
-        ? definition.abbreviation ?? definition.id
-        : null;
-}
 
 const MacromolecularizerUI = {
 
@@ -1287,17 +1277,39 @@ const MacromolecularizerUI = {
                         : "Known Amino Acids";
 
         if (activeCategory === "lipids") {
-            this.renderPlannedLipidCards(
-                status.motifCatalog.filter(item => item.definition.category === "lipids"),
-                status.selectedMotifId,
-                status.activeSynthesis
-            );
+            MacromolecularizerRecipeCardsView
+                .renderPlannedLipidCards({
+                    container:
+                        this.elements.motifCardList,
+                    implementedLipids:
+                        status.motifCatalog.filter(
+                            item => item.definition.category === "lipids"
+                        ),
+                    selectedMotifId:
+                        status.selectedMotifId,
+                    activeSynthesis:
+                        status.activeSynthesis,
+                    formatLifecycleStatus:
+                        this.formatLifecycleStatus.bind(this)
+                });
         } else {
-            this.renderMotifCards(
-                status.motifCatalog.filter(item => item.definition.category === activeCategory),
-                status.selectedMotifId,
-                status.activeSynthesis
-            );
+            MacromolecularizerRecipeCardsView
+                .renderRecipeCards({
+                    container:
+                        this.elements.motifCardList,
+                    motifs:
+                        status.motifCatalog.filter(
+                            item => item.definition.category === activeCategory
+                        ),
+                    selectedMotifId:
+                        status.selectedMotifId,
+                    activeSynthesis:
+                        status.activeSynthesis,
+                    formatDuration:
+                        this.formatDuration.bind(this),
+                    formatLifecycleStatus:
+                        this.formatLifecycleStatus.bind(this)
+                });
         }
 
         this.elements.inventoryCount
@@ -1404,236 +1416,6 @@ const MacromolecularizerUI = {
         }
 
         return true;
-
-    },
-
-    // --------------------------------------------------
-    // Playable lipid recipes and disabled future products share the same groups.
-    // --------------------------------------------------
-    renderPlannedLipidCards(implementedLipids = [], selectedMotifId = null, activeSynthesis = null) {
-
-        const content = LIPID_GROUPS.map(group => {
-            const section = document.createElement("section");
-            section.className = "macro-lipid-group";
-            section.setAttribute("aria-label", group.label);
-
-            const heading = document.createElement("h3");
-            heading.className = "macro-lipid-group-heading";
-            heading.textContent = group.label;
-            section.append(heading);
-
-            LipidRecipeCatalog.getByGroup(group.id).forEach(recipe => {
-                const playable = implementedLipids.find(item => item.id === recipe.id);
-                const card = document.createElement("button");
-                card.type = "button";
-                card.className = `macro-recipe-card macro-lipid-card${playable ? " macro-recipe-card--selectable" : ""}`;
-                card.disabled = !playable || Boolean(activeSynthesis && activeSynthesis.motifId !== recipe.id);
-                card.dataset.status = playable?.lifecycleStatus ?? "coming-soon";
-                if (playable) {
-                    card.dataset.motifId = recipe.id;
-                    card.setAttribute("aria-pressed", String(selectedMotifId === recipe.id));
-                }
-                const visual = LipidVisualCatalog.get(recipe);
-                const available = recipe.precursors
-                    .filter(precursor => precursor.availableInMoleculeLab)
-                    .map(precursor => precursor.id === "OleicAcid" ? "Oleic Acid" : precursor.name);
-                const pending = recipe.precursors
-                    .filter(precursor => !precursor.availableInMoleculeLab)
-                    .map(precursor => precursor.name);
-
-                const title = document.createElement("span");
-                title.className = "macro-lipid-card-title";
-                const icon = document.createElement("span");
-                icon.className = "macro-recipe-icon";
-                icon.textContent = visual.icon;
-                icon.setAttribute("aria-hidden", "true");
-                const name = document.createElement("span");
-                name.textContent = recipe.id === "ErgosterolOleate"
-                    ? "Sterol esters — Ergosterol oleate"
-                    : `${recipe.name} (${recipe.id})`;
-                title.append(icon, name);
-
-                const description = document.createElement("span");
-                description.className = "macro-recipe-specs";
-                description.textContent = recipe.description;
-
-                const ingredients = document.createElement("span");
-                ingredients.className = "macro-lipid-ingredients";
-                ingredients.textContent = playable
-                    ? `Molecule Lab components: ${available.join(", ")}.`
-                    : `Molecule Lab components: ${available.join(", ") || "none yet"}. Still to add: ${pending.join(", ") || "pathway and activity"}.`;
-
-                const badge = document.createElement("span");
-                badge.className = "macro-lipid-coming-soon";
-                badge.textContent = playable
-                    ? `${playable.inventory.quantity} stored · ${recipe.atpCost} ATP · ${this.formatLifecycleStatus(playable.lifecycleStatus, playable.inventory.quantity)}`
-                    : "Coming Soon · Synthesis unavailable";
-
-                card.append(title, description, ingredients, badge);
-                section.append(card);
-            });
-
-            return section;
-        });
-
-        this.elements.motifCardList.replaceChildren(...content);
-        return content.length;
-
-    },
-
-    // --------------------------------------------------
-    // Render selectable motif recipes from manager status
-    // --------------------------------------------------
-    renderMotifCards(
-        motifs,
-        selectedMotifId,
-        activeSynthesis
-    ) {
-
-        const recipeCount =
-            motifs.length;
-
-
-
-        this.elements.motifCardList
-            .replaceChildren(
-                ...motifs.map(motif => {
-                    const definition =
-                        motif.definition;
-
-                    const card =
-                        document.createElement(
-                            "button"
-                        );
-
-                    card.type = "button";
-                    card.className =
-                        "macro-recipe-card macro-recipe-card--selectable";
-                    card.dataset.motifId =
-                        definition.id;
-                    card.dataset.status =
-                        motif.lifecycleStatus;
-                    card.setAttribute(
-                        "aria-pressed",
-                        String(
-                            definition.id ===
-                            selectedMotifId
-                        )
-                    );
-                    card.disabled =
-                        Boolean(
-                            activeSynthesis &&
-                            activeSynthesis.motifId !==
-                                definition.id
-                        );
-                    card.setAttribute(
-                        "aria-label",
-                        `${definition.name}, ${motif.inventory.quantity} stored, ${this.formatLifecycleStatus(motif.lifecycleStatus, motif.inventory.quantity)}`
-                    );
-
-                    const topline =
-                        document.createElement(
-                            "span"
-                        );
-                    topline.className =
-                        "macro-recipe-card-topline";
-
-                    const icon =
-                        document.createElement(
-                            "span"
-                        );
-                    icon.className =
-                        "macro-recipe-icon";
-                    icon.setAttribute(
-                        "aria-hidden",
-                        "true"
-                    );
-                    icon.textContent =
-                        getRecipeCardIconLabel(
-                            definition
-                        ) ??
-                        this.getMotifIcon(
-                            definition.id
-                        );
-
-                    const code =
-                        document.createElement(
-                            "span"
-                        );
-                    code.className =
-                        "macro-recipe-code";
-                    code.textContent =
-                        getRecipeCardClassLabel(
-                            definition
-                        );
-
-                    topline.append(
-                        icon,
-                        code
-                    );
-
-                    const name =
-                        document.createElement(
-                            "span"
-                        );
-                    name.className =
-                        "macro-recipe-title";
-                    name.textContent =
-                        definition.name;
-
-                    const summary =
-                        document.createElement(
-                            "span"
-                        );
-                    summary.className =
-                        "macro-recipe-specs";
-                    summary.textContent =
-                        `${definition.monomerCount} ${definition.category === "carbs"
-                            ? "sugar units"
-                            : definition.category === "nucleotides"
-                                ? "components"
-                                : "amino acids"} · ${definition.atpCost} ATP · ${this.formatDuration(motif.timing.durationMs)}`;
-
-                    const footer =
-                        document.createElement(
-                            "span"
-                        );
-                    footer.className =
-                        "macro-recipe-card-footer";
-
-                    const quantity =
-                        document.createElement(
-                            "span"
-                        );
-                    quantity.textContent =
-                        `${motif.inventory.quantity} stored`;
-
-                    const lifecycle =
-                        document.createElement(
-                            "span"
-                        );
-                    lifecycle.textContent =
-                        this.formatLifecycleStatus(
-                            motif.lifecycleStatus,
-                            motif.inventory.quantity
-                        );
-
-                    footer.append(
-                        quantity,
-                        lifecycle
-                    );
-                    card.append(
-                        topline,
-                        name,
-                        summary,
-                        footer
-                    );
-
-                    return card;
-                })
-            );
-
-        return recipeCount;
 
     },
 
@@ -2950,19 +2732,6 @@ const MacromolecularizerUI = {
 
     },
 
-    getMotifIcon(motifId) {
-
-        if (LipidRecipeCatalog.get(motifId)) {
-            return LipidVisualCatalog.get(LipidRecipeCatalog.get(motifId)).icon;
-        }
-
-        return MotifVisualCatalog
-            .get(motifId)
-            ?.icon ??
-            "◆";
-
-    },
-
     // --------------------------------------------------
     // Subscribe once to domain-state changes
     // --------------------------------------------------
@@ -3009,11 +2778,6 @@ const MacromolecularizerUI = {
 
     }
 
-};
-
-export {
-    getRecipeCardClassLabel,
-    getRecipeCardIconLabel
 };
 
 export default MacromolecularizerUI;

@@ -13,7 +13,7 @@ import {
     getRecipeCardClassLabel,
     getRecipeCardIconLabel
 }
-    from "../src/app/MacromolecularizerUI.js";
+    from "../src/app/MacromolecularizerRecipeCardsView.js";
 
 const storage = new Map();
 let rejectWrites = false;
