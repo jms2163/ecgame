@@ -125,15 +125,39 @@ export const moleculeLibrary =  Object.freeze({
   },
   Nicotinamide: {
     name: "Nicotinamide",
-    icon: "C<sub>6</sub>H<sub>6</sub>N<sub>2</sub>O",
-    tier: 3,
+    icon: "B<sub>3</sub>",
+    tier: 0,
     researchTime: 122,
     parents: ["C", "H", "N", "O"],
-    category: "molecules",
+    category: "vitamins",
     state: "locked",
     affects: [],
     desc: "An amide of vitamin B3 and a core component of cellular electron carriers.",
     info: "Nicotinamide is the water-soluble, active form of vitamin B3. It is a vital structural building block of the coenzymes NAD+ and NADP+, which act as the primary electron carriers driving redox reactions, cellular respiration, and energy metabolism across all domains of life."
+  },
+  Riboflavin: {
+    name: "Riboflavin",
+    icon: "B<sub>2</sub>",
+    tier: 0,
+    researchTime: 376,
+    parents: ["C", "H", "N", "O"],
+    category: "vitamins",
+    state: "locked",
+    affects: [],
+    desc: "Vitamin B2 and the small-molecule precursor used to assemble FAD.",
+    info: "Riboflavin is vitamin B2. Its fused flavin ring can accept and donate electrons, while its ribitol side chain helps form the larger cofactors FMN and FAD. In Bio-Craft, riboflavin is synthesized in Molecule Lab and later combined with AMP and phosphate in the Macromolecularizer to assemble FAD."
+  },
+  PantothenicAcid: {
+    name: "Pantothenic Acid",
+    icon: "B<sub>5</sub>",
+    tier: 0,
+    researchTime: 219,
+    parents: ["C", "H", "N", "O"],
+    category: "vitamins",
+    state: "locked",
+    affects: [],
+    desc: "Vitamin B5 and the small-molecule precursor used to assemble coenzyme A.",
+    info: "Pantothenic acid is vitamin B5 and contributes the central pantothenate portion of coenzyme A. In Bio-Craft, it is synthesized in Molecule Lab and later combined with cysteine, AMP, and phosphate in the Macromolecularizer to assemble CoA."
   },
   ProteinPortal: {
     name: "To<br>Proteins",
@@ -170,6 +194,18 @@ export const moleculeLibrary =  Object.freeze({
     targetTab: "nucleics",
     affects: [],
     desc: "Unlock Nucleotides and Genetic research."
+  },
+  VitaminPortal: {
+    name: "To<br>Vitamins",
+    icon: "➜",
+    tier: 3,
+    parents: ["C", "H", "N", "O"],
+    category: "molecules",
+    state: "locked",
+    type: "link",
+    targetTab: "vitamins",
+    affects: [],
+    desc: "Unlock vitamin and cofactor-precursor research."
   },
   CarbPortal: {
     name: "To<br>Carbs",

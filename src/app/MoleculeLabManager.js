@@ -304,21 +304,29 @@ const MoleculeLabManager = {
 
     /**
      * Molecule Lab completion is a derived milestone, not a separate piece of
-     * progression data. Every implemented, synthesizable recipe in every
-     * category must have at least one recorded synthesis. Link cards and
-     * planned recipes without an implementation are deliberately excluded.
+     * progression data. Categories explicitly released into the completion
+     * contract require every implemented, synthesizable recipe. Expansion
+     * categories can remain playable without revoking existing completion.
+     * Link cards and planned recipes are deliberately excluded.
      */
     getLabCompletionStatus() {
         const categories = MoleculeRecipeCatalog.categories.map(category => ({
-            id: category.id,
-            title: category.title,
+            ...category,
             ...this.getCategoryStatus(category.id)
         }));
 
         return {
             completed:
-                categories.length > 0 &&
-                categories.every(category => category.synthesisComplete),
+                categories.some(category =>
+                    category.countsTowardLabCompletion
+                ) &&
+                categories
+                    .filter(category =>
+                        category.countsTowardLabCompletion
+                    )
+                    .every(category =>
+                        category.synthesisComplete
+                    ),
             categories
         };
     },

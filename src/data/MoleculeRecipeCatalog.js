@@ -15,6 +15,7 @@ import MoleculeWaterInteractionCatalog
     from "./MoleculeWaterInteractionCatalog.js";
 import { baseLibrary } from "./baseLibrary.js";
 import { lipidLibrary } from "./lipidLibrary.js";
+import { vitaminLibrary } from "./vitaminLibrary.js";
 
 const STANDARD_STRUCTURES = {
     H2: {
@@ -205,7 +206,8 @@ const CATEGORY_REQUIREMENTS = Object.freeze({
     carbs: ["CO2", "H2O"],
     proteins: ["CH4", "NH3"],
     lipids: ["CH4"],
-    nucleics: ["CH4", "NH3"]
+    nucleics: ["CH4", "NH3"],
+    vitamins: ["CH4", "H2", "N2", "O2"]
 });
 
 function formulaFromRecord(record = {}) {
@@ -277,6 +279,18 @@ function structureFor(id) {
                 Object.keys(formula),
             atoms: lipid.atoms,
             bonds: lipid.bonds
+        };
+    }
+
+    const vitamin = vitaminLibrary[id];
+    if (vitamin?.atoms && vitamin?.bonds) {
+        return {
+            formula: { ...vitamin.formula },
+            requiredDiscoveries: [
+                ...vitamin.requiredDiscoveries
+            ],
+            atoms: vitamin.atoms,
+            bonds: vitamin.bonds
         };
     }
 
@@ -352,11 +366,12 @@ const DEFINITIONS = Object.freeze(
 
 const MoleculeRecipeCatalog = Object.freeze({
     categories: Object.freeze([
-        Object.freeze({ id: "molecules", label: "M", title: "Molecules" }),
-        Object.freeze({ id: "carbs", label: "C", title: "Carbohydrates" }),
-        Object.freeze({ id: "proteins", label: "P", title: "Proteins" }),
-        Object.freeze({ id: "lipids", label: "L", title: "Lipids" }),
-        Object.freeze({ id: "nucleics", label: "N", title: "Nitrogenous Bases" })
+        Object.freeze({ id: "molecules", label: "M", title: "Molecules", countsTowardLabCompletion: true }),
+        Object.freeze({ id: "carbs", label: "C", title: "Carbohydrates", countsTowardLabCompletion: true }),
+        Object.freeze({ id: "proteins", label: "P", title: "Proteins", countsTowardLabCompletion: true }),
+        Object.freeze({ id: "lipids", label: "L", title: "Lipids", countsTowardLabCompletion: true }),
+        Object.freeze({ id: "nucleics", label: "N", title: "Nitrogenous Bases", countsTowardLabCompletion: true }),
+        Object.freeze({ id: "vitamins", label: "V", title: "Vitamins & Cofactor Precursors", countsTowardLabCompletion: false })
     ]),
 
     has(id) {

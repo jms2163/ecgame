@@ -17,11 +17,12 @@ const backup = structuredClone(gameState);
 
 try {
     const expectedCounts = {
-        molecules: 11,
+        molecules: 10,
         carbs: 26,
         proteins: 19,
         lipids: 20,
-        nucleics: 5
+        nucleics: 5,
+        vitamins: 3
     };
     const state =
         gameState.zones.moleculeLab.state;
@@ -96,5 +97,5 @@ try {
 }
 
 console.log(
-    "PASS: Molecule Lab derives M/C/P/L/N completion stars from all implemented non-link recipes without adding saved star state."
+    "PASS: Molecule Lab derives M/C/P/L/N/V completion stars from all implemented non-link recipes without adding saved star state."
 );
