@@ -192,7 +192,7 @@
 }
 
 .poly-product-card--has-function {
-    grid-template-columns: minmax(0, 1fr) 80px;
+    grid-template-columns: minmax(0, 1fr) max-content;
     column-gap: 12px;
     align-items: center;
 }
@@ -204,21 +204,32 @@
 }
 
 .poly-product-function-badge {
-    display: grid;
-    place-items: center;
-    width: 80px;
-    height: 80px;
-    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    justify-self: end;
+    max-width: 150px;
+    padding: 7px 9px;
     border: 1px solid rgba(32, 214, 208, 0.28);
-    border-radius: 10px;
+    border-radius: 999px;
+    color: var(--poly-accent-bright) !important;
+    text-align: right;
     background: rgba(7, 18, 26, 0.72);
+    font-size: 0.7rem !important;
+    font-weight: 700;
+    line-height: 1.25;
 }
 
-.poly-product-function-icon {
-    display: block;
-    width: 80px;
-    height: 80px;
-    object-fit: contain;
+.poly-product-function-badge--energy {
+    border-color: rgba(255, 204, 74, 0.48);
+    color: #ffe082 !important;
+    background: rgba(115, 77, 0, 0.2);
+}
+
+.poly-product-function-badge--homeostasis {
+    border-color: rgba(87, 205, 255, 0.48);
+    color: #8bdeff !important;
+    background: rgba(21, 105, 139, 0.2);
 }
 
 .poly-product-card:disabled {
