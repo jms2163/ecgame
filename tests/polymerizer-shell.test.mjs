@@ -53,7 +53,7 @@ const glucoseTransporterRecipe =
     );
 assert.equal(
     glucoseTransporterRecipe.motifCount,
-    6
+    31
 );
 assert.equal(
     glucoseTransporterRecipe.valid,
@@ -62,7 +62,7 @@ assert.equal(
 assert.equal(
     glucoseTransporterRecipe
         .simplifiedStructure,
-    "HBLLHB"
+    ""
 );
 assert.deepEqual(
     glucoseTransporterRecipe
@@ -75,21 +75,35 @@ assert.deepEqual(
         })),
     [
         {
+            symbol: "H",
+            productId: "H_helix",
+            quantity: 15
+        },
+        {
             symbol: "B",
             productId: "B_sheet",
-            quantity: 2
+            quantity: 0
         },
         {
             symbol: "L",
             productId: "L_loop",
-            quantity: 2
-        },
-        {
-            symbol: "H",
-            productId: "H_helix",
-            quantity: 2
+            quantity: 16
         }
     ]
+);
+assert.equal(
+    glucoseTransporterRecipe
+        .structureOrderKnown,
+    false
+);
+assert.equal(
+    glucoseTransporterRecipe
+        .recipeMatchesPPC,
+    null
+);
+assert.equal(
+    glucoseTransporterRecipe.atpCost,
+    31
 );
 
 const hexokinaseRecipe =

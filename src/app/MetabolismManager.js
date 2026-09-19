@@ -294,6 +294,7 @@ const MetabolismManager = {
                     : null,
             canComplete:
                 module.implemented &&
+                !Boolean(record?.completed) &&
                 requirements.every(
                     requirement =>
                         requirement.complete
@@ -432,6 +433,114 @@ const MetabolismManager = {
                     ),
             polymerizerInventory:
                 this.getPolymerizerInventory()
+        };
+
+    },
+
+    // Permanently activate the black-box pathway module after all of its
+    // non-consuming products are available. ATPManager derives its ongoing
+    // production reward from this saved completion record.
+    completeCoreModule(
+        pathwayId,
+        nowMs = Date.now()
+    ) {
+
+        const pathway =
+            MetabolismPathwayCatalog.get(
+                pathwayId
+            );
+
+        if (!pathway?.coreModule) {
+            return {
+                success: false,
+                reason:
+                    "unknown-core-module"
+            };
+        }
+
+        const status =
+            this.getCoreModuleStatus(
+                pathway
+            );
+
+        if (status.completed) {
+            return {
+                success: false,
+                reason:
+                    "core-module-already-completed"
+            };
+        }
+
+        if (!status.implemented) {
+            return {
+                success: false,
+                reason:
+                    "core-module-not-implemented"
+            };
+        }
+
+        if (!status.requirementsMet) {
+            return {
+                success: false,
+                reason:
+                    "core-module-requirements-missing",
+                requirements:
+                    status.requirements
+            };
+        }
+
+        const state = this.ensureState();
+        const previousModules =
+            structuredClone(
+                state.completedModules
+            );
+        const completedAtMs =
+            Number.isFinite(nowMs) &&
+            nowMs >= 0
+                ? nowMs
+                : Date.now();
+
+        state.completedModules[
+            status.id
+        ] = {
+            completed: true,
+            completedAtMs
+        };
+
+        const saved = SaveManager.save({
+            reason:
+                "metabolism-core-module-completed"
+        });
+
+        if (!saved) {
+            state.completedModules =
+                previousModules;
+
+            return {
+                success: false,
+                reason: "save-failed"
+            };
+        }
+
+        this.notifyStateChange(
+            "core-module-completed",
+            {
+                pathwayId,
+                moduleId: status.id,
+                completedAtMs
+            }
+        );
+
+        return {
+            success: true,
+            reason:
+                "core-module-completed",
+            pathwayId,
+            moduleId: status.id,
+            completedAtMs,
+            atpPerMinute:
+                status.reward
+                    .amountPerMinute
         };
 
     },

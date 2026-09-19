@@ -265,6 +265,23 @@ const PolymerizerManager = {
                 return;
             }
 
+            const definition =
+                PolymerizerRecipeCatalog.get(
+                    productId
+                );
+
+            if (
+                Number.isSafeInteger(
+                    definition
+                        ?.maxCompletions
+                ) &&
+                normalized.count >
+                    definition.maxCompletions
+            ) {
+                normalized.count =
+                    definition.maxCompletions;
+            }
+
             state.productInventory[
                 productId
             ] = normalized;
@@ -557,6 +574,12 @@ const PolymerizerManager = {
         const canAffordATP =
             atp.current >=
             definition.atpCost;
+        const completionLimitReached =
+            Number.isSafeInteger(
+                definition.maxCompletions
+            ) &&
+            outputQuantity >=
+                definition.maxCompletions;
 
         return {
             id: productId,
@@ -589,9 +612,11 @@ const PolymerizerManager = {
                 definition.valid &&
                 motifLevelsMet &&
                 canAffordATP &&
+                !completionLimitReached &&
                 !questCompletion &&
                 !this.ensureState()
                     .activeAssembly,
+            completionLimitReached,
             implementationStatus:
                 "milestone-4-completion",
             completion,
@@ -777,6 +802,19 @@ const PolymerizerManager = {
             this.getProductEligibility(
                 productId
             );
+
+        if (
+            eligibility
+                .completionLimitReached
+        ) {
+            return {
+                success: false,
+                reason:
+                    "product-already-synthesized",
+                message:
+                    `${definition.name} is a one-time functional product and has already been synthesized.`
+            };
+        }
 
         if (!eligibility.motifLevelsMet) {
             return {
@@ -984,10 +1022,19 @@ const PolymerizerManager = {
         const previousCount = safeCount(
             previousProductRecord?.count
         );
+        const completedCount =
+            Number.isSafeInteger(
+                definition?.maxCompletions
+            )
+                ? Math.min(
+                    previousCount + 1,
+                    definition.maxCompletions
+                )
+                : previousCount + 1;
 
         state.activeAssembly = null;
         state.productInventory[productId] = {
-            count: previousCount + 1,
+            count: completedCount,
             firstCompletedAtMs:
                 previousProductRecord
                     ?.firstCompletedAtMs ??

@@ -19,8 +19,11 @@ export const proteinLibrary =  Object.freeze({
     "Info": "Integral membrane channel protein that selectively conducts water molecules while preventing proton passage. Essential for cellular osmotic balance."
   },
   "GlucoseTransporter": {
-    "PPC": "HBLLHB",
-    "Recipe": {"B": 2, "L": 2, "H": 2},
+    // Reliable PDB-derived motif totals are available for 4LDS, but their
+    // exact linear ordering is not asserted. Polymerizer therefore validates
+    // this as a counts-only H/B/L recipe.
+    "PPC": "",
+    "Recipe": {"H": 15, "B": 0, "L": 16},
     "Class": "Transport",
     "Function": "Moves glucose into cytosol",
     "FunctionDisplay": "cellEnergy",

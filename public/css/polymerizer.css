@@ -234,7 +234,8 @@
     color: #c6bdff;
 }
 
-.poly-product-card--quest-complete {
+.poly-product-card--quest-complete,
+.poly-product-card--synthesized {
     border-color: rgba(126, 235, 151, 0.72);
     background: linear-gradient(
         120deg,
@@ -243,7 +244,8 @@
     );
 }
 
-.poly-product-card--quest-complete .poly-product-card-status {
+.poly-product-card--quest-complete .poly-product-card-status,
+.poly-product-card--synthesized .poly-product-card-status {
     color: #8ff0aa;
     font-weight: 700;
 }

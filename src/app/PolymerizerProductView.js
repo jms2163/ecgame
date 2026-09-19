@@ -129,6 +129,11 @@ const PolymerizerProductView = {
                     : product.completion
                         ?.source === "quest"
                         ? "poly-product-card--quest-complete"
+                    : product.completion
+                        ?.source === "synthesized" &&
+                        product.definition
+                            .maxCompletions === 1
+                        ? "poly-product-card--synthesized"
                     : ""
             ].filter(Boolean).join(" ");
             button.disabled =
@@ -169,6 +174,11 @@ const PolymerizerProductView = {
                     : product.completion
                         ?.source === "quest"
                         ? "Quest completed"
+                    : product.completion
+                        ?.source === "synthesized" &&
+                        product.definition
+                            .maxCompletions === 1
+                        ? "Synthesized"
                     : product.output.quantity > 0
                         ? `Synthesized · ${product.output.quantity} stored`
                     : product.eligible
@@ -331,6 +341,26 @@ const PolymerizerProductView = {
             elements.assembleButton.disabled = true;
             elements.assembleButton.textContent =
                 `${product.definition.name} · Quest Completed`;
+            return;
+        }
+
+        if (
+            product.completion?.source ===
+                "synthesized" &&
+            product.definition
+                .maxCompletions === 1
+        ) {
+            elements.progressPanel.hidden = true;
+            elements.progress.value = 0;
+            elements.countdown.textContent =
+                "One-time assembly complete";
+            elements.chamberMode.textContent =
+                "Synthesized";
+            elements.chamberStatus.textContent =
+                `${product.definition.name} is complete and its functional benefit is active.`;
+            elements.assembleButton.disabled = true;
+            elements.assembleButton.textContent =
+                `${product.definition.name} · Synthesized`;
             return;
         }
 

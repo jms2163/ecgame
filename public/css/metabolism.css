@@ -186,6 +186,27 @@
     line-height: 1.45;
 }
 
+.metabolism-core-activate {
+    width: 100%;
+    margin-top: 10px;
+    padding: 9px 12px;
+    border: 1px solid var(--metabolism-ready);
+    border-radius: 8px;
+    color: var(--metabolism-text);
+    font: inherit;
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: rgba(67, 196, 118, 0.14);
+    cursor: pointer;
+}
+
+.metabolism-core-activate:disabled {
+    border-color: var(--metabolism-border-soft);
+    color: var(--metabolism-muted);
+    background: rgba(255, 255, 255, 0.03);
+    cursor: not-allowed;
+}
+
 .metabolism-pathway-card {
     width: 100%;
     padding: 16px;

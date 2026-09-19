@@ -1,6 +1,7 @@
 // Run with: node tests/polymerizer-energy-kinase.test.mjs
 
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import gameState from "../src/app/GameState.js";
 import ResourceManager
     from "../src/app/ResourceManager.js";
@@ -37,6 +38,7 @@ assert.deepEqual(
 assert.equal(recipe.motifCount, 3);
 assert.equal(recipe.atpCost, 3);
 assert.equal(recipe.discoveryId, null);
+assert.equal(recipe.maxCompletions, 1);
 assert.equal(recipe.functionDisplay.id, "atpProduction");
 
 const visual =
@@ -109,6 +111,71 @@ assert.deepEqual(
     { H_helix: 2, L_loop: 1 }
 );
 
+const completedStatus =
+    PolymerizerManager.getProductEligibility(
+        "EnergyKinase"
+    );
+assert.equal(
+    completedStatus.completionLimitReached,
+    true
+);
+assert.equal(completedStatus.canStart, false);
+
+const atpAfterCompletion =
+    ResourceManager.getATPStatus().current;
+const duplicate =
+    PolymerizerManager.startAssembly(
+        "EnergyKinase",
+        20_000
+    );
+assert.equal(duplicate.success, false);
+assert.equal(
+    duplicate.reason,
+    "product-already-synthesized"
+);
+assert.equal(
+    ResourceManager.getATPStatus().current,
+    atpAfterCompletion
+);
+
+// Older development saves that contain duplicate Energy Kinase output are
+// normalized to the one functional completion without a save migration.
+gameState.zones.polymerizer.state
+    .productInventory.EnergyKinase.count = 2;
+assert.equal(
+    PolymerizerManager.getProductRecord(
+        "EnergyKinase"
+    ).count,
+    1
+);
+
+const productViewSource = fs.readFileSync(
+    new URL(
+        "../src/app/PolymerizerProductView.js",
+        import.meta.url
+    ),
+    "utf8"
+);
+const polymerizerCss = fs.readFileSync(
+    new URL(
+        "../public/css/polymerizer.css",
+        import.meta.url
+    ),
+    "utf8"
+);
+assert.match(
+    productViewSource,
+    /poly-product-card--synthesized/
+);
+assert.match(
+    productViewSource,
+    /definition\.name} · Synthesized/
+);
+assert.match(
+    polymerizerCss,
+    /\.poly-product-card--synthesized/
+);
+
 console.log(
-    "PASS: Energy Kinase uses the 1EI0 H-L-H teaching scaffold, costs three ATP, preserves motif levels, reveals frame 2 only after completion, and stores no duplicate discovery state."
+    "PASS: Energy Kinase uses the 1EI0 H-L-H teaching scaffold, costs three ATP once, preserves motif levels, displays one completed product, and blocks duplicate assembly."
 );

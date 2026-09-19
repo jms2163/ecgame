@@ -17,7 +17,7 @@ const backup = structuredClone(gameState);
 
 try {
     const expectedCounts = {
-        molecules: 10,
+        molecules: 11,
         carbs: 26,
         proteins: 19,
         lipids: 20,

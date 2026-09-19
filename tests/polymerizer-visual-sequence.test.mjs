@@ -14,10 +14,13 @@ import PolymerizerManager
 import ResourceManager
     from "../src/app/ResourceManager.js";
 
+const storage = new Map();
 globalThis.localStorage = {
-    getItem() { return null; },
-    setItem() {},
-    removeItem() {}
+    getItem: key =>
+        storage.get(key) ?? null,
+    setItem: (key, value) =>
+        storage.set(key, String(value)),
+    removeItem: key => storage.delete(key)
 };
 
 assert.equal(
@@ -114,13 +117,11 @@ assert.equal(
     glucoseRecipe.name,
     "Glucose Transporter"
 );
-assert.equal(glucoseRecipe.implemented, false);
-assert.equal(glucoseRecipe.atpCost, null);
+assert.equal(glucoseRecipe.implemented, true);
+assert.equal(glucoseRecipe.atpCost, 31);
+assert.equal(glucoseRecipe.motifCount, 31);
 assert.equal(glucoseRecipe.discoveryId, null);
-assert.match(
-    glucoseRecipe.lockedMessage,
-    /PDB-based motif recipe/
-);
+assert.equal(glucoseRecipe.lockedMessage, null);
 
 const hexokinaseVisual =
     PolymerizerVisualCatalog.get(
@@ -178,7 +179,20 @@ assert(
         )
 );
 
-ResourceManager.initialize();
+gameState.zones.polymerizer.state = {
+    productInventory: {},
+    activeAssembly: null
+};
+gameState.zones.macromolecularizer
+    .state.motifInventory = {
+        H_helix: 15,
+        B_sheet: 0,
+        L_loop: 16
+    };
+ResourceManager.setATPStatus(
+    { current: 50, maximum: 50 },
+    "glucose-transporter-test-setup"
+);
 PolymerizerManager.initialize();
 const status =
     PolymerizerManager.getStatus(
@@ -187,38 +201,50 @@ const status =
 assert.equal(status.products.length, 5);
 assert.equal(
     status.selectedProduct.locked,
-    true
+    false
 );
 assert.equal(
     status.selectedProduct.canStart,
-    false
+    true
 );
 
 const beforeATP = structuredClone(
     ResourceManager.getATPStatus()
 );
-const beforeState = structuredClone(
-    gameState.zones.polymerizer.state
-);
-const blockedStart =
+const started =
     PolymerizerManager.startAssembly(
         "GlucoseTransporter",
         1_000
     );
-assert.equal(blockedStart.success, false);
+assert.equal(started.success, true);
 assert.equal(
-    blockedStart.reason,
-    "product-locked"
+    ResourceManager.getATPStatus().current,
+    beforeATP.current - 31
 );
 assert.deepEqual(
-    ResourceManager.getATPStatus(),
-    beforeATP
+    gameState.zones.macromolecularizer
+        .state.motifInventory,
+    {
+        H_helix: 15,
+        B_sheet: 0,
+        L_loop: 16
+    }
 );
-assert.deepEqual(
-    gameState.zones.polymerizer.state,
-    beforeState
+
+const finished =
+    PolymerizerManager.finishAssembly(
+        started.activeAssembly.jobId,
+        16_000
+    );
+assert.equal(finished.success, true);
+assert.equal(finished.discoveryGranted, false);
+assert.equal(
+    gameState.zones.polymerizer.state
+        .productInventory
+        .GlucoseTransporter.count,
+    1
 );
 
 console.log(
-    "PASS: Polymerizer maps Aquaporin 1RC2 frames 0–8 across assembly, preserves frame 8 after completion, exposes Glucose Transporter 4LDS frames 0–15 as a locked preview, and assigns no unapproved glucose-transporter ATP cost."
+    "PASS: Polymerizer maps Aquaporin and Glucose Transporter visual sequences, and releases the 4LDS H15/B0/L16 transporter for a non-consuming 31-ATP assembly."
 );

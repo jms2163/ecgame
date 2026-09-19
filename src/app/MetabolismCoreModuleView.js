@@ -1,12 +1,16 @@
 // --------------------------------------------------
 // MetabolismCoreModuleView.js
-// Read-only preflight for the simplified Glycolysis Core. Activation remains
-// blocked until the real Macromolecularizer NAD+ recipe is implemented.
+// Preflight and one-time activation control for the simplified Glycolysis
+// Core. Domain validation and persistence remain in MetabolismManager.
 // --------------------------------------------------
 
 const MetabolismCoreModuleView = {
 
-    render(container, status) {
+    render(
+        container,
+        status,
+        onActivate = null
+    ) {
 
         if (!container || !status) {
             return false;
@@ -59,14 +63,47 @@ const MetabolismCoreModuleView = {
             document.createElement("p");
         note.className =
             "metabolism-core-note";
-        note.textContent = status.completed
-            ? "Core active."
-            : status.blockedReason;
+        note.textContent =
+            status.completed
+                ? "Core active."
+                : !status.implemented
+                    ? status.blockedReason
+                    : status.requirementsMet
+                        ? "All prerequisites are available. Activate the Core to begin ATP production."
+                        : "Complete all three non-consuming prerequisites to activate the Core.";
+
+        const activateButton =
+            document.createElement(
+                "button"
+            );
+        activateButton.type = "button";
+        activateButton.className =
+            "metabolism-core-activate";
+        activateButton.disabled =
+            !status.canComplete;
+        activateButton.textContent =
+            status.completed
+                ? "Core Active"
+                : status.canComplete
+                    ? "Activate Glycolysis Core"
+                    : "Requirements Incomplete";
+
+        if (
+            status.canComplete &&
+            typeof onActivate ===
+                "function"
+        ) {
+            activateButton.addEventListener(
+                "click",
+                onActivate
+            );
+        }
 
         container.replaceChildren(
             heading,
             requirements,
-            note
+            note,
+            activateButton
         );
         return true;
 

@@ -322,7 +322,14 @@ const MetabolismUI = {
         MetabolismCoreModuleView.render(
             this.coreModuleElement,
             selectedPathway
-                .coreModuleStatus
+                .coreModuleStatus,
+            () => {
+                MetabolismManager
+                    .completeCoreModule(
+                        selectedPathway.id
+                    );
+                this.render();
+            }
         );
 
         return true;
