@@ -65,7 +65,7 @@ assert.doesNotMatch(
 );
 assert.match(
     uiSource,
-    /Milestone 3 · Enzyme Placement/
+    /Systems Architecture Preview/
 );
 assert.match(
     uiSource,

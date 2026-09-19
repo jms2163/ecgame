@@ -13,6 +13,8 @@ import MetabolismEnzymeTrayView
     from "./MetabolismEnzymeTrayView.js";
 import MetabolismCoreModuleView
     from "./MetabolismCoreModuleView.js";
+import MetabolismSystemsView
+    from "./MetabolismSystemsView.js";
 
 const MetabolismUI = {
 
@@ -27,7 +29,13 @@ const MetabolismUI = {
     productionSummaryElement: null,
     enzymeTrayElement: null,
     coreModuleElement: null,
+    systemsViewElement: null,
+    systemsMapElement: null,
+    detailViewElement: null,
+    systemsModeButton: null,
+    detailModeButton: null,
     selectedPathwayId: "glycolysis",
+    viewMode: "systems",
 
     initialize() {
 
@@ -80,6 +88,49 @@ const MetabolismUI = {
             this.rootElement.querySelector(
                 "#metabolism-core-module"
             );
+        this.systemsViewElement =
+            this.rootElement.querySelector(
+                "#metabolism-systems-view"
+            );
+        this.systemsMapElement =
+            this.rootElement.querySelector(
+                "#metabolism-systems-map"
+            );
+        this.detailViewElement =
+            this.rootElement.querySelector(
+                "#metabolism-detail-view"
+            );
+        this.systemsModeButton =
+            this.rootElement.querySelector(
+                "#metabolism-show-systems"
+            );
+        this.detailModeButton =
+            this.rootElement.querySelector(
+                "#metabolism-show-detail"
+            );
+
+        this.systemsModeButton
+            ?.addEventListener(
+                "click",
+                () => this.setViewMode(
+                    "systems"
+                )
+            );
+        this.detailModeButton
+            ?.addEventListener(
+                "click",
+                () => this.setViewMode(
+                    "detail"
+                )
+            );
+        this.rootElement.querySelector(
+            "#metabolism-back-to-systems"
+        )?.addEventListener(
+            "click",
+            () => this.setViewMode(
+                "systems"
+            )
+        );
 
         GameStateObserver.on(
             "metabolism-state-changed",
@@ -138,13 +189,36 @@ const MetabolismUI = {
                         <h1>Metabolism</h1>
                         <p class="metabolism-subtitle">Development preview · Student navigation remains locked</p>
                     </div>
-                    <div class="metabolism-status-chip" aria-label="Development status">
-                        <span aria-hidden="true"></span>
-                        Milestone 3 · Enzyme Placement
+                    <div class="metabolism-topbar-actions">
+                        <div class="metabolism-view-switcher" aria-label="Metabolism view">
+                            <button id="metabolism-show-systems" type="button" aria-pressed="true">Systems Map</button>
+                            <button id="metabolism-show-detail" type="button" aria-pressed="false">Pathway Detail</button>
+                        </div>
+                        <div class="metabolism-status-chip" aria-label="Development status">
+                            <span aria-hidden="true"></span>
+                            Systems Architecture Preview
+                        </div>
                     </div>
                 </header>
 
-                <div class="metabolism-workspace">
+                <section id="metabolism-systems-view" class="metabolism-panel metabolism-systems-view" aria-labelledby="metabolism-systems-heading">
+                    <div class="metabolism-systems-heading">
+                        <div>
+                            <p class="metabolism-panel-kicker">Map of Maps</p>
+                            <h2 id="metabolism-systems-heading">Cellular Energy Systems</h2>
+                        </div>
+                        <span>Conceptual flow · not calculated flux</span>
+                    </div>
+                    <p class="metabolism-systems-intro">
+                        Follow carbon substrates and electron carriers between pathway maps. Select an available pathway to inspect its detailed reconstruction.
+                    </p>
+                    <div id="metabolism-systems-map" class="metabolism-systems-map"></div>
+                    <p class="metabolism-systems-control-note">
+                        Regulation modes are shown for architectural planning. No pathway pause, enable, or disable control is active yet, and this view does not change ATP production.
+                    </p>
+                </section>
+
+                <div id="metabolism-detail-view" class="metabolism-workspace" hidden>
                     <aside class="metabolism-panel metabolism-library" aria-labelledby="metabolism-pathways-heading">
                         <p class="metabolism-panel-kicker">Pathway Library</p>
                         <h2 id="metabolism-pathways-heading">Available Maps</h2>
@@ -159,6 +233,7 @@ const MetabolismUI = {
                     <main class="metabolism-panel metabolism-map-panel" aria-labelledby="metabolism-map-heading">
                         <div class="metabolism-map-heading">
                             <div>
+                                <button id="metabolism-back-to-systems" class="metabolism-back-to-systems" type="button">← Systems Map</button>
                                 <p class="metabolism-panel-kicker">Pathway Workspace</p>
                                 <h2 id="metabolism-map-heading">Glycolysis Map</h2>
                             </div>
@@ -227,14 +302,56 @@ const MetabolismUI = {
 
     },
 
+    setViewMode(viewMode) {
+        if (!["systems", "detail"].includes(
+            viewMode
+        )) {
+            return false;
+        }
+
+        this.viewMode = viewMode;
+        this.render();
+        return true;
+    },
+
     render() {
 
         if (!this.pathwayListElement) {
             return false;
         }
 
-        const { pathways } =
+        const { pathways, systems } =
             MetabolismManager.getStatus();
+
+        this.rootElement.dataset.viewMode =
+            this.viewMode;
+        this.systemsViewElement.hidden =
+            this.viewMode !== "systems";
+        this.detailViewElement.hidden =
+            this.viewMode !== "detail";
+        this.systemsModeButton.setAttribute(
+            "aria-pressed",
+            String(
+                this.viewMode === "systems"
+            )
+        );
+        this.detailModeButton.setAttribute(
+            "aria-pressed",
+            String(
+                this.viewMode === "detail"
+            )
+        );
+
+        MetabolismSystemsView.render(
+            this.systemsMapElement,
+            systems,
+            pathwayId => {
+                this.selectedPathwayId =
+                    pathwayId;
+                this.viewMode = "detail";
+                this.render();
+            }
+        );
 
         this.pathwayListElement.replaceChildren(
             ...pathways.map(pathway =>
@@ -478,6 +595,7 @@ const MetabolismUI = {
                 () => {
                     this.selectedPathwayId =
                         pathway.id;
+                    this.viewMode = "detail";
                     this.render();
                 }
             );
