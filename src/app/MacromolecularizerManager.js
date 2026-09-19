@@ -650,32 +650,92 @@ const MacromolecularizerManager = {
 
         const synthesisHistory =
             this.getMoleculeSynthesisHistory();
+                    const macromolecularizerInventory =
+            this.ensureState()
+                .motifInventory;
 
-        const monomers =
+                const monomers =
             definition.monomers.map(
                 requirement => {
 
+                    const sourceZoneId =
+                        requirement
+                            .sourceZoneId ??
+                        "moleculeLab";
+
+                    const sourceDefinition =
+                        sourceZoneId ===
+                            "macromolecularizer"
+                            ? MacromolecularRecipeCatalog
+                                .get(
+                                    requirement.id
+                                )
+                            : MoleculeRecipeCatalog
+                                .get(
+                                    requirement.id
+                                );
+
                     const synthesisCount =
-                        safeInteger(
-                            synthesisHistory[
-                                requirement.id
-                            ]?.count
-                        );
+                        sourceZoneId ===
+                            "macromolecularizer"
+                            ? safeInteger(
+                                macromolecularizerInventory[
+                                    requirement.id
+                                ]
+                            )
+                            : safeInteger(
+                                synthesisHistory[
+                                    requirement.id
+                                ]?.count
+                            );
+
+                    /*
+                     * Molecule Lab prerequisites represent permanent
+                     * synthesis knowledge, so one prior synthesis is
+                     * sufficient regardless of structural quantity.
+                     *
+                     * Macromolecularizer prerequisites are completed
+                     * products, so their stored inventory must meet
+                     * the requested quantity. Neither source is
+                     * consumed.
+                     */
+                    const synthesized =
+                        sourceZoneId ===
+                            "macromolecularizer"
+                            ? synthesisCount >=
+                                requirement.quantity &&
+                                Boolean(
+                                    sourceDefinition
+                                        ?.implemented
+                                )
+                            : synthesisCount > 0 &&
+                                Boolean(
+                                    sourceDefinition
+                                        ?.implemented
+                                );
 
                     return {
                         id:
                             requirement.id,
                         name:
-                            MoleculeRecipeCatalog
-                                .get(
-                                    requirement.id
-                                )?.name ??
+                            sourceDefinition
+                                ?.name ??
                             requirement.id,
                         quantity:
                             requirement.quantity,
+                        sourceZoneId,
+                        sourceLabel:
+                            sourceZoneId ===
+                                "macromolecularizer"
+                                ? "Macromolecularizer"
+                                : "Molecule Lab",
+                        sourceImplemented:
+                            Boolean(
+                                sourceDefinition
+                                    ?.implemented
+                            ),
                         synthesisCount,
-                        synthesized:
-                            synthesisCount > 0 && Boolean(MoleculeRecipeCatalog.get(requirement.id)?.implemented)
+                        synthesized
                     };
 
                 }
@@ -1254,7 +1314,7 @@ const MacromolecularizerManager = {
                     eligibility
                         .missingAminoAcidIds,
                 message:
-                    `Synthesize these monomer types in Molecule Lab first: ${eligibility.missingAminoAcidIds.join(", ")}.`
+    `Complete these non-consuming prerequisites first: ${eligibility.missingAminoAcidIds.join(", ")}.`
             };
         }
 
