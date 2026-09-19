@@ -12,13 +12,13 @@ import PolymerizerRecipeCatalog
 assert.equal(
     proteinLibrary.Aquaporin
         .FunctionDisplay,
-    null
+    "waterBalance"
 );
 assert.equal(
     PolymerizerRecipeCatalog
         .get("Aquaporin")
-        .functionDisplay,
-    null
+        .functionDisplay.badgeText,
+    "💧 Water Balance"
 );
 
 assert.equal(
@@ -36,10 +36,9 @@ assert.equal(
     energyFunction.label,
     "Cell Energy"
 );
-assert(
-    energyFunction.iconUrl.endsWith(
-        "/public/assets/polymerizer/functions/Card_Energy_Icon.png"
-    )
+assert.equal(
+    energyFunction.badgeText,
+    "⚡ Glycolysis Access"
 );
 assert.deepEqual(
     PolymerizerRecipeCatalog
@@ -50,6 +49,19 @@ assert.deepEqual(
 assert.equal(
     ProteinFunctionCatalog.get(null),
     null
+);
+
+assert.equal(
+    ProteinFunctionCatalog
+        .get("atpProduction")
+        .badgeText,
+    "⚡ +4 ATP/min"
+);
+assert.equal(
+    ProteinFunctionCatalog
+        .get("waterBalance")
+        .badgeTone,
+    "homeostasis"
 );
 assert.equal(
     ProteinFunctionCatalog.get(
@@ -67,13 +79,13 @@ const viewSource = fs.readFileSync(
 );
 assert.match(
     viewSource,
-    /poly-product-function-icon/
+    /poly-product-function-badge/
 );
 assert.match(
     viewSource,
-    /functionDisplay\.iconUrl/
+    /functionDisplay\.badgeText/
 );
 
 console.log(
-    "PASS: proteins opt into reusable function displays, null remains valid, and Glucose Transporter resolves the 80px Cell Energy card icon without adding save state."
+    "PASS: Polymerizer function displays use right-aligned data-driven text badges for direct ATP production, Glycolysis access, and Aquaporin water balance without adding save state."
 );

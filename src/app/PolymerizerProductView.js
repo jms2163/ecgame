@@ -207,43 +207,21 @@ const PolymerizerProductView = {
                 product.definition
                     .functionDisplay;
 
-            if (functionDisplay?.iconUrl) {
+            if (functionDisplay?.badgeText) {
                 const badge =
                     document.createElement("span");
-                badge.className =
-                    "poly-product-function-badge";
+                badge.className = [
+                    "poly-product-function-badge",
+                    functionDisplay.badgeTone
+                        ? `poly-product-function-badge--${functionDisplay.badgeTone}`
+                        : ""
+                ].filter(Boolean).join(" ");
                 badge.title = [
                     functionDisplay.label,
                     functionDisplay.description
                 ].filter(Boolean).join(": ");
-
-                const icon =
-                    document.createElement("img");
-                icon.className =
-                    "poly-product-function-icon";
-                icon.src =
-                    functionDisplay.iconUrl;
-                icon.alt =
-                    functionDisplay.iconAlt ||
-                    `${functionDisplay.label} icon`;
-                icon.width = 80;
-                icon.height = 80;
-
-                // Development datasets may reference artwork before it is
-                // copied into the local asset folder. Avoid leaving a broken
-                // image or an empty column in that case.
-                icon.addEventListener(
-                    "error",
-                    () => {
-                        button.classList.remove(
-                            "poly-product-card--has-function"
-                        );
-                        badge.remove();
-                    },
-                    { once: true }
-                );
-
-                badge.append(icon);
+                badge.textContent =
+                    functionDisplay.badgeText;
                 button.append(badge);
                 button.classList.add(
                     "poly-product-card--has-function"
