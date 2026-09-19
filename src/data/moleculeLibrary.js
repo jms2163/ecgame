@@ -123,6 +123,18 @@ export const moleculeLibrary =  Object.freeze({
     desc: "A simple two-carbon organic acid.",
     info: "Acetic acid (CH<sub>3</sub>COOH) is a crucial two-carbon building block in biochemical pathways, serving as an important precursor to acetyl-CoA for cellular energy cycles and biosynthesis. It is also a widespread metabolic waste product excreted by various fermentative and anaerobic bacteria during carbohydrate degradation."
   },
+  Nicotinamide: {
+    name: "Nicotinamide",
+    icon: "C<sub>6</sub>H<sub>6</sub>N<sub>2</sub>O",
+    tier: 3,
+    researchTime: 122,
+    parents: ["C", "H", "N", "O"],
+    category: "molecules",
+    state: "locked",
+    affects: [],
+    desc: "An amide of vitamin B3 and a core component of cellular electron carriers.",
+    info: "Nicotinamide is the water-soluble, active form of vitamin B3. It is a vital structural building block of the coenzymes NAD+ and NADP+, which act as the primary electron carriers driving redox reactions, cellular respiration, and energy metabolism across all domains of life."
+  },
   ProteinPortal: {
     name: "To<br>Proteins",
     icon: "➜",
