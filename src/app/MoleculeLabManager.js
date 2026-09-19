@@ -38,6 +38,7 @@ const MoleculeLabManager = {
         this.atomInventorySignature = this.createAtomInventorySignature();
         this.subscribe();
         this.reconcileSynthesis();
+        this.reconcileZoneCompletion();
         this.initialized = true;
         console.log("[MoleculeLabManager] Initialized with persistent state.");
         return true;
@@ -301,6 +302,50 @@ const MoleculeLabManager = {
         };
     },
 
+    /**
+     * Molecule Lab completion is a derived milestone, not a separate piece of
+     * progression data. Every implemented, synthesizable recipe in every
+     * category must have at least one recorded synthesis. Link cards and
+     * planned recipes without an implementation are deliberately excluded.
+     */
+    getLabCompletionStatus() {
+        const categories = MoleculeRecipeCatalog.categories.map(category => ({
+            id: category.id,
+            title: category.title,
+            ...this.getCategoryStatus(category.id)
+        }));
+
+        return {
+            completed:
+                categories.length > 0 &&
+                categories.every(category => category.synthesisComplete),
+            categories
+        };
+    },
+
+    /**
+     * Keeps the persisted zone flag aligned with the authoritative synthesis
+     * records. This also repairs older saves where completing H2 alone marked
+     * the entire Molecule Lab complete. No save-version migration is needed:
+     * loading or initializing the manager safely recomputes the boolean.
+     */
+    reconcileZoneCompletion() {
+        const completion = this.getLabCompletionStatus();
+        const wasCompleted = GameStateManager.isZoneCompleted(ZONE_ID);
+
+        if (wasCompleted !== completion.completed) {
+            GameStateManager.setZoneCompleted(
+                ZONE_ID,
+                completion.completed
+            );
+        }
+
+        return {
+            ...completion,
+            changed: wasCompleted !== completion.completed
+        };
+    },
+
     getActiveSynthesisProgress(nowMs = Date.now()) {
         const job = this.ensureState().activeSynthesis;
         if (!job) return null;
@@ -528,9 +573,7 @@ const MoleculeLabManager = {
         };
 
         DiscoveryManager.record("molecules", moleculeId);
-        if (moleculeId === FIRST_MILESTONE_ID) {
-            GameStateManager.setZoneCompleted(ZONE_ID, true);
-        }
+        this.reconcileZoneCompletion();
         SaveManager.save();
         GameStateObserver.notify("molecule-synthesized", {
             moleculeId,
@@ -672,6 +715,7 @@ const MoleculeLabManager = {
             this.ensureState();
             this.atomInventorySignature = this.createAtomInventorySignature();
             this.reconcileSynthesis();
+            this.reconcileZoneCompletion();
             this.notifyStateChange("state-loaded");
         });
         GameStateObserver.on("atom-inventory-changed", payload => {
