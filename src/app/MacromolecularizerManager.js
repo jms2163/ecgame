@@ -32,11 +32,17 @@ const DEHYDRATION_EXPLORATION_IDS = Object.freeze({
     motifs: "dehydration-2",
     nucleotides: "dehydration-4"
 });
+const HYDROLYSIS_EXPLORATION_IDS = Object.freeze({
+    nucleotides: "hydrolysis-4"
+});
 const DEHYDRATION_DISCOVERY_IDS = Object.freeze([
     "dehydration-1",
     "dehydration-2",
     "dehydration-3",
     "dehydration-4"
+]);
+const HYDROLYSIS_DISCOVERY_IDS = Object.freeze([
+    "hydrolysis-4"
 ]);
 
 function isRecord(value) {
@@ -1676,7 +1682,8 @@ const MacromolecularizerManager = {
             typeof reactionId !== "string" ||
             ![
                 ...REACTION_DISCOVERY_IDS,
-                ...DEHYDRATION_DISCOVERY_IDS
+                ...DEHYDRATION_DISCOVERY_IDS,
+                ...HYDROLYSIS_DISCOVERY_IDS
             ].includes(reactionId.trim())
         ) {
             return false;
@@ -1833,6 +1840,86 @@ const MacromolecularizerManager = {
                         ? "ADP reacts with phosphate to produce ATP and water."
                         : "Glycosidic bond discovered!"
                 : "The bond formed, but the browser save failed."
+        };
+
+    },
+
+    // Complete the nucleotide hydrolysis activity while retaining the
+    // generic hydrolysis discovery used by older saves and callers.
+    completeHydrolysisExploration(category) {
+
+        const discoveryId = Object.hasOwn(
+            HYDROLYSIS_EXPLORATION_IDS,
+            category
+        )
+            ? HYDROLYSIS_EXPLORATION_IDS[category]
+            : null;
+
+        if (!discoveryId) {
+            return {
+                success: false,
+                saved: false,
+                reason: "activity-unavailable",
+                message:
+                    "This hydrolysis exploration is not available yet."
+            };
+        }
+
+        const newActivity =
+            !this.hasReactionDiscovery(discoveryId);
+        const newGate =
+            !this.hasReactionDiscovery("hydrolysis");
+
+        if (
+            newActivity &&
+            !DiscoveryManager.record(
+                "reactions",
+                discoveryId
+            )
+        ) {
+            return {
+                success: false,
+                saved: false,
+                message:
+                    "The hydrolysis discovery could not be recorded."
+            };
+        }
+
+        if (
+            newGate &&
+            !DiscoveryManager.record(
+                "reactions",
+                "hydrolysis"
+            )
+        ) {
+            return {
+                success: false,
+                saved: false,
+                message:
+                    "The hydrolysis reaction gate could not be recorded."
+            };
+        }
+
+        const saved = SaveManager.save({
+            reason:
+                `macromolecularizer-${discoveryId}-discovered`
+        });
+
+        this.notifyStateChange(
+            "reaction-discovered",
+            {
+                reactionId: discoveryId,
+                saved
+            }
+        );
+
+        return {
+            success: saved,
+            saved,
+            discoveryId,
+            message: saved
+                ? "ATP reacts with water to produce ADP, phosphate, and energy."
+                : "The hydrolysis occurred, but the browser save failed."
         };
 
     },

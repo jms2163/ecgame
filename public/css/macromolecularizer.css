@@ -2373,3 +2373,177 @@ button.macro-exp-free-phosphate-p {
         animation: none;
     }
 }
+
+/* ATP hydrolysis: water splits the terminal phosphate bond into ADP + Pi. */
+
+.macro-exp-field--hydrolysis {
+    display: grid;
+    grid-template-columns: 1fr;
+    min-height: 280px;
+    place-items: center;
+}
+
+.macro-exp-slot--hydrolysis {
+    width: 100%;
+}
+
+.macro-exp-nucleotide--atp {
+    flex-basis: 350px;
+    width: 350px;
+}
+
+.macro-exp-atp-chain,
+.macro-exp-hydrolysis-product {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.macro-exp-atp-terminal-bond {
+    width: 18px;
+    flex: 0 0 18px;
+    height: 8px;
+    padding: 0;
+    border: 0;
+    border-top: 3px solid #eef3fb;
+    border-bottom: 3px solid transparent;
+    background: transparent;
+}
+
+button.macro-exp-atp-terminal-bond {
+    border-top-color: #70d5ff;
+    cursor: pointer;
+    box-shadow: 0 -2px 7px rgba(112, 213, 255, 0.48);
+}
+
+.macro-exp-toolbar--hydrolysis {
+    grid-template-columns: 1fr;
+}
+
+.macro-exp-hydrolysis-water {
+    position: relative;
+    display: flex;
+    width: 150px;
+    min-height: 108px;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 8px 28px;
+    color: var(--macro-text);
+    border: 0;
+    background: transparent;
+    cursor: grab;
+    touch-action: none;
+}
+
+.macro-exp-hydrolysis-water-h,
+.macro-exp-hydrolysis-water-oh {
+    display: grid;
+    place-items: center;
+    box-sizing: border-box;
+    color: #fff;
+    border: 2px solid #d6e0eb;
+    border-radius: 50%;
+    background: #758393;
+    font: 700 0.72rem "Oxanium", sans-serif;
+}
+
+.macro-exp-hydrolysis-water-h {
+    width: 28px;
+    height: 28px;
+}
+
+.macro-exp-hydrolysis-water-oh {
+    width: 42px;
+    height: 36px;
+    border-color: #ffaaaa;
+    background: #a2282b;
+}
+
+.macro-exp-hydrolysis-water.macro-exp-drag-ghost {
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.88;
+    transform: translate(-50%, -50%);
+}
+
+.macro-exp-hydrolysis-products {
+    display: grid;
+    width: min(100%, 760px);
+    grid-template-columns: minmax(390px, 1.7fr) minmax(190px, 0.8fr);
+    align-items: center;
+    gap: 48px;
+}
+
+.macro-exp-hydrolysis-product {
+    position: relative;
+    min-height: 142px;
+    padding-bottom: 30px;
+}
+
+.macro-exp-hydrolysis-product-name {
+    position: absolute;
+    bottom: 4px;
+    left: 0;
+    width: 100%;
+    color: var(--macro-text);
+    text-align: center;
+    font: 700 0.8rem "Courier New", monospace;
+}
+
+.macro-exp-hydrolysis-adp-added {
+    opacity: 0;
+    animation: macro-exp-hydrolysis-group-appear 280ms 260ms ease-out forwards;
+}
+
+.macro-exp-hydrolysis-adp-hydrogen {
+    opacity: 0;
+    animation: macro-exp-hydrolysis-group-appear 280ms 520ms ease-out forwards;
+}
+
+.macro-exp-hydrolysis-product--phosphate {
+    transform: translateX(-64px);
+    animation: macro-exp-hydrolysis-phosphate-slide 620ms 180ms ease-out forwards;
+}
+
+.macro-exp-hydrolysis-phosphate-water-fragment {
+    display: flex;
+    align-items: center;
+    opacity: 0;
+    animation: macro-exp-hydrolysis-group-appear 300ms 560ms ease-out forwards;
+}
+
+@keyframes macro-exp-hydrolysis-group-appear {
+    from { opacity: 0; transform: scale(0.65); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes macro-exp-hydrolysis-phosphate-slide {
+    from { transform: translateX(-64px); }
+    to { transform: translateX(0); }
+}
+
+@media (max-width: 820px) {
+    .macro-exp-hydrolysis-products {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .macro-exp-hydrolysis-product--adp {
+        transform: scale(0.82);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .macro-exp-hydrolysis-adp-added,
+    .macro-exp-hydrolysis-adp-hydrogen,
+    .macro-exp-hydrolysis-phosphate-water-fragment {
+        opacity: 1;
+        animation: none;
+    }
+
+    .macro-exp-hydrolysis-product--phosphate {
+        transform: none;
+        animation: none;
+    }
+}

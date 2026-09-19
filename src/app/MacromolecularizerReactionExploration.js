@@ -31,15 +31,20 @@ const INSTRUCTIONS = Object.freeze({
         "Drag H from the terminal ADP hydroxyl to the collection tray.",
         "Drag the incoming phosphate to the terminal oxygen on ADP.",
         "ADP reacts with phosphate to produce ATP and water."
+    ],
+    "nucleotide-hydrolysis": [
+        "Drag ATP to the reaction pane.",
+        "Drag H–OH to the terminal phosphate bond in ATP.",
+        "ATP reacts with water to produce ADP, phosphate, and energy."
     ]
 });
 
-const ACTIONS = Object.freeze([
-    "left",
-    "right",
-    "oh",
-    "h",
-    "bond"
+const DEHYDRATION_ACTIONS = Object.freeze([
+    "left", "right", "oh", "h", "bond"
+]);
+
+const HYDROLYSIS_ACTIONS = Object.freeze([
+    "left", "water"
 ]);
 
 const TARGETS_BY_CATEGORY = Object.freeze({
@@ -63,6 +68,10 @@ const TARGETS_BY_CATEGORY = Object.freeze({
         "waste",
         "waste",
         "terminal"
+    ]),
+    "nucleotide-hydrolysis": Object.freeze([
+        "left",
+        "terminal-bond"
     ])
 });
 
@@ -193,11 +202,68 @@ function phosphateMarkup(docked, removedOH = false, readyToBond = false, bonded 
         : `<button type="button" class="macro-exp-nucleotide macro-exp-nucleotide--phosphate" data-explore-drag="right" aria-label="Drag phosphate to its dotted template">${inner}</button>`;
 }
 
+function atpHydrolysisMarkup(docked) {
+    const terminalBond = docked
+        ? '<button type="button" class="macro-exp-atp-terminal-bond" data-explore-drop="terminal-bond" aria-label="Terminal phosphate bond in ATP"></button>'
+        : '<span class="macro-exp-atp-terminal-bond"></span>';
+    const inner = `<span class="macro-exp-atp-chain">
+            <span class="macro-exp-nucleotide-unit macro-exp-nucleotide-unit--adenosine">Adenosine</span>
+            <span class="macro-exp-nucleotide-link"></span>
+            <span class="macro-exp-nucleotide-unit macro-exp-nucleotide-unit--phosphate">P</span>
+            <span class="macro-exp-nucleotide-link"></span>
+            <span class="macro-exp-nucleotide-unit macro-exp-nucleotide-unit--phosphate">P</span>
+            ${terminalBond}
+            <span class="macro-exp-nucleotide-unit macro-exp-nucleotide-unit--phosphate">P</span>
+        </span>
+        <span class="macro-exp-nucleotide-name">ATP</span>`;
+
+    return docked
+        ? `<div class="macro-exp-nucleotide macro-exp-nucleotide--atp macro-exp-nucleotide--docked" aria-label="ATP placed">${inner}</div>`
+        : `<button type="button" class="macro-exp-nucleotide macro-exp-nucleotide--atp" data-explore-drag="left" aria-label="Drag ATP to the reaction pane">${inner}</button>`;
+}
+
+function hydrolysisWaterMarkup() {
+    return `<button type="button" class="macro-exp-hydrolysis-water" data-explore-drag="water" aria-label="Drag H-OH water to the terminal phosphate bond">
+        <span class="macro-exp-hydrolysis-water-h">H</span>
+        <span class="macro-exp-nucleotide-link macro-exp-nucleotide-link--short"></span>
+        <span class="macro-exp-hydrolysis-water-oh">OH</span>
+        <span class="macro-exp-nucleotide-name">Water · H–OH</span>
+    </button>`;
+}
+
+function hydrolysisProductsMarkup() {
+    return `<div class="macro-exp-hydrolysis-products" aria-label="ADP and phosphate products">
+        <div class="macro-exp-hydrolysis-product macro-exp-hydrolysis-product--adp" aria-label="ADP product ending in P-O-H">
+            <span class="macro-exp-nucleotide-unit macro-exp-nucleotide-unit--adenosine">Adenosine</span>
+            <span class="macro-exp-nucleotide-link"></span>
+            <span class="macro-exp-nucleotide-unit macro-exp-nucleotide-unit--phosphate">P</span>
+            <span class="macro-exp-nucleotide-link"></span>
+            <span class="macro-exp-nucleotide-unit macro-exp-nucleotide-unit--phosphate macro-exp-hydrolysis-adp-terminal-p">P</span>
+            <span class="macro-exp-nucleotide-link macro-exp-nucleotide-link--short macro-exp-hydrolysis-adp-added"></span>
+            <span class="macro-exp-terminal-oxygen macro-exp-hydrolysis-adp-added macro-exp-hydrolysis-adp-o">O</span>
+            <span class="macro-exp-nucleotide-link macro-exp-nucleotide-link--short macro-exp-hydrolysis-adp-hydrogen"></span>
+            <span class="macro-exp-terminal-hydrogen macro-exp-hydrolysis-adp-hydrogen macro-exp-hydrolysis-adp-h">H</span>
+            <span class="macro-exp-hydrolysis-product-name">ADP · P–O–H</span>
+        </div>
+        <div class="macro-exp-hydrolysis-product macro-exp-hydrolysis-product--phosphate" aria-label="Phosphate product arranged H-O-P">
+            <span class="macro-exp-hydrolysis-phosphate-water-fragment">
+                <span class="macro-exp-terminal-hydrogen macro-exp-hydrolysis-phosphate-h">H</span>
+                <span class="macro-exp-nucleotide-link macro-exp-nucleotide-link--short"></span>
+                <span class="macro-exp-terminal-oxygen macro-exp-hydrolysis-phosphate-o">O</span>
+                <span class="macro-exp-nucleotide-link macro-exp-nucleotide-link--short"></span>
+            </span>
+            <span class="macro-exp-nucleotide-unit macro-exp-nucleotide-unit--phosphate macro-exp-hydrolysis-phosphate-p">P</span>
+            <span class="macro-exp-hydrolysis-product-name">Phosphate · H–O–P</span>
+        </div>
+    </div>`;
+}
+
 const MacromolecularizerReactionExploration = {
     element: null,
     onComplete: null,
     onExit: null,
     category: "carbs",
+    reactionId: "dehydration",
     step: 0,
     completed: false,
     selectedToken: null,
@@ -237,8 +303,13 @@ const MacromolecularizerReactionExploration = {
         });
     },
 
-    open(category) {
+    open(category, reactionId = "dehydration") {
         this.category = Object.hasOwn(CATEGORY_IDS, category) ? category : "motifs";
+        this.reactionId =
+            reactionId === "hydrolysis" &&
+            this.category === "nucleotides"
+                ? "hydrolysis"
+                : "dehydration";
         this.step = 0;
         this.completed = false;
         this.selectedToken = null;
@@ -251,25 +322,44 @@ const MacromolecularizerReactionExploration = {
     },
 
     instructions() {
-        return INSTRUCTIONS[this.category] ?? INSTRUCTIONS.carbs;
+        return INSTRUCTIONS[this.activityKey()] ??
+            INSTRUCTIONS.carbs;
+    },
+
+    activityKey() {
+        return this.reactionId === "hydrolysis" &&
+            this.category === "nucleotides"
+                ? "nucleotide-hydrolysis"
+                : this.category;
+    },
+
+    actions() {
+        return this.activityKey() ===
+            "nucleotide-hydrolysis"
+                ? HYDROLYSIS_ACTIONS
+                : DEHYDRATION_ACTIONS;
     },
 
     targets() {
-        return TARGETS_BY_CATEGORY[this.category] ??
+        return TARGETS_BY_CATEGORY[this.activityKey()] ??
             TARGETS_BY_CATEGORY.carbs;
     },
 
     accept(token, target) {
-        if (!Object.hasOwn(INSTRUCTIONS, this.category) || this.completed) return false;
-        if (token !== ACTIONS[this.step] || target !== this.targets()[this.step]) {
+        if (!Object.hasOwn(INSTRUCTIONS, this.activityKey()) || this.completed) return false;
+        const actions = this.actions();
+        if (token !== actions[this.step] || target !== this.targets()[this.step]) {
             this.announce(this.instructions()[this.step]);
             return false;
         }
         this.selectedToken = null;
         this.step += 1;
-        if (this.step === ACTIONS.length) {
+        if (this.step === actions.length) {
             this.completed = true;
-            const result = this.onComplete(this.category);
+            const result = this.onComplete(
+                this.category,
+                this.reactionId
+            );
             this.render();
             const message = result?.saved === false
                 ? "The bond formed, but the discovery could not be saved. Please retry."
@@ -286,7 +376,7 @@ const MacromolecularizerReactionExploration = {
         if (!source || !this.element.contains(source) || event.button !== 0) return;
         event.preventDefault();
         const token = source.dataset.exploreDrag;
-        if (token !== ACTIONS[this.step]) return;
+        if (token !== this.actions()[this.step]) return;
         const ghost = source.cloneNode(true);
         ghost.removeAttribute("data-explore-drag");
         ghost.classList.add("macro-exp-drag-ghost");
@@ -501,8 +591,45 @@ const MacromolecularizerReactionExploration = {
         if (bonded) this.positionNucleotideBond();
     },
 
+    renderNucleotideHydrolysis() {
+        const atpDocked = this.step >= 1;
+        const reacted = this.step >= 2;
+
+        this.element.innerHTML = `
+            <div class="macro-exp-heading"><span>Reaction exploration · ATP hydrolysis</span>
+                <button type="button" data-explore-exit>Return to synthesis</button></div>
+            <div class="macro-exp-progress" aria-label="Reaction progress">${Math.min(this.step, 2)} / 2 steps</div>
+            <p class="macro-exp-instruction" role="status" aria-live="polite">${this.instructions()[this.step]}</p>
+            <div class="macro-exp-field macro-exp-field--hydrolysis" aria-label="ATP hydrolysis reaction field">
+                ${reacted
+                    ? hydrolysisProductsMarkup()
+                    : `<div class="macro-exp-slot macro-exp-slot--hydrolysis">
+                        ${atpDocked
+                            ? atpHydrolysisMarkup(true)
+                            : '<button type="button" class="macro-exp-template macro-exp-template--nucleotide macro-exp-template--nucleotide-left" data-explore-drop="left" aria-label="Dotted template for ATP"><span>ATP</span></button>'}
+                    </div>`}
+            </div>
+            <div class="macro-exp-toolbar macro-exp-toolbar--nucleotide macro-exp-toolbar--hydrolysis">
+                <div class="macro-exp-supply" aria-label="ATP hydrolysis supply">
+                    ${!atpDocked
+                        ? atpHydrolysisMarkup(false)
+                        : !reacted
+                            ? hydrolysisWaterMarkup()
+                            : ""}
+                </div>
+            </div>
+            ${reacted ? '<div class="macro-exp-reveal" role="status">ATP REACTS WITH WATER TO PRODUCE ADP, PHOSPHATE, AND ENERGY.<small>ATP + H₂O → ADP + phosphate + ⚡</small></div>' : ""}`;
+    },
+
     render() {
         if (!this.element) return;
+        if (
+            this.category === "nucleotides" &&
+            this.reactionId === "hydrolysis"
+        ) {
+            this.renderNucleotideHydrolysis();
+            return;
+        }
         if (this.category === "motifs") {
             this.renderProtein();
             return;

@@ -24,6 +24,10 @@ const DEHYDRATION_DISCOVERY_BY_CATEGORY = Object.freeze({
     nucleotides: "dehydration-4"
 });
 
+const HYDROLYSIS_DISCOVERY_BY_CATEGORY = Object.freeze({
+    nucleotides: "hydrolysis-4"
+});
+
 const MacromolecularizerUI = {
 
     initialized: false,
@@ -36,6 +40,8 @@ const MacromolecularizerUI = {
     upgradeFeedbackMessage: "",
     chamberViewMode: "synthesis",
     reactionExplorationActive: false,
+    activeReactionExplorationId:
+        "dehydration",
     helixFramePreload: null,
     observationImagePreloads: {},
     observationLayers: {
@@ -50,6 +56,21 @@ const MacromolecularizerUI = {
         return Boolean(
             discoveryId &&
             MacromolecularizerManager.hasReactionDiscovery(discoveryId)
+        );
+    },
+
+    hydrolysisExplorationDiscovered(category) {
+        const discoveryId =
+            HYDROLYSIS_DISCOVERY_BY_CATEGORY[
+                category
+            ];
+
+        return Boolean(
+            discoveryId &&
+            MacromolecularizerManager
+                .hasReactionDiscovery(
+                    discoveryId
+                )
         );
     },
 
@@ -78,9 +99,20 @@ const MacromolecularizerUI = {
         MacromolecularizerReactionExploration.initialize(
             this.elements.reactionExploration,
             {
-                onComplete: category => {
-                    const result = MacromolecularizerManager
-                        .completeDehydrationExploration(category);
+                onComplete: (
+                    category,
+                    reactionId
+                ) => {
+                    const result =
+                        reactionId === "hydrolysis"
+                            ? MacromolecularizerManager
+                                .completeHydrolysisExploration(
+                                    category
+                                )
+                            : MacromolecularizerManager
+                                .completeDehydrationExploration(
+                                    category
+                                );
                     this.render();
                     return result;
                 },
@@ -927,13 +959,22 @@ const MacromolecularizerUI = {
                     const result = MacromolecularizerManager.selectMotif(recipe.id);
                     if (result.success) {
                         this.chamberViewMode = "synthesis";
-                        if (button.dataset.assemblyCategory === "lipids") {
+                        if (
+                            button.dataset.assemblyCategory === "lipids" ||
+                            (
+                                this.activeReactionExplorationId === "hydrolysis" &&
+                                button.dataset.assemblyCategory !== "nucleotides"
+                            )
+                        ) {
                             this.reactionExplorationActive = false;
                         }
                     }
                     else this.synthesisFeedbackMessage = result.message;
                     if (result.success && this.reactionExplorationActive) {
-                        MacromolecularizerReactionExploration.open(button.dataset.assemblyCategory);
+                        MacromolecularizerReactionExploration.open(
+                            button.dataset.assemblyCategory,
+                            this.activeReactionExplorationId
+                        );
                     }
                     this.render();
                 }
@@ -1009,11 +1050,30 @@ const MacromolecularizerUI = {
                 button.addEventListener(
                     "click",
                     () => {
-                        if (button.dataset.reactionId === "dehydration") {
+                        const reactionId =
+                            button.dataset.reactionId;
+                        const category =
+                            MacromolecularizerManager
+                                .getStatus()
+                                .selectedMotif
+                                ?.definition
+                                .category ??
+                            "motifs";
+                        const hasExploration =
+                            reactionId === "dehydration" ||
+                            (
+                                reactionId === "hydrolysis" &&
+                                category === "nucleotides"
+                            );
+
+                        if (hasExploration) {
                             this.reactionExplorationActive = true;
-                            const category = MacromolecularizerManager
-                                .getStatus().selectedMotif?.definition.category ?? "motifs";
-                            MacromolecularizerReactionExploration.open(category);
+                            this.activeReactionExplorationId =
+                                reactionId;
+                            MacromolecularizerReactionExploration.open(
+                                category,
+                                reactionId
+                            );
                             this.render();
                             return;
                         }
@@ -1366,12 +1426,29 @@ const MacromolecularizerUI = {
                 const reactionId =
                     button.dataset.reactionId;
 
-                const discovered = reactionId === "dehydration"
-                    ? this.dehydrationExplorationDiscovered(activeCategory)
-                    : Boolean(status.reactionDiscoveries[reactionId]);
+                const nucleotideHydrolysis =
+                    reactionId === "hydrolysis" &&
+                    activeCategory === "nucleotides";
+                const discovered =
+                    reactionId === "dehydration"
+                        ? this.dehydrationExplorationDiscovered(
+                            activeCategory
+                        )
+                        : nucleotideHydrolysis
+                            ? this.hydrolysisExplorationDiscovered(
+                                activeCategory
+                            )
+                            : Boolean(
+                                status.reactionDiscoveries[
+                                    reactionId
+                                ]
+                            );
+                const replayable =
+                    reactionId === "dehydration" ||
+                    nucleotideHydrolysis;
 
                 button.disabled = (activeCategory === "lipids" && reactionId === "dehydration") ||
-                    (discovered && reactionId !== "dehydration");
+                    (discovered && !replayable);
                 if (activeCategory === "lipids" && reactionId === "dehydration") {
                     button.title = "Lipid reaction exploration is coming later; existing dehydration knowledge applies to lipid synthesis.";
                 } else {
@@ -1384,10 +1461,13 @@ const MacromolecularizerUI = {
                     String(discovered)
                 );
 
-                if (reactionId === "dehydration") {
+                if (
+                    reactionId === "dehydration" ||
+                    nucleotideHydrolysis
+                ) {
                     button.textContent = discovered
-                        ? "Explore Dehydration Again"
-                        : "Explore Dehydration";
+                        ? `Explore ${this.formatReactionName(reactionId)} Again`
+                        : `Explore ${this.formatReactionName(reactionId)}`;
                 } else if (discovered) {
                     button.textContent = `${this.formatReactionName(reactionId)} Discovered`;
                 } else {
