@@ -18,6 +18,9 @@ const MOTIF_ID_BY_SYMBOL = Object.freeze({
 });
 
 const ATP_PER_MOTIF_UNIT = 1;
+const MINIMUM_ASSEMBLY_SECONDS = 15;
+const MAXIMUM_ASSEMBLY_SECONDS = 60;
+const SECONDS_PER_MOTIF_UNIT = 0.25;
 const PRODUCT_CONFIGS = Object.freeze({
     Aquaporin: Object.freeze({
         name: "Aquaporin",
@@ -111,6 +114,23 @@ function createDefinition(id, protein) {
             0
         );
 
+    // Protein assembly remains a short reward after the player has invested
+    // in permanent motif levels. Larger structures take visibly longer, but
+    // the cap prevents realistic protein size from becoming a second wait
+    // wall: clamp(15 + motif count * 0.25, 15, 60) seconds.
+    const assemblyDurationMs =
+        Math.round(
+            Math.min(
+                MAXIMUM_ASSEMBLY_SECONDS,
+                Math.max(
+                    MINIMUM_ASSEMBLY_SECONDS,
+                    MINIMUM_ASSEMBLY_SECONDS +
+                        motifCount *
+                            SECONDS_PER_MOTIF_UNIT
+                )
+            ) * 1000
+        );
+
     // Some PDB-derived recipes provide reliable motif totals without a
     // reliable linear motif order. In that case an empty PPC is honest data,
     // not a validation failure. Whenever PPC is supplied, it must still match
@@ -168,6 +188,10 @@ function createDefinition(id, protein) {
                 motifRequirements
             ),
         motifCount,
+        assemblyDurationMs:
+            config?.implemented
+                ? assemblyDurationMs
+                : null,
         // Only released recipes receive a gameplay ATP cost. Locked catalog
         // entries may contain preliminary biological structure data, but
         // Polymerizer must not turn that into an unapproved playable cost.

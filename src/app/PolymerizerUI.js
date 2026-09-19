@@ -138,7 +138,7 @@ const PolymerizerUI = {
                         <div id="polymerizer-progress-panel" class="poly-progress-panel" hidden>
                             <label for="polymerizer-progress">Assembly progress</label>
                             <progress id="polymerizer-progress" max="1" value="0"></progress>
-                            <strong id="polymerizer-countdown">15 seconds remaining</strong>
+                            <strong id="polymerizer-countdown">Assembly timing calculated from motif level</strong>
                         </div>
 
                         <p id="polymerizer-product-description" class="poly-description"></p>

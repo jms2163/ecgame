@@ -26,7 +26,7 @@ gameState.zones.polymerizer.state
         lastCompletedAtMs: 1
     };
 production = ATPManager.getProductionStatus();
-assert.equal(production.totalATPPerMinute, 5);
+assert.equal(production.totalATPPerMinute, 3);
 
 gameState.zones.metabolism.state
     .completedModules.glycolysisCore = {
@@ -34,7 +34,7 @@ gameState.zones.metabolism.state
         completedAtMs: 2
     };
 production = ATPManager.getProductionStatus();
-assert.equal(production.totalATPPerMinute, 15);
+assert.equal(production.totalATPPerMinute, 7);
 
 const coreEnzymes = [
     "Hexokinase",
@@ -60,7 +60,7 @@ gameState.zones.metabolism.state
         );
 
 production = ATPManager.getProductionStatus();
-assert.equal(production.totalATPPerMinute, 25);
+assert.equal(production.totalATPPerMinute, 10);
 assert.equal(
     production.sources.find(source =>
         source.id === "glycolysisReconstruction"
@@ -72,10 +72,10 @@ assert.equal(production.increasesCapacity, false);
 const gained = ATPManager.handleGameTick({
     deltaSec: 60
 });
-assert.equal(gained, 25);
+assert.equal(gained, 10);
 assert.deepEqual(
     ResourceManager.getATPStatus(),
-    { current: 25, maximum: 1000 }
+    { current: 10, maximum: 1000 }
 );
 
 // Wrong slot references never earn production.
@@ -85,9 +85,20 @@ gameState.zones.metabolism.state
 assert.equal(
     ATPManager.getProductionStatus()
         .totalATPPerMinute,
-    24
+    9.7
 );
 
+const balance = ATPManager.getBalanceStatus();
+assert.equal(balance.totalProductionATPPerMinute, 9.7);
+assert.equal(balance.totalDemandATPPerMinute, 0);
+assert.equal(balance.netATPPerMinute, 9.7);
+assert.deepEqual(balance.demands, []);
+assert.equal(
+    balance.demandModelStatus,
+    "deferred-milestone-5"
+);
+assert.equal(balance.increasesCapacity, false);
+
 console.log(
-    "PASS: ATP production stacks base 1, Energy Kinase 4, Glycolysis Core 10, and one fixed ATP/min for each of ten correctly placed core enzymes without increasing capacity."
+    "PASS: ATP production stacks base 1, Energy Kinase 2, Glycolysis Core 4, and a fixed 0.3 ATP/min for each correctly placed core enzyme, with a save-neutral zero-demand ledger and no capacity increase."
 );

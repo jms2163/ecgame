@@ -79,7 +79,8 @@ try {
     const completed =
         PolymerizerManager.finishAssembly(
             started.activeAssembly.jobId,
-            16_000
+            started.activeAssembly
+                .completesAtMs
         );
     assert.equal(completed.success, true);
     assert.equal(completed.discoveryId, null);
@@ -92,8 +93,12 @@ try {
             .PhosphoglucoseIsomerase,
         {
             count: 1,
-            firstCompletedAtMs: 16_000,
-            lastCompletedAtMs: 16_000
+            firstCompletedAtMs:
+                started.activeAssembly
+                    .completesAtMs,
+            lastCompletedAtMs:
+                started.activeAssembly
+                    .completesAtMs
         }
     );
     assert.deepEqual(
@@ -108,7 +113,8 @@ try {
     const duplicate =
         PolymerizerManager.finishAssembly(
             started.activeAssembly.jobId,
-            16_001
+            started.activeAssembly
+                .completesAtMs + 1
         );
     assert.equal(duplicate.success, false);
     assert.equal(

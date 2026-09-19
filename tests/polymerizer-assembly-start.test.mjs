@@ -71,9 +71,9 @@ try {
     );
     assert.equal(
         started.activeAssembly.completesAtMs,
-        startedAtMs + 15_000
+        startedAtMs + 18_750
     );
-    assert.equal(started.activeAssembly.durationMs, 15_000);
+    assert.equal(started.activeAssembly.durationMs, 18_750);
     assert.equal(started.activeAssembly.atpCost, 15);
     assert.equal(started.activeAssembly.progress, 0);
     assert.equal(started.activeAssembly.complete, false);
@@ -111,14 +111,14 @@ try {
             .getActiveAssemblyProgress(
                 startedAtMs + 7_500
             );
-    assert.equal(halfway.progress, 0.5);
-    assert.equal(halfway.remainingMs, 7_500);
+    assert.equal(halfway.progress, 0.4);
+    assert.equal(halfway.remainingMs, 11_250);
     assert.equal(halfway.complete, false);
 
     const elapsed =
         PolymerizerManager
             .getActiveAssemblyProgress(
-                startedAtMs + 15_000
+                startedAtMs + 18_750
             );
     assert.equal(elapsed.progress, 1);
     assert.equal(elapsed.remainingMs, 0);
@@ -133,10 +133,29 @@ try {
                 startedAtMs + 7_500
             );
     assert.equal(reloaded.jobId, started.activeAssembly.jobId);
-    assert.equal(reloaded.progress, 0.5);
+    assert.equal(reloaded.progress, 0.4);
     assert.equal(
         ResourceManager.getATPStatus().current,
         35
+    );
+
+    // A legacy 15-second job remains valid after the timing update. The
+    // persisted timestamps win so an in-progress save is never stretched.
+    const legacyJob = {
+        ...started.activeAssembly,
+        completesAtMs:
+            startedAtMs + 15_000,
+        durationMs: 15_000
+    };
+    state.activeAssembly = legacyJob;
+    PolymerizerManager.ensureState();
+    assert.equal(
+        state.activeAssembly.durationMs,
+        15_000
+    );
+    assert.equal(
+        state.activeAssembly.completesAtMs,
+        startedAtMs + 15_000
     );
 
     const reloadedMacroInventory =
@@ -211,5 +230,5 @@ try {
 }
 
 console.log(
-    "PASS: Polymerizer starts one reload-safe 15-second Aquaporin job, spends 15 ATP atomically, preserves permanent motif levels, blocks duplicates, rolls back failed starts, and grants no reward before completion."
+    "PASS: Polymerizer uses motif-scaled assembly timing, preserves legacy 15-second jobs, spends ATP atomically, preserves permanent motif levels, blocks duplicates, rolls back failed starts, and grants no reward before completion."
 );

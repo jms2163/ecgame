@@ -234,7 +234,8 @@ assert.deepEqual(
 const finished =
     PolymerizerManager.finishAssembly(
         started.activeAssembly.jobId,
-        16_000
+        started.activeAssembly
+            .completesAtMs
     );
 assert.equal(finished.success, true);
 assert.equal(finished.discoveryGranted, false);

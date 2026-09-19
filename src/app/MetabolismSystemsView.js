@@ -150,6 +150,73 @@ function createConnection(connection) {
     return element;
 }
 
+function formatATP(value) {
+    return Number.isInteger(value)
+        ? String(value)
+        : Number(value).toFixed(1);
+}
+
+function createEnergyLedger(balance) {
+    const ledger = document.createElement(
+        "section"
+    );
+    ledger.className =
+        "metabolism-energy-ledger";
+    ledger.setAttribute(
+        "aria-label",
+        "ATP production and demand ledger"
+    );
+
+    const heading = document.createElement("div");
+    heading.className =
+        "metabolism-energy-ledger-heading";
+    heading.innerHTML = `
+        <div>
+            <span>ATP Ledger</span>
+            <h3>Production & Demand</h3>
+        </div>
+        <strong>Net +${formatATP(balance.netATPPerMinute)} ATP/min</strong>
+    `;
+
+    const metrics = document.createElement("div");
+    metrics.className =
+        "metabolism-energy-ledger-metrics";
+    metrics.innerHTML = `
+        <p><span>Production</span><strong>+${formatATP(balance.totalProductionATPPerMinute)} ATP/min</strong></p>
+        <p><span>Active demands</span><strong>−${formatATP(balance.totalDemandATPPerMinute)} ATP/min</strong></p>
+        <p><span>Capacity</span><strong>Unchanged</strong></p>
+    `;
+
+    const sources = document.createElement("ul");
+    sources.className =
+        "metabolism-energy-ledger-sources";
+    balance.productionSources.forEach(source => {
+        const item = document.createElement("li");
+        item.className = source.active
+            ? "metabolism-energy-source--active"
+            : "metabolism-energy-source--inactive";
+        item.innerHTML = `
+            <span>${source.name}</span>
+            <strong>${source.active ? `+${formatATP(source.atpPerMinute)} ATP/min` : "Inactive"}</strong>
+        `;
+        sources.appendChild(item);
+    });
+
+    const note = document.createElement("p");
+    note.className =
+        "metabolism-energy-ledger-note";
+    note.textContent =
+        "No continuous ATP demands are active yet. Contractile-vacuole demand awaits biome/osmotic rules; chemotaxis awaits range, accuracy, and scan-mode behavior.";
+
+    ledger.append(
+        heading,
+        metrics,
+        sources,
+        note
+    );
+    return ledger;
+}
+
 const MetabolismSystemsView = {
     render(
         container,
@@ -183,7 +250,17 @@ const MetabolismSystemsView = {
                 )
         );
 
-        container.replaceChildren(track);
+        const children = [];
+        if (systemsStatus.energyBalance) {
+            children.push(
+                createEnergyLedger(
+                    systemsStatus
+                        .energyBalance
+                )
+            );
+        }
+        children.push(track);
+        container.replaceChildren(...children);
         return true;
     }
 };

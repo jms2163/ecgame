@@ -76,7 +76,7 @@ const GLYCOLYSIS = {
         reward: {
             type:
                 "atp-production-rate",
-            amountPerMinute: 10,
+            amountPerMinute: 4,
             increasesCapacity: false
         }
     },
@@ -190,15 +190,17 @@ const GLYCOLYSIS = {
         requiredRegenerationBranchId: "lactate"
     },
 
-    // Each correctly placed core enzyme contributes one fixed ATP per minute,
-    // representing 10% of the ten-enzyme reconstruction bonus. Placement
-    // bonuses do not depend on adjacency; connections communicate progress.
+    // Each correctly placed core enzyme contributes a fixed +0.3 ATP/min.
+    // Placement bonuses do not depend on adjacency; connections communicate
+    // reconstruction progress rather than multiplying production rates.
     reward: {
         implemented: true,
         type: "atp-production-rate",
+        // Fixed additive contribution. Ten correctly placed enzymes add
+        // +3 ATP/min; this is intentionally not a compounding percentage.
         amountPerCorrectCoreEnzyme:
-            1,
-        maximumAmountPerMinute: 10,
+            0.3,
+        maximumAmountPerMinute: 3,
         increasesCapacity: false,
         activeFromPlacements: true
     }

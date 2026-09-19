@@ -344,15 +344,19 @@ const PolymerizerProductView = {
 
         elements.progressPanel.hidden = true;
         elements.progress.value = 0;
+        const assemblySeconds = Math.ceil(
+            product.definition
+                .assemblyDurationMs / 1000
+        );
         elements.countdown.textContent =
-            "15 seconds remaining";
+            `${assemblySeconds} seconds remaining`;
         elements.chamberMode.textContent =
             product.eligible
                 ? "Ready"
                 : "Blocked";
         elements.chamberStatus.textContent =
             product.eligible
-                ? "Structural levels and ATP are ready for a 15-second assembly."
+                ? `Structural levels and ATP are ready for a ${assemblySeconds}-second assembly.`
                 : "Increase the missing motif levels or ATP before assembly.";
 
         elements.assembleButton.disabled =

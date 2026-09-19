@@ -23,7 +23,7 @@ const SOURCES = Object.freeze({
             "polymerizer-product",
         productId: "EnergyKinase",
         minimumCount: 1,
-        atpPerMinute: 4,
+        atpPerMinute: 2,
         increasesCapacity: false
     }),
 
@@ -33,7 +33,7 @@ const SOURCES = Object.freeze({
         activationType:
             "metabolism-module",
         moduleId: "glycolysisCore",
-        atpPerMinute: 10,
+        atpPerMinute: 4,
         increasesCapacity: false
     }),
 
@@ -46,9 +46,11 @@ const SOURCES = Object.freeze({
             activationType:
                 "correct-pathway-placements",
             pathwayId: "glycolysis",
-            atpPerCorrectPlacement: 1,
+            // This is a fixed additive reward, not a compounding percentage.
+            // Ten correct placements therefore contribute +3 ATP/min total.
+            atpPerCorrectPlacement: 0.3,
             maximumPlacements: 10,
-            maximumATPPerMinute: 10,
+            maximumATPPerMinute: 3,
             increasesCapacity: false
         })
 });

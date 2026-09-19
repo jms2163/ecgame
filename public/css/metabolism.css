@@ -218,6 +218,90 @@
         rgba(10, 8, 3, 0.52);
 }
 
+.metabolism-energy-ledger {
+    display: grid;
+    gap: 12px;
+    margin: 16px;
+    padding: 15px;
+    border: 1px solid rgba(101, 230, 154, 0.35);
+    border-radius: 12px;
+    background: rgba(12, 31, 22, 0.72);
+}
+
+.metabolism-energy-ledger-heading,
+.metabolism-energy-ledger-metrics p,
+.metabolism-energy-ledger-sources li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.metabolism-energy-ledger-heading span {
+    color: var(--metabolism-ready);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.metabolism-energy-ledger-heading h3 {
+    margin: 2px 0 0;
+    font-size: 0.94rem;
+}
+
+.metabolism-energy-ledger-heading > strong {
+    color: var(--metabolism-ready);
+    font-size: 0.9rem;
+}
+
+.metabolism-energy-ledger-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.metabolism-energy-ledger-metrics p {
+    margin: 0;
+    padding: 9px;
+    border: 1px solid rgba(101, 230, 154, 0.2);
+    border-radius: 8px;
+    color: var(--metabolism-muted);
+    font-size: 0.64rem;
+}
+
+.metabolism-energy-ledger-metrics strong {
+    color: var(--metabolism-text);
+}
+
+.metabolism-energy-ledger-sources {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.metabolism-energy-ledger-sources li {
+    padding: 7px 8px;
+    border-left: 2px solid var(--metabolism-ready);
+    background: rgba(255, 255, 255, 0.025);
+    font-size: 0.66rem;
+}
+
+.metabolism-energy-ledger-sources .metabolism-energy-source--inactive {
+    border-left-color: rgba(255, 255, 255, 0.2);
+    color: var(--metabolism-muted);
+}
+
+.metabolism-energy-ledger-note {
+    margin: 0;
+    color: var(--metabolism-muted);
+    font-size: 0.66rem;
+    line-height: 1.45;
+}
+
 .metabolism-systems-track {
     display: grid;
     grid-template-columns:
@@ -1044,6 +1128,11 @@
 
     .metabolism-systems-heading {
         flex-direction: column;
+    }
+
+    .metabolism-energy-ledger-metrics,
+    .metabolism-energy-ledger-sources {
+        grid-template-columns: 1fr;
     }
 
     .metabolism-workspace {

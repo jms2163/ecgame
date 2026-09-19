@@ -53,11 +53,11 @@ result = MetabolismManager.placeEnzyme(
     "glycolysis", 1, "Hexokinase"
 );
 assert.equal(result.success, true);
-assert.equal(result.reconstruction.atpPerMinute, 1);
+assert.equal(result.reconstruction.atpPerMinute, 0.3);
 assert.equal(
     ATPManager.getProductionStatus()
         .totalATPPerMinute,
-    2
+    1.3
 );
 
 const duplicate = MetabolismManager.placeEnzyme(
@@ -76,7 +76,7 @@ assert.equal(ldh.regenerationComplete, true);
 assert.equal(
     ATPManager.getProductionStatus()
         .totalATPPerMinute,
-    2,
+    1.3,
     "LDH regeneration must not directly create ATP"
 );
 
@@ -92,5 +92,5 @@ assert.deepEqual(
 assert.equal(status.reconstruction.percent, 10);
 
 console.log(
-    "PASS: synthesized enzymes lock into only their correct saved Glycolysis slots, core placements add one ATP/min independently, and LDH regenerates NAD+ without a direct ATP bonus."
+    "PASS: synthesized enzymes lock into only their correct saved Glycolysis slots, core placements add 0.3 ATP/min independently, and LDH regenerates NAD+ without a direct ATP bonus."
 );
