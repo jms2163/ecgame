@@ -2699,7 +2699,16 @@ const MacromolecularizerUI = {
                         requirement.name
                 );
 
-        const unavailableNames = motif.monomers.filter(item => !MoleculeRecipeCatalog.get(item.id)?.implemented).map(item => item.name);
+                const unavailableNames =
+            motif.monomers
+                .filter(
+                    item =>
+                        !item.sourceImplemented
+                )
+                .map(
+                    item =>
+                        item.name
+                );
 
         const requirementRows = [
             {
@@ -2742,7 +2751,7 @@ const MacromolecularizerUI = {
 
         if (unavailableNames.length) requirementRows.push({
             complete: false,
-            text: "Molecule Lab recipes pending: " + unavailableNames.join(", ") + ". These must become buildable before this product can be synthesized."
+            text: "Prerequisite recipes pending: " + unavailableNames.join(", ") + ". These must become buildable before this product can be synthesized."
         });
 
         this.elements.requirementSummary

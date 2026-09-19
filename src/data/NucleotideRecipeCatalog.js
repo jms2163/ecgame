@@ -16,7 +16,9 @@ const IMPLEMENTED_NUCLEOTIDE_IDS =
         "dAMP",
         "dGMP",
         "dCMP",
-        "dTMP"
+        "dTMP",
+        "NMN",
+        "NADPlus"
     ]);
 
 const NUCLEOTIDE_METADATA =
@@ -124,35 +126,140 @@ const NUCLEOTIDE_METADATA =
             phosphateId: "PO4",
             description:
                 "Thymine joined to deoxyribose and phosphate."
+        }),
+                // ------------------------------------------
+        // Nucleotide cofactors
+        // ------------------------------------------
+
+        NMN: Object.freeze({
+            name:
+                "Nicotinamide Mononucleotide",
+            abbreviation:
+                "NMN",
+            nucleicAcidType:
+                "COFACTOR",
+            productType:
+                "nucleotide-cofactor",
+            components: Object.freeze([
+                Object.freeze({
+                    id: "Nicotinamide",
+                    quantity: 1,
+                    role: "nicotinamide",
+                    sourceZoneId:
+                        "moleculeLab"
+                }),
+                Object.freeze({
+                    id: "Ribose",
+                    quantity: 1,
+                    role: "pentose-sugar",
+                    sourceZoneId:
+                        "moleculeLab"
+                }),
+                Object.freeze({
+                    id: "PO4",
+                    quantity: 1,
+                    role: "phosphate",
+                    sourceZoneId:
+                        "moleculeLab"
+                })
+            ]),
+            assemblyBondCount: 2,
+            nucleotideCount: 1,
+            bondType:
+                "glycosidic-and-phosphoester",
+            description:
+                "Nicotinamide joined to ribose and phosphate."
+        }),
+
+        NADPlus: Object.freeze({
+            name:
+                "Nicotinamide Adenine Dinucleotide",
+            abbreviation:
+                "NAD+",
+            nucleicAcidType:
+                "COFACTOR",
+            productType:
+                "dinucleotide-cofactor",
+            components: Object.freeze([
+                Object.freeze({
+                    id: "AMP",
+                    quantity: 1,
+                    role:
+                        "adenosine-nucleotide",
+                    sourceZoneId:
+                        "macromolecularizer"
+                }),
+                Object.freeze({
+                    id: "NMN",
+                    quantity: 1,
+                    role:
+                        "nicotinamide-nucleotide",
+                    sourceZoneId:
+                        "macromolecularizer"
+                })
+            ]),
+            assemblyBondCount: 1,
+            nucleotideCount: 2,
+            bondType:
+                "phosphate-bridge",
+            description:
+                "AMP joined to NMN to form the dinucleotide cofactor NAD+."
         })
 
     });
 
 function createDefinition(id, metadata) {
 
-    const components =
+        const defaultComponents =
         Object.freeze([
             Object.freeze({
                 id: metadata.baseId,
                 quantity: 1,
                 role:
-                    "nitrogenous-base"
+                    "nitrogenous-base",
+                sourceZoneId:
+                    "moleculeLab"
             }),
 
             Object.freeze({
                 id: metadata.sugarId,
                 quantity: 1,
                 role:
-                    "pentose-sugar"
+                    "pentose-sugar",
+                sourceZoneId:
+                    "moleculeLab"
             }),
 
             Object.freeze({
                 id: metadata.phosphateId,
                 quantity: 1,
                 role:
-                    "phosphate"
+                    "phosphate",
+                sourceZoneId:
+                    "moleculeLab"
             })
         ]);
+
+    const components =
+        Object.freeze(
+            (
+                metadata.components ??
+                defaultComponents
+            ).map(component =>
+                Object.freeze({
+                    id:
+                        component.id,
+                    quantity:
+                        component.quantity ?? 1,
+                    role:
+                        component.role ??
+                        "component",
+                    sourceZoneId:
+                        component.sourceZoneId ??
+                        "moleculeLab"
+                })
+            )
+        );
 
     const compositionCount =
         components.reduce(
@@ -161,8 +268,13 @@ function createDefinition(id, metadata) {
             0
         );
 
-    const componentCount = 3;
-    const assemblyBondCount = 2;
+        const componentCount =
+        metadata.componentCount ??
+        compositionCount;
+
+    const assemblyBondCount =
+        metadata.assemblyBondCount ??
+        2;
 
     return Object.freeze({
         id,
@@ -178,7 +290,8 @@ function createDefinition(id, metadata) {
 
         discoveryCategory: "molecules",
 
-        productType:
+                productType:
+            metadata.productType ??
             "nucleotide",
 
         nucleicAcidType:
@@ -211,9 +324,12 @@ function createDefinition(id, metadata) {
             compositionCount ===
             componentCount,
 
-        nucleotideCount: 1,
+                nucleotideCount:
+            metadata.nucleotideCount ??
+            1,
 
-        bondType:
+                bondType:
+            metadata.bondType ??
             "glycosidic-and-phosphoester",
 
         assemblyBondCount,
