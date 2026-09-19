@@ -23,11 +23,48 @@ const INSTRUCTIONS = Object.freeze({
         "Drag the upper H from the right amino group to the collection tray.",
         "Drag the right amino nitrogen to the left carboxyl carbon to form a peptide bond.",
         "Peptide bond discovered! The amino acids joined and released H₂O."
+    ],
+    nucleotides: [
+        "Drag ADP to the left dotted template.",
+        "Drag phosphate to the right dotted template.",
+        "Drag OH from the incoming phosphate to the collection tray.",
+        "Drag H from the terminal ADP hydroxyl to the collection tray.",
+        "Drag the incoming phosphate to the terminal oxygen on ADP.",
+        "ADP reacts with phosphate to produce ATP and water."
     ]
 });
 
-const ACTIONS = ["left", "right", "oh", "h", "bond"];
-const TARGETS = ["left", "right", "waste", "waste", "carbon"];
+const ACTIONS = Object.freeze([
+    "left",
+    "right",
+    "oh",
+    "h",
+    "bond"
+]);
+
+const TARGETS_BY_CATEGORY = Object.freeze({
+    carbs: Object.freeze([
+        "left",
+        "right",
+        "waste",
+        "waste",
+        "carbon"
+    ]),
+    motifs: Object.freeze([
+        "left",
+        "right",
+        "waste",
+        "waste",
+        "carbon"
+    ]),
+    nucleotides: Object.freeze([
+        "left",
+        "right",
+        "waste",
+        "waste",
+        "terminal"
+    ])
+});
 
 function glucoseMarkup(side, docked) {
     const label = side === "left" ? "First" : "Second";
@@ -97,6 +134,65 @@ function aminoTemplateMarkup(side) {
     </button>`;
 }
 
+function nucleotideTemplateMarkup(side) {
+    const label = side === "left" ? "ADP" : "phosphate";
+    return `<button type="button" class="macro-exp-template macro-exp-template--nucleotide macro-exp-template--nucleotide-${side}" data-explore-drop="${side}" aria-label="Dotted template for ${label}">
+        <span>${label}</span>
+    </button>`;
+}
+
+function adpMarkup(docked, removedH = false, bonded = false) {
+    const terminalPhosphate =
+        '<span class="macro-exp-nucleotide-unit macro-exp-nucleotide-unit--phosphate macro-exp-adp-terminal-phosphate">P</span>';
+    const terminalOxygen = docked
+        ? bonded
+            ? '<span class="macro-exp-terminal-oxygen macro-exp-terminal-oxygen--leaving" aria-hidden="true">O</span>'
+            : '<button type="button" class="macro-exp-terminal-oxygen" data-explore-drop="terminal" aria-label="Terminal oxygen on ADP, new bond target">O</button>'
+        : '<span class="macro-exp-terminal-oxygen">O</span>';
+    const terminalHydrogen = docked
+        ? '<button type="button" class="macro-exp-terminal-hydrogen" data-explore-drag="h" aria-label="Detach H from the terminal ADP hydroxyl">H</button>'
+        : '<span class="macro-exp-terminal-hydrogen">H</span>';
+    const inner = `<span class="macro-exp-nucleotide-chain">
+            <span class="macro-exp-nucleotide-unit macro-exp-nucleotide-unit--adenosine">Adenosine</span>
+            <span class="macro-exp-nucleotide-link"></span>
+            <span class="macro-exp-nucleotide-unit macro-exp-nucleotide-unit--phosphate">P</span>
+            <span class="macro-exp-nucleotide-link"></span>
+            ${terminalPhosphate}
+            <span class="macro-exp-nucleotide-link macro-exp-nucleotide-link--short"></span>
+            ${terminalOxygen}
+            ${!removedH
+                ? `<span class="macro-exp-nucleotide-link macro-exp-nucleotide-link--short"></span>${terminalHydrogen}`
+                : ""}
+        </span>
+        <span class="macro-exp-nucleotide-name">ADP</span>`;
+
+    return docked
+        ? `<div class="macro-exp-nucleotide macro-exp-nucleotide--adp macro-exp-nucleotide--docked" aria-label="ADP placed">${inner}</div>`
+        : `<button type="button" class="macro-exp-nucleotide macro-exp-nucleotide--adp" data-explore-drag="left" aria-label="Drag ADP to its dotted template">${inner}</button>`;
+}
+
+function phosphateMarkup(docked, removedOH = false, readyToBond = false, bonded = false) {
+    const phosphorus = docked && readyToBond && !bonded
+        ? '<button type="button" class="macro-exp-free-phosphate-p" data-explore-drag="bond" aria-label="Drag incoming phosphate to the terminal oxygen on ADP">P</button>'
+        : '<span class="macro-exp-free-phosphate-p">P</span>';
+    const hydroxyl = docked
+        ? '<button type="button" class="macro-exp-free-phosphate-oh" data-explore-drag="oh" aria-label="Detach OH from the incoming phosphate">OH</button>'
+        : '<span class="macro-exp-free-phosphate-oh">OH</span>';
+    const inner = `<span class="macro-exp-free-phosphate-chain">
+            ${removedOH
+                ? '<span class="macro-exp-free-phosphate-space" aria-hidden="true"></span><span class="macro-exp-nucleotide-link macro-exp-nucleotide-link--short macro-exp-nucleotide-link--hidden" aria-hidden="true"></span>'
+                : `${hydroxyl}<span class="macro-exp-nucleotide-link macro-exp-nucleotide-link--short"></span>`}
+            ${phosphorus}
+            <span class="macro-exp-nucleotide-link macro-exp-nucleotide-link--short"></span>
+            <span class="macro-exp-free-phosphate-o">O</span>
+        </span>
+        <span class="macro-exp-nucleotide-name">Phosphate</span>`;
+
+    return docked
+        ? `<div class="macro-exp-nucleotide macro-exp-nucleotide--phosphate macro-exp-nucleotide--docked" aria-label="Phosphate placed">${inner}</div>`
+        : `<button type="button" class="macro-exp-nucleotide macro-exp-nucleotide--phosphate" data-explore-drag="right" aria-label="Drag phosphate to its dotted template">${inner}</button>`;
+}
+
 const MacromolecularizerReactionExploration = {
     element: null,
     onComplete: null,
@@ -137,6 +233,7 @@ const MacromolecularizerReactionExploration = {
             this.positionReactantBond();
             this.positionGlycosidicBond();
             this.positionPeptideBond();
+            this.positionNucleotideBond();
         });
     },
 
@@ -157,9 +254,14 @@ const MacromolecularizerReactionExploration = {
         return INSTRUCTIONS[this.category] ?? INSTRUCTIONS.carbs;
     },
 
+    targets() {
+        return TARGETS_BY_CATEGORY[this.category] ??
+            TARGETS_BY_CATEGORY.carbs;
+    },
+
     accept(token, target) {
         if (!Object.hasOwn(INSTRUCTIONS, this.category) || this.completed) return false;
-        if (token !== ACTIONS[this.step] || target !== TARGETS[this.step]) {
+        if (token !== ACTIONS[this.step] || target !== this.targets()[this.step]) {
             this.announce(this.instructions()[this.step]);
             return false;
         }
@@ -304,6 +406,41 @@ const MacromolecularizerReactionExploration = {
         line.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
     },
 
+    positionNucleotideBond() {
+        const field = this.element?.querySelector(
+            ".macro-exp-field--nucleotide"
+        );
+        const line = field?.querySelector(
+            ".macro-exp-nucleotide-bond"
+        );
+        const terminalPhosphate = field?.querySelector(
+            ".macro-exp-adp-terminal-phosphate"
+        );
+        const phosphorus = field?.querySelector(
+            ".macro-exp-free-phosphate-p"
+        );
+        if (!line || !terminalPhosphate || !phosphorus) return;
+
+        const fieldRect = field.getBoundingClientRect();
+        const terminal = terminalPhosphate.getBoundingClientRect();
+        const p = phosphorus.getBoundingClientRect();
+        const terminalX = terminal.left + terminal.width / 2;
+        const terminalY = terminal.top + terminal.height / 2;
+        const px = p.left + p.width / 2;
+        const py = p.top + p.height / 2;
+        const dx = px - terminalX;
+        const dy = py - terminalY;
+        const distance = Math.hypot(dx, dy);
+        const terminalRadius = terminal.width / 2;
+        const pRadius = p.width / 2;
+        if (distance <= terminalRadius + pRadius) return;
+
+        line.style.left = `${terminalX + dx / distance * terminalRadius - fieldRect.left}px`;
+        line.style.top = `${terminalY + dy / distance * terminalRadius - fieldRect.top}px`;
+        line.style.width = `${distance - terminalRadius - pRadius}px`;
+        line.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
+    },
+
     renderProtein() {
         const leftDocked = this.step >= 1;
         const rightDocked = this.step >= 2;
@@ -334,16 +471,49 @@ const MacromolecularizerReactionExploration = {
         if (bonded) this.positionPeptideBond();
     },
 
+    renderNucleotide() {
+        const adpDocked = this.step >= 1;
+        const phosphateDocked = this.step >= 2;
+        const removedOH = this.step >= 3;
+        const removedH = this.step >= 4;
+        const bonded = this.step >= 5;
+        this.element.innerHTML = `
+            <div class="macro-exp-heading"><span>Reaction exploration · energy nucleotide</span>
+                <button type="button" data-explore-exit>Return to synthesis</button></div>
+            <div class="macro-exp-progress" aria-label="Reaction progress">${Math.min(this.step, 5)} / 5 steps</div>
+            <p class="macro-exp-instruction" role="status" aria-live="polite">${this.instructions()[this.step]}</p>
+            <div class="macro-exp-field macro-exp-field--nucleotide" aria-label="ADP phosphorylation reaction field">
+                ${bonded ? '<span class="macro-exp-nucleotide-bond" role="img" aria-label="New bond between the terminal ADP phosphate and incoming phosphate"></span>' : ""}
+                <div class="macro-exp-slot" data-side="left">
+                    ${adpDocked ? adpMarkup(true, removedH, bonded) : nucleotideTemplateMarkup("left")}
+                </div>
+                <div class="macro-exp-slot" data-side="right">
+                    ${phosphateDocked ? phosphateMarkup(true, removedOH, removedH, bonded) : nucleotideTemplateMarkup("right")}
+                </div>
+            </div>
+            <div class="macro-exp-toolbar macro-exp-toolbar--nucleotide">
+                <div class="macro-exp-supply" aria-label="Nucleotide component supply">${!adpDocked ? adpMarkup(false) : ""}${!phosphateDocked ? phosphateMarkup(false) : ""}</div>
+                <button type="button" class="macro-exp-collection" data-explore-drop="waste" aria-label="Collection tray for OH and H">
+                    ${removedH ? '<span class="macro-exp-water">H₂O ↑</span>' : removedOH ? "OH + H → H₂O" : "OH + H collection tray"}
+                </button>
+            </div>
+            ${bonded ? '<div class="macro-exp-reveal" role="status">ADP REACTS WITH PHOSPHATE TO PRODUCE ATP AND WATER.<small>ADP + phosphate → ATP + H₂O</small></div>' : ""}`;
+        if (bonded) this.positionNucleotideBond();
+    },
+
     render() {
         if (!this.element) return;
         if (this.category === "motifs") {
             this.renderProtein();
             return;
         }
+        if (this.category === "nucleotides") {
+            this.renderNucleotide();
+            return;
+        }
         if (this.category !== "carbs") {
-            const categoryName = this.category === "nucleotides" ? "nucleic acid" : "lipid";
             this.element.innerHTML = `
-                <div class="macro-exp-heading"><span>Reaction exploration · ${categoryName}</span>
+                <div class="macro-exp-heading"><span>Reaction exploration · lipid</span>
                     <button type="button" data-explore-exit>Return to synthesis</button></div>
                 <p class="macro-exp-instruction" role="status">This reaction exploration is coming later. Select C or P to explore dehydration now.</p>`;
             return;

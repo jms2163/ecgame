@@ -17,6 +17,8 @@ const IMPLEMENTED_NUCLEOTIDE_IDS =
         "dGMP",
         "dCMP",
         "dTMP",
+        "ADP",
+        "ATP",
         "NADPlus",
         "NADPPlus",
         "FAD",
@@ -129,7 +131,82 @@ const NUCLEOTIDE_METADATA =
             description:
                 "Thymine joined to deoxyribose and phosphate."
         }),
-                // ------------------------------------------
+
+        // ------------------------------------------
+        // Energy-transfer ribonucleotides
+        // ------------------------------------------
+
+        ADP: Object.freeze({
+            name:
+                "Adenosine Diphosphate",
+            abbreviation:
+                "ADP",
+            nucleicAcidType:
+                "RNA",
+            productType:
+                "energy-transfer-nucleotide",
+            components: Object.freeze([
+                Object.freeze({
+                    id: "AMP",
+                    quantity: 1,
+                    role:
+                        "adenosine-monophosphate",
+                    sourceZoneId:
+                        "macromolecularizer"
+                }),
+                Object.freeze({
+                    id: "PO4",
+                    quantity: 1,
+                    role:
+                        "phosphate",
+                    sourceZoneId:
+                        "moleculeLab"
+                })
+            ]),
+            assemblyBondCount: 1,
+            nucleotideCount: 1,
+            bondType:
+                "phosphoanhydride",
+            description:
+                "AMP joined with an additional phosphate to form the energy-transfer nucleotide ADP."
+        }),
+
+        ATP: Object.freeze({
+            name:
+                "Adenosine Triphosphate",
+            abbreviation:
+                "ATP",
+            nucleicAcidType:
+                "RNA",
+            productType:
+                "energy-transfer-nucleotide",
+            components: Object.freeze([
+                Object.freeze({
+                    id: "ADP",
+                    quantity: 1,
+                    role:
+                        "adenosine-diphosphate",
+                    sourceZoneId:
+                        "macromolecularizer"
+                }),
+                Object.freeze({
+                    id: "PO4",
+                    quantity: 1,
+                    role:
+                        "phosphate",
+                    sourceZoneId:
+                        "moleculeLab"
+                })
+            ]),
+            assemblyBondCount: 1,
+            nucleotideCount: 1,
+            bondType:
+                "phosphoanhydride",
+            description:
+                "ADP joined with an additional phosphate to form one stored ATP molecule. This product is separate from the spendable ATP reserve."
+        }),
+
+        // ------------------------------------------
         // Nucleotide cofactors
         // ------------------------------------------
 
