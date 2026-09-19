@@ -175,7 +175,7 @@ const activated =
     );
 
 assert.equal(activated.success, true);
-assert.equal(activated.atpPerMinute, 10);
+assert.equal(activated.atpPerMinute, 4);
 assert.deepEqual(
     gameState.zones.metabolism.state
         .completedModules.glycolysisCore,
@@ -200,7 +200,7 @@ assert.equal(
             source.id ===
                 "glycolysisCore"
         ).atpPerMinute,
-    10
+    4
 );
 
 const duplicate =
@@ -234,5 +234,5 @@ assert.equal(
 );
 
 console.log(
-    "PASS: NMN and NAD+ use non-consuming cross-zone prerequisites, and the Glycolysis Core activates once, preserves inventories, grants +10 ATP/min, and rolls back failed saves."
+    "PASS: NMN and NAD+ use non-consuming cross-zone prerequisites, and the Glycolysis Core activates once, preserves inventories, grants +4 ATP/min, and rolls back failed saves."
 );

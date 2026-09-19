@@ -93,6 +93,21 @@ try {
         false
     );
     assert.equal(
+        status.systems.energyBalance
+            .totalProductionATPPerMinute,
+        1
+    );
+    assert.equal(
+        status.systems.energyBalance
+            .totalDemandATPPerMinute,
+        0
+    );
+    assert.deepEqual(
+        status.systems.energyBalance
+            .demands,
+        []
+    );
+    assert.equal(
         status.systems.nodes.find(node =>
             node.id === "glycolysis"
         ).interactive,
@@ -161,6 +176,10 @@ try {
     assert.match(
         viewSource,
         /controlImplemented|CONTROL_LABELS/
+    );
+    assert.match(
+        viewSource,
+        /ATP production and demand ledger/
     );
     assert.match(
         cssSource,

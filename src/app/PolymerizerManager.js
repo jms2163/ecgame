@@ -3,7 +3,7 @@
 // Domain authority and complete protein assembly lifecycle.
 //
 // This milestone evaluates permanent Macromolecularizer motif levels and
-// owns completed Polymerizer products. It starts one reload-safe 15-second
+// owns completed Polymerizer products. It starts one reload-safe, motif-scaled
 // assembly job, spends ATP at start, and atomically grants output. Products
 // may optionally grant a configured discovery (Aquaporin does; metabolic
 // enzymes currently do not).
@@ -19,7 +19,11 @@ import PolymerizerRecipeCatalog
 
 const ZONE_ID = "polymerizer";
 const DEFAULT_PRODUCT_ID = "Aquaporin";
-const ASSEMBLY_DURATION_MS = 15_000;
+// Saves created before motif-scaled timing always contain a 15-second job.
+// That exact persisted duration remains valid so an update never cancels an
+// in-progress assembly or changes its completion timestamp.
+const LEGACY_ASSEMBLY_DURATION_MS =
+    15_000;
 const PROGRESS_EVENT_INTERVAL_MS = 100;
 const COMPLETION_RETRY_INTERVAL_MS = 1_000;
 
@@ -137,17 +141,24 @@ function normalizeActiveAssembly(job) {
             job.productId
         );
 
+    const expectedDurationMs =
+        definition?.assemblyDurationMs;
+    const savedDurationIsSupported =
+        job.durationMs ===
+            expectedDurationMs ||
+        job.durationMs ===
+            LEGACY_ASSEMBLY_DURATION_MS;
+
     if (
         !definition?.implemented ||
         typeof job.jobId !== "string" ||
         job.jobId.trim() === "" ||
         safeTimestamp(job.startedAtMs) ===
             null ||
-        job.durationMs !==
-            ASSEMBLY_DURATION_MS ||
+        !savedDurationIsSupported ||
         job.completesAtMs !==
             job.startedAtMs +
-                ASSEMBLY_DURATION_MS ||
+                job.durationMs ||
         job.atpCost !==
             definition.atpCost ||
         !Array.isArray(
@@ -193,7 +204,7 @@ function normalizeActiveAssembly(job) {
         completesAtMs:
             job.completesAtMs,
         durationMs:
-            ASSEMBLY_DURATION_MS,
+            job.durationMs,
         atpCost: definition.atpCost,
         motifRequirements:
             requiredMotifs
@@ -853,6 +864,9 @@ const PolymerizerManager = {
         const previousATP =
             ResourceManager.getATPStatus();
 
+        const assemblyDurationMs =
+            definition
+                .assemblyDurationMs;
         const job = {
             jobId:
                 createJobId(
@@ -863,9 +877,9 @@ const PolymerizerManager = {
             startedAtMs: nowMs,
             completesAtMs:
                 nowMs +
-                ASSEMBLY_DURATION_MS,
+                assemblyDurationMs,
             durationMs:
-                ASSEMBLY_DURATION_MS,
+                assemblyDurationMs,
             atpCost:
                 definition.atpCost,
             motifRequirements:

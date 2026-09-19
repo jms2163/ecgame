@@ -11,12 +11,12 @@ const glycolysis =
 assert(glycolysis);
 assert.equal(glycolysis.valid, true);
 assert.equal(
-    glycolysis.unlockRequirement
+    glycolysis.unlockRequirements[0]
         .productId,
     "GlucoseTransporter"
 );
 assert.equal(
-    glycolysis.unlockRequirement
+    glycolysis.unlockRequirements[0]
         .consumed,
     false
 );
@@ -92,12 +92,12 @@ assert.equal(
 assert.equal(
     glycolysis.reward
         .amountPerCorrectCoreEnzyme,
-    1
+    0.3
 );
 assert.equal(
     glycolysis.reward
         .maximumAmountPerMinute,
-    10
+    3
 );
 assert.equal(
     glycolysis.reward.increasesCapacity,

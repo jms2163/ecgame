@@ -70,12 +70,15 @@ try {
         );
 
     assert.equal(started.success, true);
+    const firstCompletedAtMs =
+        started.activeAssembly
+            .completesAtMs;
 
     // Calling completion early cannot award output or discovery.
     const early =
         PolymerizerManager.finishAssembly(
             started.activeAssembly.jobId,
-            15_999
+            firstCompletedAtMs - 1
         );
     assert.equal(early.success, false);
     assert.equal(
@@ -96,7 +99,7 @@ try {
     const failed =
         PolymerizerManager.finishAssembly(
             started.activeAssembly.jobId,
-            16_000
+            firstCompletedAtMs
         );
     rejectWrites = false;
 
@@ -117,7 +120,7 @@ try {
     const completed =
         PolymerizerManager.finishAssembly(
             started.activeAssembly.jobId,
-            16_000
+            firstCompletedAtMs
         );
 
     assert.equal(completed.success, true);
@@ -132,8 +135,9 @@ try {
         state.productInventory.Aquaporin,
         {
             count: 1,
-            firstCompletedAtMs: 16_000,
-            lastCompletedAtMs: 16_000
+            firstCompletedAtMs,
+            lastCompletedAtMs:
+                firstCompletedAtMs
         }
     );
     assert.equal(
@@ -147,7 +151,7 @@ try {
     const duplicate =
         PolymerizerManager.finishAssembly(
             started.activeAssembly.jobId,
-            16_001
+            firstCompletedAtMs + 1
         );
     assert.equal(duplicate.success, false);
     assert.equal(
@@ -164,14 +168,17 @@ try {
     const second =
         PolymerizerManager.startAssembly(
             "Aquaporin",
-            17_000
+            firstCompletedAtMs + 1_000
         );
     assert.equal(second.success, true);
+    const secondCompletedAtMs =
+        second.activeAssembly
+            .completesAtMs;
 
     rejectWrites = true;
     const failedReconciliation =
         PolymerizerManager.reconcileAssembly(
-            32_000
+            secondCompletedAtMs
         );
     rejectWrites = false;
 
@@ -194,7 +201,7 @@ try {
     // Repeated animation frames do not hammer storage after a failed save.
     const throttledRetry =
         PolymerizerManager.reconcileAssembly(
-            32_500
+            secondCompletedAtMs + 500
         );
     assert.equal(throttledRetry.complete, true);
     assert.equal(
@@ -205,7 +212,7 @@ try {
 
     const reconciled =
         PolymerizerManager.reconcileAssembly(
-            33_000
+            secondCompletedAtMs + 1_000
         );
     assert.equal(reconciled.success, true);
     assert.equal(reconciled.quantity, 2);
@@ -217,8 +224,9 @@ try {
         state.productInventory.Aquaporin,
         {
             count: 2,
-            firstCompletedAtMs: 16_000,
-            lastCompletedAtMs: 32_000
+            firstCompletedAtMs,
+            lastCompletedAtMs:
+                secondCompletedAtMs
         }
     );
     assert.equal(

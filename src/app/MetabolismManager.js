@@ -17,6 +17,7 @@ import MetabolismPathwayCatalog
     from "../data/MetabolismPathwayCatalog.js";
 import MetabolismSystemsCatalog
     from "../data/MetabolismSystemsCatalog.js";
+import ATPManager from "./ATPManager.js";
 
 const ZONE_ID = "metabolism";
 
@@ -741,11 +742,15 @@ const MetabolismManager = {
                     )
                 );
 
+        const energyBalance =
+            ATPManager.getBalanceStatus();
+
         return {
             pathways,
             systems:
                 this.getSystemsStatus(
-                    pathways
+                    pathways,
+                    energyBalance
                 ),
             polymerizerInventory:
                 this.getPolymerizerInventory()
@@ -758,7 +763,11 @@ const MetabolismManager = {
      * readiness and reconstruction progress, not pathway activity. Regulation
      * controls and active flux are deferred and therefore create no state.
      */
-    getSystemsStatus(pathways = []) {
+    getSystemsStatus(
+        pathways = [],
+        energyBalance =
+            ATPManager.getBalanceStatus()
+    ) {
 
         const system =
             MetabolismSystemsCatalog.get();
@@ -837,7 +846,8 @@ const MetabolismManager = {
                         conceptual: true
                     })
                 ),
-            regulationImplemented: false
+            regulationImplemented: false,
+            energyBalance
         };
 
     },

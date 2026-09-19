@@ -43,6 +43,10 @@ assert.deepEqual(
 );
 assert.equal(recipe.motifCount, 15);
 assert.equal(recipe.atpCost, 15);
+assert.equal(
+    recipe.assemblyDurationMs,
+    18_750
+);
 assert.equal(recipe.consumesMotifs, false);
 assert.equal(recipe.discoveryId, "aquaporin");
 assert.equal(recipe.motifCount, 15);
@@ -54,6 +58,11 @@ const glucoseTransporterRecipe =
 assert.equal(
     glucoseTransporterRecipe.motifCount,
     31
+);
+assert.equal(
+    glucoseTransporterRecipe
+        .assemblyDurationMs,
+    22_750
 );
 assert.equal(
     glucoseTransporterRecipe.valid,
@@ -121,6 +130,10 @@ assert.equal(
 );
 assert.equal(hexokinaseRecipe.motifCount, 95);
 assert.equal(hexokinaseRecipe.atpCost, 95);
+assert.equal(
+    hexokinaseRecipe.assemblyDurationMs,
+    38_750
+);
 assert.equal(
     hexokinaseRecipe.discoveryId,
     null

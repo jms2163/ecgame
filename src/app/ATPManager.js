@@ -261,6 +261,41 @@ const ATPManager = {
     },
 
     // --------------------------------------------------
+    // Present one read-only ATP ledger
+    // --------------------------------------------------
+    getBalanceStatus() {
+
+        const production =
+            this.getProductionStatus();
+
+        // Continuous demands intentionally remain empty in this milestone.
+        // Contractile-vacuole demand depends on the future biome/osmotic
+        // model, while chemotaxis should first define functional range,
+        // accuracy, and scan behavior. Neither belongs in save state yet.
+        const demands = [];
+        const totalDemandATPPerMinute = 0;
+
+        return {
+            connectedBrowserOnly: true,
+            productionSources:
+                production.sources,
+            demands,
+            totalProductionATPPerMinute:
+                production
+                    .totalATPPerMinute,
+            totalDemandATPPerMinute,
+            netATPPerMinute:
+                production
+                    .totalATPPerMinute -
+                totalDemandATPPerMinute,
+            increasesCapacity: false,
+            demandModelStatus:
+                "deferred-milestone-5"
+        };
+
+    },
+
+    // --------------------------------------------------
     // Process one central game tick
     // --------------------------------------------------
     handleGameTick(payload = {}) {

@@ -68,7 +68,7 @@ const Bootstrap = {
         // after the local save has been loaded.
         MacromolecularizerManager.initialize();
         // Reconcile persisted Polymerizer jobs globally so a completed
-        // 15-second assembly finalizes even when another zone is open.
+        // A motif-scaled assembly finalizes even when another zone is open.
         PolymerizerManager.initialize();
 
         const requestedZoneId =
