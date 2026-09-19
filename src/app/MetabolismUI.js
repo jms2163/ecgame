@@ -247,8 +247,11 @@ const MetabolismUI = {
         const selectedPathway =
             pathways.find(pathway =>
                 pathway.id ===
-                    this.selectedPathwayId
-            ) ?? pathways[0];
+                    this.selectedPathwayId &&
+                pathway.selectable
+            ) ?? pathways.find(pathway =>
+                pathway.selectable
+            );
 
         if (!selectedPathway) {
             return false;
@@ -256,12 +259,35 @@ const MetabolismUI = {
 
         this.selectedPathwayId =
             selectedPathway.id;
+        this.rootElement.dataset.pathwayTheme =
+            selectedPathway.themeId;
         this.mapTitleElement.textContent =
             `${selectedPathway.name} Map`;
         this.mapStatusElement.textContent =
             selectedPathway.available
-                ? "Available · Read-only Preview"
-                : "Locked · Read-only Preview";
+                ? "Development Preview"
+                : "Locked · Development Preview";
+
+        const isNetwork =
+            selectedPathway.mapType ===
+                "network";
+        const connectionLegend =
+            this.rootElement.querySelector(
+                ".metabolism-connection-legend"
+            );
+        const mapGuidance =
+            this.rootElement.querySelector(
+                ".metabolism-map-guidance"
+            );
+        if (connectionLegend) {
+            connectionLegend.hidden =
+                isNetwork;
+        }
+        if (mapGuidance) {
+            mapGuidance.textContent = isNetwork
+                ? "ETC components are shown as a functional dependency network. Protein products will remain owned by Polymerizer; metabolites and the proton gradient are never draggable protein cards."
+                : "Synthesize an enzyme in Polymerizer, then drag its card to the matching slot. Products are not consumed. Each configured core enzyme benefit is derived from the selected pathway catalog.";
+        }
 
         MetabolismPathwayView.render(
             this.pathwayMapElement,
@@ -304,7 +330,36 @@ const MetabolismUI = {
             selectedPathway.reconstruction;
         this.productionSummaryElement
             .textContent =
-                `${reconstruction.placedCoreEnzymes} / ${reconstruction.requiredCoreEnzymes} · ${reconstruction.percent}% · +${reconstruction.atpPerMinute} ATP/min`;
+                selectedPathway.reward
+                    ?.implemented
+                    ? `${reconstruction.placedCoreEnzymes} / ${reconstruction.requiredCoreEnzymes} · ${reconstruction.percent}% · +${reconstruction.atpPerMinute} ATP/min`
+                    : `${reconstruction.placedCoreEnzymes} / ${reconstruction.requiredCoreEnzymes} · ATP reward not configured`;
+
+        const productionPanel =
+            this.productionSummaryElement
+                .closest(
+                    ".metabolism-production-panel"
+                );
+        const productionKicker =
+            productionPanel?.querySelector(
+                ".metabolism-panel-kicker"
+            );
+        const productionHeading =
+            productionPanel?.querySelector(
+                "h3"
+            );
+        if (productionKicker) {
+            productionKicker.textContent =
+                isNetwork
+                    ? "ETC Energy Accounting"
+                    : `${selectedPathway.name} Reconstruction`;
+        }
+        if (productionHeading) {
+            productionHeading.textContent =
+                isNetwork
+                    ? "ATP Balance Deferred"
+                    : "Partial ATP Benefit";
+        }
 
         MetabolismEnzymeTrayView.render(
             this.enzymeTrayElement,
@@ -318,19 +373,40 @@ const MetabolismUI = {
                 this.render();
             }
         );
+        const trayPanel =
+            this.enzymeTrayElement.closest(
+                ".metabolism-enzyme-tray-panel"
+            );
+        if (trayPanel) {
+            trayPanel.hidden = isNetwork;
+        }
 
-        MetabolismCoreModuleView.render(
-            this.coreModuleElement,
-            selectedPathway
-                .coreModuleStatus,
-            () => {
-                MetabolismManager
-                    .completeCoreModule(
-                        selectedPathway.id
-                    );
-                this.render();
-            }
-        );
+        const corePanel =
+            this.coreModuleElement.closest(
+                ".metabolism-core-panel"
+            );
+        if (corePanel) {
+            corePanel.hidden =
+                !selectedPathway
+                    .coreModuleStatus;
+        }
+        if (selectedPathway.coreModuleStatus) {
+            MetabolismCoreModuleView.render(
+                this.coreModuleElement,
+                selectedPathway
+                    .coreModuleStatus,
+                () => {
+                    MetabolismManager
+                        .completeCoreModule(
+                            selectedPathway.id
+                        );
+                    this.render();
+                }
+            );
+        } else {
+            this.coreModuleElement
+                .replaceChildren();
+        }
 
         return true;
 
@@ -341,16 +417,24 @@ const MetabolismUI = {
         const card = document.createElement(
             "button"
         );
-        const requirement =
-            pathway.unlockStatus;
+        const requirements =
+            pathway.unlockRequirements ?? [];
+        const comingSoon =
+            pathway.releaseState ===
+                "coming-soon";
 
         card.className = [
             "metabolism-pathway-card",
+            `metabolism-pathway-card--theme-${pathway.themeId}`,
             pathway.available
                 ? "metabolism-pathway-card--available"
-                : "metabolism-pathway-card--locked"
+                : "metabolism-pathway-card--locked",
+            comingSoon
+                ? "metabolism-pathway-card--coming-soon"
+                : ""
         ].join(" ");
         card.type = "button";
+        card.disabled = comingSoon;
         card.setAttribute(
             "aria-pressed",
             String(
@@ -365,26 +449,39 @@ const MetabolismUI = {
                     <p>${pathway.category}</p>
                     <h3>${pathway.name}</h3>
                 </div>
-                <span>${pathway.available ? "Available" : "Locked"}</span>
+                <span>${comingSoon ? "Coming Soon" : pathway.available ? "Preview" : "Locked"}</span>
             </div>
             <p>${pathway.description}</p>
-            <div class="metabolism-requirement">
-                <strong>${requirement.label}</strong>
-                <span>${requirement.currentCount} / ${requirement.minimumCount}</span>
-            </div>
+            ${requirements.length > 0
+                ? requirements.map(requirement => `
+                    <div class="metabolism-requirement">
+                        <strong>${requirement.label}</strong>
+                        <span>${requirement.currentCount} / ${requirement.minimumCount}</span>
+                    </div>
+                `).join("")
+                : `
+                    <div class="metabolism-requirement">
+                        <strong>${comingSoon ? "Pathway design" : "Pathway map"}</strong>
+                        <span>${comingSoon ? "Not configured" : "Development preview"}</span>
+                    </div>
+                `}
             <small>
-                Completed in Polymerizer · This product is not consumed · Select to inspect map
+                ${comingSoon
+                    ? pathway.comingSoonMessage
+                    : "Enzymes and cofactors are not consumed · Select to inspect map"}
             </small>
         `;
 
-        card.addEventListener(
-            "click",
-            () => {
-                this.selectedPathwayId =
-                    pathway.id;
-                this.render();
-            }
-        );
+        if (!comingSoon) {
+            card.addEventListener(
+                "click",
+                () => {
+                    this.selectedPathwayId =
+                        pathway.id;
+                    this.render();
+                }
+            );
+        }
 
         return card;
 
