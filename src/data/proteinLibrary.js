@@ -31,6 +31,23 @@ export const proteinLibrary =  Object.freeze({
     "Models": {},
     "Info": "Carrier protein that facilitates passive transport of glucose across the plasma membrane down its concentration gradient."
   },
+  "EnergyKinase": {
+    // 1EI0 is a compact, two-helix scaffold joined by a loop. In ECGame it
+    // serves as a clearly labeled teaching abstraction for early
+    // substrate-level phosphorylation; it is not presented as the native
+    // biochemical function of PDB 1EI0.
+    "PPC": "HLH",
+    "Recipe": {"H": 2, "L": 1},
+    "Class": "Synthetic Energy Module",
+    "Function": "Simplified substrate-level ATP production",
+    "FunctionDisplay": "atpProduction",
+    "Tier": 1,
+    "Location": "Cytosol",
+    "Requires": ["AminoAcids"],
+    "Source": "1EI0",
+    "Models": {},
+    "Info": "A simplified teaching module that uses the 1EI0 alpha-helical scaffold to represent an early phosphate-transfer enzyme converting a generic high-energy metabolite and ADP into ATP."
+  },
   /* ============================================================
    Active Transport Pumps & Channels (Bio-Craft Core Systems)
    ------------------------------------------------------------

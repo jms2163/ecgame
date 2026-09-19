@@ -154,6 +154,49 @@ const STANDARD_STRUCTURES = {
             { a: 0, b: 6, order: 1 },
             { a: 3, b: 7, order: 1 }
         ]
+    },
+    Nicotinamide: {
+        formula: { C: 6, H: 6, N: 2, O: 1 },
+        requiredDiscoveries: ["C", "H", "N", "O"],
+        atoms: [
+            { type: "C", position: [ 1.919, -1.167,  0.001] }, // 0: Ring Carbon
+            { type: "C", position: [ 0.533, -1.207,  0.001] }, // 1: Ring Carbon
+            { type: "C", position: [-0.179, -0.014,  0.000] }, // 2: Ring Carbon (attached to amide)
+            { type: "C", position: [ 0.534,  1.184, -0.000] }, // 3: Ring Carbon
+            { type: "N", position: [ 1.865,  1.230,  0.000] }, // 4: Ring Nitrogen
+            { type: "C", position: [ 2.544,  0.082,  0.001] }, // 5: Ring Carbon
+            { type: "C", position: [-1.702, -0.123, -0.000] }, // 6: Amide Carbon
+            { type: "O", position: [-2.246, -1.207,  0.000] }, // 7: Amide Oxygen
+            { type: "N", position: [-2.407,  1.069,  0.000] }, // 8: Amide Nitrogen
+            { type: "H", position: [ 2.504, -2.075,  0.001] }, // 9: H on C0
+            { type: "H", position: [-0.020, -2.140,  0.001] }, // 10: H on C1
+            { type: "H", position: [ 0.027,  2.143, -0.001] }, // 11: H on C3
+            { type: "H", position: [ 3.629,  0.153,  0.001] }, // 12: H on C5
+            { type: "H", position: [-1.959,  1.966,  0.000] }, // 13: H on N8
+            { type: "H", position: [-3.414,  1.033,  0.000] }  // 14: H on N8
+        ],
+        bonds: [
+            // Pyridine Ring (Alternating double/single bonds)
+            { a: 0, b: 1, order: 2 },
+            { a: 1, b: 2, order: 1 },
+            { a: 2, b: 3, order: 2 },
+            { a: 3, b: 4, order: 1 },
+            { a: 4, b: 5, order: 2 },
+            { a: 5, b: 0, order: 1 },
+            
+            // Amide Group attached to Ring Carbon 2
+            { a: 2, b: 6, order: 1 }, // Ring C to Amide C
+            { a: 6, b: 7, order: 2 }, // Carbonyl C=O
+            { a: 6, b: 8, order: 1 }, // Amide C-N
+            
+            // Hydrogens
+            { a: 0, b: 9,  order: 1 },
+            { a: 1, b: 10, order: 1 },
+            { a: 3, b: 11, order: 1 },
+            { a: 5, b: 12, order: 1 },
+            { a: 8, b: 13, order: 1 },
+            { a: 8, b: 14, order: 1 }
+        ]
     }
 };
 

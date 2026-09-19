@@ -65,7 +65,11 @@ assert.doesNotMatch(
 );
 assert.match(
     uiSource,
-    /Milestone 2 · Static Pathway Map/
+    /Milestone 3 · Enzyme Placement/
+);
+assert.match(
+    uiSource,
+    /MetabolismEnzymeTrayView\.render/
 );
 
 const cssSource = fs.readFileSync(
@@ -87,5 +91,5 @@ const cssSource = fs.readFileSync(
 });
 
 console.log(
-    "PASS: Metabolism Milestone 2 exposes all 10 Glycolysis slots plus LDH, delegates rendering to a focused pathway view, and defines red-gap, yellow-adjacent, and green-complete connection states without saving placements."
+    "PASS: Metabolism exposes all 10 Glycolysis slots plus LDH, delegates rendering to focused pathway/tray views, and defines red-gap, yellow-adjacent, and green-complete connection states."
 );

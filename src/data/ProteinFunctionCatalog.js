@@ -32,6 +32,19 @@ const DEFINITIONS = Object.freeze({
         ),
         iconAlt:
             "Cell energy function icon"
+    }),
+    atpProduction: Object.freeze({
+        id: "atpProduction",
+        label: "ATP Production",
+        description:
+            "Adds four ATP per minute while the game is open.",
+        // The same energy artwork may identify glucose access and direct ATP
+        // production while their labels explain the distinct effects.
+        iconUrl: assetUrl(
+            "Card_Energy_Icon.png"
+        ),
+        iconAlt:
+            "ATP production function icon"
     })
 });
 

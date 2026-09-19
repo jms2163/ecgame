@@ -1,6 +1,6 @@
 // --------------------------------------------------
 // MetabolismUI.js
-// Console-only Milestone 2 shell and pathway-map orchestration.
+// Console-only Metabolism pathway placement orchestration.
 // --------------------------------------------------
 
 import GameStateObserver
@@ -9,6 +9,10 @@ import MetabolismManager
     from "./MetabolismManager.js";
 import MetabolismPathwayView
     from "./MetabolismPathwayView.js";
+import MetabolismEnzymeTrayView
+    from "./MetabolismEnzymeTrayView.js";
+import MetabolismCoreModuleView
+    from "./MetabolismCoreModuleView.js";
 
 const MetabolismUI = {
 
@@ -20,6 +24,9 @@ const MetabolismUI = {
     chemistryElement: null,
     mapTitleElement: null,
     mapStatusElement: null,
+    productionSummaryElement: null,
+    enzymeTrayElement: null,
+    coreModuleElement: null,
     selectedPathwayId: "glycolysis",
 
     initialize() {
@@ -60,6 +67,18 @@ const MetabolismUI = {
         this.mapStatusElement =
             this.rootElement.querySelector(
                 "#metabolism-map-status"
+            );
+        this.productionSummaryElement =
+            this.rootElement.querySelector(
+                "#metabolism-production-summary"
+            );
+        this.enzymeTrayElement =
+            this.rootElement.querySelector(
+                "#metabolism-enzyme-tray"
+            );
+        this.coreModuleElement =
+            this.rootElement.querySelector(
+                "#metabolism-core-module"
             );
 
         GameStateObserver.on(
@@ -121,7 +140,7 @@ const MetabolismUI = {
                     </div>
                     <div class="metabolism-status-chip" aria-label="Development status">
                         <span aria-hidden="true"></span>
-                        Milestone 2 · Static Pathway Map
+                        Milestone 3 · Enzyme Placement
                     </div>
                 </header>
 
@@ -130,6 +149,11 @@ const MetabolismUI = {
                         <p class="metabolism-panel-kicker">Pathway Library</p>
                         <h2 id="metabolism-pathways-heading">Available Maps</h2>
                         <div id="metabolism-pathway-list" class="metabolism-pathway-list"></div>
+                        <section class="metabolism-core-panel" aria-labelledby="metabolism-core-heading">
+                            <p class="metabolism-panel-kicker">Black-box Foundation</p>
+                            <h3 id="metabolism-core-heading">Core Preflight</h3>
+                            <div id="metabolism-core-module"></div>
+                        </section>
                     </aside>
 
                     <main class="metabolism-panel metabolism-map-panel" aria-labelledby="metabolism-map-heading">
@@ -150,8 +174,22 @@ const MetabolismUI = {
                         <div id="metabolism-pathway-map" class="metabolism-pathway-map"></div>
 
                         <p class="metabolism-map-guidance">
-                            Enzyme slots are shown in pathway order. The Polymerizer inventory tray and card placement controls arrive in Milestone 3.
+                            Synthesize an enzyme in Polymerizer, then drag its card to the matching slot. Products are not consumed. Each correctly placed core enzyme adds +1 ATP/min even when neighboring slots are empty.
                         </p>
+
+                        <section class="metabolism-production-panel" aria-labelledby="metabolism-production-heading">
+                            <div>
+                                <p class="metabolism-panel-kicker">Glycolysis Reconstruction</p>
+                                <h3 id="metabolism-production-heading">Partial ATP Benefit</h3>
+                            </div>
+                            <strong id="metabolism-production-summary">0 / 10 · +0 ATP/min</strong>
+                        </section>
+
+                        <section class="metabolism-enzyme-tray-panel" aria-labelledby="metabolism-enzyme-tray-heading">
+                            <p class="metabolism-panel-kicker">Polymerizer Inventory</p>
+                            <h3 id="metabolism-enzyme-tray-heading">Available Enzyme Cards</h3>
+                            <div id="metabolism-enzyme-tray" class="metabolism-enzyme-tray"></div>
+                        </section>
 
                         <div id="metabolism-chemistry-summary" class="metabolism-chemistry-summary"></div>
                     </main>
@@ -227,13 +265,65 @@ const MetabolismUI = {
 
         MetabolismPathwayView.render(
             this.pathwayMapElement,
-            selectedPathway
+            selectedPathway,
+            {
+                occupiedEnzymeIds:
+                    selectedPathway
+                        .placedEnzymeIds,
+                pathwayComplete:
+                    selectedPathway
+                        .reconstruction
+                        .complete &&
+                    selectedPathway
+                        .regenerationComplete,
+                onPlaceEnzyme:
+                    selectedPathway.available
+                        ? (
+                            slotNumber,
+                            enzymeId
+                        ) => {
+                            MetabolismManager
+                                .placeEnzyme(
+                                    selectedPathway
+                                        .id,
+                                    slotNumber,
+                                    enzymeId
+                                );
+                            this.render();
+                        }
+                        : null
+            }
         );
         MetabolismPathwayView
             .renderChemistry(
                 this.chemistryElement,
                 selectedPathway
             );
+
+        const reconstruction =
+            selectedPathway.reconstruction;
+        this.productionSummaryElement
+            .textContent =
+                `${reconstruction.placedCoreEnzymes} / ${reconstruction.requiredCoreEnzymes} · ${reconstruction.percent}% · +${reconstruction.atpPerMinute} ATP/min`;
+
+        MetabolismEnzymeTrayView.render(
+            this.enzymeTrayElement,
+            selectedPathway,
+            (slotNumber, enzymeId) => {
+                MetabolismManager.placeEnzyme(
+                    selectedPathway.id,
+                    slotNumber,
+                    enzymeId
+                );
+                this.render();
+            }
+        );
+
+        MetabolismCoreModuleView.render(
+            this.coreModuleElement,
+            selectedPathway
+                .coreModuleStatus
+        );
 
         return true;
 

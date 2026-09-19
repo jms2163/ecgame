@@ -253,7 +253,8 @@ const MetabolismPathwayView = {
         pathway,
         {
             occupiedEnzymeIds = [],
-            pathwayComplete = false
+            pathwayComplete = false,
+            onPlaceEnzyme = null
         } = {}
     ) {
 
@@ -310,6 +311,43 @@ const MetabolismPathwayView = {
                 slotPosition.row,
                 slotPosition.column
             );
+
+            if (
+                !occupied &&
+                typeof onPlaceEnzyme ===
+                    "function"
+            ) {
+                slotElement.classList.add(
+                    "metabolism-enzyme-slot--drop-target"
+                );
+                slotElement.addEventListener(
+                    "dragover",
+                    event => {
+                        event.preventDefault();
+                        if (event.dataTransfer) {
+                            event.dataTransfer
+                                .dropEffect = "move";
+                        }
+                    }
+                );
+                slotElement.addEventListener(
+                    "drop",
+                    event => {
+                        event.preventDefault();
+                        const enzymeId =
+                            event.dataTransfer
+                                ?.getData(
+                                    "text/plain"
+                                );
+                        if (enzymeId) {
+                            onPlaceEnzyme(
+                                slot.slot,
+                                enzymeId
+                            );
+                        }
+                    }
+                );
+            }
             track.appendChild(slotElement);
 
             const nextSlot = slots[index + 1];
