@@ -17,7 +17,10 @@ const IMPLEMENTED_NUCLEOTIDE_IDS =
         "dGMP",
         "dCMP",
         "dTMP",
-        "NADPlus"
+        "NADPlus",
+        "NADPPlus",
+        "FAD",
+        "CoA"
     ]);
 
 const NUCLEOTIDE_METADATA =
@@ -179,6 +182,135 @@ const NUCLEOTIDE_METADATA =
                 "phosphate-bridge",
             description:
                 "AMP joined with nicotinamide, ribose, and phosphate to form the dinucleotide cofactor NAD+."
+        }),
+
+        NADPPlus: Object.freeze({
+            name:
+                "Nicotinamide Adenine Dinucleotide Phosphate",
+            abbreviation:
+                "NADP+",
+            nucleicAcidType:
+                "COF",
+            productType:
+                "phosphorylated-dinucleotide-cofactor",
+            components: Object.freeze([
+                Object.freeze({
+                    id: "NADPlus",
+                    quantity: 1,
+                    role:
+                        "nicotinamide-adenine-dinucleotide",
+                    sourceZoneId:
+                        "macromolecularizer"
+                }),
+                Object.freeze({
+                    id: "PO4",
+                    quantity: 1,
+                    role:
+                        "phosphate",
+                    sourceZoneId:
+                        "moleculeLab"
+                })
+            ]),
+            assemblyBondCount: 1,
+            nucleotideCount: 2,
+            bondType:
+                "phosphoester",
+            description:
+                "NAD+ joined to an additional phosphate to form the oxidized electron carrier NADP+."
+        }),
+
+        FAD: Object.freeze({
+            name:
+                "Flavin Adenine Dinucleotide",
+            abbreviation:
+                "FAD",
+            nucleicAcidType:
+                "COF",
+            productType:
+                "dinucleotide-cofactor",
+            components: Object.freeze([
+                Object.freeze({
+                    id: "AMP",
+                    quantity: 1,
+                    role:
+                        "adenosine-nucleotide",
+                    sourceZoneId:
+                        "macromolecularizer"
+                }),
+                Object.freeze({
+                    id: "Riboflavin",
+                    quantity: 1,
+                    role:
+                        "flavin-vitamin-precursor",
+                    sourceZoneId:
+                        "moleculeLab"
+                }),
+                Object.freeze({
+                    id: "PO4",
+                    quantity: 1,
+                    role:
+                        "phosphate",
+                    sourceZoneId:
+                        "moleculeLab"
+                })
+            ]),
+            assemblyBondCount: 2,
+            nucleotideCount: 2,
+            bondType:
+                "phosphate-bridge",
+            description:
+                "AMP joined with riboflavin and phosphate to form the oxidized electron carrier FAD."
+        }),
+
+        CoA: Object.freeze({
+            name:
+                "Coenzyme A",
+            abbreviation:
+                "CoA",
+            nucleicAcidType:
+                "COF",
+            productType:
+                "coenzyme",
+            components: Object.freeze([
+                Object.freeze({
+                    id: "AMP",
+                    quantity: 1,
+                    role:
+                        "adenosine-nucleotide",
+                    sourceZoneId:
+                        "macromolecularizer"
+                }),
+                Object.freeze({
+                    id: "PantothenicAcid",
+                    quantity: 1,
+                    role:
+                        "vitamin-b5-precursor",
+                    sourceZoneId:
+                        "moleculeLab"
+                }),
+                Object.freeze({
+                    id: "C",
+                    quantity: 1,
+                    role:
+                        "cysteine-sulfur-source",
+                    sourceZoneId:
+                        "moleculeLab"
+                }),
+                Object.freeze({
+                    id: "PO4",
+                    quantity: 2,
+                    role:
+                        "phosphate",
+                    sourceZoneId:
+                        "moleculeLab"
+                })
+            ]),
+            assemblyBondCount: 4,
+            nucleotideCount: 1,
+            bondType:
+                "coenzyme-assembly",
+            description:
+                "AMP joined with pantothenic acid, cysteine, and two phosphate units to form coenzyme A."
         })
 
     });
