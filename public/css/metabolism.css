@@ -131,6 +131,61 @@
     margin-top: 18px;
 }
 
+.metabolism-core-panel {
+    margin-top: 16px;
+    padding: 14px;
+    border: 1px solid var(--metabolism-border-soft);
+    border-radius: 12px;
+    background: rgba(10, 8, 3, 0.5);
+}
+
+.metabolism-core-panel h3 {
+    margin: 0 0 12px;
+    color: var(--metabolism-accent-bright);
+    font-size: 0.94rem;
+}
+
+.metabolism-core-heading,
+.metabolism-core-requirements li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.metabolism-core-heading > span {
+    color: var(--metabolism-ready);
+    font-size: 0.72rem;
+}
+
+.metabolism-core-requirements {
+    display: grid;
+    gap: 7px;
+    margin: 12px 0;
+    padding: 0;
+    list-style: none;
+}
+
+.metabolism-core-requirements li {
+    padding: 7px 8px;
+    border-left: 2px solid #ef6452;
+    color: var(--metabolism-muted);
+    background: rgba(255, 255, 255, 0.025);
+    font-size: 0.68rem;
+}
+
+.metabolism-core-requirements
+    .metabolism-core-requirement--complete {
+    border-left-color: var(--metabolism-ready);
+}
+
+.metabolism-core-note {
+    margin: 0;
+    color: var(--metabolism-muted);
+    font-size: 0.68rem;
+    line-height: 1.45;
+}
+
 .metabolism-pathway-card {
     width: 100%;
     padding: 16px;
@@ -302,6 +357,19 @@
     border-color: var(--metabolism-accent);
 }
 
+.metabolism-enzyme-slot--drop-target {
+    transition:
+        border-color 150ms ease,
+        background 150ms ease,
+        transform 150ms ease;
+}
+
+.metabolism-enzyme-slot--drop-target:hover {
+    border-color: var(--metabolism-accent-bright);
+    background: rgba(255, 216, 77, 0.12);
+    transform: translateY(-2px);
+}
+
 .metabolism-enzyme-slot--branch {
     border-color: rgba(255, 216, 77, 0.72);
     background: linear-gradient(150deg, rgba(52, 42, 12, 0.94), rgba(24, 19, 7, 0.94));
@@ -387,6 +455,72 @@
     margin: 12px 2px 18px;
     color: var(--metabolism-muted);
     font-size: 0.76rem;
+}
+
+.metabolism-production-panel,
+.metabolism-enzyme-tray-panel {
+    margin: 14px 0;
+    padding: 14px;
+    border: 1px solid var(--metabolism-border-soft);
+    border-radius: 12px;
+    background: rgba(10, 8, 3, 0.48);
+}
+
+.metabolism-production-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.metabolism-production-panel h3,
+.metabolism-enzyme-tray-panel h3 {
+    margin: 0;
+    color: var(--metabolism-accent-bright);
+    font-size: 0.94rem;
+}
+
+.metabolism-production-panel > strong {
+    color: var(--metabolism-ready);
+    white-space: nowrap;
+}
+
+.metabolism-enzyme-tray {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.metabolism-enzyme-card {
+    display: grid;
+    gap: 5px;
+    padding: 11px;
+    border: 1px solid var(--metabolism-border-soft);
+    border-radius: 10px;
+    color: var(--metabolism-text);
+    font: inherit;
+    text-align: left;
+    background: rgba(255, 216, 77, 0.07);
+    cursor: grab;
+}
+
+.metabolism-enzyme-card span,
+.metabolism-enzyme-card small,
+.metabolism-enzyme-tray-empty {
+    color: var(--metabolism-muted);
+    font-size: 0.68rem;
+}
+
+.metabolism-enzyme-card--placed {
+    border-color: rgba(101, 230, 154, 0.5);
+    cursor: default;
+    opacity: 0.72;
+}
+
+.metabolism-enzyme-tray-empty {
+    margin: 0;
 }
 
 .metabolism-chemistry-summary {

@@ -1,16 +1,85 @@
 // --------------------------------------------------
 // ATPManager.js
-// Produces the guaranteed base ATP regeneration rate
+// Produces connected-browser ATP from data-driven progression sources.
+// Production is derived from authoritative saved products/modules/placements;
+// this manager never saves a conflicting ATP-rate field.
 // --------------------------------------------------
 
 import GameStateObserver from "./GameStateObserver.js";
+import GameStateManager from "./GameStateManager.js";
 import ResourceManager from "./ResourceManager.js";
+import ATPProductionCatalog
+    from "../data/ATPProductionCatalog.js";
+import MetabolismPathwayCatalog
+    from "../data/MetabolismPathwayCatalog.js";
 
 const BASE_ATP_INTERVAL_SEC = 60;
 
 let initialized = false;
-let accumulatedSeconds = 0;
+let accumulatedATP = 0;
 let gameTickHandler = null;
+
+function safeCount(value) {
+
+    const rawCount =
+        typeof value === "number"
+            ? value
+            : value?.count;
+
+    return Number.isFinite(rawCount)
+        ? Math.max(0, Math.floor(rawCount))
+        : 0;
+
+}
+
+function getPolymerizerProductCount(
+    productId
+) {
+
+    return safeCount(
+        GameStateManager.getZoneSnapshot(
+            "polymerizer"
+        )?.state?.productInventory?.[
+            productId
+        ]
+    );
+
+}
+
+function getMetabolismState() {
+
+    return GameStateManager.getZoneSnapshot(
+        "metabolism"
+    )?.state ?? {};
+
+}
+
+function getCorrectCorePlacementCount(
+    pathwayId
+) {
+
+    const pathway =
+        MetabolismPathwayCatalog.get(
+            pathwayId
+        );
+    const placements =
+        getMetabolismState()
+            .pathwayPlacements?.[
+                pathwayId
+            ] ?? {};
+
+    if (!pathway) return 0;
+
+    return pathway.coreSlots.reduce(
+        (count, slot) =>
+            placements[String(slot.slot)] ===
+                slot.enzymeId
+                ? count + 1
+                : count,
+        0
+    );
+
+}
 
 const ATPManager = {
 
@@ -45,7 +114,149 @@ const ATPManager = {
     // --------------------------------------------------
     getProductionRatePerSecond() {
 
-        return 1 / BASE_ATP_INTERVAL_SEC;
+        return this.getProductionStatus()
+            .totalATPPerMinute / 60;
+
+    },
+
+    // --------------------------------------------------
+    // Derive every active production contribution
+    // --------------------------------------------------
+    getProductionStatus() {
+
+        const metabolismState =
+            getMetabolismState();
+
+        const sources =
+            ATPProductionCatalog
+                .getAll()
+                .map(definition => {
+
+                    let active = false;
+                    let progress = null;
+                    let atpPerMinute = 0;
+
+                    switch (
+                        definition.activationType
+                    ) {
+                        case "always":
+                            active = true;
+                            atpPerMinute =
+                                definition
+                                    .atpPerMinute;
+                            break;
+
+                        case "polymerizer-product": {
+                            const currentCount =
+                                getPolymerizerProductCount(
+                                    definition
+                                        .productId
+                                );
+                            const requiredCount =
+                                definition
+                                    .minimumCount;
+
+                            active =
+                                currentCount >=
+                                requiredCount;
+                            atpPerMinute = active
+                                ? definition
+                                    .atpPerMinute
+                                : 0;
+                            progress = {
+                                currentCount,
+                                requiredCount
+                            };
+                            break;
+                        }
+
+                        case "metabolism-module": {
+                            const completed =
+                                Boolean(
+                                    metabolismState
+                                        .completedModules
+                                        ?.[
+                                            definition
+                                                .moduleId
+                                        ]
+                                        ?.completed
+                                );
+
+                            active = completed;
+                            atpPerMinute = active
+                                ? definition
+                                    .atpPerMinute
+                                : 0;
+                            progress = { completed };
+                            break;
+                        }
+
+                        case "correct-pathway-placements": {
+                            const correctPlacements =
+                                Math.min(
+                                    definition
+                                        .maximumPlacements,
+                                    getCorrectCorePlacementCount(
+                                        definition
+                                            .pathwayId
+                                    )
+                                );
+
+                            active =
+                                correctPlacements > 0;
+                            atpPerMinute =
+                                Math.min(
+                                    definition
+                                        .maximumATPPerMinute,
+                                    correctPlacements *
+                                        definition
+                                            .atpPerCorrectPlacement
+                                );
+                            progress = {
+                                correctPlacements,
+                                maximumPlacements:
+                                    definition
+                                        .maximumPlacements,
+                                percent:
+                                    Math.round(
+                                        correctPlacements /
+                                        definition
+                                            .maximumPlacements *
+                                        100
+                                    )
+                            };
+                            break;
+                        }
+
+                        default:
+                            break;
+                    }
+
+                    return {
+                        ...definition,
+                        active,
+                        atpPerMinute,
+                        progress
+                    };
+
+                });
+
+        const totalATPPerMinute =
+            sources.reduce(
+                (total, source) =>
+                    total +
+                    source.atpPerMinute,
+                0
+            );
+
+        return {
+            connectedBrowserOnly: true,
+            sources,
+            totalATPPerMinute,
+            totalATPPerSecond:
+                totalATPPerMinute / 60,
+            increasesCapacity: false
+        };
 
     },
 
@@ -73,31 +284,31 @@ const ATPManager = {
             atpStatus.current >=
             atpStatus.maximum
         ) {
-            accumulatedSeconds = 0;
+            accumulatedATP = 0;
 
             return 0;
         }
 
-        accumulatedSeconds += deltaSec;
+        const production =
+            this.getProductionStatus();
+
+        accumulatedATP +=
+            deltaSec *
+            production.totalATPPerSecond;
 
         const wholeATP =
-            Math.floor(
-                accumulatedSeconds /
-                BASE_ATP_INTERVAL_SEC
-            );
+            Math.floor(accumulatedATP);
 
         if (wholeATP < 1) {
             return 0;
         }
 
-        accumulatedSeconds -=
-            wholeATP *
-            BASE_ATP_INTERVAL_SEC;
+        accumulatedATP -= wholeATP;
 
         const actualGain =
             ResourceManager.addATP(
                 wholeATP,
-                "base-metabolism"
+                "connected-atp-production"
             );
 
         const updatedStatus =
@@ -108,7 +319,7 @@ const ATPManager = {
             updatedStatus.current >=
                 updatedStatus.maximum
         ) {
-            accumulatedSeconds = 0;
+            accumulatedATP = 0;
         }
 
         return actualGain;
@@ -120,13 +331,19 @@ const ATPManager = {
     // --------------------------------------------------
     getStatus() {
 
+        const production =
+            this.getProductionStatus();
+
         return {
             initialized,
             secondsPerATP:
                 BASE_ATP_INTERVAL_SEC,
             baseATPPerSecond:
-                this.getProductionRatePerSecond(),
-            accumulatedSeconds
+                ATPProductionCatalog
+                    .get("baseMetabolism")
+                    .atpPerMinute / 60,
+            accumulatedATP,
+            ...production
         };
 
     }

@@ -33,6 +33,19 @@ const VISUAL_CONFIGS = Object.freeze({
             "Glucose transporter structural assembly preview",
         fallbackFileName: null
     }),
+    EnergyKinase: Object.freeze({
+        directoryName: "1ei0_motifs",
+        filePrefix: "1EI0",
+        firstFrameNumber: 1,
+        lastFrameNumber: 2,
+        finalFrameOnlyOnCompletion: true,
+        alt:
+            "Energy Kinase teaching module based on the 1EI0 alpha-helical scaffold.",
+        accent: "gold",
+        placeholderLabel:
+            "Energy Kinase assembly preview",
+        fallbackFileName: null
+    }),
     Hexokinase: Object.freeze({
         directoryName: "1bg3_motifs",
         filePrefix: "1bg3",
@@ -145,6 +158,11 @@ function createVisual(productId, config) {
             frameUrls[
                 frameUrls.length - 1
             ],
+        finalFrameOnlyOnCompletion:
+            Boolean(
+                config
+                    .finalFrameOnlyOnCompletion
+            ),
         // imageUrl remains as a compatibility alias for older callers.
         imageUrl: frameUrls[0],
         fallbackImageUrl:
@@ -203,6 +221,16 @@ const PolymerizerVisualCatalog =
 
             if (completed) {
                 return visual.finalImageUrl;
+            }
+
+            // Two-frame products can reserve their second image for the
+            // completed structure. The chamber supplies its existing active
+            // animation while the idle frame remains visible during assembly.
+            if (
+                visual
+                    .finalFrameOnlyOnCompletion
+            ) {
+                return visual.idleImageUrl;
             }
 
             if (!Number.isFinite(progress)) {

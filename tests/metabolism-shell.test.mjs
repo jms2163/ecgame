@@ -34,8 +34,8 @@ assert.equal(
     false
 );
 
-// A legacy save can omit the future zone. Initialization restores only the
-// existing zone envelope and adds no speculative pathway or placement state.
+// A legacy save can omit the future zone. Initialization restores the zone
+// envelope and only the now-defined module/placement containers.
 delete gameState.zones.metabolism;
 MetabolismManager.initialize();
 assert.deepEqual(
@@ -43,7 +43,10 @@ assert.deepEqual(
     {
         unlocked: false,
         completed: false,
-        state: {}
+        state: {
+            pathwayPlacements: {},
+            completedModules: {}
+        }
     }
 );
 assert.equal(saveWrites, 0);
@@ -117,7 +120,10 @@ assert.deepEqual(
 );
 assert.deepEqual(
     gameState.zones.metabolism.state,
-    {}
+    {
+        pathwayPlacements: {},
+        completedModules: {}
+    }
 );
 assert.equal(saveWrites, 0);
 
@@ -143,6 +149,10 @@ const devConsoleSource = fs.readFileSync(
 assert.match(
     devConsoleSource,
     /MetabolismPathwayCatalog/
+);
+assert.match(
+    devConsoleSource,
+    /ATPProductionCatalog/
 );
 
 const indexSource = fs.readFileSync(

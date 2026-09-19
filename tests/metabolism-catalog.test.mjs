@@ -90,7 +90,13 @@ assert.equal(
     2
 );
 assert.equal(
-    glycolysis.reward.amountPerMinute,
+    glycolysis.reward
+        .amountPerCorrectCoreEnzyme,
+    1
+);
+assert.equal(
+    glycolysis.reward
+        .maximumAmountPerMinute,
     10
 );
 assert.equal(
@@ -98,8 +104,29 @@ assert.equal(
     false
 );
 assert.equal(
-    glycolysis.reward.active,
+    glycolysis.reward
+        .activeFromPlacements,
+    true
+);
+assert.equal(
+    glycolysis.coreModule.implemented,
     false
+);
+assert(
+    glycolysis.coreModule
+        .requirements.some(
+            requirement =>
+                requirement.productId ===
+                    "NADPlus" &&
+                requirement
+                    .intendedCategory ===
+                    "nucleotides"
+        )
+);
+assert.equal(
+    glycolysis.regenerationBranches[0]
+        .futureBiomeBenefit.id,
+    "anoxic-survival"
 );
 
 const slotNumbers = [
@@ -113,5 +140,5 @@ assert.equal(
 );
 
 console.log(
-    "PASS: Metabolism catalog defines ten ordered Glycolysis enzymes, the sole LDH regeneration branch, and an inactive 10 ATP/min reward that does not increase capacity."
+    "PASS: Metabolism catalog defines ten independently rewarding Glycolysis enzymes, requires future Macromolecularizer NAD+ for the Core, and reserves LDH regeneration for a future anoxic-survival benefit."
 );

@@ -141,6 +141,17 @@ assert(hexokinaseVisual.finalImageUrl.endsWith(
     "/public/assets/polymerizer/proteins/1bg3_motifs/1bg3-65.png"
 ));
 
+const energyVisual =
+    PolymerizerVisualCatalog.get(
+        "EnergyKinase"
+    );
+assert.equal(energyVisual.source, "1EI0");
+assert.equal(energyVisual.frameCount, 2);
+assert.equal(
+    energyVisual.finalFrameOnlyOnCompletion,
+    true
+);
+
 const pgiVisual =
     PolymerizerVisualCatalog.get(
         "PhosphoglucoseIsomerase"
@@ -173,7 +184,7 @@ const status =
     PolymerizerManager.getStatus(
         "GlucoseTransporter"
     );
-assert.equal(status.products.length, 4);
+assert.equal(status.products.length, 5);
 assert.equal(
     status.selectedProduct.locked,
     true

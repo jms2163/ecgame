@@ -25,6 +25,60 @@ const GLYCOLYSIS = {
         consumed: false
     },
 
+    // The early black-box module establishes functional Glycolysis before
+    // students reconstruct its ten enzymes individually. NAD+ is required at
+    // the GAPDH step and is reduced to NADH; it is not supplied by LDH.
+    // NADPlus is intentionally a named future Macromolecularizer N-category
+    // product. Its real AMP + NMN assembly recipe must be implemented before
+    // this module can be completed; the game must not substitute fake
+    // nucleotide chemistry merely to clear this gate.
+    coreModule: {
+        id: "glycolysisCore",
+        name: "Glycolysis Core",
+        implemented: false,
+        blockedReason:
+            "NAD+ assembly is not implemented in Macromolecularizer yet.",
+        requirements: [
+            {
+                type:
+                    "polymerizer-product",
+                productId:
+                    "GlucoseTransporter",
+                label:
+                    "Glucose Transporter",
+                minimumCount: 1,
+                consumed: false
+            },
+            {
+                type:
+                    "polymerizer-product",
+                productId:
+                    "EnergyKinase",
+                label: "Energy Kinase",
+                minimumCount: 1,
+                consumed: false
+            },
+            {
+                type:
+                    "macromolecularizer-product",
+                productId: "NADPlus",
+                label: "NAD+",
+                minimumCount: 1,
+                consumed: false,
+                intendedCategory:
+                    "nucleotides"
+            }
+        ],
+        reaction:
+            "Glucose + 2 ADP + 2 Pi + 2 NAD+ → 2 pyruvate + 2 ATP + 2 NADH + 2 water",
+        reward: {
+            type:
+                "atp-production-rate",
+            amountPerMinute: 10,
+            increasesCapacity: false
+        }
+    },
+
     coreSlots: [
         {
             slot: 1,
@@ -104,7 +158,19 @@ const GLYCOLYSIS = {
             ],
             input: "Pyruvate + NADH",
             output: "Lactate + NAD+",
-            regenerates: "NAD+"
+            regenerates: "NAD+",
+
+            // LDH oxidizes NADH back to NAD+, allowing Glycolysis to continue
+            // when oxidative metabolism cannot recycle the cofactor. A future
+            // biome system should derive an anoxic-survival benefit from this
+            // completed branch. That survival effect is deliberately not
+            // implemented or stored during the current Metabolism milestone.
+            futureBiomeBenefit: {
+                id: "anoxic-survival",
+                implemented: false,
+                description:
+                    "Supports continued ATP production in anoxic biomes by regenerating NAD+."
+            }
         }
     ],
 
@@ -122,13 +188,16 @@ const GLYCOLYSIS = {
         requiredRegenerationBranchId: "lactate"
     },
 
-    // This reward is descriptive only in Milestone 1. ATPManager is not
-    // connected until a later milestone validates a completed pathway.
+    // Each correctly placed core enzyme contributes one fixed ATP per minute,
+    // representing 10% of the ten-enzyme reconstruction bonus. Placement
+    // bonuses do not depend on adjacency; connections communicate progress.
     reward: {
         type: "atp-production-rate",
-        amountPerMinute: 10,
+        amountPerCorrectCoreEnzyme:
+            1,
+        maximumAmountPerMinute: 10,
         increasesCapacity: false,
-        active: false
+        activeFromPlacements: true
     }
 };
 
@@ -163,6 +232,14 @@ function validatePathway(pathway) {
             enzymeIds.length &&
         pathway.reward
             ?.increasesCapacity === false
+        && pathway.reward
+            ?.amountPerCorrectCoreEnzyme === 1
+        && pathway.coreModule
+            ?.requirements.some(
+                requirement =>
+                    requirement.productId ===
+                        "NADPlus"
+            )
     );
 
 }

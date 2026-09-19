@@ -106,7 +106,7 @@ const PolymerizerUI = {
 
                         <nav class="poly-category-list" aria-label="Polymerizer categories">
                             <button type="button" class="poly-category poly-category--active" disabled>
-                                <strong>Proteins</strong><span>4 structures</span>
+                                <strong>Proteins</strong><span id="polymerizer-protein-count">0 structures</span>
                             </button>
                             <button type="button" class="poly-category" disabled>
                                 <strong>Polysaccharides</strong><span>Coming Soon</span>
@@ -185,6 +185,8 @@ const PolymerizerUI = {
         this.elements = {
             productList:
                 find("polymerizer-product-list"),
+            proteinCount:
+                find("polymerizer-protein-count"),
             productName:
                 find("polymerizer-product-name"),
             productClass:
@@ -223,7 +225,7 @@ const PolymerizerUI = {
                 () => {
                     PolymerizerManager
                         .startAssembly(
-                            "Aquaporin"
+                            this.selectedProductId
                         );
                     this.render();
                 }
@@ -284,6 +286,12 @@ const PolymerizerUI = {
 
         const product =
             status.selectedProduct;
+
+        if (this.elements.proteinCount) {
+            this.elements.proteinCount
+                .textContent =
+                    `${status.products.length} structures`;
+        }
 
         PolymerizerProductView.renderCatalog(
             this.elements.productList,

@@ -34,6 +34,12 @@ const PRODUCT_CONFIGS = Object.freeze({
         lockedMessage:
             "Coming Soon — its PDB-based motif recipe, ATP cost, and release approval are not configured."
     }),
+    EnergyKinase: Object.freeze({
+        name: "Energy Kinase",
+        implemented: true,
+        discoveryId: null,
+        lockedMessage: null
+    }),
     Hexokinase: Object.freeze({
         name: "Hexokinase",
         implemented: true,

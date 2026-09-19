@@ -102,6 +102,8 @@ import MetabolismPathwayView
     from "./MetabolismPathwayView.js";
 import MetabolismPathwayCatalog
     from "../data/MetabolismPathwayCatalog.js";
+import ATPProductionCatalog
+    from "../data/ATPProductionCatalog.js";
 import MoleculeLab from "./MoleculeLab.js";
 import MoleculeLabUI from "./MoleculeLabUI.js";
 import MoleculeBuilderView from "./MoleculeBuilderView.js";
@@ -173,6 +175,7 @@ const DevConsole = {
             MetabolismUI,
             MetabolismPathwayView,
             MetabolismPathwayCatalog,
+            ATPProductionCatalog,
             MoleculeLab,
             MoleculeLabUI,
             MoleculeBuilderView,
