@@ -351,6 +351,12 @@ atomizer: {
             }
         },
 
+        signaling: {
+            unlocked: false,
+            completed: false,
+            state: {}
+        },
+
         metabolism: {
             unlocked: false,
             completed: false,

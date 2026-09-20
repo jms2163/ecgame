@@ -54,6 +54,11 @@ const testGameState = {
             state: {}
         },
 
+        signaling: {
+            unlocked: false,
+            state: {}
+        },
+
         metabolism: {
             unlocked: false,
             state: {}

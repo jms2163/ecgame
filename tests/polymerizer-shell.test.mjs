@@ -193,9 +193,12 @@ const visual =
     PolymerizerVisualCatalog.get(
         "Aquaporin"
     );
-assert(visual.imageUrl.endsWith(
-    "/public/assets/polymerizer/proteins/1RC2-0.png"
-));
+assert(
+    visual.imageUrl.endsWith(
+        "/1RC2-0.png"
+    ),
+    "Aquaporin should use its frame-zero preview regardless of the containing motif folder"
+);
 
 assert.equal(
     ZoneCatalog.get("polymerizer")
@@ -223,12 +226,13 @@ assert.equal(
     true
 );
 gameState.zones.polymerizer.unlocked = false;
-assert.equal(
-    Object.hasOwn(
-        gameState.zones,
-        "signaling"
-    ),
-    false
+assert.deepEqual(
+    gameState.zones.signaling,
+    {
+        unlocked: false,
+        completed: false,
+        state: {}
+    }
 );
 
 // A legacy save can omit the future zone. Initialization creates the

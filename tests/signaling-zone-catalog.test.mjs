@@ -3,6 +3,15 @@ import fs from 'node:fs';
 import ZoneCatalog from '../src/app/ZoneCatalog.js';
 import ZoneStatusResolver from '../src/app/ZoneStatusResolver.js';
 import gameState from '../src/app/GameState.js';
+import testGameState from '../src/app/TestGameState.js';
+import SignalingManager from '../src/app/SignalingManager.js';
+
+let saveWrites = 0;
+globalThis.localStorage = {
+    getItem() { return null; },
+    setItem() { saveWrites += 1; },
+    removeItem() {}
+};
 
 const definitions = ZoneCatalog.getAll();
 const ids = definitions.map(definition => definition.id);
@@ -24,9 +33,58 @@ const zoneManagerSource = fs.readFileSync(
     new URL('../src/app/ZoneManager.js', import.meta.url),
     'utf8'
 );
-assert.doesNotMatch(zoneManagerSource, /["']signaling["']\s*,\s*\{/,
-    'the placeholder must not register an active zone module');
-assert.equal(Object.hasOwn(gameState.zones, 'signaling'), false,
-    'the placeholder must not add persistent signaling state');
+assert.match(zoneManagerSource, /["']signaling["']\s*,\s*\{/,
+    'the console-locked foundation must register a zone module');
+assert.deepEqual(gameState.zones.signaling, {
+    unlocked: false,
+    completed: false,
+    state: {}
+});
+assert.deepEqual(testGameState.zones.signaling, {
+    unlocked: false,
+    state: {}
+});
 
-console.log('PASS: Signaling appears after Polymerizer and before Metabolism as a noninteractive Coming Soon navigation tab with no zone module or saved state.');
+// Existing saves can omit Signaling. Initialization repairs only the generic
+// zone envelope and does not invent pathway progress or write a save.
+delete gameState.zones.signaling;
+SignalingManager.initialize();
+assert.deepEqual(gameState.zones.signaling, {
+    unlocked: false,
+    completed: false,
+    state: {}
+});
+assert.equal(saveWrites, 0);
+assert.deepEqual(
+    SignalingManager.getStatus().state,
+    {}
+);
+
+const uiSource = fs.readFileSync(
+    new URL('../src/app/SignalingUI.js', import.meta.url),
+    'utf8'
+);
+const indexSource = fs.readFileSync(
+    new URL('../index.html', import.meta.url),
+    'utf8'
+);
+const bootstrapSource = fs.readFileSync(
+    new URL('../src/app/Bootstrap.js', import.meta.url),
+    'utf8'
+);
+assert.match(uiSource, /Extracellular Signal/);
+assert.match(uiSource, /Second Messengers/);
+assert.match(uiSource, /cAMP and cGMP activities remain locked/);
+assert.match(indexSource, /public\/css\/signaling\.css/);
+assert.match(
+    bootstrapSource,
+    /SignalingManager\.initialize\(\)/,
+    'bootstrap must restore the Signaling envelope after loading legacy saves'
+);
+assert.ok(
+    bootstrapSource.indexOf('SaveManager.load()') <
+        bootstrapSource.indexOf('SignalingManager.initialize()'),
+    'Signaling normalization must occur after the saved game replaces defaults'
+);
+
+console.log('PASS: Signaling remains a noninteractive Coming Soon tab while gaining a console-locked module, empty save-compatible state, and static pathway foundation shell.');
