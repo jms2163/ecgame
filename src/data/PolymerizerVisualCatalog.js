@@ -69,19 +69,8 @@ const VISUAL_CONFIGS = Object.freeze({
         placeholderLabel:
             "Phosphoglucose isomerase motif assembly preview",
         fallbackFileName: null
-    }),
-    Phosphofructokinase1: Object.freeze({
-    directoryName: "4y8v_motifs",
-    filePrefix: "4y8v",
-    firstFrameNumber: 1,
-    lastFrameNumber: 28,
-    alt:
-        "Phosphofructokinase-1 motif assembly from PDB 4Y8V.",
-    accent: "gold",
-    placeholderLabel:
-        "Phosphofructokinase-1 motif assembly preview",
-    fallbackFileName: null
-})
+    })
+    
 
 });
 
