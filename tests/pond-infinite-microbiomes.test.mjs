@@ -1,7 +1,10 @@
 // Run with: node tests/pond-infinite-microbiomes.test.mjs
 
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import gameState from "../src/app/GameState.js";
+import MicrobiomeLibrary
+    from "../src/app/MicrobiomeLibrary.js";
 import PondWorld, {
     GENERATION_VERSION
 } from "../src/app/PondWorld.js";
@@ -59,23 +62,50 @@ assert.deepEqual(
             chunkY
         );
 
-    assert.deepEqual(
-        chunk.substrateRegions.map(
-            region => region.microbiome
-        ),
-        [
-            "algae_patch",
-            "algae_patch"
-        ]
+    assert.equal(
+        chunk.substrateRegions.length,
+        2
     );
     assert.equal(
-        chunk.overlayRegions.filter(
+        chunk.substrateRegions[0]
+            .microbiome,
+        "algae_patch"
+    );
+    assert.ok(
+        new Set([
+            "algae_patch",
+            "leaf_surface",
+            "biofilm_mat"
+        ]).has(
+            chunk.substrateRegions[1]
+                .microbiome
+        )
+    );
+    assert.equal(
+        chunk.overlayRegions[0]
+            .microbiome,
+        "bacterial_bloom",
+        `chunk ${chunkX},${chunkY} must contain a guaranteed Bacterial Bloom`
+    );
+    assert.ok(
+        new Set([
+            "bacterial_bloom",
+            "detritus_cloud"
+        ]).has(
+            chunk.overlayRegions[1]
+                .microbiome
+        )
+    );
+    assert.equal(
+        [
+            ...chunk.substrateRegions,
+            ...chunk.overlayRegions
+        ].some(
             region =>
                 region.microbiome ===
-                    "bacterial_bloom"
-        ).length,
-        2,
-        `chunk ${chunkX},${chunkY} must contain two Bacterial Blooms`
+                    "sediment_grain"
+        ),
+        false
     );
 });
 
@@ -173,6 +203,73 @@ assert.deepEqual(
     "regenerating a coordinate must reproduce its environment exactly"
 );
 
+const visibleBiomes = new Set();
+
+for (let y = -16; y <= 16; y++) {
+    for (let x = -16; x <= 16; x++) {
+        visibleBiomes.add(
+            PondWorldGenerator.generate(
+                x,
+                y
+            ).dominantMicrobiome
+        );
+    }
+}
+
+[
+    "leaf_surface",
+    "biofilm_mat",
+    "detritus_cloud"
+].forEach(biomeId => {
+    assert.equal(
+        visibleBiomes.has(biomeId),
+        true,
+        `${biomeId} must own visible generated tiles`
+    );
+});
+assert.equal(
+    visibleBiomes.has("sediment_grain"),
+    false,
+    "Sediment Grain remains reserved for a later redesigned encounter"
+);
+
+assert.equal(
+    MicrobiomeLibrary.leaf_surface
+        .anchorable,
+    true
+);
+assert.equal(
+    MicrobiomeLibrary.biofilm_mat
+        .anchorable,
+    true
+);
+assert.equal(
+    MicrobiomeLibrary.detritus_cloud
+        .anchorable,
+    true
+);
+
+const pondCss = fs.readFileSync(
+    new URL(
+        "../public/css/pond.css",
+        import.meta.url
+    ),
+    "utf8"
+);
+
+assert.match(
+    pondCss,
+    /\.pond-biome-leaf_surface\s*\{[^}]*#556B2F/s
+);
+assert.match(
+    pondCss,
+    /\.pond-biome-biofilm_mat\s*\{[^}]*#238B7D/s
+);
+assert.match(
+    pondCss,
+    /\.pond-biome-detritus_cloud\s*\{[^}]*#C07A32/s
+);
+
 const legacyWorld = {
     tiles: {
         "0,0": {
@@ -220,5 +317,5 @@ assert.equal(
 );
 
 console.log(
-    "PASS: deterministic 16x16 Pond chunks provide repeatable distant microbiomes, safe Anaerobic Pocket placement, and a progression-neutral legacy tile-cache refresh."
+    "PASS: deterministic 16x16 Pond chunks provide repeatable diverse microbiomes, visible Leaf/Biofilm/Detritus colors, safe Anaerobic Pockets, and a progression-neutral cache refresh."
 );

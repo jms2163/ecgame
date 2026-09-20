@@ -6,7 +6,7 @@
 import PondTileFactory from "./PondTileFactory.js";
 import PondWorldGenerator from "./PondWorldGenerator.js";
 
-const GENERATION_VERSION = 3;
+const GENERATION_VERSION = 4;
 
 const PondWorld = {
 

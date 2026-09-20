@@ -70,6 +70,21 @@ const PondWorldConfig = {
             Math.floor(
                 random() * (max - min + 1)
             ) + min;
+        const chooseWeighted = entries => {
+            const roll = random();
+            let accumulatedWeight = 0;
+
+            for (const entry of entries) {
+                accumulatedWeight +=
+                    entry.weight;
+
+                if (roll < accumulatedWeight) {
+                    return entry.value;
+                }
+            }
+
+            return entries.at(-1).value;
+        };
 
         const createRegion = ({
             microbiome,
@@ -114,6 +129,32 @@ const PondWorldConfig = {
             return null;
         };
 
+        const variedSubstrate =
+            chooseWeighted([
+                {
+                    value: "algae_patch",
+                    weight: 0.4
+                },
+                {
+                    value: "leaf_surface",
+                    weight: 0.35
+                },
+                {
+                    value: "biofilm_mat",
+                    weight: 0.25
+                }
+            ]);
+        const variedOverlay =
+            chooseWeighted([
+                {
+                    value: "bacterial_bloom",
+                    weight: 0.5
+                },
+                {
+                    value: "detritus_cloud",
+                    weight: 0.5
+                }
+            ]);
         const substrateRegions = [
             createRegion({
                 microbiome: "algae_patch",
@@ -121,7 +162,7 @@ const PondWorldConfig = {
                 maxRadius: 3
             }),
             createRegion({
-                microbiome: "algae_patch",
+                microbiome: variedSubstrate,
                 minRadius: 2,
                 maxRadius: 3
             })
@@ -133,9 +174,17 @@ const PondWorldConfig = {
                 maxRadius: 2.5
             }),
             createRegion({
-                microbiome: "bacterial_bloom",
-                minRadius: 1.5,
-                maxRadius: 2.5
+                microbiome: variedOverlay,
+                minRadius:
+                    variedOverlay ===
+                        "detritus_cloud"
+                        ? 1.75
+                        : 1.5,
+                maxRadius:
+                    variedOverlay ===
+                        "detritus_cloud"
+                        ? 2.75
+                        : 2.5
             })
         ];
 
