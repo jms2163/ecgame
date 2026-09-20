@@ -165,7 +165,7 @@ const gameState = {
                 worldSeed: null,
 
                 world: {
-                    generationVersion: 3,
+                    generationVersion: 4,
                     tiles: {}
                 }
             }

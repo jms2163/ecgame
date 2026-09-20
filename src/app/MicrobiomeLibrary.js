@@ -240,7 +240,7 @@ sediment_grain: {
 biofilm_mat: {
     id: "biofilm_mat",
     name: "Biofilm Mat (Extracellular Slime Matrix)",
-    anchorable: false, // Amoebas easily crawl across and through the sticky EPS matrix
+    anchorable: true, // Sticky EPS supplies drifting material for adhesion.
 
     environment: {
         // --- 1. ABIOTIC PHYSICS ---
@@ -297,7 +297,7 @@ biofilm_mat: {
 detritus_cloud: {
     id: "detritus_cloud",
     name: "Detritus Cloud (Suspended Organic Plume)",
-    anchorable: false, // Particles are drifting in mid-water; no solid fixed floor
+    anchorable: true, // Amoebas can adhere to drifting organic particles.
 
     environment: {
         // --- 1. ABIOTIC PHYSICS ---
