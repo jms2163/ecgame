@@ -130,9 +130,7 @@ const PolymerizerProductView = {
                         ?.source === "quest"
                         ? "poly-product-card--quest-complete"
                     : product.completion
-                        ?.source === "synthesized" &&
-                        product.definition
-                            .maxCompletions === 1
+                        ?.source === "synthesized"
                         ? "poly-product-card--synthesized"
                     : ""
             ].filter(Boolean).join(" ");
@@ -175,12 +173,8 @@ const PolymerizerProductView = {
                         ?.source === "quest"
                         ? "Quest completed"
                     : product.completion
-                        ?.source === "synthesized" &&
-                        product.definition
-                            .maxCompletions === 1
+                        ?.source === "synthesized"
                         ? "Synthesized"
-                    : product.output.quantity > 0
-                        ? `Synthesized · ${product.output.quantity} stored`
                     : product.eligible
                         ? "Requirements met · Ready"
                         : "Requirements incomplete";

@@ -44,13 +44,13 @@ assert.equal(recipe.functionDisplay.id, "atpProduction");
 const visual =
     PolymerizerVisualCatalog.get("EnergyKinase");
 assert.equal(visual.source, "1EI0");
-assert.equal(visual.frameCount, 2);
+assert.equal(visual.frameCount, 3);
 assert.equal(visual.finalFrameOnlyOnCompletion, true);
 assert(visual.idleImageUrl.endsWith(
-    "/public/assets/polymerizer/proteins/1ei0_motifs/1EI0-1.png"
+    "/public/assets/polymerizer/proteins/1ei0_motifs/1ei0-0.png"
 ));
 assert(visual.finalImageUrl.endsWith(
-    "/public/assets/polymerizer/proteins/1ei0_motifs/1EI0-2.png"
+    "/public/assets/polymerizer/proteins/1ei0_motifs/1ei0-2.png"
 ));
 assert.equal(
     PolymerizerVisualCatalog.resolveImageUrl(

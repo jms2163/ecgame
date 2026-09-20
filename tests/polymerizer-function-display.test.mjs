@@ -51,6 +51,38 @@ assert.equal(
     null
 );
 
+const enzymeFunctionDisplays = {
+    Hexokinase: "Uses ATP",
+    PhosphoglucoseIsomerase:
+        "Rearranges G6P",
+    Phosphofructokinase: "Uses ATP",
+    Aldolase: "Splits 6C Sugar",
+    TriosePhosphateIsomerase:
+        "DHAP to GAP",
+    Glyceraldehyde3PhosphateDehydrogenase:
+        "Produces NADH",
+    PhosphoglycerateKinase:
+        "Produces ATP",
+    PhosphoglycerateMutase:
+        "Moves Phosphate",
+    Enolase: "Produces PEP",
+    PyruvateKinase: "Produces ATP",
+    LactateDehydrogenase:
+        "Regenerates NAD+",
+    FormateAcetyltransferase1:
+        "Produces Acetyl-CoA"
+};
+
+Object.entries(enzymeFunctionDisplays)
+    .forEach(([productId, badgeText]) => {
+        assert.equal(
+            PolymerizerRecipeCatalog
+                .get(productId)
+                .functionDisplay.badgeText,
+            badgeText
+        );
+    });
+
 assert.equal(
     ProteinFunctionCatalog
         .get("atpProduction")
@@ -85,7 +117,27 @@ assert.match(
     viewSource,
     /functionDisplay\.badgeText/
 );
+assert.doesNotMatch(
+    viewSource,
+    /Synthesized ·.*stored/
+);
+assert.match(
+    viewSource,
+    /source === "synthesized"\s*\? "poly-product-card--synthesized"/
+);
+
+const cssSource = fs.readFileSync(
+    new URL(
+        "../public/css/polymerizer.css",
+        import.meta.url
+    ),
+    "utf8"
+);
+assert.match(
+    cssSource,
+    /poly-product-function-badge--metabolism/
+);
 
 console.log(
-    "PASS: Polymerizer function displays use right-aligned data-driven text badges for direct ATP production, Glycolysis access, and Aquaporin water balance without adding save state."
+    "PASS: Polymerizer function displays use right-aligned data-driven badges for protein benefits and glycolysis roles without adding save state or card-level inventory counts."
 );

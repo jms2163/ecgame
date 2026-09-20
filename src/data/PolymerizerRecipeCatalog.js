@@ -54,6 +54,66 @@ const PRODUCT_CONFIGS = Object.freeze({
         implemented: true,
         discoveryId: null,
         lockedMessage: null
+    }),
+    Phosphofructokinase: Object.freeze({
+        name: "Phosphofructokinase-1",
+        implemented: true,
+        discoveryId: null,
+        lockedMessage: null
+    }),
+    Aldolase: Object.freeze({
+        name: "Aldolase",
+        implemented: true,
+        discoveryId: null,
+        lockedMessage: null
+    }),
+    TriosePhosphateIsomerase: Object.freeze({
+        name: "Triose Phosphate Isomerase",
+        implemented: true,
+        discoveryId: null,
+        lockedMessage: null
+    }),
+    Glyceraldehyde3PhosphateDehydrogenase: Object.freeze({
+        name: "Glyceraldehyde-3-Phosphate Dehydrogenase",
+        implemented: true,
+        discoveryId: null,
+        lockedMessage: null
+    }),
+    PhosphoglycerateKinase: Object.freeze({
+        name: "Phosphoglycerate Kinase",
+        implemented: true,
+        discoveryId: null,
+        lockedMessage: null
+    }),
+    PhosphoglycerateMutase: Object.freeze({
+        name: "Phosphoglycerate Mutase",
+        implemented: true,
+        discoveryId: null,
+        lockedMessage: null
+    }),
+    Enolase: Object.freeze({
+        name: "Enolase",
+        implemented: true,
+        discoveryId: null,
+        lockedMessage: null
+    }),
+    PyruvateKinase: Object.freeze({
+        name: "Pyruvate Kinase",
+        implemented: true,
+        discoveryId: null,
+        lockedMessage: null
+    }),
+    LactateDehydrogenase: Object.freeze({
+        name: "Lactate Dehydrogenase",
+        implemented: true,
+        discoveryId: null,
+        lockedMessage: null
+    }),
+    FormateAcetyltransferase1: Object.freeze({
+        name: "Formate Acetyltransferase 1",
+        implemented: true,
+        discoveryId: null,
+        lockedMessage: null
     })
 });
 

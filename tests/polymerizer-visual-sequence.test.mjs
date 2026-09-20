@@ -44,10 +44,10 @@ assert.equal(
 );
 assert.equal(aquaporin.frameUrls.length, 9);
 assert(aquaporin.idleImageUrl.endsWith(
-    "/public/assets/polymerizer/proteins/1RC2-0.png"
+    "/public/assets/polymerizer/proteins/1rc2_motifs/1RC2-0.png"
 ));
 assert(aquaporin.finalImageUrl.endsWith(
-    "/public/assets/polymerizer/proteins/1RC2-8.png"
+    "/public/assets/polymerizer/proteins/1rc2_motifs/1RC2-8.png"
 ));
 assert(
     PolymerizerVisualCatalog
@@ -103,10 +103,10 @@ assert.equal(
     16
 );
 assert(glucoseVisual.idleImageUrl.endsWith(
-    "/public/assets/polymerizer/proteins/4LDS-0.png"
+    "/public/assets/polymerizer/proteins/4lds_motifs/4LDS-0.png"
 ));
 assert(glucoseVisual.finalImageUrl.endsWith(
-    "/public/assets/polymerizer/proteins/4LDS-15.png"
+    "/public/assets/polymerizer/proteins/4lds_motifs/4LDS-15.png"
 ));
 
 const glucoseRecipe =
@@ -128,15 +128,15 @@ const hexokinaseVisual =
         "Hexokinase"
     );
 assert.equal(hexokinaseVisual.source, "1BG3");
-assert.equal(hexokinaseVisual.firstFrameNumber, 1);
+assert.equal(hexokinaseVisual.firstFrameNumber, 0);
 assert.equal(hexokinaseVisual.lastFrameNumber, 65);
-assert.equal(hexokinaseVisual.frameCount, 65);
+assert.equal(hexokinaseVisual.frameCount, 66);
 assert.equal(
     hexokinaseVisual.assemblyFrameCount,
-    64
+    65
 );
 assert(hexokinaseVisual.idleImageUrl.endsWith(
-    "/public/assets/polymerizer/proteins/1bg3_motifs/1bg3-1.png"
+    "/public/assets/polymerizer/proteins/1bg3_motifs/1bg3-0.png"
 ));
 assert(hexokinaseVisual.finalImageUrl.endsWith(
     "/public/assets/polymerizer/proteins/1bg3_motifs/1bg3-65.png"
@@ -147,7 +147,7 @@ const energyVisual =
         "EnergyKinase"
     );
 assert.equal(energyVisual.source, "1EI0");
-assert.equal(energyVisual.frameCount, 2);
+assert.equal(energyVisual.frameCount, 3);
 assert.equal(
     energyVisual.finalFrameOnlyOnCompletion,
     true
@@ -158,12 +158,12 @@ const pgiVisual =
         "PhosphoglucoseIsomerase"
     );
 assert.equal(pgiVisual.source, "2PGI");
-assert.equal(pgiVisual.firstFrameNumber, 1);
+assert.equal(pgiVisual.firstFrameNumber, 0);
 assert.equal(pgiVisual.lastFrameNumber, 29);
-assert.equal(pgiVisual.frameCount, 29);
-assert.equal(pgiVisual.assemblyFrameCount, 28);
+assert.equal(pgiVisual.frameCount, 30);
+assert.equal(pgiVisual.assemblyFrameCount, 29);
 assert(pgiVisual.idleImageUrl.endsWith(
-    "/public/assets/polymerizer/proteins/2pgi_motifs/2pgi-1.png"
+    "/public/assets/polymerizer/proteins/2pgi_motifs/2pgi-0.png"
 ));
 assert(pgiVisual.finalImageUrl.endsWith(
     "/public/assets/polymerizer/proteins/2pgi_motifs/2pgi-29.png"
@@ -175,7 +175,7 @@ assert(
             { progress: 0 }
         )
         .endsWith(
-            "/2pgi_motifs/2pgi-2.png"
+            "/2pgi_motifs/2pgi-1.png"
         )
 );
 
@@ -198,7 +198,37 @@ const status =
     PolymerizerManager.getStatus(
         "GlucoseTransporter"
     );
-assert.equal(status.products.length, 5);
+assert.equal(status.products.length, 15);
+assert.deepEqual(
+    status.products
+        .filter(product =>
+            [
+                "Hexokinase",
+                "PhosphoglucoseIsomerase",
+                "Phosphofructokinase",
+                "Aldolase",
+                "TriosePhosphateIsomerase",
+                "Glyceraldehyde3PhosphateDehydrogenase",
+                "PhosphoglycerateKinase",
+                "PhosphoglycerateMutase",
+                "Enolase",
+                "PyruvateKinase"
+            ].includes(product.id)
+        )
+        .map(product => product.id),
+    [
+        "Hexokinase",
+        "PhosphoglucoseIsomerase",
+        "Phosphofructokinase",
+        "Aldolase",
+        "TriosePhosphateIsomerase",
+        "Glyceraldehyde3PhosphateDehydrogenase",
+        "PhosphoglycerateKinase",
+        "PhosphoglycerateMutase",
+        "Enolase",
+        "PyruvateKinase"
+    ]
+);
 assert.equal(
     status.selectedProduct.locked,
     false
