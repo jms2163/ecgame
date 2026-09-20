@@ -69,6 +69,80 @@ const OrganelleProgressionManager = {
                         );
                 break;
 
+            case "macromolecular_product_synthesized": {
+
+                const inventory =
+                    GameStateManager
+                        .getZoneSnapshot(
+                            "macromolecularizer"
+                        )
+                        ?.state
+                        ?.motifInventory ?? {};
+
+                const productIds =
+                    Array.isArray(
+                        requirement.ids
+                    )
+                        ? requirement.ids
+                        : [requirement.id]
+                            .filter(Boolean);
+
+                const completedIds =
+                    productIds.filter(
+                        productId =>
+                            Number.isFinite(
+                                inventory[productId]
+                            ) &&
+                            inventory[productId] >= 1
+                    );
+
+                met =
+                    productIds.length > 0 &&
+                    (
+                        requirement.mode === "all"
+                            ? completedIds.length ===
+                                productIds.length
+                            : completedIds.length > 0
+                    );
+                break;
+            }
+
+            case "polymerizer_product_synthesized": {
+
+                const inventory =
+                    GameStateManager
+                        .getZoneSnapshot(
+                            "polymerizer"
+                        )
+                        ?.state
+                        ?.productInventory ?? {};
+
+                const count =
+                    inventory[
+                        requirement.id
+                    ]?.count;
+
+                met =
+                    Number.isFinite(count) &&
+                    count >= 1;
+                break;
+            }
+
+            case "any_discovery":
+
+                met =
+                    Array.isArray(
+                        requirement.ids
+                    ) &&
+                    requirement.ids.some(
+                        discoveryId =>
+                            ResearchManager
+                                .hasDiscovery(
+                                    discoveryId
+                                )
+                    );
+                break;
+
             case "environment_discovered":
 
                 // A location/encounter system grants a permanent
@@ -215,8 +289,16 @@ const OrganelleProgressionManager = {
             profile.unlock?.status ===
             "active";
 
+        const ruleIsPreview =
+            profile.unlock?.status ===
+            "preview";
+
+        const ruleIsEvaluated =
+            ruleIsActive ||
+            ruleIsPreview;
+
         const requirementStatus =
-            ruleIsActive
+            ruleIsEvaluated
                 ? this.evaluateRequirements(
                     profile.unlock
                 )
@@ -236,6 +318,19 @@ const OrganelleProgressionManager = {
                     .requirementsMet
             );
 
+        const previewAvailable =
+            !existingDiscovery &&
+            ruleIsPreview &&
+            requirementStatus
+                .requirementsMet;
+
+        const progressionState =
+            available
+                ? "available"
+                : previewAvailable
+                    ? "coming-soon"
+                    : "locked";
+
         return {
             exists: true,
             organelleId,
@@ -245,12 +340,19 @@ const OrganelleProgressionManager = {
                     ? "existing-discovery"
                     : available
                         ? "requirements"
-                        : ruleIsActive
-                            ? "requirements-missing"
-                            : "existing-access-rule",
+                        : previewAvailable
+                            ? "preview-requirements"
+                            : ruleIsActive
+                                ? "requirements-missing"
+                                : ruleIsPreview
+                                    ? "preview-requirements-missing"
+                                    : "existing-access-rule",
 
             ruleIsActive,
+            ruleIsPreview,
             existingDiscovery,
+            previewAvailable,
+            progressionState,
             ...requirementStatus
         };
 
@@ -266,6 +368,12 @@ const OrganelleProgressionManager = {
 
         if (!profile) {
             return "This organelle profile is unavailable.";
+        }
+
+        if (status.previewAvailable) {
+            return profile.unlock
+                ?.comingSoonMessage ??
+                `${profile.name} prerequisites are complete. Activities are coming soon.`;
         }
 
         if (status.available) {

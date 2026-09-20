@@ -374,10 +374,18 @@ const organelleLibrary = {
             }
         ],
         "unlock": {
-            "status": "deferred",
+            "status": "preview",
             "mode": "all",
-            "requirements": [],
-            "proposal": null
+            "requirements": [
+                {
+                    "type": "polymerizer_product_synthesized",
+                    "id": "GlucoseTransporter",
+                    "label": "reveal the Rough ER by synthesizing Glucose Transporter"
+                }
+            ],
+            "proposal": null,
+            "displayRequirement": "reveal the Rough ER by synthesizing Glucose Transporter.",
+            "comingSoonMessage": "A transport vesicle from the Rough ER points toward the Golgi apparatus. The introductory Golgi routing investigation is coming soon."
         }
     },
     "rough_endoplasmic_reticulum": {
@@ -402,10 +410,18 @@ const organelleLibrary = {
             }
         ],
         "unlock": {
-            "status": "deferred",
+            "status": "preview",
             "mode": "all",
-            "requirements": [],
-            "proposal": null
+            "requirements": [
+                {
+                    "type": "polymerizer_product_synthesized",
+                    "id": "GlucoseTransporter",
+                    "label": "synthesize Glucose Transporter in the Polymerizer"
+                }
+            ],
+            "proposal": null,
+            "displayRequirement": "synthesize Glucose Transporter in the Polymerizer.",
+            "comingSoonMessage": "Rough ER revealed through Glucose Transporter synthesis. Protein-routing activities are coming soon."
         }
     },
     "smooth_endoplasmic_reticulum": {
@@ -461,10 +477,24 @@ const organelleLibrary = {
             }
         ],
         "unlock": {
-            "status": "deferred",
+            "status": "preview",
             "mode": "all",
-            "requirements": [],
-            "proposal": null
+            "requirements": [
+                {
+                    "type": "macromolecular_product_synthesized",
+                    "ids": [
+                        "PC",
+                        "PE",
+                        "PS",
+                        "PI"
+                    ],
+                    "mode": "any",
+                    "label": "synthesize a membrane lipid (PC, PE, PS, or PI)"
+                }
+            ],
+            "proposal": null,
+            "displayRequirement": "synthesize a membrane lipid (PC, PE, PS, or PI).",
+            "comingSoonMessage": "Smooth ER revealed through membrane-lipid synthesis. Lipid-processing activities are coming soon."
         }
     },
     "ribosomes": {
@@ -569,10 +599,26 @@ const organelleLibrary = {
             }
         ],
         "unlock": {
-            "status": "deferred",
+            "status": "preview",
             "mode": "all",
-            "requirements": [],
-            "proposal": null
+            "requirements": [
+                {
+                    "type": "experiment_completed",
+                    "id": "golgi_protein_routing",
+                    "label": "complete the Golgi protein-routing investigation"
+                },
+                {
+                    "type": "any_discovery",
+                    "ids": [
+                        "food_vacuole",
+                        "endosome"
+                    ],
+                    "label": "discover a food vacuole or endosome"
+                }
+            ],
+            "proposal": null,
+            "displayRequirement": "complete Golgi protein routing and discover a food vacuole or endosome.",
+            "comingSoonMessage": "Lysosome prerequisites are complete. Intracellular digestion and recycling activities are coming soon."
         }
     },
     "symbiosomes": {

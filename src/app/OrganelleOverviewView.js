@@ -248,6 +248,10 @@ const OrganelleOverviewView = {
     render({
         profile,
         available,
+        availability =
+            available
+                ? "available"
+                : "locked",
         message = ""
     }) {
 
@@ -301,17 +305,12 @@ const OrganelleOverviewView = {
             profile.id;
 
         overview.dataset.availability =
-            available
-                ? "available"
-                : "locked";
+            availability;
 
         const status =
             this.createElement(
                 "p",
-                `organelle-overview-status organelle-overview-status--${available
-                    ? "available"
-                    : "locked"
-                }`,
+                `organelle-overview-status organelle-overview-status--${availability}`,
 
                 message ||
                 (
