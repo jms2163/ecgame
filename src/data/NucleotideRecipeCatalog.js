@@ -19,6 +19,8 @@ const IMPLEMENTED_NUCLEOTIDE_IDS =
         "dTMP",
         "ADP",
         "ATP",
+        "GDP",
+        "GTP",
         "NADPlus",
         "NADPPlus",
         "FAD",
@@ -204,6 +206,76 @@ const NUCLEOTIDE_METADATA =
                 "phosphoanhydride",
             description:
                 "ADP joined with an additional phosphate to form one stored ATP molecule. This product is separate from the spendable ATP reserve."
+        }),
+
+        GDP: Object.freeze({
+            name:
+                "Guanosine Diphosphate",
+            abbreviation:
+                "GDP",
+            nucleicAcidType:
+                "RNA",
+            productType:
+                "energy-transfer-nucleotide",
+            components: Object.freeze([
+                Object.freeze({
+                    id: "GMP",
+                    quantity: 1,
+                    role:
+                        "guanosine-monophosphate",
+                    sourceZoneId:
+                        "macromolecularizer"
+                }),
+                Object.freeze({
+                    id: "PO4",
+                    quantity: 1,
+                    role:
+                        "phosphate",
+                    sourceZoneId:
+                        "moleculeLab"
+                })
+            ]),
+            assemblyBondCount: 1,
+            nucleotideCount: 1,
+            bondType:
+                "phosphoanhydride",
+            description:
+                "GMP joined with an additional phosphate to form the energy-transfer nucleotide GDP."
+        }),
+
+        GTP: Object.freeze({
+            name:
+                "Guanosine Triphosphate",
+            abbreviation:
+                "GTP",
+            nucleicAcidType:
+                "RNA",
+            productType:
+                "energy-transfer-nucleotide",
+            components: Object.freeze([
+                Object.freeze({
+                    id: "GDP",
+                    quantity: 1,
+                    role:
+                        "guanosine-diphosphate",
+                    sourceZoneId:
+                        "macromolecularizer"
+                }),
+                Object.freeze({
+                    id: "PO4",
+                    quantity: 1,
+                    role:
+                        "phosphate",
+                    sourceZoneId:
+                        "moleculeLab"
+                })
+            ]),
+            assemblyBondCount: 1,
+            nucleotideCount: 1,
+            bondType:
+                "phosphoanhydride",
+            description:
+                "GDP joined with an additional phosphate to form one stored GTP molecule."
         }),
 
         // ------------------------------------------
