@@ -36,6 +36,86 @@ const DEFINITIONS = Object.freeze({
         badgeText:
             "💧 Water Balance",
         badgeTone: "homeostasis"
+    }),
+    glycolysisATPInvestment: Object.freeze({
+        id: "glycolysisATPInvestment",
+        label: "Glycolysis ATP Investment",
+        description:
+            "Uses ATP during its glycolysis reaction. Assembling the enzyme does not directly spend pathway ATP.",
+        badgeText: "Uses ATP",
+        badgeTone: "energy"
+    }),
+    glycolysisG6PIsomerization: Object.freeze({
+        id: "glycolysisG6PIsomerization",
+        label: "Sugar Rearrangement",
+        description:
+            "Rearranges glucose-6-phosphate into fructose-6-phosphate.",
+        badgeText: "Rearranges G6P",
+        badgeTone: "metabolism"
+    }),
+    glycolysisSugarCleavage: Object.freeze({
+        id: "glycolysisSugarCleavage",
+        label: "Sugar Cleavage",
+        description:
+            "Splits the six-carbon sugar into two three-carbon products.",
+        badgeText: "Splits 6C Sugar",
+        badgeTone: "metabolism"
+    }),
+    glycolysisTrioseConversion: Object.freeze({
+        id: "glycolysisTrioseConversion",
+        label: "Triose Conversion",
+        description:
+            "Converts DHAP into a second glyceraldehyde-3-phosphate molecule.",
+        badgeText: "DHAP to GAP",
+        badgeTone: "metabolism"
+    }),
+    glycolysisNADHProduction: Object.freeze({
+        id: "glycolysisNADHProduction",
+        label: "Electron Capture",
+        description:
+            "Reduces NAD+ to NADH during glycolysis.",
+        badgeText: "Produces NADH",
+        badgeTone: "energy"
+    }),
+    glycolysisATPGeneration: Object.freeze({
+        id: "glycolysisATPGeneration",
+        label: "Substrate-Level Phosphorylation",
+        description:
+            "Produces ATP at its glycolysis step after placement in Metabolism. Assembling the enzyme does not directly award ATP.",
+        badgeText: "Produces ATP",
+        badgeTone: "energy"
+    }),
+    glycolysisPhosphateShift: Object.freeze({
+        id: "glycolysisPhosphateShift",
+        label: "Phosphate Rearrangement",
+        description:
+            "Moves the phosphate group to prepare the molecule for the next glycolysis step.",
+        badgeText: "Moves Phosphate",
+        badgeTone: "metabolism"
+    }),
+    glycolysisPEPFormation: Object.freeze({
+        id: "glycolysisPEPFormation",
+        label: "PEP Formation",
+        description:
+            "Produces phosphoenolpyruvate and releases water.",
+        badgeText: "Produces PEP",
+        badgeTone: "metabolism"
+    }),
+    lactateNADRegeneration: Object.freeze({
+        id: "lactateNADRegeneration",
+        label: "NAD+ Regeneration",
+        description:
+            "Regenerates NAD+ during lactate fermentation so glycolysis can continue.",
+        badgeText: "Regenerates NAD+",
+        badgeTone: "metabolism"
+    }),
+    anaerobicAcetylCoA: Object.freeze({
+        id: "anaerobicAcetylCoA",
+        label: "Anaerobic Acetyl-CoA Formation",
+        description:
+            "Forms acetyl-CoA and formate from pyruvate and CoA during anaerobic metabolism.",
+        badgeText: "Produces Acetyl-CoA",
+        badgeTone: "metabolism"
     })
 });
 

@@ -14,6 +14,8 @@ const PROTEIN_IMAGE_DIRECTORY =
 
 const VISUAL_CONFIGS = Object.freeze({
     Aquaporin: Object.freeze({
+        directoryName: "1rc2_motifs",
+        filePrefix: "1RC2",
         firstFrameNumber: 0,
         lastFrameNumber: 8,
         alt:
@@ -24,6 +26,8 @@ const VISUAL_CONFIGS = Object.freeze({
         fallbackFileName: "aquaporin.png"
     }),
     GlucoseTransporter: Object.freeze({
+        directoryName: "4lds_motifs",
+        filePrefix: "4LDS",
         firstFrameNumber: 0,
         lastFrameNumber: 15,
         alt:
@@ -35,8 +39,8 @@ const VISUAL_CONFIGS = Object.freeze({
     }),
     EnergyKinase: Object.freeze({
         directoryName: "1ei0_motifs",
-        filePrefix: "1EI0",
-        firstFrameNumber: 1,
+        filePrefix: "1ei0",
+        firstFrameNumber: 0,
         lastFrameNumber: 2,
         finalFrameOnlyOnCompletion: true,
         alt:
@@ -49,7 +53,7 @@ const VISUAL_CONFIGS = Object.freeze({
     Hexokinase: Object.freeze({
         directoryName: "1bg3_motifs",
         filePrefix: "1bg3",
-        firstFrameNumber: 1,
+        firstFrameNumber: 0,
         lastFrameNumber: 65,
         alt:
             "Hexokinase protein motif assembly from PDB 1BG3.",
@@ -61,7 +65,7 @@ const VISUAL_CONFIGS = Object.freeze({
     PhosphoglucoseIsomerase: Object.freeze({
         directoryName: "2pgi_motifs",
         filePrefix: "2pgi",
-        firstFrameNumber: 1,
+        firstFrameNumber: 0,
         lastFrameNumber: 29,
         alt:
             "Phosphoglucose isomerase motif assembly from PDB 2PGI.",
@@ -69,7 +73,142 @@ const VISUAL_CONFIGS = Object.freeze({
         placeholderLabel:
             "Phosphoglucose isomerase motif assembly preview",
         fallbackFileName: null
-    })
+    }),
+    Phosphofructokinase: Object.freeze({
+    directoryName: "4y8v_motifs",
+    filePrefix: "4y8v",
+    firstFrameNumber: 0,
+    lastFrameNumber: 28,
+    alt:
+        "Phosphofructokinase-1 motif assembly from PDB 4Y8V.",
+    accent: "gold",
+    placeholderLabel:
+        "Phosphofructokinase-1 motif assembly preview",
+    fallbackFileName: null
+}),
+Aldolase: Object.freeze({
+    directoryName: "1ald_motifs",
+    filePrefix: "1ald",
+    firstFrameNumber: 0,
+    lastFrameNumber: 24,
+    alt:
+        "Fructose-bisphosphate aldolase motif assembly from PDB 1ALD.",
+    accent: "gold",
+    placeholderLabel:
+        "Fructose-bisphosphate aldolase motif assembly preview",
+    fallbackFileName: null
+}),
+TriosePhosphateIsomerase: Object.freeze({
+    directoryName: "1tim_motifs",
+    filePrefix: "1tim",
+    firstFrameNumber: 0,
+    lastFrameNumber: 15,
+    alt:
+        "Triose phosphate isomerase motif assembly from PDB 1TIM.",
+    accent: "gold",
+    placeholderLabel:
+        "Triose phosphate isomerase motif assembly preview",
+    fallbackFileName: null
+}),
+Glyceraldehyde3PhosphateDehydrogenase: Object.freeze({
+    directoryName: "1dc4_motifs",
+    filePrefix: "1dc4",
+    firstFrameNumber: 0,
+    lastFrameNumber: 20,
+    alt:
+        "Glyceraldehyde-3-phosphate dehydrogenase motif assembly from PDB 1DC4.",
+    accent: "gold",
+    placeholderLabel:
+        "Glyceraldehyde-3-phosphate dehydrogenase motif assembly preview",
+    fallbackFileName: null
+}),
+PhosphoglycerateKinase: Object.freeze({
+    directoryName: "3pgk_motifs",
+    filePrefix: "3pgk",
+    firstFrameNumber: 0,
+    lastFrameNumber: 26,
+    alt:
+        "Phosphoglycerate kinase motif assembly from PDB 3PGK.",
+    accent: "gold",
+    placeholderLabel:
+        "Phosphoglycerate kinase motif assembly preview",
+    fallbackFileName: null
+}),
+// PolymerizerVisualCatalog.js — Formate Acetyltransferase 1 (1H16)
+
+FormateAcetyltransferase1: Object.freeze({
+    directoryName: "1h16_motifs",
+    filePrefix: "1h16",
+    firstFrameNumber: 0,
+    lastFrameNumber: 48,
+    alt:
+        "Formate acetyltransferase 1 motif assembly from PDB 1H16.",
+    accent: "gold",
+    placeholderLabel:
+        "Formate acetyltransferase 1 motif assembly preview",
+    fallbackFileName: null
+}),
+// PolymerizerVisualCatalog.js — Pyruvate Kinase (1PKL)
+
+PyruvateKinase: Object.freeze({
+    directoryName: "1pkl_motifs",
+    filePrefix: "1pkl",
+    firstFrameNumber: 0,
+    lastFrameNumber: 29,
+    alt:
+        "Pyruvate kinase motif assembly from PDB 1PKL.",
+    accent: "gold",
+    placeholderLabel:
+        "Pyruvate kinase motif assembly preview",
+    fallbackFileName: null
+}),
+// PolymerizerVisualCatalog.js — Phosphoglycerate Mutase (1E58)
+
+PhosphoglycerateMutase: Object.freeze({
+    directoryName: "1e58_motifs",
+    filePrefix: "1e58",
+    firstFrameNumber: 0,
+    lastFrameNumber: 16,
+    alt:
+        "Phosphoglycerate mutase motif assembly from PDB 1E58.",
+    accent: "gold",
+    placeholderLabel:
+        "Phosphoglycerate mutase motif assembly preview",
+    fallbackFileName: null
+}),
+Enolase: Object.freeze({
+    directoryName: "4a3r_motifs",
+    filePrefix: "4a3r",
+    firstFrameNumber: 0,
+    lastFrameNumber: 22,
+    alt:
+        "Enolase motif assembly from PDB 4A3R.",
+    accent: "gold",
+    placeholderLabel:
+        "Enolase motif assembly preview",
+    fallbackFileName: null
+}),
+// PolymerizerVisualCatalog.js — Lactate Dehydrogenase (4LDA)
+
+LactateDehydrogenase: Object.freeze({
+    directoryName: "4lda_motifs",
+    filePrefix: "4lda",
+    firstFrameNumber: 0,
+    lastFrameNumber: 7,
+    alt:
+        "Lactate dehydrogenase motif assembly from PDB 4LDA.",
+    accent: "gold",
+    placeholderLabel:
+        "Lactate dehydrogenase motif assembly preview",
+    fallbackFileName: null
+})
+
+
+
+
+
+
+
     
 
 });

@@ -194,7 +194,7 @@ const visual =
         "Aquaporin"
     );
 assert(visual.imageUrl.endsWith(
-    "/public/assets/polymerizer/proteins/1RC2-0.png"
+    "/public/assets/polymerizer/proteins/1rc2_motifs/1RC2-0.png"
 ));
 
 assert.equal(

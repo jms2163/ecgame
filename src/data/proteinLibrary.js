@@ -18,6 +18,21 @@ export const proteinLibrary =  Object.freeze({
     "Models": {},
     "Info": "Integral membrane channel protein that selectively conducts water molecules while preventing proton passage. Essential for cellular osmotic balance."
   },
+  // proteinLibrary.js — Lactate Dehydrogenase (4LDA)
+
+"LactateDehydrogenase": {
+    "PPC": "",
+    "Recipe": { "H": 5, "B": 5, "L": 11 },
+    "Class": "Metabolism",
+    "Function": "Catalyzes the reduction of pyruvate to lactate, regenerating NAD+ for anaerobic glycolysis.",
+    "FunctionDisplay": "lactateNADRegeneration",
+    "Tier": 2,
+    "Location": "Cytosol",
+    "Requires": ["PyruvateKinase", "GlycolysisUnlocked"],
+    "Source": "4LDA",
+    "Models": {},
+    "Info": "Fermentation enzyme enabling glycolysis to continue under anaerobic conditions."
+},
   "GlucoseTransporter": {
     // Reliable PDB-derived motif totals are available for 4LDS, but their
     // exact linear ordering is not asserted. Polymerizer therefore validates
@@ -242,6 +257,7 @@ export const proteinLibrary =  Object.freeze({
     "Recipe": {"H": 22, "B": 25, "L": 48},
     "Class": "Metabolism",
     "Function": "First step of glycolysis; glucose → G6P",
+    "FunctionDisplay": "glycolysisATPInvestment",
     "Tier": 1,
     "Location": "Cytosol",
     "Requires": ["AminoAcids", "GlycolysisUnlocked"],
@@ -256,24 +272,138 @@ export const proteinLibrary =  Object.freeze({
     "Recipe": {"H": 14, "B": 10, "L": 25},
     "Class": "Metabolism",
     "Function": "Second step of glycolysis; G6P → F6P",
+    "FunctionDisplay": "glycolysisG6PIsomerization",
     "Tier": 1,
     "Location": "Cytosol",
-    "Requires": ["Hexokinase", "GlycolysisUnlocked"],
+    "Requires": ["AminoAcids", "GlycolysisUnlocked"],
     "Source": "2PGI",
     "Models": {},
     "Info": "Cytosolic enzyme that reversibly converts glucose-6-phosphate into fructose-6-phosphate during glycolysis."
   },
   "Phosphofructokinase": {
-    "PPC": "BHLHLHB",
-    "Recipe": {"B": 2, "L": 1, "H": 4},
+    "PPC": "",
+    "Recipe": {"B": 19, "L": 35, "H": 15},
     "Class": "Metabolism",
     "Function": "Rate‑limiting glycolysis enzyme",
+    "FunctionDisplay": "glycolysisATPInvestment",
     "Tier": 2,
-    "Requires": ["Hexokinase", "GlycolysisUnlocked"],
-    "Source": "",
+    "Location": "Cytosol",
+    "Requires": ["AminoAcids", "GlycolysisUnlocked"],
+    "Source": "4Y8V",
     "Models": {},
     "Info": "Allosteric regulatory enzyme controlling the primary flux rate and pace of the glycolysis metabolic pathway."
-  },
+},
+"TriosePhosphateIsomerase": {
+    "PPC": "",
+    "Recipe": { "H": 8, "B": 8, "L": 17 },
+    "Class": "Metabolism",
+    "Function": "Catalyzes the interconversion of DHAP and GAP in glycolysis.",
+    "FunctionDisplay": "glycolysisTrioseConversion",
+    "Tier": 2,
+    "Location": "Cytosol",
+    "Requires": ["Aldolase", "GlycolysisUnlocked"],
+    "Source": "1TIM",
+    "Models": {},
+    "Info": "Classic TIM barrel enzyme performing the triose phosphate interconversion step."
+},
+// proteinLibrary.js — Formate Acetyltransferase 1 (1H16)
+
+"FormateAcetyltransferase1": {
+    "PPC": "",
+    "Recipe": { "H": 26, "B": 15, "L": 42 },
+    "Class": "Metabolism",
+    "Function": "Converts pyruvate and CoA to acetyl-CoA and formate during anaerobic metabolism.",
+    "FunctionDisplay": "anaerobicAcetylCoA",
+    "Tier": 2,
+    "Location": "Cytosol",
+    "Requires": ["Glyceraldehyde3PhosphateDehydrogenase", "GlycolysisUnlocked"],
+    "Source": "1H16",
+    "Models": {},
+    "Info": "Anaerobic CoA-transferase enabling acetate activation without ATP investment."
+},
+// proteinLibrary.js — Pyruvate Kinase (1PKL)
+
+"PyruvateKinase": {
+    "PPC": "",
+    "Recipe": { "H": 14, "B": 19, "L": 35 },
+    "Class": "Metabolism",
+    "Function": "Catalyzes the final glycolysis step converting phosphoenolpyruvate to pyruvate while generating ATP.",
+    "FunctionDisplay": "glycolysisATPGeneration",
+    "Tier": 2,
+    "Location": "Cytosol",
+    "Requires": ["PhosphoglycerateMutase", "GlycolysisUnlocked"],
+    "Source": "1PKL",
+    "Models": {},
+    "Info": "Key ATP‑producing enzyme completing the glycolytic pathway."
+},
+// proteinLibrary.js — Phosphoglycerate Mutase (1E58)
+
+"PhosphoglycerateMutase": {
+    "PPC": "",
+    "Recipe": { "H": 9, "B": 6, "L": 16 },
+    "Class": "Metabolism",
+    "Function": "Catalyzes the reversible conversion of 3-phosphoglycerate to 2-phosphoglycerate in glycolysis.",
+    "FunctionDisplay": "glycolysisPhosphateShift",
+    "Tier": 2,
+    "Location": "Cytosol",
+    "Requires": ["Glyceraldehyde3PhosphateDehydrogenase", "GlycolysisUnlocked"],
+    "Source": "1E58",
+    "Models": {},
+    "Info": "Bridges the high-energy intermediate stage to PEP formation via enolase."
+},
+"Glyceraldehyde3PhosphateDehydrogenase": {
+    "PPC": "",
+    "Recipe": { "H": 10, "B": 8, "L": 19 },
+    "Class": "Metabolism",
+    "Function": "Catalyzes the oxidation and phosphorylation of glyceraldehyde-3-phosphate to 1,3-bisphosphoglycerate.",
+    "FunctionDisplay": "glycolysisNADHProduction",
+    "Tier": 2,
+    "Location": "Cytosol",
+    "Requires": ["TriosePhosphateIsomerase", "GlycolysisUnlocked"],
+    "Source": "1DC4",
+    "Models": {},
+    "Info": "Key glycolysis enzyme linking energy extraction to NAD+ reduction."
+},
+
+"Aldolase": {
+    "PPC": "",
+    "Recipe": { "H": 13, "B": 10, "L": 24 },
+    "Class": "Metabolism",
+    "Function": "Cleaves fructose-1,6-bisphosphate into DHAP and GAP.",
+    "FunctionDisplay": "glycolysisSugarCleavage",
+    "Tier": 2,
+    "Location": "Cytosol",
+    "Requires": ["Phosphofructokinase", "GlycolysisUnlocked"],
+    "Source": "1ALD",
+    "Models": {},
+    "Info": "Key glycolysis enzyme performing the aldol cleavage step."
+},
+"PhosphoglycerateKinase": {
+    "PPC": "",
+    "Recipe": { "H": 13, "B": 14, "L": 28 },
+    "Class": "Metabolism",
+    "Function": "Transfers phosphate from 1,3-bisphosphoglycerate to ADP, producing ATP and 3-phosphoglycerate.",
+    "FunctionDisplay": "glycolysisATPGeneration",
+    "Tier": 2,
+    "Location": "Cytosol",
+    "Requires": ["Glyceraldehyde3PhosphateDehydrogenase", "GlycolysisUnlocked"],
+    "Source": "3PGK",
+    "Models": {},
+    "Info": "ATP-producing glycolysis enzyme responsible for the pathway's first substrate-level phosphorylation step."
+},
+"Enolase": {
+    "PPC": "",
+    "Recipe": { "H": 11, "B": 15, "L": 27 },
+    "Class": "Metabolism",
+    "Function": "Converts 2-phosphoglycerate to phosphoenolpyruvate and water.",
+    "FunctionDisplay": "glycolysisPEPFormation",
+    "Tier": 2,
+    "Location": "Cytosol",
+    "Requires": ["PhosphoglycerateMutase", "GlycolysisUnlocked"],
+    "Source": "4A3R",
+    "Models": {},
+    "Info": "Glycolysis enzyme that forms the high-energy phosphoenolpyruvate used by pyruvate kinase."
+},
   "ATP_Synthase": {
     "PPC": "BBHBBH",
     "Recipe": {"B": 4, "H": 2},

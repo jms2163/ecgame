@@ -232,6 +232,12 @@
     background: rgba(21, 105, 139, 0.2);
 }
 
+.poly-product-function-badge--metabolism {
+    border-color: rgba(126, 235, 151, 0.48);
+    color: #9df3b1 !important;
+    background: rgba(38, 120, 69, 0.2);
+}
+
 .poly-product-card:disabled {
     cursor: not-allowed;
 }
