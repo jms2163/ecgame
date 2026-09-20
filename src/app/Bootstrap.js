@@ -29,6 +29,8 @@ import SignalingManager
     from "./SignalingManager.js";
 import PlayerProfileManager from "./PlayerProfileManager.js";
 import PlayerBadgeDrawer from "./PlayerBadgeDrawer.js";
+import PondDiscoveryManager
+    from "./PondDiscoveryManager.js";
 
 
 const Bootstrap = {
@@ -44,6 +46,9 @@ const Bootstrap = {
         SaveManager.initialize();
         SaveManager.load();
         PlayerProfileManager.initialize();
+        // Legacy saves may predate Pond exploration records.
+        // Normalize them before quests evaluate saved discoveries.
+        PondDiscoveryManager.initialize();
 
         ResourceManager.initialize();
         SynthesisPointManager.initialize();

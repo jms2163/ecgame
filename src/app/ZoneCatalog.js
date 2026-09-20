@@ -77,11 +77,10 @@ const ZONE_DEFINITIONS = Object.freeze([
     Object.freeze({
         id: "signaling",
         label: "Signaling",
-        releaseState: RELEASE_STATE.COMING_SOON,
+        releaseState: RELEASE_STATE.PLAYABLE,
         lockedMessage:
-            "Complete the required Polymerizer activities first.",
-        comingSoonMessage:
-            "Cell signaling activities are planned for a later release."
+            "Actively enter a Bacterial Bloom, then claim the Signals in the Water quest.",
+        comingSoonMessage: ""
     }),
 
     Object.freeze({

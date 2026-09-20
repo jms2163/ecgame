@@ -158,6 +158,10 @@ const gameState = {
                     atpCost: 10
                 },
 
+                // First-time arrivals are recorded only after
+                // a successful, intentional player movement.
+                discoveredMicrobiomes: {},
+
                 worldSeed: null,
 
                 world: {

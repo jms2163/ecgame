@@ -13,6 +13,8 @@ import { PeriodicGroupQuestCatalog }
     from "./PeriodicGroupQuestCatalog.js";
 import { VitaminQuestCatalog }
     from "./VitaminQuestCatalog.js";
+import { PondQuestCatalog }
+    from "./PondQuestCatalog.js";
 
 const QuestCatalog = {
 
@@ -327,6 +329,7 @@ unlock_molecule_lab: {
     ...AminoAcidQuestCatalog,
     ...LipidQuestCatalog,
     ...MacromolecularQuestCatalog,
+    ...PondQuestCatalog,
     ...PeriodicGroupQuestCatalog,
     ...VitaminQuestCatalog
 

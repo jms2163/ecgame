@@ -326,7 +326,7 @@ const signaling =
     ZoneCatalog.get("signaling");
 assert.equal(
     signaling.releaseState,
-    ZoneCatalog.RELEASE_STATE.COMING_SOON
+    ZoneCatalog.RELEASE_STATE.PLAYABLE
 );
 assert.equal(
     ZoneStatusResolver.getStatus(
@@ -336,5 +336,5 @@ assert.equal(
 );
 
 console.log(
-    "PASS: Polymerizer Milestone 1 derives Aquaporin's 8/7 permanent motif levels and 15 ATP cost from project data, renders as a locked preview contract, accepts legacy saves, performs read-only preflight, and leaves Signaling unchanged."
+    "PASS: Polymerizer Milestone 1 derives Aquaporin's 8/7 permanent motif levels and 15 ATP cost from project data, renders as a locked preview contract, accepts legacy saves, and performs read-only preflight."
 );

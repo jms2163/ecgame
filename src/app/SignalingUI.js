@@ -67,7 +67,7 @@ const SignalingUI = {
                     <div>
                         <p class="signaling-kicker">Information Flow</p>
                         <h1>Cell Signaling</h1>
-                        <p class="signaling-subtitle">Development foundation · Student navigation remains Coming Soon</p>
+                        <p class="signaling-subtitle">Signal-detection foundation · Second-messenger activities remain locked</p>
                     </div>
                     <span class="signaling-status">Foundation Preview</span>
                 </header>
@@ -76,14 +76,14 @@ const SignalingUI = {
                     <p class="signaling-kicker">Core Model</p>
                     <h2 id="signaling-intro-heading">From environmental cue to cellular response</h2>
                     <p>
-                        Cells detect information outside the plasma membrane, relay that information inside the cell, and produce a specific response. Future investigations will connect Pond encounters to this sequence.
+                        Cells detect information outside the plasma membrane, relay that information inside the cell, and produce a specific response. Your Bacterial Bloom encounter revealed the environmental cue that begins this sequence.
                     </p>
                 </section>
 
                 <ol class="signaling-pathway" aria-label="Cell signaling pathway preview">
                     <li>
                         <span class="signaling-step-number">1</span>
-                        <div><strong>Extracellular Signal</strong><p>Cyanobacterial cue or environmental toxin.</p></div>
+                        <div><strong>Extracellular Signal</strong><p>Bacterial formyl peptide or environmental toxin.</p></div>
                     </li>
                     <li>
                         <span class="signaling-step-number">2</span>
@@ -104,7 +104,7 @@ const SignalingUI = {
                 </ol>
 
                 <p class="signaling-note" role="status">
-                    No signaling activity, discovery, reward, or response is recorded by this development shell.
+                    The encounter is recorded. Interactive signaling activities will arrive in a later milestone.
                 </p>
             </div>
         `;
