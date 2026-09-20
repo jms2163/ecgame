@@ -25,6 +25,8 @@ import MacromolecularizerManager
     from "./MacromolecularizerManager.js";
 import PolymerizerManager
     from "./PolymerizerManager.js";
+import SignalingManager
+    from "./SignalingManager.js";
 import PlayerProfileManager from "./PlayerProfileManager.js";
 import PlayerBadgeDrawer from "./PlayerBadgeDrawer.js";
 
@@ -70,6 +72,10 @@ const Bootstrap = {
         // Reconcile persisted Polymerizer jobs globally so a completed
         // A motif-scaled assembly finalizes even when another zone is open.
         PolymerizerManager.initialize();
+        // Legacy saves predate the Signaling zone. Create only its generic
+        // empty envelope after loading so console authorization and future
+        // encounter unlocks can address the zone safely.
+        SignalingManager.initialize();
 
         const requestedZoneId =
             GameStateManager.getCurrentZoneId();

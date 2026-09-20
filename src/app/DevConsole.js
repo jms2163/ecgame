@@ -92,6 +92,12 @@ import Polymerizer
     from "./Polymerizer.js";
 import PolymerizerUI
     from "./PolymerizerUI.js";
+import SignalingManager
+    from "./SignalingManager.js";
+import Signaling
+    from "./Signaling.js";
+import SignalingUI
+    from "./SignalingUI.js";
 import MetabolismManager
     from "./MetabolismManager.js";
 import Metabolism
@@ -170,6 +176,9 @@ const DevConsole = {
             PolymerizerManager,
             Polymerizer,
             PolymerizerUI,
+            SignalingManager,
+            Signaling,
+            SignalingUI,
             MetabolismManager,
             Metabolism,
             MetabolismUI,

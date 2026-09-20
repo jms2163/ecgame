@@ -26,12 +26,13 @@ assert.equal(
     ).interactive,
     false
 );
-assert.equal(
-    Object.hasOwn(
-        gameState.zones,
-        "signaling"
-    ),
-    false
+assert.deepEqual(
+    gameState.zones.signaling,
+    {
+        unlocked: false,
+        completed: false,
+        state: {}
+    }
 );
 
 // A legacy save can omit the future zone. Initialization restores the zone

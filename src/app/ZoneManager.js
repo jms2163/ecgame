@@ -13,6 +13,8 @@ import Macromolecularizer
     from "./Macromolecularizer.js";
 import Polymerizer
     from "./Polymerizer.js";
+import Signaling
+    from "./Signaling.js";
 import Metabolism
     from "./Metabolism.js";
 import GameStateManager
@@ -76,6 +78,14 @@ const ZONE_REGISTRY = new Map([
         {
             module: Polymerizer,
             rootId: "polymerizer-zone",
+            persistCurrentZone: true
+        }
+    ],
+    [
+        "signaling",
+        {
+            module: Signaling,
+            rootId: "signaling-zone",
             persistCurrentZone: true
         }
     ],
