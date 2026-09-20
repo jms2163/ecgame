@@ -6,6 +6,8 @@
 import PondTileFactory from "./PondTileFactory.js";
 import PondWorldGenerator from "./PondWorldGenerator.js";
 
+const GENERATION_VERSION = 3;
+
 const PondWorld = {
 
     // --------------------------------------------------
@@ -14,10 +16,37 @@ const PondWorld = {
     createWorld() {
 
     return {
+        generationVersion:
+            GENERATION_VERSION,
         tiles: {}
     };
 
 },
+
+    // Cached tiles contain deterministic environmental output only.
+    // Legacy finite-map tiles can be discarded without changing
+    // player coordinates, discoveries, resources, or quest progress.
+    ensureGenerationVersion(world) {
+        if (!world) {
+            return false;
+        }
+
+        if (
+            world.generationVersion ===
+                GENERATION_VERSION &&
+            world.tiles &&
+            typeof world.tiles === "object" &&
+            !Array.isArray(world.tiles)
+        ) {
+            return false;
+        }
+
+        world.generationVersion =
+            GENERATION_VERSION;
+        world.tiles = {};
+
+        return true;
+    },
 
     // --------------------------------------------------
 // Ensure Local Region Exists
@@ -158,5 +187,7 @@ getOrCreateTile(world, x, y) {
     }
 
 };
+
+export { GENERATION_VERSION };
 
 export default PondWorld;

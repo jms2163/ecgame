@@ -34,8 +34,7 @@ const PondWorldGenerator = {
 // --------------------------------------------------
 
 currentSeed: null,
-substrateRegions: [],
-overlayRegions: [],
+chunkCache: new Map(),
 configure(seed) {
 
     if (seed === null || seed === undefined) {
@@ -51,21 +50,70 @@ configure(seed) {
         return;
     }
 
-    const config =
-        PondWorldConfig.create(seed);
-
     this.currentSeed = seed;
-
-    this.substrateRegions =
-        config.substrateRegions;
-
-    this.overlayRegions =
-        config.overlayRegions;
+    this.chunkCache.clear();
 
     console.log(
         `PondWorldGenerator configured with seed ${seed}`
     );
 
+},
+
+getChunk(chunkX, chunkY) {
+    const key = `${chunkX},${chunkY}`;
+
+    if (!this.chunkCache.has(key)) {
+        this.chunkCache.set(
+            key,
+            PondWorldConfig.createChunk(
+                this.currentSeed,
+                chunkX,
+                chunkY
+            )
+        );
+    }
+
+    return this.chunkCache.get(key);
+},
+
+getRegionsNear(x, y) {
+    const { chunkX, chunkY } =
+        PondWorldConfig
+            .getChunkCoordinates(x, y);
+    const substrateRegions = [];
+    const overlayRegions = [];
+
+    // The largest current region radius is three tiles,
+    // much smaller than a chunk. Including all eight
+    // neighboring chunks removes seams at chunk edges.
+    for (
+        let nearbyChunkY = chunkY - 1;
+        nearbyChunkY <= chunkY + 1;
+        nearbyChunkY++
+    ) {
+        for (
+            let nearbyChunkX = chunkX - 1;
+            nearbyChunkX <= chunkX + 1;
+            nearbyChunkX++
+        ) {
+            const chunk = this.getChunk(
+                nearbyChunkX,
+                nearbyChunkY
+            );
+
+            substrateRegions.push(
+                ...chunk.substrateRegions
+            );
+            overlayRegions.push(
+                ...chunk.overlayRegions
+            );
+        }
+    }
+
+    return {
+        substrateRegions,
+        overlayRegions
+    };
 },
 
 
@@ -137,6 +185,11 @@ getStrongestInfluence(regions, x, y) {
     // --------------------------------------------------
     generate(x, y) {
 
+    const {
+        substrateRegions,
+        overlayRegions
+    } = this.getRegionsNear(x, y);
+
     // --------------------------------------------------
     // Layer 1: Background Matrix
     // --------------------------------------------------
@@ -149,7 +202,7 @@ getStrongestInfluence(regions, x, y) {
     // --------------------------------------------------
     const substrate =
         this.getStrongestInfluence(
-            this.substrateRegions,
+            substrateRegions,
             x,
             y
         );
@@ -160,7 +213,7 @@ getStrongestInfluence(regions, x, y) {
     // --------------------------------------------------
     const overlay =
         this.getStrongestInfluence(
-            this.overlayRegions,
+            overlayRegions,
             x,
             y
         );

@@ -58,6 +58,10 @@ PondWorldGenerator.configure(seed);
 
         }
 
+        PondWorld.ensureGenerationVersion(
+            world
+        );
+
         PondWorld.ensureRegion(
             world,
             position.x,
