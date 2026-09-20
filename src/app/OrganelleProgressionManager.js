@@ -69,6 +69,15 @@ const OrganelleProgressionManager = {
                         );
                 break;
 
+            case "zone_unlocked":
+
+                met =
+                    GameStateManager
+                        .isZoneUnlocked(
+                            requirement.id
+                        );
+                break;
+
             case "macromolecular_product_synthesized": {
 
                 const inventory =
