@@ -166,6 +166,9 @@ const OrganelleView = {
             profile,
             available:
                 organelleAvailable,
+            availability:
+                organelleStatus
+                    .progressionState,
 
             message:
                 overviewMessage

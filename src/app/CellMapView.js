@@ -39,7 +39,7 @@ const CellMapView = {
     bindSelection(
         featureGroup,
         feature,
-        available,
+        progressionState,
         onFeatureSelected
     ) {
 
@@ -55,9 +55,11 @@ const CellMapView = {
 
         featureGroup.setAttribute(
             "aria-label",
-            available
+            progressionState === "available"
                 ? `Open ${feature.label} lab`
-                : `View locked ${feature.label} lab`
+                : progressionState === "coming-soon"
+                    ? `View ${feature.label} coming soon information`
+                    : `View locked ${feature.label} lab`
         );
 
         featureGroup.addEventListener(
@@ -171,8 +173,14 @@ const CellMapView = {
                             feature.labFocusId
                         );
 
-                const available =
-                    organelleStatus.available;
+                const progressionState =
+                    organelleStatus
+                        .progressionState ??
+                    (
+                        organelleStatus.available
+                            ? "available"
+                            : "locked"
+                    );
 
                 const defaultHotspotDiameter =
                     feature.type === "boundary"
@@ -190,10 +198,7 @@ const CellMapView = {
                             class:
                                 `cell-map-feature ` +
                                 `cell-map-feature--${feature.type} ` +
-                                `cell-map-feature--${available
-                                    ? "available"
-                                    : "locked"
-                                }`,
+                                `cell-map-feature--${progressionState}`,
 
                             "data-feature-id":
                                 feature.id,
@@ -205,9 +210,7 @@ const CellMapView = {
                                 hotspotDiameter,
 
                             "data-availability":
-                                available
-                                    ? "available"
-                                    : "locked"
+                                progressionState
                         }
                     );
 
@@ -302,7 +305,7 @@ const CellMapView = {
                 this.bindSelection(
                     featureGroup,
                     feature,
-                    available,
+                    progressionState,
                     onFeatureSelected
                 );
 

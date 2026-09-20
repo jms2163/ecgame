@@ -123,6 +123,25 @@
     fill: #65506f;
 }
 
+/* Prerequisite-complete previews are visible but not yet playable. */
+.cell-map-feature--coming-soon
+.cell-map-feature-node {
+    stroke: #c28a18;
+    stroke-dasharray: 4 3;
+    opacity: 1;
+}
+
+.cell-map-feature--coming-soon
+.cell-map-feature-label-line {
+    stroke: #c28a18;
+    stroke-dasharray: 4 3;
+}
+
+.cell-map-feature--coming-soon
+.cell-map-feature-label {
+    fill: #7b560d;
+}
+
 /* Every feature provides the same pointer and keyboard focus feedback. */
 .cell-map-feature:hover
 .cell-map-feature-node,
