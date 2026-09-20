@@ -248,10 +248,18 @@ const organelleLibrary = {
             }
         ],
         "unlock": {
-            "status": "deferred",
+            "status": "preview",
             "mode": "all",
-            "requirements": [],
-            "proposal": null
+            "requirements": [
+                {
+                    "type": "environment_discovered",
+                    "id": "successful_phagocytosis",
+                    "label": "successfully engulf food during a Pond encounter"
+                }
+            ],
+            "proposal": null,
+            "displayRequirement": "successfully engulf food during a Pond encounter.",
+            "comingSoonMessage": "Food Vacuole revealed through successful phagocytosis. Intracellular digestion activities are coming soon."
         }
     },
     "cytoskeleton": {
@@ -555,10 +563,18 @@ const organelleLibrary = {
             }
         ],
         "unlock": {
-            "status": "deferred",
+            "status": "preview",
             "mode": "all",
-            "requirements": [],
-            "proposal": null
+            "requirements": [
+                {
+                    "type": "zone_unlocked",
+                    "id": "polymerizer",
+                    "label": "claim the From Monomers to Proteins quest and unlock Polymerizer"
+                }
+            ],
+            "proposal": null,
+            "displayRequirement": "claim the From Monomers to Proteins quest and unlock Polymerizer.",
+            "comingSoonMessage": "Ribosomes revealed with the Polymerizer. Translation activities are coming soon."
         }
     },
     "lysosomes": {
@@ -611,7 +627,9 @@ const organelleLibrary = {
                     "type": "any_discovery",
                     "ids": [
                         "food_vacuole",
-                        "endosome"
+                        "endosome",
+                        "successful_phagocytosis",
+                        "endocytosis_observed"
                     ],
                     "label": "discover a food vacuole or endosome"
                 }
@@ -683,10 +701,18 @@ const organelleLibrary = {
             }
         ],
         "unlock": {
-            "status": "deferred",
+            "status": "preview",
             "mode": "all",
-            "requirements": [],
-            "proposal": null
+            "requirements": [
+                {
+                    "type": "environment_discovered",
+                    "id": "endocytosis_observed",
+                    "label": "observe cargo entering the cell through endocytosis"
+                }
+            ],
+            "proposal": null,
+            "displayRequirement": "observe cargo entering the cell through endocytosis.",
+            "comingSoonMessage": "Endosome revealed through endocytosis. Cargo-sorting activities are coming soon."
         }
     },
     "autophagosome": {
