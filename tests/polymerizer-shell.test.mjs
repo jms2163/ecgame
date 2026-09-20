@@ -194,13 +194,19 @@ const visual =
         "Aquaporin"
     );
 assert(visual.imageUrl.endsWith(
-    "/public/assets/polymerizer/proteins/1rc2_motifs/1RC2-0.png"
+    "/public/assets/polymerizer/proteins/1RC2-0.png"
 ));
 
 assert.equal(
     ZoneCatalog.get("polymerizer")
         .releaseState,
-    ZoneCatalog.RELEASE_STATE.COMING_SOON
+    ZoneCatalog.RELEASE_STATE.PLAYABLE
+);
+assert.equal(
+    ZoneStatusResolver.getStatus(
+        "polymerizer"
+    ).status,
+    ZoneStatusResolver.STATUS.LOCKED
 );
 assert.equal(
     ZoneStatusResolver.getStatus(
@@ -208,6 +214,15 @@ assert.equal(
     ).interactive,
     false
 );
+
+gameState.zones.polymerizer.unlocked = true;
+assert.equal(
+    ZoneStatusResolver.getStatus(
+        "polymerizer"
+    ).interactive,
+    true
+);
+gameState.zones.polymerizer.unlocked = false;
 assert.equal(
     Object.hasOwn(
         gameState.zones,

@@ -579,6 +579,98 @@ ObjectiveRegistry.register(
     }
 );
 
+// Counts distinct completed products in one Macromolecularizer category.
+// An optional productIds allowlist narrows a broad catalog category to a
+// pedagogically meaningful group, such as membrane phospholipids or
+// canonical RNA/DNA monomers. Existing products count and remain unconsumed.
+ObjectiveRegistry.register(
+    "macromolecular-category-synthesis",
+    {
+        events: [
+            "carbohydrate-synthesized",
+            "lipid-synthesized",
+            "motif-synthesized",
+            "macromolecularizer-state-changed"
+        ],
+
+        evaluate({ objective }) {
+            const allowedProductIds =
+                Array.isArray(
+                    objective.productIds
+                )
+                    ? [...new Set(
+                        objective.productIds
+                    )]
+                    : MacromolecularRecipeCatalog
+                        .getImplemented()
+                        .filter(definition =>
+                            definition.category ===
+                                objective.categoryId
+                        )
+                        .map(definition =>
+                            definition.id
+                        );
+
+            const validProductIds =
+                allowedProductIds.filter(
+                    productId => {
+                        const definition =
+                            MacromolecularRecipeCatalog
+                                .get(productId);
+
+                        return Boolean(
+                            definition?.implemented &&
+                            definition.category ===
+                                objective.categoryId
+                        );
+                    }
+                );
+
+            if (validProductIds.length === 0) {
+                return {
+                    current: 0,
+                    target:
+                        objective.target ?? 1,
+                    complete: false,
+                    error:
+                        "invalid-macromolecular-category"
+                };
+            }
+
+            const inventory =
+                gameState.zones
+                    ?.macromolecularizer
+                    ?.state
+                    ?.motifInventory ?? {};
+
+            const completedIds =
+                validProductIds.filter(
+                    productId => {
+                        const count =
+                            inventory[productId];
+
+                        return Number.isFinite(
+                            count
+                        ) && count >= 1;
+                    }
+                );
+
+            return {
+                ...normalizeProgress(
+                    completedIds.length,
+                    objective.target
+                ),
+                categoryId:
+                    objective.categoryId,
+                completedIds,
+                eligibleProductIds:
+                    validProductIds,
+                consumed: false
+            };
+        }
+    }
+);
+
 export {
     createBaselineKey,
     normalizeProgress
