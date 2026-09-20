@@ -68,11 +68,10 @@ const ZONE_DEFINITIONS = Object.freeze([
     Object.freeze({
         id: "polymerizer",
         label: "Polymerizer",
-        releaseState: RELEASE_STATE.COMING_SOON,
+        releaseState: RELEASE_STATE.PLAYABLE,
         lockedMessage:
-            "Complete the required macromolecule activities first.",
-        comingSoonMessage:
-            "Polymer construction is planned for a later release."
+            "Complete and claim the From Monomers to Proteins quest first.",
+        comingSoonMessage: ""
     }),
 
     Object.freeze({
