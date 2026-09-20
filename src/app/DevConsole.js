@@ -15,6 +15,8 @@ import VersionManager
     from "./VersionManager.js";
 import PondWorld from "./PondWorld.js";
 import PondController from "./PondController.js";
+import PondDiscoveryManager
+    from "./PondDiscoveryManager.js";
 import PondPerception from "./PondPerception.js";
 import PondWorldGenerator
     from "./PondWorldGenerator.js";
@@ -130,6 +132,7 @@ const DevConsole = {
             VersionManager,
             PondWorld,
             PondController,
+            PondDiscoveryManager,
             PondPerception,
             PondWorldGenerator,
             SeededRandom,

@@ -500,6 +500,58 @@ ObjectiveRegistry.register(
     }
 );
 
+// --------------------------------------------------
+// First-time Pond microbiome arrivals
+// --------------------------------------------------
+ObjectiveRegistry.register(
+    "microbiome-discovery",
+    {
+        events: [
+            "microbiome-discovered"
+        ],
+
+        evaluate({ objective }) {
+            const eligibleBiomeIds =
+                Array.isArray(
+                    objective.biomeIds
+                )
+                    ? [
+                        ...new Set(
+                            objective.biomeIds
+                                .filter(
+                                    biomeId =>
+                                        typeof biomeId ===
+                                            "string"
+                                )
+                        )
+                    ]
+                    : [];
+            const discoveries =
+                gameState.zones?.pond
+                    ?.state
+                    ?.discoveredMicrobiomes ??
+                {};
+            const completedIds =
+                eligibleBiomeIds.filter(
+                    biomeId =>
+                        Boolean(
+                            discoveries[biomeId]
+                        )
+                );
+
+            return {
+                ...normalizeProgress(
+                    completedIds.length,
+                    objective.target
+                ),
+                completedIds,
+                eligibleBiomeIds,
+                consumed: false
+            };
+        }
+    }
+);
+
 // A fixed set of distinct, completed Molecule Lab recipes. This intentionally
 // reads synthesis history, not discovery flags or counts of repeated copies.
 ObjectiveRegistry.register("molecule-synthesis-set", {

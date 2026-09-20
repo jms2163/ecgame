@@ -10,6 +10,8 @@ import ResourceManager from "./ResourceManager.js";
 import MicrobiomeLibrary from "./MicrobiomeLibrary.js";
 import CellCapabilityEvaluator
     from "./CellCapabilityEvaluator.js";
+import PondDiscoveryManager
+    from "./PondDiscoveryManager.js";
 
 
 
@@ -325,6 +327,12 @@ if (!capabilities.manualMovement.available) {
     );
 
     this.initializeLocalWorld();
+
+    PondDiscoveryManager.recordArrival(
+        this.getCurrentTile(),
+        GameStateManager.getPondPosition(),
+        "manual-movement"
+    );
 
     return true;
 

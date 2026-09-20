@@ -22,12 +22,13 @@ assert.ok(signalingIndex < ids.indexOf('metabolism'));
 
 const signaling = ZoneCatalog.get('signaling');
 assert.equal(signaling.label, 'Signaling');
-assert.equal(signaling.releaseState, ZoneCatalog.RELEASE_STATE.COMING_SOON);
+assert.equal(signaling.releaseState, ZoneCatalog.RELEASE_STATE.PLAYABLE);
 
 const status = ZoneStatusResolver.getStatus('signaling');
-assert.equal(status.status, ZoneStatusResolver.STATUS.COMING_SOON);
-assert.equal(status.label, 'Coming Soon');
+assert.equal(status.status, ZoneStatusResolver.STATUS.LOCKED);
+assert.equal(status.label, 'Locked');
 assert.equal(status.interactive, false);
+assert.match(status.message, /Bacterial Bloom/);
 
 const zoneManagerSource = fs.readFileSync(
     new URL('../src/app/ZoneManager.js', import.meta.url),
@@ -75,6 +76,7 @@ const bootstrapSource = fs.readFileSync(
 assert.match(uiSource, /Extracellular Signal/);
 assert.match(uiSource, /Second Messengers/);
 assert.match(uiSource, /cAMP and cGMP activities remain locked/);
+assert.match(uiSource, /The encounter is recorded/);
 assert.match(indexSource, /public\/css\/signaling\.css/);
 assert.match(
     bootstrapSource,
@@ -87,4 +89,4 @@ assert.ok(
     'Signaling normalization must occur after the saved game replaces defaults'
 );
 
-console.log('PASS: Signaling remains a noninteractive Coming Soon tab while gaining a console-locked module, empty save-compatible state, and static pathway foundation shell.');
+console.log('PASS: Signaling is a quest-locked playable tab with an empty save-compatible state and static pathway foundation shell.');

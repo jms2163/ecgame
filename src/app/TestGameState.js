@@ -21,7 +21,9 @@ const testGameState = {
     zones: {
         pond: {
             unlocked: true,
-            state: {}
+            state: {
+                discoveredMicrobiomes: {}
+            }
         },
 
         quantum: {

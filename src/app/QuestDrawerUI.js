@@ -11,6 +11,8 @@ import QuestManager from "./QuestManager.js";
 import QuestStatusResolver
     from "./QuestStatusResolver.js";
 import ZoneCatalog from "./ZoneCatalog.js";
+import { prioritizeClaimableQuests }
+    from "./QuestDrawerOrdering.js";
 
 const UTILITY_CONTROL_ID = "quests";
 
@@ -754,9 +756,20 @@ const QuestDrawerUI = {
 
     },
 
+    prioritizeClaimableQuests(quests = []) {
+        return prioritizeClaimableQuests(
+            quests
+        );
+    },
+
     renderActiveQuests(quests) {
 
-        if (quests.length === 0) {
+        const prioritizedQuests =
+            this.prioritizeClaimableQuests(
+                quests
+            );
+
+        if (prioritizedQuests.length === 0) {
             const empty =
                 document.createElement("p");
             empty.className =
@@ -771,7 +784,7 @@ const QuestDrawerUI = {
         }
 
         this.listElement.replaceChildren(
-            ...quests.map(
+            ...prioritizedQuests.map(
                 quest =>
                     this.createQuestCard(
                         quest
