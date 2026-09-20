@@ -1,121 +1,103 @@
 // --------------------------------------------------
 // PondWorldConfig.js
-// Creates deterministic microbiome region placement
+// Deterministic, repeatable microbiome regions for an
+// effectively unlimited Pond world.
 // --------------------------------------------------
 
 import SeededRandom from "./SeededRandom.js";
 
+const CHUNK_SIZE = 16;
+const ANAEROBIC_CHANCE = 0.35;
+const ANAEROBIC_SPAWN_MARGIN = 3;
+
+function mixSeed(seed, chunkX, chunkY) {
+    let mixed = seed >>> 0;
+
+    mixed ^= Math.imul(chunkX | 0, 0x9e3779b1);
+    mixed ^= Math.imul(chunkY | 0, 0x85ebca77);
+    mixed ^= mixed >>> 16;
+    mixed = Math.imul(mixed, 0x7feb352d);
+    mixed ^= mixed >>> 15;
+    mixed = Math.imul(mixed, 0x846ca68b);
+    mixed ^= mixed >>> 16;
+
+    return mixed >>> 0;
+}
+
+function distanceBetween(x1, y1, x2, y2) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+
+    return Math.sqrt((dx * dx) + (dy * dy));
+}
+
+function isRegionSafeFromSpawn(
+    region,
+    safeMargin = ANAEROBIC_SPAWN_MARGIN
+) {
+    return (
+        distanceBetween(
+            0,
+            0,
+            region.x,
+            region.y
+        ) - region.radius
+    ) >= safeMargin;
+}
+
 const PondWorldConfig = {
 
-    create(seed) {
+    CHUNK_SIZE,
+    ANAEROBIC_CHANCE,
+    ANAEROBIC_SPAWN_MARGIN,
 
-        const random =
-            SeededRandom.create(seed);
+    getChunkCoordinates(x, y) {
+        return {
+            chunkX: Math.floor(x / CHUNK_SIZE),
+            chunkY: Math.floor(y / CHUNK_SIZE)
+        };
+    },
 
-
-        // --------------------------------------------------
-        // Random Integer Helper
-        // --------------------------------------------------
-        const randomInt = (min, max) => {
-
-            return Math.floor(
+    createChunk(seed, chunkX, chunkY) {
+        const random = SeededRandom.create(
+            mixSeed(seed, chunkX, chunkY)
+        );
+        const minX = chunkX * CHUNK_SIZE;
+        const minY = chunkY * CHUNK_SIZE;
+        const randomFloat = (min, max) =>
+            min + (random() * (max - min));
+        const randomInt = (min, max) =>
+            Math.floor(
                 random() * (max - min + 1)
             ) + min;
 
-        };
-
-
-        // --------------------------------------------------
-        // Random Decimal Helper
-        // --------------------------------------------------
-        const randomFloat = (min, max) => {
-
-            return (
-                min +
-                random() * (max - min)
-            );
-
-        };
-
-
-        // --------------------------------------------------
-        // Distance Helper
-        // --------------------------------------------------
-        const distanceBetween = (
-            x1,
-            y1,
-            x2,
-            y2
-        ) => {
-
-            const dx = x2 - x1;
-            const dy = y2 - y1;
-
-            return Math.sqrt(
-                dx * dx +
-                dy * dy
-            );
-
-        };
-
-
-        // --------------------------------------------------
-        // Spawn Safety Helper
-        // --------------------------------------------------
-        const isRegionSafeFromSpawn = (
-            region,
-            safeMargin = 2
-        ) => {
-
-            const distanceFromSpawn =
-                distanceBetween(
-                    0,
-                    0,
-                    region.x,
-                    region.y
-                );
-
-            const edgeDistance =
-                distanceFromSpawn - region.radius;
-
-            return edgeDistance >= safeMargin;
-
-        };
-
-
-        // --------------------------------------------------
-        // Create Region With Optional Spawn Safety
-        // --------------------------------------------------
         const createRegion = ({
             microbiome,
             minRadius,
             maxRadius,
-            minX = -5,
-            maxX = 5,
-            minY = -5,
-            maxY = 5,
             requireSpawnSafe = false,
-            safeMargin = 2,
+            safeMargin = ANAEROBIC_SPAWN_MARGIN,
             maxAttempts = 50
         }) => {
-
             for (
                 let attempt = 0;
                 attempt < maxAttempts;
                 attempt++
             ) {
-
                 const region = {
                     microbiome,
-
-                    x: randomInt(minX, maxX),
-                    y: randomInt(minY, maxY),
-
-                    radius:
-                        randomFloat(
-                            minRadius,
-                            maxRadius
-                        )
+                    x: randomInt(
+                        minX,
+                        minX + CHUNK_SIZE - 1
+                    ),
+                    y: randomInt(
+                        minY,
+                        minY + CHUNK_SIZE - 1
+                    ),
+                    radius: randomFloat(
+                        minRadius,
+                        maxRadius
+                    )
                 };
 
                 if (
@@ -125,92 +107,73 @@ const PondWorldConfig = {
                         safeMargin
                     )
                 ) {
-
                     return region;
-
                 }
-
             }
 
-            console.warn(
-                `PondWorldConfig: unable to safely place "${microbiome}"`
-            );
-
             return null;
-
         };
 
-
-        // --------------------------------------------------
-        // Layer 2: Substrate Regions
-        // --------------------------------------------------
         const substrateRegions = [
-
             createRegion({
                 microbiome: "algae_patch",
-                minRadius: 2.0,
-                maxRadius: 3.0
+                minRadius: 2,
+                maxRadius: 3
+            }),
+            createRegion({
+                microbiome: "algae_patch",
+                minRadius: 2,
+                maxRadius: 3
             })
-
         ].filter(Boolean);
+        const overlayRegions = [
+            createRegion({
+                microbiome: "bacterial_bloom",
+                minRadius: 1.5,
+                maxRadius: 2.5
+            }),
+            createRegion({
+                microbiome: "bacterial_bloom",
+                minRadius: 1.5,
+                maxRadius: 2.5
+            })
+        ];
 
-
-        // --------------------------------------------------
-// Layer 3: Overlay Regions
-// --------------------------------------------------
-const overlayRegions = [
-
-    createRegion({
-        microbiome: "bacterial_bloom",
-        minRadius: 1.5,
-        maxRadius: 2.5
-    }),
-
-    createRegion({
-        microbiome: "anaerobic_pocket",
-        minRadius: 0.5,
-        maxRadius: 1.0,
-        requireSpawnSafe: true,
-        safeMargin: 3
-    })
-
-].filter(Boolean);
-
-
-        // --------------------------------------------------
-        // Temporary Region Debugging
-        // --------------------------------------------------
-        const algae =
-            substrateRegions[0];
-
-        const bloom =
-            overlayRegions[0];
-
-
-        const regionDistance =
-            distanceBetween(
-                algae.x,
-                algae.y,
-                bloom.x,
-                bloom.y
+        if (random() < ANAEROBIC_CHANCE) {
+            overlayRegions.push(
+                createRegion({
+                    microbiome: "anaerobic_pocket",
+                    minRadius: 0.5,
+                    maxRadius: 1,
+                    requireSpawnSafe: true
+                })
             );
+        }
 
-        
-
-
-        
-
-
-        // --------------------------------------------------
-        // Return Pond Configuration
-        // --------------------------------------------------
         return {
+            chunkX,
+            chunkY,
             substrateRegions,
-            overlayRegions
+            overlayRegions:
+                overlayRegions.filter(Boolean)
         };
+    },
 
-    }
+    // Retained for development-console compatibility.
+    create(seed) {
+        return this.createChunk(seed, 0, 0);
+    },
 
+    isRegionSafeFromSpawn
+
+};
+
+export {
+    CHUNK_SIZE,
+    ANAEROBIC_CHANCE,
+    ANAEROBIC_SPAWN_MARGIN,
+    mixSeed,
+    isRegionSafeFromSpawn
 };
 
 export default PondWorldConfig;
