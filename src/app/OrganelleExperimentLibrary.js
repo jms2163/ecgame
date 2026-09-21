@@ -8,6 +8,10 @@ import CytoskeletonTransportExperiment from "./CytoskeletonTransportCatalog.js";
 import ContractileVacuoleExperiment from './ContractileVacuoleExperimentCatalog.js';
 import PotassiumChannelExperiment
     from "./PotassiumChannelExperimentCatalog.js";
+import RoughERProteinTargetingExperiment
+    from "./RoughERProteinTargetingCatalog.js";
+import RibosomeTranslationExperiment
+    from "./RibosomeTranslationCatalog.js";
 
 const MEMBRANE_TRANSPORT_LABELS = [
 
@@ -28,6 +32,12 @@ const MEMBRANE_TRANSPORT_LABELS = [
 ];
 
 const OrganelleExperimentLibrary = {
+
+    rough_er_protein_targeting:
+        RoughERProteinTargetingExperiment,
+
+    ribosome_translation_level_1:
+        RibosomeTranslationExperiment,
 
     contractile_vacuole_filling: ContractileVacuoleExperiment,
 

@@ -386,14 +386,14 @@ const organelleLibrary = {
             "mode": "all",
             "requirements": [
                 {
-                    "type": "polymerizer_product_synthesized",
-                    "id": "GlucoseTransporter",
-                    "label": "reveal the Rough ER by synthesizing Glucose Transporter"
+                    "type": "experiment_completed",
+                    "id": "rough_er_protein_targeting",
+                    "label": "complete the Rough ER protein-targeting investigation"
                 }
             ],
             "proposal": null,
-            "displayRequirement": "reveal the Rough ER by synthesizing Glucose Transporter.",
-            "comingSoonMessage": "A transport vesicle from the Rough ER points toward the Golgi apparatus. The introductory Golgi routing investigation is coming soon."
+            "displayRequirement": "complete the Rough ER protein-targeting investigation.",
+            "comingSoonMessage": "ER cargo is ready for its next destination. The introductory Golgi routing investigation is coming soon."
         }
     },
     "rough_endoplasmic_reticulum": {
@@ -403,11 +403,32 @@ const organelleLibrary = {
         "shortSummary": "Supports synthesis and processing of many membrane and secreted proteins.",
         "description": "Supports synthesis and processing of many membrane and secreted proteins.",
         "figure": {
-            "src": "./public/assets/organelles/rough-ER-labeled",
-            "alt": "",
-            "caption": ""
+            "src": "./public/assets/organelles/rough-ER-labelend.png",
+            "alt": "Diagram of rough endoplasmic reticulum membranes with attached ribosomes.",
+            "caption": "Ribosomes dock temporarily while an ER-targeted protein is being translated."
         },
-        "components": [],
+        "components": [
+            {
+                "id": "free_ribosome",
+                "label": "Free Ribosome",
+                "description": "Begins translation in the cytosol before an emerging ER signal is recognized."
+            },
+            {
+                "id": "signal_recognition_particle",
+                "label": "Signal Recognition Particle (SRP)",
+                "description": "Recognizes an emerging ER signal and briefly pauses translation while targeting the ribosome to the ER."
+            },
+            {
+                "id": "translocon",
+                "label": "Translocon",
+                "description": "A membrane channel through which a growing protein enters the ER lumen or is inserted into the ER membrane."
+            },
+            {
+                "id": "er_lumen",
+                "label": "ER Lumen",
+                "description": "The compartment continuous with the future extracellular-facing side of secretory-pathway membranes."
+            }
+        ],
         "benefits": [
             {
                 "id": "rough_endoplasmic_reticulum_benefit",
@@ -418,7 +439,7 @@ const organelleLibrary = {
             }
         ],
         "unlock": {
-            "status": "preview",
+            "status": "active",
             "mode": "all",
             "requirements": [
                 {
@@ -429,7 +450,7 @@ const organelleLibrary = {
             ],
             "proposal": null,
             "displayRequirement": "synthesize Glucose Transporter in the Polymerizer.",
-            "comingSoonMessage": "Rough ER revealed through Glucose Transporter synthesis. Protein-routing activities are coming soon."
+            "comingSoonMessage": "Rough ER revealed through Glucose Transporter synthesis."
         }
     },
     "smooth_endoplasmic_reticulum": {
@@ -563,7 +584,7 @@ const organelleLibrary = {
             }
         ],
         "unlock": {
-            "status": "preview",
+            "status": "active",
             "mode": "all",
             "requirements": [
                 {
@@ -574,7 +595,7 @@ const organelleLibrary = {
             ],
             "proposal": null,
             "displayRequirement": "claim the From Monomers to Proteins quest and unlock Polymerizer.",
-            "comingSoonMessage": "Ribosomes revealed with the Polymerizer. Translation activities are coming soon."
+            "comingSoonMessage": "Ribosomes revealed with the Polymerizer."
         }
     },
     "lysosomes": {

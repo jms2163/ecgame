@@ -41,14 +41,15 @@ try {
 
     // Claiming the Polymerizer quest sets this authoritative zone flag.
     gameState.zones.polymerizer.unlocked = true;
-    const ribosomePreview =
+    const ribosomeLab =
         expectState(
             "ribosomes",
-            "coming-soon"
+            "available"
         );
     assert.equal(
-        ribosomePreview.previewAvailable,
-        true
+        ribosomeLab.ruleIsActive,
+        true,
+        "Polymerizer access now releases the Ribosome Translation prerequisite lab"
     );
 
     // These future Pond systems will grant permanent discoveries when
@@ -108,5 +109,5 @@ try {
 }
 
 console.log(
-    "PASS: Polymerizer access reveals Ribosomes, future Pond uptake discoveries reveal Food Vacuole and Endosome previews, and Lysosome still requires Golgi routing plus either cargo route."
+    "PASS: Polymerizer access unlocks the Ribosome Translation lab, future Pond uptake discoveries reveal Food Vacuole and Endosome previews, and Lysosome still requires Golgi routing plus either cargo route."
 );
