@@ -31,6 +31,8 @@ import PlayerProfileManager from "./PlayerProfileManager.js";
 import PlayerBadgeDrawer from "./PlayerBadgeDrawer.js";
 import PondDiscoveryManager
     from "./PondDiscoveryManager.js";
+import PondCurrentManager
+    from "./PondCurrentManager.js";
 
 
 const Bootstrap = {
@@ -49,6 +51,9 @@ const Bootstrap = {
         // Legacy saves may predate Pond exploration records.
         // Normalize them before quests evaluate saved discoveries.
         PondDiscoveryManager.initialize();
+        // Timed Pond drift starts from the loaded field offset,
+        // but deliberately begins a fresh online timer session.
+        PondCurrentManager.initialize();
 
         ResourceManager.initialize();
         SynthesisPointManager.initialize();

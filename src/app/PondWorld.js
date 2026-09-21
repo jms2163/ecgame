@@ -5,6 +5,8 @@
 
 import PondTileFactory from "./PondTileFactory.js";
 import PondWorldGenerator from "./PondWorldGenerator.js";
+import PondCurrentManager
+    from "./PondCurrentManager.js";
 
 const GENERATION_VERSION = 4;
 
@@ -92,8 +94,14 @@ ensureRegion(world, centerX, centerY, radius) {
     const tile =
         PondTileFactory.create(x, y);
 
+    const samplePosition =
+        PondCurrentManager
+            .getFieldSamplePosition(x, y);
     const generated =
-        PondWorldGenerator.generate(x, y);
+        PondWorldGenerator.generate(
+            samplePosition.x,
+            samplePosition.y
+        );
 
     tile.biome =
         generated.dominantMicrobiome;

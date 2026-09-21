@@ -26,6 +26,7 @@ const PondGridView = {
     initialized: false,
     active: false,
     atpChangedHandler: null,
+    currentShiftHandler: null,
 
     viewportElement: null,         // Pond viewport positioning
     microscopeStageElement: null,  // Frame positioning for grid, D-pad, and HUD
@@ -181,6 +182,20 @@ const movementControlsElement =
         GameStateObserver.on(
             "atp-changed",
             this.atpChangedHandler
+        );
+
+        this.currentShiftHandler = () => {
+            if (!this.active) {
+                return;
+            }
+
+            PondController.initializeLocalWorld();
+            this.render();
+        };
+
+        GameStateObserver.on(
+            "pond-current-shifted",
+            this.currentShiftHandler
         );
 
         // --------------------------------------------------
