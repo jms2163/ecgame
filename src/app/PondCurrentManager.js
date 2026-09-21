@@ -1,7 +1,7 @@
 // --------------------------------------------------
 // PondCurrentManager.js
-// Owns online Pond-current timing and persistent field offsets.
-// Offline reconciliation, passive-hazard protection, and anchoring
+// Owns Pond-current timing, persistent field offsets, and one-step
+// offline reconciliation. Passive-hazard protection and anchoring
 // ATP costs belong to later milestones.
 // --------------------------------------------------
 
@@ -130,25 +130,167 @@ const PondCurrentManager = {
     },
 
     beginSession(nowMs = Date.now()) {
+        const existingCurrent =
+            gameState.zones?.pond?.state?.current;
+        const hasPersistedCurrentClock = Boolean(
+            existingCurrent &&
+            typeof existingCurrent === "object" &&
+            Number.isFinite(
+                existingCurrent.lastShiftAtMs
+            ) &&
+            Number.isFinite(
+                existingCurrent
+                    .lastDirectionChangedAtMs
+            )
+        );
         const current = this.ensureState(nowMs);
-
-        // Timers deliberately restart on page load. Offline
-        // catch-up is deferred to its own safety milestone.
-        current.lastShiftAtMs = nowMs;
-        current.lastDirectionChangedAtMs = nowMs;
         this.wasAnchored =
             GameStateManager.isPondPlayerAnchored();
         this.tickAccumulatorSec = 0;
 
-        return current;
+        if (!hasPersistedCurrentClock) {
+            // New and legacy saves begin with no surprise movement.
+            current.lastShiftAtMs = nowMs;
+            current.lastDirectionChangedAtMs = nowMs;
+
+            return {
+                changed: false,
+                reason: "new-current-clock",
+                status: this.getStatus(nowMs)
+            };
+        }
+
+        return this.reconcileOfflineSession(nowMs);
+    },
+
+    reconcileOfflineSession(nowMs = Date.now()) {
+        if (!Number.isFinite(nowMs)) {
+            return {
+                changed: false,
+                reason: "invalid-time"
+            };
+        }
+
+        const current = this.ensureState(nowMs);
+        const pondState = gameState.zones.pond.state;
+        const world = pondState.world;
+        const previousCurrent = structuredClone(current);
+        const previousTiles = world?.tiles;
+        const anchored =
+            GameStateManager.isPondPlayerAnchored();
+        let directionChanged = false;
+        let shifted = false;
+
+        if (
+            nowMs - current.lastDirectionChangedAtMs >=
+                DIRECTION_INTERVAL_MS
+        ) {
+            const nextDirection =
+                this.chooseNextDirection(
+                    current.directionIndex,
+                    current.directionChangeCount,
+                    this.ensureWorldSeed()
+                );
+
+            current.directionIndex =
+                nextDirection.index;
+            current.directionChangeCount += 1;
+            directionChanged = true;
+        }
+
+        // A reload represents at most one current step. We never
+        // simulate every five-minute interval missed while offline.
+        if (!anchored) {
+            const direction =
+                this.getDirection(
+                    current.directionIndex
+                );
+
+            current.fieldOffsetX = roundOffset(
+                current.fieldOffsetX + direction.dx
+            );
+            current.fieldOffsetY = roundOffset(
+                current.fieldOffsetY + direction.dy
+            );
+            shifted = true;
+
+            if (world) {
+                world.tiles = {};
+            }
+        }
+
+        // Every loaded session starts fresh online timers. Anchored
+        // players retain their relative surroundings during absence.
+        current.lastShiftAtMs = nowMs;
+        current.lastDirectionChangedAtMs = nowMs;
+        this.wasAnchored = anchored;
+
+        if (!directionChanged && !shifted) {
+            return {
+                changed: false,
+                reason: "anchored-offline",
+                offlineReconciled: true,
+                status: this.getStatus(nowMs)
+            };
+        }
+
+        if (!SaveManager.save({
+            reason: "pond-current-offline-reconcile"
+        })) {
+            pondState.current = previousCurrent;
+
+            if (world) {
+                world.tiles = previousTiles;
+            }
+
+            return {
+                changed: false,
+                reason: "save-failed",
+                offlineReconciled: false,
+                status: this.getStatus(nowMs)
+            };
+        }
+
+        const status = this.getStatus(nowMs);
+
+        if (directionChanged) {
+            GameStateObserver.notify(
+                "pond-current-direction-changed",
+                status
+            );
+        }
+
+        if (shifted) {
+            GameStateObserver.notify(
+                "pond-current-shifted",
+                status
+            );
+        }
+
+        GameStateObserver.notify(
+            "pond-current-offline-reconciled",
+            {
+                directionChanged,
+                shifted,
+                status
+            }
+        );
+
+        return {
+            changed: true,
+            directionChanged,
+            shifted,
+            offlineReconciled: true,
+            status
+        };
     },
 
     initialize(nowMs = Date.now()) {
-        this.beginSession(nowMs);
-
         if (this.initialized) {
             return true;
         }
+
+        this.beginSession(nowMs);
 
         this.gameTickHandler = event => {
             const deltaSec =

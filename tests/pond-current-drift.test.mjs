@@ -275,17 +275,26 @@ try {
         startedAtMs +
         (DIRECTION_INTERVAL_MS * 10);
 
-    PondCurrentManager.beginSession(
+    const reloadResult =
+        PondCurrentManager.beginSession(
         reloadAtMs
     );
 
-    assert.deepEqual(
-        {
-            x: pondState.current.fieldOffsetX,
-            y: pondState.current.fieldOffsetY
-        },
-        offsetBeforeReload,
-        "this milestone performs no offline drift catch-up"
+    assert.equal(
+        reloadResult.offlineReconciled,
+        true
+    );
+    assert.equal(reloadResult.shifted, true);
+    assert.ok(
+        Math.abs(
+            Math.hypot(
+                pondState.current.fieldOffsetX -
+                    offsetBeforeReload.x,
+                pondState.current.fieldOffsetY -
+                    offsetBeforeReload.y
+            ) - 1
+        ) < 1e-6,
+        "reload must add exactly one drift step rather than an offline backlog"
     );
     assert.equal(
         pondState.current.lastShiftAtMs,
@@ -323,5 +332,5 @@ try {
 }
 
 console.log(
-    "PASS: online Pond current shifts the field every five minutes at equal speed, changes direction hourly, pauses while anchored, restarts after unanchoring, and records no passive discoveries."
+    "PASS: Pond current shifts online every five minutes, changes direction hourly, pauses while anchored, reconciles reload with one step, and records no passive discoveries."
 );

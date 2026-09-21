@@ -51,8 +51,8 @@ const Bootstrap = {
         // Legacy saves may predate Pond exploration records.
         // Normalize them before quests evaluate saved discoveries.
         PondDiscoveryManager.initialize();
-        // Timed Pond drift starts from the loaded field offset,
-        // but deliberately begins a fresh online timer session.
+        // Timed Pond drift reconciles a loaded, unanchored field
+        // once, then begins a fresh online timer session.
         PondCurrentManager.initialize();
 
         ResourceManager.initialize();
