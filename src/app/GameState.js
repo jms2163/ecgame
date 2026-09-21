@@ -164,7 +164,11 @@ const gameState = {
                     directionIndex: null,
                     directionChangeCount: 0,
                     lastShiftAtMs: null,
-                    lastDirectionChangedAtMs: null
+                    lastDirectionChangedAtMs: null,
+                    safetyHoldCount: 0,
+                    lastSafetyHoldAtMs: null,
+                    lastBlockedBiome: null,
+                    lastBlockedClassification: null
                 },
 
                 // First-time arrivals are recorded only after

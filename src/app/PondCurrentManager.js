@@ -1,8 +1,8 @@
 // --------------------------------------------------
 // PondCurrentManager.js
-// Owns Pond-current timing, persistent field offsets, and one-step
-// offline reconciliation. Passive-hazard protection and anchoring
-// ATP costs belong to later milestones.
+// Owns Pond-current timing, persistent field offsets, one-step
+// offline reconciliation, and passive-arrival hazard protection.
+// Anchoring ATP costs belong to a later milestone.
 // --------------------------------------------------
 
 import gameState from "./GameState.js";
@@ -11,6 +11,10 @@ import GameStateManager
 import GameStateObserver
     from "./GameStateObserver.js";
 import SaveManager from "./SaveManager.js";
+import PondWorldGenerator
+    from "./PondWorldGenerator.js";
+import PondEnvironmentClassifier
+    from "./PondEnvironmentClassifier.js";
 
 const SHIFT_INTERVAL_MS = 5 * 60 * 1000;
 const DIRECTION_INTERVAL_MS = 60 * 60 * 1000;
@@ -125,6 +129,29 @@ const PondCurrentManager = {
                 current.lastDirectionChangedAtMs,
                 nowMs
             );
+        current.safetyHoldCount =
+            Number.isSafeInteger(
+                current.safetyHoldCount
+            ) && current.safetyHoldCount >= 0
+                ? current.safetyHoldCount
+                : 0;
+        current.lastSafetyHoldAtMs =
+            Number.isFinite(
+                current.lastSafetyHoldAtMs
+            )
+                ? current.lastSafetyHoldAtMs
+                : null;
+        current.lastBlockedBiome =
+            typeof current.lastBlockedBiome ===
+                "string"
+                ? current.lastBlockedBiome
+                : null;
+        current.lastBlockedClassification =
+            typeof current
+                .lastBlockedClassification === "string"
+                ? current
+                    .lastBlockedClassification
+                : null;
 
         return current;
     },
@@ -180,6 +207,8 @@ const PondCurrentManager = {
             GameStateManager.isPondPlayerAnchored();
         let directionChanged = false;
         let shifted = false;
+        let safetyBlocked = false;
+        let blockedDestination = null;
 
         if (
             nowMs - current.lastDirectionChangedAtMs >=
@@ -201,20 +230,21 @@ const PondCurrentManager = {
         // A reload represents at most one current step. We never
         // simulate every five-minute interval missed while offline.
         if (!anchored) {
-            const direction =
-                this.getDirection(
-                    current.directionIndex
+            const attempt =
+                this.attemptPassiveShift(
+                    current,
+                    nowMs
                 );
 
-            current.fieldOffsetX = roundOffset(
-                current.fieldOffsetX + direction.dx
-            );
-            current.fieldOffsetY = roundOffset(
-                current.fieldOffsetY + direction.dy
-            );
-            shifted = true;
+            shifted = attempt.shifted;
+            safetyBlocked =
+                attempt.safetyBlocked;
+            blockedDestination =
+                safetyBlocked
+                    ? attempt.destination
+                    : null;
 
-            if (world) {
+            if (shifted && world) {
                 world.tiles = {};
             }
         }
@@ -225,7 +255,11 @@ const PondCurrentManager = {
         current.lastDirectionChangedAtMs = nowMs;
         this.wasAnchored = anchored;
 
-        if (!directionChanged && !shifted) {
+        if (
+            !directionChanged &&
+            !shifted &&
+            !safetyBlocked
+        ) {
             return {
                 changed: false,
                 reason: "anchored-offline",
@@ -267,19 +301,37 @@ const PondCurrentManager = {
             );
         }
 
+        if (safetyBlocked) {
+            GameStateObserver.notify(
+                "pond-current-safety-blocked",
+                {
+                    source: "offline-reconcile",
+                    destination:
+                        blockedDestination,
+                    status
+                }
+            );
+        }
+
         GameStateObserver.notify(
             "pond-current-offline-reconciled",
             {
                 directionChanged,
                 shifted,
+                safetyBlocked,
                 status
             }
         );
 
         return {
             changed: true,
+            reason: safetyBlocked
+                ? "safety-hold"
+                : "offline-reconciled",
             directionChanged,
             shifted,
+            safetyBlocked,
+            blockedDestination,
             offlineReconciled: true,
             status
         };
@@ -352,6 +404,98 @@ const PondCurrentManager = {
         ];
     },
 
+    evaluatePassiveDestination(
+        fieldOffsetX,
+        fieldOffsetY
+    ) {
+        const position =
+            GameStateManager.getPondPosition();
+
+        if (
+            !Number.isFinite(position?.x) ||
+            !Number.isFinite(position?.y)
+        ) {
+            return {
+                safe: false,
+                biome: null,
+                classification: {
+                    code: "POSITION_UNAVAILABLE",
+                    label: "Position Unavailable"
+                }
+            };
+        }
+
+        PondWorldGenerator.configure(
+            this.ensureWorldSeed()
+        );
+
+        const generated =
+            PondWorldGenerator.generate(
+                position.x - fieldOffsetX,
+                position.y - fieldOffsetY
+            );
+        const safety =
+            PondEnvironmentClassifier
+                .isPassiveArrivalSafe({
+                    physics:
+                        generated.environment
+                            .physics,
+                    chemistry: {
+                        signals:
+                            generated.environment
+                                .signals
+                    }
+                });
+
+        return {
+            ...safety,
+            biome:
+                generated.dominantMicrobiome
+        };
+    },
+
+    attemptPassiveShift(current, nowMs) {
+        const direction =
+            this.getDirection(
+                current.directionIndex
+            );
+        const candidateOffsetX = roundOffset(
+            current.fieldOffsetX + direction.dx
+        );
+        const candidateOffsetY = roundOffset(
+            current.fieldOffsetY + direction.dy
+        );
+        const destination =
+            this.evaluatePassiveDestination(
+                candidateOffsetX,
+                candidateOffsetY
+            );
+
+        if (!destination.safe) {
+            current.safetyHoldCount += 1;
+            current.lastSafetyHoldAtMs = nowMs;
+            current.lastBlockedBiome =
+                destination.biome;
+            current.lastBlockedClassification =
+                destination.classification.code;
+
+            return {
+                shifted: false,
+                safetyBlocked: true,
+                destination
+            };
+        }
+
+        current.fieldOffsetX = candidateOffsetX;
+        current.fieldOffsetY = candidateOffsetY;
+
+        return {
+            shifted: true,
+            safetyBlocked: false,
+            destination
+        };
+    },
+
     getFieldSamplePosition(x, y) {
         const current = this.ensureState();
 
@@ -380,6 +524,8 @@ const PondCurrentManager = {
             GameStateManager.isPondPlayerAnchored();
         let directionChanged = false;
         let shifted = false;
+        let safetyBlocked = false;
+        let blockedDestination = null;
 
         if (
             nowMs - current.lastDirectionChangedAtMs >=
@@ -410,24 +556,31 @@ const PondCurrentManager = {
             nowMs - current.lastShiftAtMs >=
                 SHIFT_INTERVAL_MS
         ) {
-            const direction =
-                this.getDirection(current.directionIndex);
+            const attempt =
+                this.attemptPassiveShift(
+                    current,
+                    nowMs
+                );
 
-            current.fieldOffsetX = roundOffset(
-                current.fieldOffsetX + direction.dx
-            );
-            current.fieldOffsetY = roundOffset(
-                current.fieldOffsetY + direction.dy
-            );
             current.lastShiftAtMs = nowMs;
-            shifted = true;
+            shifted = attempt.shifted;
+            safetyBlocked =
+                attempt.safetyBlocked;
+            blockedDestination =
+                safetyBlocked
+                    ? attempt.destination
+                    : null;
 
-            if (world) {
+            if (shifted && world) {
                 world.tiles = {};
             }
         }
 
-        if (!directionChanged && !shifted) {
+        if (
+            !directionChanged &&
+            !shifted &&
+            !safetyBlocked
+        ) {
             return {
                 changed: false,
                 reason: anchored
@@ -438,9 +591,11 @@ const PondCurrentManager = {
         }
 
         if (!SaveManager.save({
-            reason: shifted
-                ? "pond-current-shift"
-                : "pond-current-direction"
+            reason: safetyBlocked
+                ? "pond-current-safety-hold"
+                : shifted
+                    ? "pond-current-shift"
+                    : "pond-current-direction"
         })) {
             pondState.current = previousCurrent;
 
@@ -471,10 +626,29 @@ const PondCurrentManager = {
             );
         }
 
+        if (safetyBlocked) {
+            GameStateObserver.notify(
+                "pond-current-safety-blocked",
+                {
+                    source: "online-drift",
+                    destination:
+                        blockedDestination,
+                    status
+                }
+            );
+        }
+
         return {
             changed: true,
+            reason: safetyBlocked
+                ? "safety-hold"
+                : shifted
+                    ? "shifted"
+                    : "direction-changed",
             directionChanged,
             shifted,
+            safetyBlocked,
+            blockedDestination,
             status
         };
     },
@@ -495,6 +669,14 @@ const PondCurrentManager = {
             lastShiftAtMs: current.lastShiftAtMs,
             lastDirectionChangedAtMs:
                 current.lastDirectionChangedAtMs,
+            safetyHoldCount:
+                current.safetyHoldCount,
+            lastSafetyHoldAtMs:
+                current.lastSafetyHoldAtMs,
+            lastBlockedBiome:
+                current.lastBlockedBiome,
+            lastBlockedClassification:
+                current.lastBlockedClassification,
             shiftIntervalMs: SHIFT_INTERVAL_MS,
             directionIntervalMs:
                 DIRECTION_INTERVAL_MS,
