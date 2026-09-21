@@ -25,6 +25,8 @@ import PondWorldGenerator
 import SeededRandom from "./SeededRandom.js";
 import PondWorldConfig
     from "./PondWorldConfig.js";
+import PondEnvironmentClassifier
+    from "./PondEnvironmentClassifier.js";
 import ResourceManager
     from "./ResourceManager.js";
 import SynthesisPointManager
@@ -140,6 +142,7 @@ const DevConsole = {
             PondWorldGenerator,
             SeededRandom,
             PondWorldConfig,
+            PondEnvironmentClassifier,
             ResourceManager,
             SynthesisPointManager,
             ATPManager,
