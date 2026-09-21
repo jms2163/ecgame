@@ -12,6 +12,7 @@ import CellCapabilityEvaluator
     from "./CellCapabilityEvaluator.js";
 import PondDiscoveryManager
     from "./PondDiscoveryManager.js";
+import SaveManager from "./SaveManager.js";
 
 
 
@@ -180,30 +181,29 @@ if (!capabilities.anchoring.available) {
         };
     }
 
-    const substrateId =
-        tile.microbiomes?.substrate;
+    const biomeId = tile.biome;
 
-    if (!substrateId) {
+    if (!biomeId || biomeId === "open_water") {
         return {
             allowed: false,
-            reason: "no-anchorable-substrate"
+            reason: "open-water"
         };
     }
 
-    const substrate =
-        MicrobiomeLibrary[substrateId];
+    const biome =
+        MicrobiomeLibrary[biomeId];
 
-    if (!substrate?.anchorable) {
+    if (!biome?.anchorable) {
         return {
             allowed: false,
-            reason: "substrate-not-anchorable"
+            reason: "biome-not-anchorable"
         };
     }
 
     return {
         allowed: true,
         action: "anchor",
-        substrateId
+        biomeId
     };
 
 },
@@ -232,9 +232,25 @@ toggleAnchor() {
         willAnchor
     );
 
+    if (!SaveManager.save({
+        reason: willAnchor
+            ? "pond-player-anchored"
+            : "pond-player-unanchored"
+    })) {
+        GameStateManager.setPondPlayerAnchored(
+            !willAnchor
+        );
+
+        console.error(
+            "PondController: anchoring state could not be saved"
+        );
+
+        return false;
+    }
+
     console.log(
         willAnchor
-            ? `PondController: anchored to ${anchorCheck.substrateId}`
+            ? `PondController: anchored to ${anchorCheck.biomeId}`
             : "PondController: unanchored"
     );
 

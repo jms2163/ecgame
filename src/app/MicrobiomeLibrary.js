@@ -354,7 +354,9 @@ detritus_cloud: {
 bacterial_bloom: {
     id: "bacterial_bloom",
     name: "Bacterial Bloom (Exponential Growth Zone)",
-    anchorable: false, // Planktonic bloom suspended in open water
+    // Dense cells and their extracellular material provide a
+    // drifting biological surface in this simplified Pond model.
+    anchorable: true,
 
     environment: {
         // --- 1. ABIOTIC PHYSICS ---
@@ -411,7 +413,9 @@ bacterial_bloom: {
 anaerobic_pocket: {
     id: "anaerobic_pocket",
     name: "Anaerobic Pocket (Anoxic Fermentation Zone)",
-    anchorable: false, // Amoebas will not anchor to this in our model.
+    // The pocket's dense microbial and detrital material can be
+    // used as an anchor despite its hazardous chemistry.
+    anchorable: true,
     environment: {
         // --- 1. ABIOTIC PHYSICS ---
         physics: {
