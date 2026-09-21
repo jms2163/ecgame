@@ -85,20 +85,42 @@ try {
             lastCompletedAtMs: 10
         };
 
-    for (const organelleId of [
-        "rough_endoplasmic_reticulum",
-        "golgi_apparatus"
-    ]) {
-        const status =
-            OrganelleProgressionManager
-                .getStatus(organelleId);
+    const roughERStatus =
+        OrganelleProgressionManager
+            .getStatus(
+                "rough_endoplasmic_reticulum"
+            );
 
-        assert.equal(status.available, false);
-        assert.equal(
-            status.progressionState,
-            "coming-soon"
-        );
-    }
+    assert.equal(roughERStatus.available, true);
+    assert.equal(
+        roughERStatus.progressionState,
+        "available"
+    );
+
+    assert.equal(
+        OrganelleProgressionManager
+            .getStatus("golgi_apparatus")
+            .progressionState,
+        "locked",
+        "Glucose Transporter reveals the playable Rough ER lab, not the Golgi preview directly"
+    );
+
+    gameState.registry.research
+        .completedExperiments
+        .rough_er_protein_targeting = {
+            completedAtMs: 15
+        };
+
+    const golgiPreview =
+        OrganelleProgressionManager
+            .getStatus("golgi_apparatus");
+
+    assert.equal(golgiPreview.available, false);
+    assert.equal(golgiPreview.previewAvailable, true);
+    assert.equal(
+        golgiPreview.progressionState,
+        "coming-soon"
+    );
 
     assert.equal(
         OrganelleProgressionManager
@@ -161,5 +183,5 @@ try {
 }
 
 console.log(
-    "PASS: membrane lipids reveal Smooth ER, Glucose Transporter reveals Rough ER and the Golgi preview, and Lysosome retains its dual future prerequisite without unlocking unfinished labs."
+    "PASS: membrane lipids preview Smooth ER, Glucose Transporter unlocks the playable Rough ER lab, ER targeting previews Golgi, and Lysosome retains its dual future prerequisite."
 );

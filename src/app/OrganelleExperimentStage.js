@@ -36,6 +36,10 @@ import ProblemReportManager
     from "./ProblemReportManager.js";
 import PassiveDiffusionView from "./PassiveDiffusionView.js";
 import CytoskeletonTransportView from "./CytoskeletonTransportView.js";
+import RoughERProteinTargetingView
+    from "./RoughERProteinTargetingView.js";
+import RibosomeTranslationView
+    from "./RibosomeTranslationView.js";
 import GuidedExperimentManager from './GuidedExperimentManager.js';
 import GuidedExperimentView from './GuidedExperimentView.js';
 import ContractileVacuoleReviewView from './ContractileVacuoleReviewView.js';
@@ -138,6 +142,8 @@ const OrganelleExperimentStage = {
 
         PassiveDiffusionView.clear();
         CytoskeletonTransportView.clear();
+        RoughERProteinTargetingView.clear();
+        RibosomeTranslationView.clear();
 
         this.simulationStructureResizeObserver?.disconnect();
 
@@ -1951,6 +1957,34 @@ stage.append(
             return;
         }
 
+        if (experiment.stage?.template === "rough_er_protein_targeting") {
+            this.stopParticleSimulation();
+            OrganelleExperimentPlacementController.reset();
+            OrganelleExperimentAttemptManager.reset();
+            this.activeResolvedExperiment = experiment;
+            this.titleElement.textContent = `${experiment.title}${this.isReexamineMode ? " - Re-examine" : ""}`;
+            this.controlsElement.replaceChildren();
+            RoughERProteinTargetingView.mount(
+                this.contentElement,
+                { sandbox: this.isReexamineMode }
+            );
+            return;
+        }
+
+        if (experiment.stage?.template === "ribosome_translation_basics") {
+            this.stopParticleSimulation();
+            OrganelleExperimentPlacementController.reset();
+            OrganelleExperimentAttemptManager.reset();
+            this.activeResolvedExperiment = experiment;
+            this.titleElement.textContent = `${experiment.title}${this.isReexamineMode ? " - Re-examine" : ""}`;
+            this.controlsElement.replaceChildren();
+            RibosomeTranslationView.mount(
+                this.contentElement,
+                { sandbox: this.isReexamineMode }
+            );
+            return;
+        }
+
         if (experiment.stage?.template === "passive_diffusion_exploration") {
             this.stopParticleSimulation();
             OrganelleExperimentPlacementController.reset();
@@ -2231,6 +2265,24 @@ this.contentElement.appendChild(
             this.titleElement.textContent = `${experiment.title} - Submission Review`;
             this.controlsElement.replaceChildren();
             CytoskeletonTransportView.mount(this.contentElement, { review: true });
+            return;
+        }
+
+        if (experiment.stage?.template === "rough_er_protein_targeting") {
+            OrganelleExperimentPlacementController.reset();
+            OrganelleExperimentAttemptManager.reset();
+            this.titleElement.textContent = `${experiment.title} - Submission Review`;
+            this.controlsElement.replaceChildren();
+            RoughERProteinTargetingView.mount(this.contentElement, { review: true });
+            return;
+        }
+
+        if (experiment.stage?.template === "ribosome_translation_basics") {
+            OrganelleExperimentPlacementController.reset();
+            OrganelleExperimentAttemptManager.reset();
+            this.titleElement.textContent = `${experiment.title} - Submission Review`;
+            this.controlsElement.replaceChildren();
+            RibosomeTranslationView.mount(this.contentElement, { review: true });
             return;
         }
 
