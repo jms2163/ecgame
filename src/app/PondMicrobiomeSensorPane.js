@@ -567,6 +567,34 @@ calculateCurrentCellCondition(tile) {
     },
 
     // --------------------------------------------------
+    // Update anchoring without recalculating cell health
+    // --------------------------------------------------
+    renderAnchoringState(
+        anchored =
+            GameStateManager
+                .isPondPlayerAnchored()
+    ) {
+        if (this.anchoringElement) {
+            this.anchoringElement.textContent =
+                anchored
+                    ? "ANCHORED (-2 ATP/MIN)"
+                    : "UNANCHORED";
+
+            this.anchoringElement.classList.toggle(
+                "ec-status--available",
+                anchored
+            );
+        }
+
+        if (this.systemAnchoringElement) {
+            this.systemAnchoringElement.textContent =
+                anchored
+                    ? "Anchored (-2 ATP/min)"
+                    : "Drifting";
+        }
+    },
+
+    // --------------------------------------------------
     // Update current microbiome and sensor readouts
     // --------------------------------------------------
     render(tile) {
@@ -792,22 +820,7 @@ this.updateCapability(
         // Current anchoring state
         // --------------------------------------------------
 
-        const anchored =
-            GameStateManager.isPondPlayerAnchored();
-
-        if (this.anchoringElement) {
-            this.anchoringElement.textContent =
-                anchored
-                    ? "ANCHORED"
-                    : "UNANCHORED";
-        }
-
-        if (this.systemAnchoringElement) {
-            this.systemAnchoringElement.textContent =
-                anchored
-                    ? "Anchored"
-                    : "Drifting";
-        }
+        this.renderAnchoringState();
 
         // --------------------------------------------------
 // Prioritized current system-status message

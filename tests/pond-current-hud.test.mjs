@@ -74,7 +74,7 @@ PondStatusHud.renderCurrent({
 
 assert.equal(
     PondStatusHud.currentElement.textContent,
-    "CURRENT: SE | ANCHORED | TURN 50:00"
+    "CURRENT: SE | ANCHORED (-2 ATP/MIN) | TURN 50:00"
 );
 assert.equal(
     PondStatusHud.currentElement.dataset.state,

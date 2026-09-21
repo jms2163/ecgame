@@ -104,8 +104,17 @@ try {
     );
     assert.deepEqual(
         status.systems.energyBalance
-            .demands,
-        []
+            .demands.map(demand => ({
+                id: demand.id,
+                active: demand.active,
+                atpPerMinute:
+                    demand.atpPerMinute
+            })),
+        [{
+            id: "pondAnchoring",
+            active: false,
+            atpPerMinute: 0
+        }]
     );
     assert.equal(
         status.systems.nodes.find(node =>

@@ -12,6 +12,8 @@ import ATPProductionCatalog
     from "../data/ATPProductionCatalog.js";
 import MetabolismPathwayCatalog
     from "../data/MetabolismPathwayCatalog.js";
+import ATPDemandCatalog
+    from "../data/ATPDemandCatalog.js";
 
 const BASE_ATP_INTERVAL_SEC = 60;
 
@@ -268,12 +270,34 @@ const ATPManager = {
         const production =
             this.getProductionStatus();
 
-        // Continuous demands intentionally remain empty in this milestone.
-        // Contractile-vacuole demand depends on the future biome/osmotic
-        // model, while chemotaxis should first define functional range,
-        // accuracy, and scan behavior. Neither belongs in save state yet.
-        const demands = [];
-        const totalDemandATPPerMinute = 0;
+        const demands =
+            ATPDemandCatalog.getAll()
+                .map(definition => {
+                    let active = false;
+
+                    if (
+                        definition.activationType ===
+                            "pond-anchored"
+                    ) {
+                        active =
+                            GameStateManager
+                                .isPondPlayerAnchored();
+                    }
+
+                    return {
+                        ...definition,
+                        active,
+                        atpPerMinute: active
+                            ? definition.atpPerMinute
+                            : 0
+                    };
+                });
+        const totalDemandATPPerMinute =
+            demands.reduce(
+                (total, demand) =>
+                    total + demand.atpPerMinute,
+                0
+            );
 
         return {
             connectedBrowserOnly: true,
@@ -290,7 +314,7 @@ const ATPManager = {
                 totalDemandATPPerMinute,
             increasesCapacity: false,
             demandModelStatus:
-                "deferred-milestone-5"
+                "anchoring-active"
         };
 
     },

@@ -13,6 +13,8 @@ import CellCapabilityEvaluator
 import PondDiscoveryManager
     from "./PondDiscoveryManager.js";
 import SaveManager from "./SaveManager.js";
+import GameStateObserver
+    from "./GameStateObserver.js";
 
 
 
@@ -252,6 +254,19 @@ toggleAnchor() {
         willAnchor
             ? `PondController: anchored to ${anchorCheck.biomeId}`
             : "PondController: unanchored"
+    );
+
+    GameStateObserver.notify(
+        "pond-anchoring-changed",
+        {
+            anchored: willAnchor,
+            automatic: false,
+            reason: willAnchor
+                ? "player-anchored"
+                : "player-unanchored",
+            biomeId:
+                anchorCheck.biomeId ?? null
+        }
     );
 
     return true;
