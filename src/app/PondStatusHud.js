@@ -121,7 +121,7 @@ const PondStatusHud = {
         let stateClass = "drifting";
 
         if (currentStatus.anchored) {
-            stateText = "ANCHORED";
+            stateText = "ANCHORED (-2 ATP/MIN)";
             stateClass = "anchored";
         } else if (
             currentStatus.safetyHoldActive

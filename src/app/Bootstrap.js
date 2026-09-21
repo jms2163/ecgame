@@ -33,6 +33,8 @@ import PondDiscoveryManager
     from "./PondDiscoveryManager.js";
 import PondCurrentManager
     from "./PondCurrentManager.js";
+import PondAnchoringManager
+    from "./PondAnchoringManager.js";
 
 
 const Bootstrap = {
@@ -60,6 +62,9 @@ const Bootstrap = {
         // ATP production subscribes before the central
         // game loop begins emitting game-tick events.
         ATPManager.initialize();
+        // Anchoring subscribes after ATP production so each tick applies
+        // earned ATP before charging the continuous attachment demand.
+        PondAnchoringManager.initialize();
         // Global initialization keeps enabled Quantum
         // autocollectors running in every zone while the
         // game is open.

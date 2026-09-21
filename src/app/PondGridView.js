@@ -32,6 +32,7 @@ const PondGridView = {
     currentStatusHandler: null,
     currentTickHandler: null,
     currentTickAccumulatorSec: 0,
+    anchoringChangedHandler: null,
 
     viewportElement: null,         // Pond viewport positioning
     microscopeStageElement: null,  // Frame positioning for grid, D-pad, and HUD
@@ -246,6 +247,26 @@ const movementControlsElement =
         GameStateObserver.on(
             "game-tick",
             this.currentTickHandler
+        );
+
+        this.anchoringChangedHandler = event => {
+            PondMicrobiomeSensorPane
+                .renderAnchoringState(
+                    Boolean(event?.anchored)
+                );
+
+            if (!this.active) {
+                return;
+            }
+
+            PondStatusHud.renderCurrent(
+                PondCurrentManager.getStatus()
+            );
+        };
+
+        GameStateObserver.on(
+            "pond-anchoring-changed",
+            this.anchoringChangedHandler
         );
 
         // --------------------------------------------------
