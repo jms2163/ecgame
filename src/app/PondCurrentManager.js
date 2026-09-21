@@ -677,6 +677,12 @@ const PondCurrentManager = {
                 current.lastBlockedBiome,
             lastBlockedClassification:
                 current.lastBlockedClassification,
+            safetyHoldActive:
+                Number.isFinite(
+                    current.lastSafetyHoldAtMs
+                ) &&
+                current.lastSafetyHoldAtMs ===
+                    current.lastShiftAtMs,
             shiftIntervalMs: SHIFT_INTERVAL_MS,
             directionIntervalMs:
                 DIRECTION_INTERVAL_MS,

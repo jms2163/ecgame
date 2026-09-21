@@ -15,6 +15,8 @@ import ResourceManager from "./ResourceManager.js";
 import PondSignalProbe from "./PondSignalProbe.js";
 import PondPerception from "./PondPerception.js";
 import PondSignalProbeTooltip from "./PondSignalProbeTooltip.js";
+import PondCurrentManager
+    from "./PondCurrentManager.js";
 
 const MICROSCOPE_VIEWPORT_RADIUS = 6;
 
@@ -27,6 +29,9 @@ const PondGridView = {
     active: false,
     atpChangedHandler: null,
     currentShiftHandler: null,
+    currentStatusHandler: null,
+    currentTickHandler: null,
+    currentTickAccumulatorSec: 0,
 
     viewportElement: null,         // Pond viewport positioning
     microscopeStageElement: null,  // Frame positioning for grid, D-pad, and HUD
@@ -196,6 +201,51 @@ const movementControlsElement =
         GameStateObserver.on(
             "pond-current-shifted",
             this.currentShiftHandler
+        );
+
+        this.currentStatusHandler = () => {
+            if (!this.active) {
+                return;
+            }
+
+            PondStatusHud.renderCurrent(
+                PondCurrentManager.getStatus()
+            );
+        };
+
+        GameStateObserver.on(
+            "pond-current-direction-changed",
+            this.currentStatusHandler
+        );
+        GameStateObserver.on(
+            "pond-current-safety-blocked",
+            this.currentStatusHandler
+        );
+
+        this.currentTickHandler = event => {
+            if (!this.active) {
+                return;
+            }
+
+            this.currentTickAccumulatorSec +=
+                Math.max(
+                    0,
+                    Number(event?.deltaSec) || 0
+                );
+
+            if (
+                this.currentTickAccumulatorSec < 1
+            ) {
+                return;
+            }
+
+            this.currentTickAccumulatorSec = 0;
+            this.currentStatusHandler();
+        };
+
+        GameStateObserver.on(
+            "game-tick",
+            this.currentTickHandler
         );
 
         // --------------------------------------------------
@@ -419,7 +469,8 @@ handleSignalProbePointerMove(event) {
 
 PondStatusHud.render(
     position,
-    atpStatus
+    atpStatus,
+    PondCurrentManager.getStatus()
 );
 
         this.surfaceElement.replaceChildren();
