@@ -22,7 +22,15 @@ const testGameState = {
         pond: {
             unlocked: true,
             state: {
-                discoveredMicrobiomes: {}
+                discoveredMicrobiomes: {},
+                current: {
+                    fieldOffsetX: 0,
+                    fieldOffsetY: 0,
+                    directionIndex: null,
+                    directionChangeCount: 0,
+                    lastShiftAtMs: null,
+                    lastDirectionChangedAtMs: null
+                }
             }
         },
 

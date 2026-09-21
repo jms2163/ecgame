@@ -158,6 +158,15 @@ const gameState = {
                     atpCost: 10
                 },
 
+                current: {
+                    fieldOffsetX: 0,
+                    fieldOffsetY: 0,
+                    directionIndex: null,
+                    directionChangeCount: 0,
+                    lastShiftAtMs: null,
+                    lastDirectionChangedAtMs: null
+                },
+
                 // First-time arrivals are recorded only after
                 // a successful, intentional player movement.
                 discoveredMicrobiomes: {},
