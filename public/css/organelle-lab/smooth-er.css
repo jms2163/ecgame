@@ -547,3 +547,352 @@
         font-size: 0.61rem;
     }
 }
+
+/* --------------------------------------------------
+   Smooth ER Lab 2: cholesterol buffering
+-------------------------------------------------- */
+
+.ser-sterol-lab {
+    width: 100%;
+    max-width: 1120px;
+    min-width: 0;
+    margin: 0 auto;
+    color: #e9fff8;
+    container-type: inline-size;
+}
+
+.ser-sterol-mission {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.ser-sterol-mission > span {
+    align-self: start;
+    color: #9ddcca;
+    font-size: 0.76rem;
+    font-weight: 850;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.ser-sterol-workspace {
+    display: grid;
+    grid-template-columns: minmax(220px, 0.68fr) minmax(0, 1.65fr);
+    gap: 1rem;
+    min-width: 0;
+}
+
+.ser-sterol-rack,
+.ser-sterol-lab .ser-fluidity-canvas,
+.ser-sterol-lab .ser-fluidity-meter-panel {
+    min-width: 0;
+    padding: 1rem;
+    background: #102e29;
+    border: 1px solid #398f79;
+    border-radius: 12px;
+}
+
+.ser-sterol-rack h4 {
+    margin: 0.25rem 0;
+    font-size: 1.12rem;
+}
+
+.ser-cholesterol-card {
+    display: grid;
+    grid-template-columns: 4.4rem minmax(0, 1fr);
+    gap: 0.75rem;
+    align-items: center;
+    width: 100%;
+    margin: 1rem 0;
+    padding: 0.75rem;
+    color: #f3fff9;
+    text-align: left;
+    background: #0a231f;
+    border: 2px solid #d6b84a;
+    border-radius: 12px;
+    cursor: grab;
+}
+
+.ser-cholesterol-card:active {
+    cursor: grabbing;
+}
+
+.ser-cholesterol-card strong,
+.ser-cholesterol-card small {
+    display: block;
+}
+
+.ser-cholesterol-card small {
+    margin-top: 0.25rem;
+    color: #b9d9cf;
+}
+
+.ser-cholesterol-icon {
+    position: relative;
+    display: block;
+    width: 3.6rem;
+    height: 3rem;
+}
+
+.ser-cholesterol-icon i {
+    position: absolute;
+    width: 1.35rem;
+    height: 1.35rem;
+    background: #e8c54d;
+    border: 3px solid #6b5312;
+    transform: rotate(30deg);
+    clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+}
+
+.ser-cholesterol-icon i:nth-child(1) { left: 0; top: 0.75rem; }
+.ser-cholesterol-icon i:nth-child(2) { left: 1rem; top: 0.18rem; }
+.ser-cholesterol-icon i:nth-child(3) { left: 2rem; top: 0.75rem; }
+.ser-cholesterol-icon i:nth-child(4) {
+    left: 2.55rem;
+    top: 1.75rem;
+    width: 1.05rem;
+    height: 1.05rem;
+}
+
+.ser-sterol-count {
+    color: #f3d978;
+    font-weight: 800;
+}
+
+.ser-sterol-scene {
+    position: relative;
+    min-height: 390px;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 50% 50%, rgb(102 209 184 / 9%) 0 2px, transparent 3px),
+        linear-gradient(#0b2028 0 47%, #092723 53% 100%);
+    background-size: 42px 42px, auto;
+    border: 1px solid #397966;
+    border-radius: 11px;
+}
+
+.ser-sterol-scene::after {
+    position: absolute;
+    right: 0.8rem;
+    bottom: 0.75rem;
+    padding: 0.28rem 0.55rem;
+    color: #dffdf3;
+    background: rgb(4 25 22 / 75%);
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    content: "Fixed phospholipid mixture";
+}
+
+.ser-sterol-bilayer {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    width: min(calc(100% - 3rem), 720px);
+    height: 180px;
+    transform: translate(-50%, -50%);
+}
+
+.ser-sterol-phospholipid {
+    position: relative;
+    animation: ser-sterol-movement var(--ser-sterol-motion) ease-in-out infinite;
+    animation-delay: calc(var(--ser-position-index) * -80ms);
+}
+
+.ser-sterol-head,
+.ser-sterol-tail {
+    position: absolute;
+    left: 50%;
+    display: block;
+}
+
+.ser-sterol-head {
+    top: 0;
+    width: 2rem;
+    height: 2rem;
+    background: #65cbe7;
+    border: 3px solid #c8f4ff;
+    border-radius: 50%;
+    transform: translateX(-50%);
+}
+
+.ser-sterol-head--bottom {
+    top: auto;
+    bottom: 0;
+}
+
+.ser-sterol-tail {
+    top: 1.85rem;
+    width: 0.28rem;
+    height: 3.25rem;
+    background: #ee9b3c;
+    border-radius: 999px;
+}
+
+.ser-sterol-tail--a { transform: translateX(-0.52rem); }
+.ser-sterol-tail--b { transform: translateX(0.22rem); }
+.ser-sterol-tail--c {
+    top: auto;
+    bottom: 1.85rem;
+    transform: translateX(-0.52rem);
+}
+.ser-sterol-tail--d {
+    top: auto;
+    bottom: 1.85rem;
+    transform: translateX(0.22rem);
+}
+
+.ser-sterol-sites {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    width: min(calc(100% - 7rem), 630px);
+    transform: translate(-50%, -50%);
+}
+
+.ser-cholesterol-site {
+    position: relative;
+    display: grid;
+    width: 4.2rem;
+    height: 5.7rem;
+    place-items: center;
+    justify-self: center;
+    padding: 0;
+    color: #e6d885;
+    background: rgb(18 65 57 / 42%);
+    border: 1px dashed #79b9a8;
+    border-radius: 10px;
+    font-size: 1.35rem;
+}
+
+.ser-cholesterol-site.is-filled {
+    background: rgb(232 197 77 / 14%);
+    border: 2px solid #e8c54d;
+}
+
+.ser-cholesterol-site.is-drop-target {
+    background: rgb(113 229 178 / 25%);
+    box-shadow: 0 0 0 4px rgb(113 229 178 / 20%);
+}
+
+.ser-cholesterol-site .ser-cholesterol-icon {
+    transform: scale(0.72) rotate(90deg);
+}
+
+.ser-sterol-reading--unstable {
+    color: #ecf7ff;
+    background: #3c5f75;
+}
+
+.ser-sterol-reading--buffered {
+    color: #092d22;
+    background: #71e5b2;
+}
+
+.ser-sterol-reading--constrained {
+    color: #401d09;
+    background: #f0ad67;
+}
+
+.ser-sterol-meter {
+    grid-template-columns: 40fr 30fr 30fr;
+}
+
+.ser-sterol-zone--unstable {
+    color: #e8f5ff;
+    background: linear-gradient(90deg, #29475e, #4b7081);
+    border-radius: 999px 0 0 999px;
+}
+
+.ser-sterol-zone--buffered {
+    color: #092d22;
+    background: #6ee0ad;
+}
+
+.ser-sterol-zone--constrained {
+    color: #411e09;
+    background: linear-gradient(90deg, #e4b36e, #df844f);
+    border-radius: 0 999px 999px 0;
+}
+
+.ser-sterol-conclusion ul {
+    display: inline-block;
+    text-align: left;
+}
+
+@keyframes ser-sterol-movement {
+    0%, 100% { transform: translateY(-2px); }
+    50% { transform: translateY(2px); }
+}
+
+.ser-sterol-scene[data-trial="cold_snap"][data-stability-band="unstable"] .ser-sterol-phospholipid {
+    animation-duration: 6s;
+}
+
+.ser-sterol-scene[data-trial="warm_surge"][data-stability-band="unstable"] .ser-sterol-phospholipid {
+    animation-duration: 0.72s;
+}
+
+.ser-sterol-scene[data-stability-band="constrained"] .ser-sterol-phospholipid {
+    animation-duration: 8s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ser-sterol-phospholipid {
+        animation: none;
+    }
+}
+
+@media (max-width: 880px) {
+    .ser-sterol-workspace {
+        grid-template-columns: 1fr;
+    }
+}
+
+@container (max-width: 650px) {
+    .ser-sterol-workspace {
+        grid-template-columns: 1fr;
+    }
+
+    .ser-sterol-sites {
+        width: calc(100% - 2rem);
+    }
+
+    .ser-cholesterol-site {
+        width: 3.2rem;
+    }
+}
+
+@media (max-width: 620px) {
+    .ser-sterol-mission {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .ser-sterol-mission > span {
+        grid-column: 2;
+    }
+
+    .ser-sterol-scene {
+        min-height: 340px;
+    }
+
+    .ser-sterol-bilayer {
+        width: calc(100% - 1rem);
+    }
+
+    .ser-sterol-sites {
+        width: calc(100% - 0.5rem);
+    }
+
+    .ser-cholesterol-site {
+        width: 2.65rem;
+        height: 5rem;
+    }
+
+    .ser-cholesterol-site .ser-cholesterol-icon {
+        transform: scale(0.52) rotate(90deg);
+    }
+}

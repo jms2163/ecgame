@@ -42,6 +42,8 @@ import RibosomeTranslationView
     from "./RibosomeTranslationView.js";
 import SmoothERLipidCompositionView
     from "./SmoothERLipidCompositionView.js";
+import SmoothERSterolBufferView
+    from "./SmoothERSterolBufferView.js";
 import GuidedExperimentManager from './GuidedExperimentManager.js';
 import GuidedExperimentView from './GuidedExperimentView.js';
 import ContractileVacuoleReviewView from './ContractileVacuoleReviewView.js';
@@ -147,6 +149,7 @@ const OrganelleExperimentStage = {
         RoughERProteinTargetingView.clear();
         RibosomeTranslationView.clear();
         SmoothERLipidCompositionView.clear();
+        SmoothERSterolBufferView.clear();
 
         this.simulationStructureResizeObserver?.disconnect();
 
@@ -1972,6 +1975,27 @@ stage.append(
             return;
         }
 
+        if (
+            experiment.stage?.template ===
+            "smooth_er_sterol_buffer"
+        ) {
+            this.stopParticleSimulation();
+            OrganelleExperimentPlacementController.reset();
+            OrganelleExperimentAttemptManager.reset();
+            this.activeResolvedExperiment = experiment;
+            this.titleElement.textContent =
+                `${experiment.title}${this.isReexamineMode ? " - Re-examine" : mode === "improve" ? " - Improve Score" : ""}`;
+            this.controlsElement.replaceChildren();
+            SmoothERSterolBufferView.mount(
+                this.contentElement,
+                {
+                    sandbox: this.isReexamineMode,
+                    improve: mode === "improve"
+                }
+            );
+            return;
+        }
+
         if (experiment.stage?.template === "cytoskeleton_transport") {
             this.stopParticleSimulation();
             OrganelleExperimentPlacementController.reset();
@@ -2284,6 +2308,22 @@ this.contentElement.appendChild(
                 `${experiment.title} - Submission Review`;
             this.controlsElement.replaceChildren();
             SmoothERLipidCompositionView.mount(
+                this.contentElement,
+                { review: true }
+            );
+            return;
+        }
+
+        if (
+            experiment.stage?.template ===
+            "smooth_er_sterol_buffer"
+        ) {
+            OrganelleExperimentPlacementController.reset();
+            OrganelleExperimentAttemptManager.reset();
+            this.titleElement.textContent =
+                `${experiment.title} - Submission Review`;
+            this.controlsElement.replaceChildren();
+            SmoothERSterolBufferView.mount(
                 this.contentElement,
                 { review: true }
             );

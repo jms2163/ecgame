@@ -14,6 +14,10 @@ import RibosomeTranslationExperiment
     from "./RibosomeTranslationCatalog.js";
 import SmoothERLipidCompositionExperiment
     from "./SmoothERLipidCompositionCatalog.js";
+import SmoothERSterolBufferExperiment
+    from "./SmoothERSterolBufferCatalog.js";
+import SmoothERMembraneCurvatureExperiment
+    from "./SmoothERMembraneCurvatureCatalog.js";
 import SmoothERDetoxRoutingExperiment
     from "./SmoothERDetoxRoutingCatalog.js";
 import SmoothERCalciumPulseExperiment
@@ -43,6 +47,12 @@ const OrganelleExperimentLibrary = {
 
     smooth_er_lipid_composition:
         SmoothERLipidCompositionExperiment,
+
+    smooth_er_sterol_buffer:
+        SmoothERSterolBufferExperiment,
+
+    smooth_er_membrane_curvature:
+        SmoothERMembraneCurvatureExperiment,
 
     smooth_er_detox_routing:
         SmoothERDetoxRoutingExperiment,

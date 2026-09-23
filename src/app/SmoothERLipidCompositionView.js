@@ -1,3 +1,12 @@
+import Catalog from "./SmoothERLipidCompositionCatalog.js";
+import ResearchManager from "./ResearchManager.js";
+import SubmissionManager
+    from "./OrganelleExperimentSubmissionManager.js";
+import OrganelleExperimentPanel
+    from "./OrganelleExperimentPanel.js";
+import SaveManager from "./SaveManager.js";
+import gameState from "./GameState.js";
+
 const TOTAL_LIPID_POSITIONS = 12;
 const FUNCTIONAL_FLUIDITY_MINIMUM = 40;
 const FUNCTIONAL_FLUIDITY_MAXIMUM = 60;
@@ -59,6 +68,7 @@ const SmoothERLipidCompositionView = {
     events: null,
     root: null,
     state: null,
+    sandbox: false,
 
     clear() {
         this.events?.abort();
@@ -80,7 +90,7 @@ const SmoothERLipidCompositionView = {
 
     mount(
         container,
-        { review = false } = {}
+        { sandbox = false, review = false } = {}
     ) {
         this.clear();
         this.root = document.createElement(
@@ -89,11 +99,10 @@ const SmoothERLipidCompositionView = {
         this.root.className =
             "ser-fluidity-lab";
         container.replaceChildren(this.root);
+        this.sandbox = sandbox;
 
         if (review) {
-            this.renderPrototypeNotice(
-                "This visual prototype does not create or save a graded submission."
-            );
+            this.renderReview();
             return;
         }
 
@@ -187,7 +196,7 @@ const SmoothERLipidCompositionView = {
                     <i class="ser-fluidity-marker" style="left: ${fluidity}%" aria-hidden="true"></i>
                 </div>
                 <p class="ser-fluidity-feedback" role="status" aria-live="polite">${this.feedbackText({ filledCount, band })}</p>
-                ${isFunctional ? `<button type="button" class="ser-fluidity-continue" data-action="continue">Continue</button>` : ""}
+                ${isFunctional ? `<button type="button" class="ser-fluidity-continue" data-action="continue">${this.sandbox ? "Complete Practice Run" : "Save Investigation"}</button>` : ""}
             </section>`;
 
         this.renderTailCards();
@@ -297,10 +306,7 @@ const SmoothERLipidCompositionView = {
             '[data-action="continue"]'
         )?.addEventListener(
             "click",
-            () => {
-                this.state.completed = true;
-                this.render();
-            },
+            () => this.submit(),
             { signal }
         );
     },
@@ -381,14 +387,18 @@ const SmoothERLipidCompositionView = {
     },
 
     renderCompletion() {
+        const rewardText = this.sandbox
+            ? "Practice complete. Re-examine mode does not save or award rewards."
+            : `${this.state.completion?.xpAwarded ?? 0} XP awarded. The glycerol-3-phosphate acyltransferase recipe and Lab 2 are now unlocked.`;
         this.root.innerHTML = `
             <section class="ser-fluidity-completion">
                 <span aria-hidden="true">✓</span>
-                <p class="ser-fluidity-eyebrow">Stage 1 prototype complete</p>
+                <p class="ser-fluidity-eyebrow">Lab 1 complete</p>
                 <h3>One variable produced one visible result</h3>
-                <p>You changed only fatty-acid tail saturation and observed its effect on membrane fluidity. No XP, achievement, recipe, or saved submission was awarded by this prototype.</p>
+                <p>You changed only fatty-acid tail saturation and observed its effect on membrane fluidity.</p>
+                <p><strong>${rewardText}</strong></p>
                 <button type="button" data-action="replay">Rebuild the Membrane</button>
-                <p class="ser-fluidity-next">Planned next investigation: cholesterol buffering, with tail composition held constant.</p>
+                <p class="ser-fluidity-next">Next investigation: cholesterol buffering, with phospholipid composition held constant.</p>
             </section>`;
         this.root.querySelector(
             '[data-action="replay"]'
@@ -402,12 +412,106 @@ const SmoothERLipidCompositionView = {
         );
     },
 
-    renderPrototypeNotice(message) {
+    submit() {
+        if (this.sandbox) {
+            this.state.completed = true;
+            this.render();
+            return;
+        }
+
+        const backup = structuredClone(gameState);
+        const slots = [...this.state.slots];
+        try {
+            const completion =
+                ResearchManager.completeExperiment(
+                    Catalog.id
+                );
+            if (!completion.completed) {
+                throw new Error(completion.reason);
+            }
+
+            const report = {
+                scorePoints: 100,
+                scoreMaximum: 100,
+                scorePercent: 100,
+                isPerfect: true,
+                checks: [
+                    {
+                        id: "complete_membrane_patch",
+                        passed: true,
+                        awardedPoints: 50,
+                        maximumPoints: 50
+                    },
+                    {
+                        id: "functional_fluidity",
+                        passed: true,
+                        awardedPoints: 50,
+                        maximumPoints: 50
+                    }
+                ]
+            };
+            const submission =
+                SubmissionManager.recordSubmission({
+                    experiment: Catalog,
+                    report,
+                    completion,
+                    placementSnapshot: { slots },
+                    attemptSnapshot: {
+                        observations: {
+                            saturatedCount:
+                                slots.filter(type =>
+                                    type === "saturated"
+                                ).length,
+                            unsaturatedCount:
+                                slots.filter(type =>
+                                    type === "unsaturated"
+                                ).length,
+                            fluidity:
+                                calculateFluidity(slots)
+                        }
+                    }
+                });
+            if (
+                !submission ||
+                !SaveManager.save({
+                    reason:
+                        "smooth-er-lipid-composition"
+                })
+            ) {
+                throw new Error("save-failed");
+            }
+
+            this.state.completion = completion;
+            this.state.completed = true;
+            OrganelleExperimentPanel.refresh();
+            this.render();
+        } catch (error) {
+            for (const key of Object.keys(gameState)) {
+                delete gameState[key];
+            }
+            Object.assign(gameState, backup);
+            const feedback = this.root.querySelector(
+                ".ser-fluidity-feedback"
+            );
+            if (feedback) {
+                feedback.textContent =
+                    "Saving failed. Your membrane remains here; try Save Investigation again.";
+            }
+        }
+    },
+
+    renderReview() {
+        const record = SubmissionManager
+            .getSubmissions(Catalog.id)
+            .at(-1);
+        const observations =
+            record?.attemptSnapshot
+                ?.observations;
         this.root.innerHTML = `
             <section class="ser-fluidity-completion">
-                <p class="ser-fluidity-eyebrow">Visual prototype</p>
-                <h3>No saved submission yet</h3>
-                <p>${message}</p>
+                <p class="ser-fluidity-eyebrow">Lab 1 submission review</p>
+                <h3>${record ? `${record.scorePoints} / ${record.scoreMaximum}` : "No saved submission"}</h3>
+                <p>${record ? `Your membrane contained ${observations?.saturatedCount ?? 0} saturated and ${observations?.unsaturatedCount ?? 0} unsaturated lipids, producing functional fluidity.` : "Complete and save the Tail Packing investigation to create a review record."}</p>
             </section>`;
     }
 };

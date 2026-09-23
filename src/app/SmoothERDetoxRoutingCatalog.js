@@ -10,7 +10,7 @@ export default Object.freeze({
     requirements: {
         discoveries: [],
         completedExperiments: [
-            "smooth_er_lipid_composition"
+            "smooth_er_membrane_curvature"
         ]
     }
 });

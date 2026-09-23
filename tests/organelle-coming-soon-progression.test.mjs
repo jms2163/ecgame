@@ -193,5 +193,5 @@ try {
 }
 
 console.log(
-    "PASS: membrane lipids unlock the playable Smooth ER lab, Glucose Transporter unlocks the playable Rough ER lab, ER targeting previews Golgi, and Lysosome retains its dual future prerequisite."
+    "PASS: membrane lipids unlock the playable Smooth ER sequence, Glucose Transporter unlocks the playable Rough ER lab, ER targeting previews Golgi, and Lysosome retains its dual future prerequisite."
 );
