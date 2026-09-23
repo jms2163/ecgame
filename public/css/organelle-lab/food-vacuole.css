@@ -1,0 +1,705 @@
+.phago-lab {
+    --phago-aqua: #62e4d0;
+    --phago-blue: #72cdf5;
+    --phago-purple: #bb7af7;
+    --phago-orange: #ffb454;
+    --phago-ink: #eefdf8;
+    --phago-panel: rgba(10, 47, 42, 0.94);
+    display: grid;
+    gap: 1.25rem;
+    color: var(--phago-ink);
+    font-family: inherit;
+}
+
+.phago-heading,
+.phago-context,
+.phago-controls,
+.phago-canvas-panel,
+.phago-meter-panel,
+.phago-conclusion {
+    border: 2px solid rgba(98, 228, 208, 0.48);
+    border-radius: 1.35rem;
+    background: var(--phago-panel);
+    box-shadow: 0 0.9rem 2rem rgba(0, 0, 0, 0.2);
+}
+
+.phago-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.1rem 1.35rem;
+}
+
+.phago-heading p,
+.phago-step {
+    margin: 0;
+    color: var(--phago-aqua);
+    font-weight: 800;
+    letter-spacing: 0.055em;
+    text-transform: uppercase;
+}
+
+.phago-heading h3,
+.phago-controls h4,
+.phago-canvas-heading h4,
+.phago-meter-heading h4,
+.phago-conclusion h3 {
+    margin: 0.25rem 0 0;
+    color: #fff;
+}
+
+.phago-heading > strong {
+    flex: 0 0 auto;
+    padding: 0.55rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(98, 228, 208, 0.14);
+    color: #b9fff2;
+}
+
+.phago-context {
+    padding: 1rem 1.3rem;
+    background: linear-gradient(135deg, rgba(22, 74, 64, 0.98), rgba(12, 48, 45, 0.98));
+}
+
+.phago-context strong {
+    color: #94f7e6;
+    font-size: 1.04rem;
+}
+
+.phago-context p {
+    margin: 0.35rem 0 0;
+    line-height: 1.55;
+}
+
+.phago-context--seal {
+    border-color: rgba(187, 122, 247, 0.58);
+}
+
+.phago-workspace {
+    display: grid;
+    grid-template-columns: minmax(16rem, 0.72fr) minmax(31rem, 1.65fr);
+    gap: 1.25rem;
+    align-items: stretch;
+}
+
+.phago-controls {
+    padding: 1.2rem;
+}
+
+.phago-controls h4 {
+    font-size: 1.35rem;
+}
+
+.phago-pair-card,
+.phago-seal-card {
+    width: 100%;
+    min-height: 8.2rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 3px solid var(--phago-aqua);
+    border-radius: 1.15rem;
+    display: grid;
+    grid-template-columns: 4.6rem 1fr;
+    gap: 0.85rem;
+    align-items: center;
+    color: var(--phago-ink);
+    background: rgba(4, 32, 29, 0.82);
+    text-align: left;
+    cursor: pointer;
+    transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+.phago-pair-card:hover:not(:disabled),
+.phago-seal-card:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 0 0 4px rgba(98, 228, 208, 0.14);
+}
+
+.phago-pair-card:disabled,
+.phago-seal-card:disabled {
+    opacity: 0.55;
+    cursor: default;
+}
+
+.phago-pair-card strong,
+.phago-seal-card strong,
+.phago-pair-card small,
+.phago-seal-card small {
+    display: block;
+}
+
+.phago-pair-card strong,
+.phago-seal-card strong {
+    font-size: 1.05rem;
+}
+
+.phago-pair-card small,
+.phago-seal-card small {
+    margin-top: 0.3rem;
+    color: #b8d9d2;
+    line-height: 1.35;
+}
+
+.phago-pair-icon {
+    display: grid;
+    gap: 0.6rem;
+}
+
+.phago-pair-icon i {
+    display: block;
+    width: 4rem;
+    height: 1rem;
+    border: 0.28rem solid var(--phago-purple);
+    border-left-color: transparent;
+    border-radius: 0 999px 999px 0;
+}
+
+.phago-pair-icon i:last-child {
+    transform: scaleY(-1);
+}
+
+.phago-seal-card > span:first-child {
+    display: flex;
+    justify-content: center;
+    gap: 0.16rem;
+}
+
+.phago-seal-card > span:first-child i {
+    width: 0.75rem;
+    height: 3.2rem;
+    border-radius: 999px;
+    background: linear-gradient(#d394ff, #7f45c7);
+    transform: rotate(18deg);
+}
+
+.phago-seal-card > span:first-child i:nth-child(2) {
+    transform: none;
+}
+
+.phago-seal-card > span:first-child i:nth-child(3) {
+    transform: rotate(-18deg);
+}
+
+.phago-selection {
+    margin: 0.85rem 0;
+    color: #bafff2;
+    font-weight: 800;
+}
+
+.phago-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+}
+
+.phago-actions button,
+.phago-continue,
+.phago-conclusion button {
+    border: 2px solid var(--phago-aqua);
+    border-radius: 0.85rem;
+    padding: 0.7rem 0.9rem;
+    color: #fff;
+    background: rgba(34, 94, 82, 0.88);
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.phago-actions button:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.phago-reminder {
+    margin-top: 1rem;
+    padding: 0.8rem;
+    border-radius: 0.9rem;
+    background: rgba(114, 205, 245, 0.1);
+    color: #c7eaf2;
+}
+
+.phago-reminder strong {
+    color: #91ddff;
+}
+
+.phago-reminder p {
+    margin: 0.3rem 0 0;
+    line-height: 1.4;
+}
+
+.phago-canvas-panel {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.phago-canvas-heading,
+.phago-meter-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.2rem;
+}
+
+.phago-canvas-heading > span {
+    color: #c5fff5;
+    font-weight: 800;
+}
+
+.phago-scene {
+    display: block;
+    width: 100%;
+    min-height: 25rem;
+    background: radial-gradient(circle at 67% 50%, rgba(114, 205, 245, 0.12), transparent 33%), #082a2b;
+}
+
+.phago-extracellular {
+    fill: #082a2b;
+}
+
+.phago-cell-body {
+    fill: #174f47;
+    stroke: #70decb;
+    stroke-width: 7;
+}
+
+.phago-cell-join,
+.phago-pseudopod-fill {
+    fill: #174f47;
+}
+
+.phago-pseudopod-fill {
+    filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.16));
+}
+
+.phago-region-label,
+.phago-cytosol-label,
+.phago-vacuole-label {
+    fill: #8dc4be;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+}
+
+.phago-target-arm {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.36);
+    stroke-width: 6;
+    stroke-dasharray: 9 11;
+}
+
+.phago-membrane-arm {
+    fill: none;
+    stroke: #73def0;
+    stroke-width: 12;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 6px rgba(91, 222, 240, 0.42));
+    transition: d 240ms ease;
+}
+
+.phago-unit {
+    stroke: #ffe4ff;
+    stroke-width: 2;
+    fill: var(--phago-purple);
+}
+
+.phago-food-particle > path {
+    fill: #db5967;
+    stroke: #ffd2a4;
+    stroke-width: 5;
+    filter: drop-shadow(0 0 12px rgba(255, 125, 86, 0.35));
+}
+
+.phago-food-particle circle {
+    fill: #7d293c;
+}
+
+.phago-food-particle text {
+    fill: #fff8dd;
+    text-anchor: middle;
+    font-size: 16px;
+    font-weight: 900;
+}
+
+.phago-neck path {
+    fill: none;
+    stroke: #73def0;
+    stroke-width: 10;
+    stroke-linecap: round;
+}
+
+.phago-neck circle {
+    fill: #73def0;
+}
+
+.phago-actomyosin path {
+    fill: none;
+    stroke: var(--phago-orange);
+    stroke-width: 5;
+    stroke-dasharray: 8 7;
+}
+
+.phago-actomyosin circle {
+    fill: var(--phago-orange);
+    stroke: #fff0be;
+    stroke-width: 2;
+}
+
+.phago-scene.is-sealed .phago-food-particle {
+    filter: drop-shadow(0 0 10px rgba(98, 228, 208, 0.5));
+}
+
+.phago-meter-panel {
+    padding: 0.2rem 1.2rem 1.2rem;
+}
+
+.phago-reading {
+    padding: 0.45rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(255, 180, 84, 0.16);
+    color: #ffd69d;
+}
+
+.phago-reading--matched {
+    background: rgba(98, 228, 208, 0.16);
+    color: #aaffef;
+}
+
+.phago-meter {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    min-height: 3.7rem;
+    margin: 0.35rem 0 0.85rem;
+    border: 3px solid #2e7569;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #29586d, #278b73 34%, #35b487 50%, #278b73 66%, #734e77);
+    overflow: visible;
+}
+
+.phago-meter div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 900;
+    text-shadow: 0 1px 3px #000;
+}
+
+.phago-meter i {
+    position: absolute;
+    top: -0.48rem;
+    width: 0.42rem;
+    height: calc(100% + 0.96rem);
+    border-radius: 999px;
+    background: #fff3a4;
+    box-shadow: 0 0 0 3px #29392f, 0 0 12px #fff3a4;
+    transform: translateX(-50%);
+    transition: left 180ms ease;
+}
+
+.phago-feedback {
+    margin: 0.7rem 0;
+    color: #d5eee9;
+    line-height: 1.45;
+}
+
+.phago-continue,
+.phago-conclusion button {
+    border-color: #f4d56c;
+    background: #53733d;
+}
+
+.phago-conclusion {
+    padding: 2rem;
+    text-align: center;
+}
+
+.phago-conclusion > span {
+    display: inline-grid;
+    place-items: center;
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    background: var(--phago-aqua);
+    color: #08362e;
+    font-size: 2rem;
+    font-weight: 900;
+}
+
+.phago-conclusion p {
+    max-width: 52rem;
+    margin: 0.7rem auto;
+    line-height: 1.5;
+}
+
+.phago-conclusion ul {
+    display: inline-block;
+    text-align: left;
+}
+
+@media (max-width: 1050px) {
+    .phago-workspace {
+        grid-template-columns: 1fr;
+    }
+
+    .phago-scene {
+        min-height: auto;
+    }
+}
+
+@media (max-width: 650px) {
+    .phago-heading,
+    .phago-canvas-heading,
+    .phago-meter-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .phago-meter div {
+        font-size: 0.78rem;
+    }
+
+    .phago-pair-card,
+    .phago-seal-card {
+        grid-template-columns: 3.8rem 1fr;
+    }
+}
+
+
+/* Phagocytosis membrane-outline correction */
+.phago-lab {
+    container-type: inline-size;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.phago-lab,
+.phago-lab * {
+    box-sizing: border-box;
+}
+
+.phago-heading,
+.phago-context,
+.phago-workspace,
+.phago-controls,
+.phago-canvas-panel,
+.phago-meter-panel {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.phago-heading > div,
+.phago-canvas-heading > div,
+.phago-meter-heading > div {
+    min-width: 0;
+}
+
+.phago-heading h3,
+.phago-context p,
+.phago-canvas-heading h4 {
+    overflow-wrap: anywhere;
+}
+
+.phago-workspace {
+    grid-template-columns: minmax(14rem, 0.68fr) minmax(0, 1.65fr);
+    width: 100%;
+}
+
+.phago-canvas-panel {
+    width: 100%;
+    overflow: hidden;
+}
+
+.phago-scene {
+    width: 100%;
+    max-width: 100%;
+}
+
+.phago-cell-body {
+    stroke: #ffe86b;
+    stroke-width: 7;
+}
+
+.phago-cell-join {
+    fill: #174f47;
+}
+
+.phago-pseudopod-fill {
+    fill: #174f47;
+    stroke: #ffe86b;
+    stroke-width: 7;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 5px rgba(255, 232, 107, 0.2));
+}
+
+.phago-membrane-arm {
+    stroke: #ffe86b;
+    stroke-width: 7;
+    filter: drop-shadow(0 0 5px rgba(255, 232, 107, 0.28));
+}
+
+.phago-actin-arm {
+    fill: none;
+    stroke: #b8f3ff;
+    stroke-width: 6;
+    stroke-linecap: round;
+    opacity: 0.88;
+    filter: drop-shadow(0 0 4px rgba(184, 243, 255, 0.3));
+}
+
+.phago-unit {
+    stroke: #fff4ff;
+    stroke-width: 2;
+    fill: #d38aff;
+}
+
+@container (max-width: 56rem) {
+    .phago-workspace {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* Phagocytosis horizontal bilayer correction */
+.phago-cell-body {
+    stroke: none;
+}
+
+.phago-cell-membrane,
+.phago-cup-base {
+    fill: none;
+    stroke: #ffe86b;
+    stroke-width: 7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 5px rgba(255, 232, 107, 0.25));
+}
+
+.phago-pseudopod-fill {
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.phago-unit.is-inner {
+    fill: #d38aff;
+    stroke: #fff4ff;
+}
+
+@container (max-width: 56rem) {
+    .phago-workspace {
+        grid-template-columns: minmax(12rem, 0.56fr) minmax(0, 1.7fr);
+    }
+}
+
+@container (max-width: 38rem) {
+    .phago-workspace {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* Phagocytosis vertical engulfment correction */
+.phago-scene {
+    min-height: 32rem;
+    aspect-ratio: 900 / 520;
+}
+
+.phago-workspace {
+    grid-template-columns: minmax(17rem, 0.72fr) minmax(0, 1.58fr);
+}
+
+.phago-pair-card {
+    grid-template-columns: 3.6rem minmax(0, 1fr);
+    padding: 0.8rem;
+}
+
+.phago-pair-card > span:last-child {
+    min-width: 0;
+}
+
+.phago-pair-card strong,
+.phago-pair-card small {
+    overflow-wrap: anywhere;
+}
+
+.phago-cell-join {
+    fill: #174f47;
+}
+
+.phago-zero-cap {
+    fill: none;
+    stroke: #ffe86b;
+    stroke-width: 7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 5px rgba(255, 232, 107, 0.25));
+}
+
+.phago-neck path {
+    stroke: #ffe86b;
+    stroke-width: 7;
+    stroke-linecap: round;
+}
+
+.phago-neck circle {
+    fill: #ffe86b;
+}
+
+.phago-vacuole-label {
+    text-anchor: middle;
+}
+
+@container (max-width: 56rem) {
+    .phago-workspace {
+        grid-template-columns: minmax(16rem, 0.72fr) minmax(0, 1.58fr);
+    }
+}
+
+@container (max-width: 38rem) {
+    .phago-workspace {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* Phagocytosis vertical polish correction */
+.phago-region-label,
+.phago-cytosol-label,
+.phago-vacuole-label {
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: 1.2px;
+    paint-order: stroke;
+    stroke: rgba(8, 42, 43, 0.78);
+    stroke-width: 2px;
+}
+
+.phago-vacuole-label {
+    fill: #b8eee5;
+    font-size: 22px;
+}
+
+.phago-cell-body {
+    fill: #174f47;
+    stroke: none;
+}
+
+.phago-cell-membrane,
+.phago-cup-base,
+.phago-zero-cap,
+.phago-pseudopod-fill,
+.phago-neck path {
+    stroke-width: 7;
+    stroke: #ffe86b;
+}
+
+
+/* Phagocytosis engulfment-motion correction */
+.phago-vacuole-label {
+    pointer-events: none;
+}

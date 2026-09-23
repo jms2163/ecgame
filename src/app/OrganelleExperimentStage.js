@@ -48,6 +48,8 @@ import SmoothERMembraneCurvatureView
     from "./SmoothERMembraneCurvatureView.js";
 import PseudopodiaMembraneExtensionView
     from "./PseudopodiaMembraneExtensionView.js";
+import FoodVacuolePhagocytosisView
+    from "./FoodVacuolePhagocytosisView.js";
 import GuidedExperimentManager from './GuidedExperimentManager.js';
 import GuidedExperimentView from './GuidedExperimentView.js';
 import ContractileVacuoleReviewView from './ContractileVacuoleReviewView.js';
@@ -156,6 +158,7 @@ const OrganelleExperimentStage = {
         SmoothERSterolBufferView.clear();
         SmoothERMembraneCurvatureView.clear();
         PseudopodiaMembraneExtensionView.clear();
+        FoodVacuolePhagocytosisView.clear();
 
         this.simulationStructureResizeObserver?.disconnect();
 
@@ -2044,6 +2047,27 @@ stage.append(
             return;
         }
 
+        if (
+            experiment.stage?.template ===
+            "food_vacuole_phagocytosis"
+        ) {
+            this.stopParticleSimulation();
+            OrganelleExperimentPlacementController.reset();
+            OrganelleExperimentAttemptManager.reset();
+            this.activeResolvedExperiment = experiment;
+            this.titleElement.textContent =
+                `${experiment.title}${this.isReexamineMode ? " - Re-examine" : mode === "improve" ? " - Improve Score" : ""}`;
+            this.controlsElement.replaceChildren();
+            FoodVacuolePhagocytosisView.mount(
+                this.contentElement,
+                {
+                    sandbox: this.isReexamineMode,
+                    improve: mode === "improve"
+                }
+            );
+            return;
+        }
+
         if (experiment.stage?.template === "cytoskeleton_transport") {
             this.stopParticleSimulation();
             OrganelleExperimentPlacementController.reset();
@@ -2404,6 +2428,22 @@ this.contentElement.appendChild(
                 `${experiment.title} - Submission Review`;
             this.controlsElement.replaceChildren();
             PseudopodiaMembraneExtensionView.mount(
+                this.contentElement,
+                { review: true }
+            );
+            return;
+        }
+
+        if (
+            experiment.stage?.template ===
+            "food_vacuole_phagocytosis"
+        ) {
+            OrganelleExperimentPlacementController.reset();
+            OrganelleExperimentAttemptManager.reset();
+            this.titleElement.textContent =
+                `${experiment.title} - Submission Review`;
+            this.controlsElement.replaceChildren();
+            FoodVacuolePhagocytosisView.mount(
                 this.contentElement,
                 { review: true }
             );
