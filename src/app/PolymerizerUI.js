@@ -91,11 +91,10 @@ const PolymerizerUI = {
                     <div>
                         <p class="poly-kicker">Functional Structure Assembly</p>
                         <h1>Polymerizer</h1>
-                        <p class="poly-subtitle">Development preview · Student navigation remains locked</p>
                     </div>
-                    <div class="poly-status-chip" aria-label="Development status">
+                    <div class="poly-status-chip" aria-label="Assembly status">
                         <span aria-hidden="true"></span>
-                        Milestone 4 Functional Completion
+                        Functional Structure Assembly
                     </div>
                 </header>
 
@@ -152,21 +151,16 @@ const PolymerizerUI = {
                         <section class="poly-panel poly-preflight-panel" aria-labelledby="polymerizer-preflight-heading">
                             <p class="poly-panel-kicker">Preflight</p>
                             <h2 id="polymerizer-preflight-heading">Structural Requirements</h2>
-                            <p class="poly-guidance">
+                            <p id="polymerizer-preflight-guidance" class="poly-guidance">
                                 Motif levels come from Macromolecularizer. Meeting a level unlocks assembly; motifs are never consumed.
                             </p>
                             <ul id="polymerizer-requirements" class="poly-requirement-list"></ul>
                         </section>
 
-                        <section class="poly-panel poly-output-panel" aria-labelledby="polymerizer-output-heading">
-                            <div class="poly-output-heading">
-                                <div>
-                                    <p class="poly-panel-kicker">Output Tray</p>
-                                    <h2 id="polymerizer-output-heading">Completed Products</h2>
-                                </div>
-                                <strong id="polymerizer-output-quantity">0</strong>
-                            </div>
-                            <p id="polymerizer-output-message"></p>
+                        <section class="poly-panel poly-profile-panel" aria-labelledby="polymerizer-profile-heading">
+                            <p class="poly-panel-kicker">Protein Profile</p>
+                            <h2 id="polymerizer-profile-heading">Aquaporin</h2>
+                            <div id="polymerizer-profile-details"></div>
                         </section>
                     </aside>
                 </div>
@@ -209,10 +203,14 @@ const PolymerizerUI = {
                 find("polymerizer-assemble-button"),
             requirements:
                 find("polymerizer-requirements"),
-            outputQuantity:
-                find("polymerizer-output-quantity"),
-            outputMessage:
-                find("polymerizer-output-message")
+            preflightPanel:
+                find("polymerizer-preflight-heading")?.closest("section"),
+            preflightGuidance:
+                find("polymerizer-preflight-guidance"),
+            profileHeading:
+                find("polymerizer-profile-heading"),
+            profileDetails:
+                find("polymerizer-profile-details")
         };
 
     },
@@ -311,9 +309,11 @@ const PolymerizerUI = {
         );
         PolymerizerProductView.renderPreflight(
             this.elements.requirements,
-            product
+            product,
+            this.elements.preflightPanel,
+            this.elements.preflightGuidance
         );
-        PolymerizerProductView.renderOutput(
+        PolymerizerProductView.renderProfile(
             this.elements,
             product
         );

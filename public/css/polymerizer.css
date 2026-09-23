@@ -80,16 +80,10 @@
     text-transform: uppercase;
 }
 
-.poly-subtitle,
 .poly-guidance,
 .poly-description,
-.poly-output-panel p,
 #polymerizer-product-class {
     color: var(--poly-muted);
-}
-
-.poly-subtitle {
-    margin: 6px 0 0;
 }
 
 .poly-status-chip {
@@ -129,7 +123,7 @@
 
 .poly-selection-panel,
 .poly-preflight-panel,
-.poly-output-panel {
+.poly-profile-panel {
     padding: 18px;
 }
 
@@ -153,6 +147,16 @@
     color: var(--poly-text);
     text-align: left;
     background: rgba(9, 23, 33, 0.72);
+}
+
+.poly-product-group-heading {
+    margin: 16px 0 2px;
+    padding: 0 2px 6px;
+    border-bottom: 1px solid var(--poly-border-soft);
+    color: var(--poly-accent-bright);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 .poly-category {
@@ -272,7 +276,7 @@
 }
 
 .poly-chamber-heading,
-.poly-output-heading {
+.poly-profile-heading {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -475,20 +479,30 @@
     color: #c6bdff;
 }
 
-.poly-output-heading strong {
-    display: grid;
-    place-items: center;
-    min-width: 42px;
-    height: 42px;
-    border: 1px solid rgba(32, 214, 208, 0.45);
-    border-radius: 10px;
-    color: var(--poly-accent-bright);
-    background: rgba(32, 214, 208, 0.08);
+.poly-synthesis-complete {
+    color: var(--poly-ready);
 }
 
-.poly-output-panel p {
+.poly-profile-details {
     margin: 14px 0 0;
     line-height: 1.45;
+}
+
+.poly-profile-details dt {
+    margin-top: 12px;
+    color: var(--poly-accent-bright);
+    font-weight: 700;
+}
+
+.poly-profile-details dd {
+    margin: 3px 0 0;
+    color: var(--poly-text);
+}
+
+#polymerizer-profile-details a {
+    display: inline-block;
+    margin-top: 16px;
+    color: var(--poly-accent-bright);
 }
 
 @media (max-width: 1120px) {
@@ -509,7 +523,7 @@
 
     .poly-topbar,
     .poly-chamber-heading,
-    .poly-output-heading {
+    .poly-profile-heading {
         align-items: stretch;
         flex-direction: column;
     }

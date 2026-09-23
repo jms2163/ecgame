@@ -98,7 +98,7 @@ assert.deepEqual(
     state.productInventory,
     {
         Aquaporin: {
-            count: 2,
+            count: 1,
             firstCompletedAtMs: 100,
             lastCompletedAtMs: 500
         },
@@ -131,7 +131,7 @@ assert.equal(
     PolymerizerManager
         .getProductRecord("Aquaporin")
         .count,
-    2
+    1
 );
 assert.deepEqual(
     PolymerizerManager.getProductRecord(
@@ -152,7 +152,7 @@ const inventoryStatus =
     PolymerizerManager
         .getProductInventoryStatus();
 assert.equal(inventoryStatus.storedTypes, 2);
-assert.equal(inventoryStatus.totalQuantity, 5);
+assert.equal(inventoryStatus.totalQuantity, 4);
 assert.deepEqual(
     inventoryStatus.items.map(
         item => [
@@ -162,7 +162,7 @@ assert.deepEqual(
         ]
     ),
     [
-        ["Aquaporin", 2, true],
+        ["Aquaporin", 1, true],
         ["FutureProtein", 3, false]
     ]
 );
@@ -174,7 +174,7 @@ const eligibility =
         );
 assert.equal(
     eligibility.output.quantity,
-    2
+    1
 );
 assert.equal(eligibility.atp.cost, 15);
 assert(eligibility.motifs.every(

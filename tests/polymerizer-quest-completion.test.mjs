@@ -7,6 +7,8 @@ import PolymerizerManager
     from "../src/app/PolymerizerManager.js";
 import PolymerizerRecipeCatalog
     from "../src/data/PolymerizerRecipeCatalog.js";
+import ResourceManager
+    from "../src/app/ResourceManager.js";
 
 const backup = structuredClone(gameState);
 
@@ -67,6 +69,24 @@ try {
         "quest completion must not fabricate synthesized inventory"
     );
 
+    gameState.zones.macromolecularizer.state.motifInventory = {
+        H_helix: 8,
+        L_loop: 7
+    };
+    ResourceManager.setATPStatus(
+        { current: 20, maximum: 50 },
+        "quest-completion-test-setup"
+    );
+    assert.equal(
+        PolymerizerManager.getProductEligibility("Aquaporin").canStart,
+        false,
+        "quest-completed Aquaporin must not require another synthesis"
+    );
+    assert.equal(
+        PolymerizerManager.startAssembly("Aquaporin").reason,
+        "product-completed-by-quest"
+    );
+
     // A discovery alone does not impersonate the named quest claim.
     gameState.registry.quests
         .protein_building_blocks.status =
@@ -118,11 +138,8 @@ try {
         "utf8"
     );
     assert.match(viewSource, /Quest completed/);
-    assert.match(viewSource, /Quest Completed/);
-    assert.match(
-        viewSource,
-        /No Polymerizer product was synthesized/
-    );
+    assert.match(viewSource, /Completed by Protein Building Blocks quest/);
+    assert.match(viewSource, /product\.completion\?\.completed/);
 } finally {
     for (const key of Object.keys(gameState)) {
         delete gameState[key];
@@ -131,5 +148,5 @@ try {
 }
 
 console.log(
-    "PASS: a claimed Protein Building Blocks quest marks Aquaporin as Quest completed, shows the final visual, disables assembly, and creates no synthesized inventory; real Polymerizer output remains authoritative."
+    "PASS: the Protein Building Blocks quest completes Aquaporin without a second assembly or invented inventory."
 );

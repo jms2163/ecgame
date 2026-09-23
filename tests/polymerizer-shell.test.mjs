@@ -42,6 +42,12 @@ assert.deepEqual(
     ]
 );
 assert.equal(recipe.motifCount, 15);
+assert(
+    PolymerizerRecipeCatalog.getAll().every(
+        definition => definition.maxCompletions === 1
+    ),
+    "each catalogued protein has one synthesis"
+);
 assert.equal(recipe.atpCost, 15);
 assert.equal(
     recipe.assemblyDurationMs,

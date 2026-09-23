@@ -40,7 +40,6 @@ const PRODUCT_CONFIGS = Object.freeze({
         name: "Energy Kinase",
         implemented: true,
         discoveryId: null,
-        maxCompletions: 1,
         lockedMessage: null
     }),
     Glycerol3PhosphateAcyltransferase: Object.freeze({
@@ -248,6 +247,7 @@ function createDefinition(id, protein) {
         functionDisplay,
         description:
             protein?.Info ?? "",
+        profile: protein?.Profile ?? null,
         source:
             protein?.Source ?? "",
         simplifiedStructure:
@@ -292,16 +292,9 @@ function createDefinition(id, protein) {
         // derives this alternate completion source from the quest record.
         completionQuestId:
             config?.completionQuestId ?? null,
-        // null permits repeat assembly. A positive integer makes a functional
-        // product a one-time unlock while retaining the existing inventory
-        // record as the authoritative completion source.
-        maxCompletions:
-            Number.isSafeInteger(
-                config?.maxCompletions
-            ) &&
-            config.maxCompletions > 0
-                ? config.maxCompletions
-                : null,
+        // Existing product inventory remains the completion record. This
+        // limit applies to every protein, including older repeatable ones.
+        maxCompletions: 1,
         lockedMessage:
             config?.lockedMessage ?? null
     });

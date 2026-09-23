@@ -877,6 +877,15 @@ const PolymerizerManager = {
             };
         }
 
+        if (eligibility.completion.source === "quest") {
+            return {
+                success: false,
+                reason: "product-completed-by-quest",
+                message:
+                    `${definition.name} was completed by the Protein Building Blocks quest.`
+            };
+        }
+
         if (!eligibility.motifLevelsMet) {
             return {
                 success: false,
