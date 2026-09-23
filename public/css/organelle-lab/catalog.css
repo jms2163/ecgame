@@ -20,6 +20,8 @@
 .organelle-experiment-status { margin-top: 10px !important; font-weight: bold; }
 .organelle-experiment-card--locked { border-color: #74465f; }
 .organelle-experiment-card--locked .organelle-experiment-status { color: var(--color-status-locked, #ff6f7d); }
+.organelle-experiment-card--coming-soon { border-color: #94703c; }
+.organelle-experiment-card--coming-soon .organelle-experiment-status { color: #ffc970; }
 .organelle-experiment-card--available { border-color: #5ee38d; }
 .organelle-experiment-card--available .organelle-experiment-status { color: var(--color-status-available, #5ee38d); }
 .organelle-experiment-card--completed { border-color: #df80ff; }

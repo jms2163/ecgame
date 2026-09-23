@@ -40,6 +40,8 @@ import RoughERProteinTargetingView
     from "./RoughERProteinTargetingView.js";
 import RibosomeTranslationView
     from "./RibosomeTranslationView.js";
+import SmoothERLipidCompositionView
+    from "./SmoothERLipidCompositionView.js";
 import GuidedExperimentManager from './GuidedExperimentManager.js';
 import GuidedExperimentView from './GuidedExperimentView.js';
 import ContractileVacuoleReviewView from './ContractileVacuoleReviewView.js';
@@ -144,6 +146,7 @@ const OrganelleExperimentStage = {
         CytoskeletonTransportView.clear();
         RoughERProteinTargetingView.clear();
         RibosomeTranslationView.clear();
+        SmoothERLipidCompositionView.clear();
 
         this.simulationStructureResizeObserver?.disconnect();
 
@@ -1946,6 +1949,29 @@ stage.append(
         this.isReexamineMode =
             mode === "reexamine";
 
+        if (
+            experiment.stage?.template ===
+            "smooth_er_lipid_composition"
+        ) {
+            this.stopParticleSimulation();
+            OrganelleExperimentPlacementController.reset();
+            OrganelleExperimentAttemptManager.reset();
+            this.activeResolvedExperiment = experiment;
+            this.titleElement.textContent =
+                `${experiment.title}${this.isReexamineMode ? " - Re-examine" : mode === "improve" ? " - Improve Score" : ""}`;
+            this.controlsElement.replaceChildren();
+            SmoothERLipidCompositionView.mount(
+                this.contentElement,
+                {
+                    sandbox:
+                        this.isReexamineMode,
+                    improve:
+                        mode === "improve"
+                }
+            );
+            return;
+        }
+
         if (experiment.stage?.template === "cytoskeleton_transport") {
             this.stopParticleSimulation();
             OrganelleExperimentPlacementController.reset();
@@ -2247,6 +2273,22 @@ this.contentElement.appendChild(
         this.isReviewMode = true;
 
         this.isReexamineMode = false;
+
+        if (
+            experiment.stage?.template ===
+            "smooth_er_lipid_composition"
+        ) {
+            OrganelleExperimentPlacementController.reset();
+            OrganelleExperimentAttemptManager.reset();
+            this.titleElement.textContent =
+                `${experiment.title} - Submission Review`;
+            this.controlsElement.replaceChildren();
+            SmoothERLipidCompositionView.mount(
+                this.contentElement,
+                { review: true }
+            );
+            return;
+        }
 
         if (experiment.sequence?.stages) {
             this.titleElement.textContent =

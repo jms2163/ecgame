@@ -497,6 +497,56 @@ const PolymerizerManager = {
                     questId: null,
                     completedAtMs: null
                 };
+        const researchUnlockMet =
+            !definition.unlockDiscoveryId ||
+            GameStateManager.hasDiscovery(
+                definition.unlockDiscoveryId
+            );
+
+        if (!researchUnlockMet) {
+            const atp =
+                ResourceManager.getATPStatus();
+
+            return {
+                id: productId,
+                definition:
+                    structuredClone(
+                        definition
+                    ),
+                implemented:
+                    definition.implemented,
+                locked: true,
+                lockedMessage:
+                    definition.unlockMessage ??
+                    "Complete the required research activity to reveal this recipe.",
+                motifs: [],
+                motifLevelsMet: false,
+                atp: {
+                    current: atp.current,
+                    maximum: atp.maximum,
+                    cost: null,
+                    canAfford: false,
+                    missing: null
+                },
+                eligible: false,
+                canStart: false,
+                implementationStatus:
+                    "research-locked",
+                completion,
+                output: {
+                    quantity:
+                        outputQuantity,
+                    firstCompletedAtMs:
+                        outputRecord
+                            ?.firstCompletedAtMs ??
+                        null,
+                    lastCompletedAtMs:
+                        outputRecord
+                            ?.lastCompletedAtMs ??
+                        null
+                }
+            };
+        }
 
         if (!definition.implemented) {
             const atp =

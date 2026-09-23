@@ -43,6 +43,16 @@ const PRODUCT_CONFIGS = Object.freeze({
         maxCompletions: 1,
         lockedMessage: null
     }),
+    Glycerol3PhosphateAcyltransferase: Object.freeze({
+        name: "Glycerol-3-Phosphate Acyltransferase",
+        implemented: true,
+        discoveryId: null,
+        unlockDiscoveryId:
+            "glycerol_3_phosphate_acyltransferase_recipe",
+        unlockMessage:
+            "Complete Membrane Lipid Factory: Composition and Fluidity in the Smooth ER Lab.",
+        lockedMessage: null
+    }),
     Hexokinase: Object.freeze({
         name: "Hexokinase",
         implemented: true,
@@ -270,6 +280,13 @@ function createDefinition(id, protein) {
             Boolean(config?.implemented),
         discoveryId:
             config?.discoveryId ?? null,
+        // Research activities may reveal a Polymerizer recipe without
+        // inventing a second saved unlock flag. The discovery itself is the
+        // durable, legacy-compatible progression record.
+        unlockDiscoveryId:
+            config?.unlockDiscoveryId ?? null,
+        unlockMessage:
+            config?.unlockMessage ?? null,
         // A claimed quest may satisfy progression without pretending that a
         // physical Polymerizer product was assembled. Runtime presentation
         // derives this alternate completion source from the quest record.
