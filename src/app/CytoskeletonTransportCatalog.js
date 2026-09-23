@@ -10,7 +10,11 @@ export default {
     objective: "Complete two guided stages: assemble an alternating αβ-tubulin track, then use kinesin and ATP to transport a cargo vesicle.",
     catalogReward: "+250 XP • Discovery: Cytoskeleton transport",
     stage: { template: "cytoskeleton_transport", materials: [], labels: [], controls: [] },
-    assessment: { rubricVersion: "cytoskeleton-transport-v1", scoreMaximum: 100 },
+    assessment: {
+        rubricVersion: "cytoskeleton-transport-v1",
+        scoreMaximum: 100,
+        completionThresholdPercent: 100
+    },
     requirements: { discoveries: [], completedExperiments: [] },
     grants: {
         xp: 250,

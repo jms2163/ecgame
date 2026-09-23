@@ -24,6 +24,10 @@ import SmoothERCalciumPulseExperiment
     from "./SmoothERCalciumPulseCatalog.js";
 import SmoothERMembraneSupplyExperiment
     from "./SmoothERMembraneSupplyCatalog.js";
+import PseudopodiaMembraneExtensionExperiment
+    from "./PseudopodiaMembraneExtensionCatalog.js";
+import FoodVacuolePhagocytosisExperiment
+    from "./FoodVacuolePhagocytosisCatalog.js";
 
 const MEMBRANE_TRANSPORT_LABELS = [
 
@@ -44,6 +48,12 @@ const MEMBRANE_TRANSPORT_LABELS = [
 ];
 
 const OrganelleExperimentLibrary = {
+
+    pseudopodia_membrane_extension:
+        PseudopodiaMembraneExtensionExperiment,
+
+    food_vacuole_phagocytosis:
+        FoodVacuolePhagocytosisExperiment,
 
     smooth_er_lipid_composition:
         SmoothERLipidCompositionExperiment,

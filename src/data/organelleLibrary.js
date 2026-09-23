@@ -252,14 +252,14 @@ const organelleLibrary = {
             "mode": "all",
             "requirements": [
                 {
-                    "type": "environment_discovered",
-                    "id": "successful_phagocytosis",
-                    "label": "successfully engulf food during a Pond encounter"
+                    "type": "experiment_completed",
+                    "id": "pseudopodia_membrane_extension",
+                    "label": "complete Pseudopod Extension: Curve, Push, Stabilize"
                 }
             ],
             "proposal": null,
-            "displayRequirement": "successfully engulf food during a Pond encounter.",
-            "comingSoonMessage": "Food Vacuole revealed through successful phagocytosis. Intracellular digestion activities are coming soon."
+            "displayRequirement": "complete Pseudopod Extension: Curve, Push, Stabilize.",
+            "comingSoonMessage": "Pseudopod-extension mastery reveals the Food Vacuole Lab. Phagocytosis activities are coming soon."
         }
     },
     "cytoskeleton": {

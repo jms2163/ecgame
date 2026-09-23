@@ -321,6 +321,10 @@ const ResearchManager = {
             experiment.requirements
                 ?.completedExperiments ?? [];
 
+        const perfectScoreExperiments =
+            experiment.requirements
+                ?.perfectScoreExperiments ?? [];
+
         const missingDiscoveries =
             requiredDiscoveries.filter(
                 discoveryId =>
@@ -329,13 +333,28 @@ const ResearchManager = {
                     )
             );
 
-        const incompleteExperiments =
+        const incompleteCompletedExperiments =
             requiredExperiments.filter(
                 requiredExperimentId =>
                     !this.hasMetExperimentRequirement(
                         requiredExperimentId
                     )
             );
+
+        const incompletePerfectExperiments =
+            perfectScoreExperiments.filter(
+                requiredExperimentId =>
+                    this.getBestScorePercent(
+                        requiredExperimentId
+                    ) !== 100
+            );
+
+        const incompleteExperiments = [
+            ...new Set([
+                ...incompleteCompletedExperiments,
+                ...incompletePerfectExperiments
+            ])
+        ];
 
         const completed =
             this.isExperimentCompleted(
