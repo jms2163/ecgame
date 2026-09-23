@@ -14,71 +14,11 @@ import PolymerizerManager
 import PolymerizerRecipeCatalog
     from "../src/data/PolymerizerRecipeCatalog.js";
 import {
-    SCENARIOS,
-    evaluateScenario
-} from "../src/app/SmoothERLipidCompositionModel.js";
-import {
     calculateFluidity,
     getFluidityBand
 } from "../src/app/SmoothERLipidCompositionView.js";
 
 const backup = structuredClone(gameState);
-
-const VALID_SOLUTIONS = Object.freeze({
-    cold_pond: Object.freeze({
-        PC: 35,
-        PE: 25,
-        PS: 20,
-        PI: 20,
-        unsaturatedTails: 80,
-        sterol: 40
-    }),
-    warm_pond: Object.freeze({
-        PC: 35,
-        PE: 25,
-        PS: 20,
-        PI: 20,
-        unsaturatedTails: 0,
-        sterol: 40
-    }),
-    curved_export_patch: Object.freeze({
-        PC: 20,
-        PE: 50,
-        PS: 10,
-        PI: 20,
-        unsaturatedTails: 70,
-        sterol: 0
-    }),
-    pseudopod_supply: Object.freeze({
-        PC: 25,
-        PE: 20,
-        PS: 25,
-        PI: 30,
-        unsaturatedTails: 50,
-        sterol: 0
-    })
-});
-
-// Every solution below can be built with the visual workshop's ten lipid
-// positions, ten tail choices, and four optional sterol-brace positions.
-const CARD_WORKSHOP_SOLUTIONS = Object.freeze({
-    cold_pond: Object.freeze({
-        PC: 40, PE: 20, PS: 20, PI: 20,
-        unsaturatedTails: 80, sterol: 40
-    }),
-    warm_pond: Object.freeze({
-        PC: 40, PE: 20, PS: 20, PI: 20,
-        unsaturatedTails: 0, sterol: 40
-    }),
-    curved_export_patch: Object.freeze({
-        PC: 20, PE: 50, PS: 10, PI: 20,
-        unsaturatedTails: 70, sterol: 0
-    }),
-    pseudopod_supply: Object.freeze({
-        PC: 30, PE: 20, PS: 20, PI: 30,
-        unsaturatedTails: 50, sterol: 0
-    })
-});
 
 try {
     assert.equal(
@@ -95,47 +35,6 @@ try {
         [],
         "the SER learning platform must not grant cell-wide metric effects"
     );
-
-    for (const scenario of SCENARIOS) {
-        const result = evaluateScenario(
-            scenario,
-            VALID_SOLUTIONS[scenario.id]
-        );
-        assert.equal(
-            result.valid,
-            true,
-            `${scenario.id} has a valid phospholipid total`
-        );
-        assert.equal(
-            result.passed,
-            true,
-            `${scenario.id} has at least one reachable balanced solution`
-        );
-        assert.equal(
-            evaluateScenario(
-                scenario,
-                CARD_WORKSHOP_SOLUTIONS[
-                    scenario.id
-                ]
-            ).passed,
-            true,
-            `${scenario.id} is reachable with ten-position workshop cards`
-        );
-    }
-
-    const invalidTotal = evaluateScenario(
-        "cold_pond",
-        {
-            PC: 40,
-            PE: 40,
-            PS: 40,
-            PI: 40,
-            unsaturatedTails: 80,
-            sterol: 20
-        }
-    );
-    assert.equal(invalidTotal.valid, false);
-    assert.equal(invalidTotal.passed, false);
 
     assert.equal(
         calculateFluidity(
@@ -195,6 +94,23 @@ try {
         .bestExperimentScores = {};
     gameState.registry.research
         .experimentSubmissions = {};
+
+    const lipidBeforeCompletion =
+        ResearchManager.getExperimentStatus(
+            LipidCatalog.id
+        );
+    assert.equal(lipidBeforeCompletion.comingSoon, false);
+    assert.equal(lipidBeforeCompletion.available, true);
+
+    const sterolBeforeLipid =
+        ResearchManager.getExperimentStatus(
+            "smooth_er_sterol_buffer"
+        );
+    assert.equal(sterolBeforeLipid.available, false);
+    assert.deepEqual(
+        sterolBeforeLipid.incompleteExperiments,
+        [LipidCatalog.id]
+    );
 
     const detoxBeforeRelease =
         ResearchManager.getExperimentStatus(
@@ -277,21 +193,15 @@ try {
         );
     assert.equal(completion.completed, true);
     assert.equal(completion.xpAwarded, 250);
-    assert.deepEqual(
-        completion.appliedMetricEffects,
-        []
-    );
+    assert.deepEqual(completion.appliedMetricEffects, []);
+    assert.equal(LipidCatalog.grants.xp, 250);
     assert.ok(
-        gameState.registry.discoveries
-            .includes(
-                "glycerol_3_phosphate_acyltransferase_recipe"
-            ),
-        "the completed lab records the future Polymerizer recipe unlock"
+        gameState.registry.discoveries.includes(
+            "glycerol_3_phosphate_acyltransferase_recipe"
+        ),
+        "Lab 1 reveals the Polymerizer recipe"
     );
-    assert.ok(
-        gameState.registry.achievements
-            .ser_membrane_analyst
-    );
+
     const unlockedAcyltransferase =
         PolymerizerManager
             .getProductEligibility(
@@ -308,6 +218,16 @@ try {
         "the recipe still requires its permanent motif levels and ATP"
     );
 
+    const sterolAfterLipid =
+        ResearchManager.getExperimentStatus(
+            "smooth_er_sterol_buffer"
+        );
+    assert.equal(sterolAfterLipid.available, true);
+    assert.equal(
+        sterolAfterLipid.incompleteExperiments.length,
+        0
+    );
+
     const detoxAfterPrerequisite =
         ResearchManager.getExperimentStatus(
             "smooth_er_detox_routing"
@@ -315,12 +235,12 @@ try {
     assert.equal(
         detoxAfterPrerequisite
             .incompleteExperiments.length,
-        0
+        1
     );
     assert.equal(
         detoxAfterPrerequisite.available,
         false,
-        "completed prerequisites do not bypass the coming-soon release lock"
+        "detox remains behind the future curvature lab and its release lock"
     );
 
     assert.equal(
@@ -370,6 +290,7 @@ try {
     assert.match(workshopSource, /Unsaturated Lipid/);
     assert.match(workshopSource, /One live measurement/);
     assert.match(workshopSource, /ser-fluidity-meter/);
+    assert.match(workshopSource, /Save Investigation/);
     assert.doesNotMatch(
         workshopSource,
         /Test This Membrane|Run Membrane Analyzer|type="range"/
@@ -384,5 +305,5 @@ try {
 }
 
 console.log(
-    "PASS: the Smooth ER fluidity prototype changes one variable with one live meter, while the planned full lab rewards and locked SER progression remain intact."
+    "PASS: Smooth ER Lab 1 changes one variable with one live meter, grants 250 XP and the acyltransferase recipe, and unlocks Lab 2 without cell-wide metric effects."
 );

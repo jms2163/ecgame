@@ -8,7 +8,7 @@ export default Object.freeze({
     objective:
         "Construct a complete membrane patch and observe how tail saturation changes one live fluidity measurement.",
     catalogReward:
-        "Visual prototype • No XP, achievement, recipe, or submission is saved yet",
+        "+250 XP • Achievement: Membrane Analyst • Acyltransferase recipe",
     stage: {
         template: "smooth_er_lipid_composition",
         materials: [],
