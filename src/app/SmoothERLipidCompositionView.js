@@ -8,8 +8,8 @@ import SaveManager from "./SaveManager.js";
 import gameState from "./GameState.js";
 
 const TOTAL_LIPID_POSITIONS = 12;
-const FUNCTIONAL_FLUIDITY_MINIMUM = 40;
-const FUNCTIONAL_FLUIDITY_MAXIMUM = 60;
+const FUNCTIONAL_FLUIDITY_MINIMUM = 33;
+const FUNCTIONAL_FLUIDITY_MAXIMUM = 67;
 
 const TAIL_TYPES = Object.freeze({
     saturated: Object.freeze({
@@ -62,6 +62,21 @@ function getFluidityBand(value) {
         return "loose";
     }
     return "functional";
+}
+
+function calculateFluidityScore(value) {
+    if (getFluidityBand(value) !== "functional") return 0;
+    const center = (
+        FUNCTIONAL_FLUIDITY_MINIMUM +
+        FUNCTIONAL_FLUIDITY_MAXIMUM
+    ) / 2;
+    const halfWidth = (
+        FUNCTIONAL_FLUIDITY_MAXIMUM -
+        FUNCTIONAL_FLUIDITY_MINIMUM
+    ) / 2;
+    return Math.round(
+        100 - (Math.abs(value - center) / halfWidth) * 20
+    );
 }
 
 const SmoothERLipidCompositionView = {
@@ -138,6 +153,9 @@ const SmoothERLipidCompositionView = {
         const isFunctional =
             isComplete &&
             band === "functional";
+        const matchScore = isFunctional
+            ? calculateFluidityScore(fluidity)
+            : 0;
 
         this.root.innerHTML = `
             <header class="ser-fluidity-heading">
@@ -187,7 +205,7 @@ const SmoothERLipidCompositionView = {
                         <p class="ser-fluidity-step">3 · One live measurement</p>
                         <h4>Fluidity</h4>
                     </div>
-                    <strong class="ser-fluidity-reading ser-fluidity-reading--${band}">${this.bandLabel(band, filledCount)}</strong>
+                    <strong class="ser-fluidity-reading ser-fluidity-reading--${band}">${this.bandLabel(band, filledCount, matchScore)}</strong>
                 </div>
                 <div class="ser-fluidity-meter" role="meter" aria-label="Membrane fluidity" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${fluidity}">
                     <div class="ser-fluidity-zone ser-fluidity-zone--stiff"><span>Too stiff</span></div>
@@ -195,8 +213,8 @@ const SmoothERLipidCompositionView = {
                     <div class="ser-fluidity-zone ser-fluidity-zone--loose"><span>Too fluid</span></div>
                     <i class="ser-fluidity-marker" style="left: ${fluidity}%" aria-hidden="true"></i>
                 </div>
-                <p class="ser-fluidity-feedback" role="status" aria-live="polite">${this.feedbackText({ filledCount, band })}</p>
-                ${isFunctional ? `<button type="button" class="ser-fluidity-continue" data-action="continue">${this.sandbox ? "Complete Practice Run" : "Save Investigation"}</button>` : ""}
+                <p class="ser-fluidity-feedback" role="status" aria-live="polite">${this.feedbackText({ filledCount, band, matchScore })}</p>
+                ${isFunctional ? `<button type="button" class="ser-fluidity-continue" data-action="continue">${this.sandbox ? "Complete Practice Run" : `Save Investigation · ${matchScore}%`}</button>` : ""}
             </section>`;
 
         this.renderTailCards();
@@ -356,18 +374,18 @@ const SmoothERLipidCompositionView = {
         this.render();
     },
 
-    bandLabel(band, filledCount) {
+    bandLabel(band, filledCount, matchScore = 0) {
         if (filledCount === 0) {
             return "Build to observe";
         }
         return {
             stiff: "Too stiff",
-            functional: "Functional range",
+            functional: `Functional range · ${matchScore}%`,
             loose: "Too fluid"
         }[band];
     },
 
-    feedbackText({ filledCount, band }) {
+    feedbackText({ filledCount, band, matchScore }) {
         if (filledCount === 0) {
             return "Add straight- or kinked-tail lipids. The membrane and meter will respond immediately.";
         }
@@ -383,7 +401,7 @@ const SmoothERLipidCompositionView = {
         if (band === "loose") {
             return "This completed membrane is excessively fluid. Select Saturated Lipid, then tap one or more kinked-tail positions.";
         }
-        return "Functional fluidity reached. Kinked tails prevent overly tight packing while straight tails keep the membrane from becoming excessively loose.";
+        return `Functional fluidity reached at ${matchScore}%. The center of the green range earns 100%; its edges earn 80%.`;
     },
 
     renderCompletion() {
@@ -430,11 +448,13 @@ const SmoothERLipidCompositionView = {
                 throw new Error(completion.reason);
             }
 
+            const fluidity = calculateFluidity(slots);
+            const scorePercent = calculateFluidityScore(fluidity);
             const report = {
-                scorePoints: 100,
+                scorePoints: scorePercent,
                 scoreMaximum: 100,
-                scorePercent: 100,
-                isPerfect: true,
+                scorePercent,
+                isPerfect: scorePercent === 100,
                 checks: [
                     {
                         id: "complete_membrane_patch",
@@ -445,7 +465,7 @@ const SmoothERLipidCompositionView = {
                     {
                         id: "functional_fluidity",
                         passed: true,
-                        awardedPoints: 50,
+                        awardedPoints: scorePercent - 50,
                         maximumPoints: 50
                     }
                 ]
@@ -466,8 +486,8 @@ const SmoothERLipidCompositionView = {
                                 slots.filter(type =>
                                     type === "unsaturated"
                                 ).length,
-                            fluidity:
-                                calculateFluidity(slots)
+                            fluidity,
+                            matchScore: scorePercent
                         }
                     }
                 });
@@ -511,7 +531,7 @@ const SmoothERLipidCompositionView = {
             <section class="ser-fluidity-completion">
                 <p class="ser-fluidity-eyebrow">Lab 1 submission review</p>
                 <h3>${record ? `${record.scorePoints} / ${record.scoreMaximum}` : "No saved submission"}</h3>
-                <p>${record ? `Your membrane contained ${observations?.saturatedCount ?? 0} saturated and ${observations?.unsaturatedCount ?? 0} unsaturated lipids, producing functional fluidity.` : "Complete and save the Tail Packing investigation to create a review record."}</p>
+                <p>${record ? `Your membrane contained ${observations?.saturatedCount ?? 0} saturated and ${observations?.unsaturatedCount ?? 0} unsaturated lipids, producing a ${observations?.matchScore ?? record.scorePercent}% fluidity match.` : "Complete and save the Tail Packing investigation to create a review record."}</p>
             </section>`;
     }
 };
@@ -522,6 +542,7 @@ export {
     TAIL_TYPES,
     TOTAL_LIPID_POSITIONS,
     calculateFluidity,
+    calculateFluidityScore,
     getFluidityBand
 };
 

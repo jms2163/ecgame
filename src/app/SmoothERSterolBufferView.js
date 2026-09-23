@@ -40,7 +40,7 @@ function clamp(value, minimum = 0, maximum = 100) {
 
 function calculateSterolStability(cholesterolCount = 0) {
     return Math.round(clamp(
-        10 + Number(cholesterolCount) * 18
+        10 + Number(cholesterolCount) * 15
     ));
 }
 
@@ -48,6 +48,15 @@ function getSterolStabilityBand(value) {
     if (value < BUFFERED_MINIMUM) return "unstable";
     if (value > BUFFERED_MAXIMUM) return "constrained";
     return "buffered";
+}
+
+function calculateSterolMatchScore(value) {
+    if (getSterolStabilityBand(value) !== "buffered") return 0;
+    const center = (BUFFERED_MINIMUM + BUFFERED_MAXIMUM) / 2;
+    const halfWidth = (BUFFERED_MAXIMUM - BUFFERED_MINIMUM) / 2;
+    return Math.round(
+        100 - (Math.abs(value - center) / halfWidth) * 20
+    );
 }
 
 const SmoothERSterolBufferView = {
@@ -109,6 +118,9 @@ const SmoothERSterolBufferView = {
             calculateSterolStability(cholesterolCount);
         const band = getSterolStabilityBand(stability);
         const buffered = band === "buffered";
+        const matchScore = buffered
+            ? calculateSterolMatchScore(stability)
+            : 0;
 
         this.root.innerHTML = `
             <header class="ser-fluidity-heading">
@@ -163,7 +175,7 @@ const SmoothERSterolBufferView = {
                         <p class="ser-fluidity-step">3 · One live measurement</p>
                         <h4>Membrane Stability</h4>
                     </div>
-                    <strong class="ser-fluidity-reading ser-sterol-reading--${band}">${this.bandLabel(band)}</strong>
+                    <strong class="ser-fluidity-reading ser-sterol-reading--${band}">${this.bandLabel(band, matchScore)}</strong>
                 </div>
                 <div class="ser-fluidity-meter ser-sterol-meter" role="meter" aria-label="Membrane stability" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${stability}">
                     <div class="ser-fluidity-zone ser-sterol-zone--unstable"><span>Unstable</span></div>
@@ -171,8 +183,8 @@ const SmoothERSterolBufferView = {
                     <div class="ser-fluidity-zone ser-sterol-zone--constrained"><span>Over-constrained</span></div>
                     <i class="ser-fluidity-marker" style="left: ${stability}%" aria-hidden="true"></i>
                 </div>
-                <p class="ser-fluidity-feedback" role="status" aria-live="polite">${this.feedbackText(trial, band)}</p>
-                ${buffered ? `<button type="button" class="ser-fluidity-continue" data-action="record-trial">Record ${trial.name} Result</button>` : ""}
+                <p class="ser-fluidity-feedback" role="status" aria-live="polite">${this.feedbackText(trial, band, matchScore)}</p>
+                ${buffered ? `<button type="button" class="ser-fluidity-continue" data-action="record-trial">Record ${trial.name} · ${matchScore}%</button>` : ""}
             </section>`;
 
         this.renderPhospholipids();
@@ -288,11 +300,13 @@ const SmoothERSterolBufferView = {
             this.state.cholesterolSites.filter(Boolean).length;
         const stability = calculateSterolStability(cholesterolCount);
         if (getSterolStabilityBand(stability) !== "buffered") return;
+        const matchScore = calculateSterolMatchScore(stability);
 
         this.state.results.push({
             trialId: TRIALS[this.state.trialIndex].id,
             cholesterolCount,
-            stability
+            stability,
+            matchScore
         });
         if (this.state.trialIndex < TRIALS.length - 1) {
             this.state.trialIndex += 1;
@@ -305,15 +319,15 @@ const SmoothERSterolBufferView = {
         this.render();
     },
 
-    bandLabel(band) {
+    bandLabel(band, matchScore = 0) {
         return {
             unstable: "Unstable",
-            buffered: "Buffered range",
+            buffered: `Buffered range · ${matchScore}%`,
             constrained: "Over-constrained"
         }[band];
     },
 
-    feedbackText(trial, band) {
+    feedbackText(trial, band, matchScore = 0) {
         if (band === "unstable") {
             return trial.id === "cold_snap"
                 ? "The tails are packing too tightly. Add cholesterol to interrupt that packing."
@@ -322,7 +336,7 @@ const SmoothERSterolBufferView = {
         if (band === "constrained") {
             return "Too much cholesterol is constraining the membrane. Tap a placed cholesterol to remove it.";
         }
-        return `${trial.mechanism} Record this controlled result when you are ready.`;
+        return `${trial.mechanism} This placement earns ${matchScore}%; the center of the green range earns 100%.`;
     },
 
     renderConclusion() {
@@ -354,17 +368,28 @@ const SmoothERSterolBufferView = {
         try {
             const completion = ResearchManager.completeExperiment(Catalog.id);
             if (!completion.completed) throw new Error(completion.reason);
+            const scorePercent = Math.round(
+                this.state.results.reduce(
+                    (total, result) => total + result.matchScore,
+                    0
+                ) / TRIALS.length
+            );
             const report = {
-                scorePoints: 100,
+                scorePoints: scorePercent,
                 scoreMaximum: 100,
-                scorePercent: 100,
-                isPerfect: true,
-                checks: TRIALS.map(trial => ({
-                    id: `${trial.id}_buffered`,
-                    passed: true,
-                    awardedPoints: 50,
-                    maximumPoints: 50
-                }))
+                scorePercent,
+                isPerfect: scorePercent === 100,
+                checks: TRIALS.map(trial => {
+                    const result = this.state.results.find(
+                        entry => entry.trialId === trial.id
+                    );
+                    return {
+                        id: `${trial.id}_buffered`,
+                        passed: (result?.matchScore ?? 0) >= 80,
+                        awardedPoints: (result?.matchScore ?? 0) / 2,
+                        maximumPoints: 50
+                    };
+                })
             };
             const submission = SubmissionManager.recordSubmission({
                 experiment: Catalog,
@@ -405,7 +430,7 @@ const SmoothERSterolBufferView = {
             <section class="ser-fluidity-completion ser-sterol-conclusion">
                 <p class="ser-fluidity-eyebrow">Lab 2 submission review</p>
                 <h3>${record ? `${record.scorePoints} / ${record.scoreMaximum}` : "No saved submission"}</h3>
-                ${record ? `<p>You stabilized both temperature challenges by changing only cholesterol.</p><ul>${results.map(result => `<li>${result.trialId === "cold_snap" ? "Cold Snap" : "Warm Surge"}: ${result.cholesterolCount} cholesterol molecules · buffered</li>`).join("")}</ul>` : `<p>Complete and save the cholesterol investigation to create a review record.</p>`}
+                ${record ? `<p>You stabilized both temperature challenges by changing only cholesterol.</p><ul>${results.map(result => `<li>${result.trialId === "cold_snap" ? "Cold Snap" : "Warm Surge"}: ${result.cholesterolCount} cholesterol molecules · ${result.matchScore ?? 100}% match</li>`).join("")}</ul>` : `<p>Complete and save the cholesterol investigation to create a review record.</p>`}
             </section>`;
     }
 };
@@ -415,6 +440,7 @@ export {
     BUFFERED_MINIMUM,
     CHOLESTEROL_SITE_COUNT,
     TRIALS,
+    calculateSterolMatchScore,
     calculateSterolStability,
     getSterolStabilityBand
 };
