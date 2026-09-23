@@ -89,6 +89,12 @@ for (const materialId of [
 
 for (const candidate of
     Object.values(OrganelleExperimentLibrary)) {
+    if (
+        candidate.releaseStatus ===
+        "coming-soon"
+    ) {
+        continue;
+    }
     assert.ok(
         candidate.grants?.xp > 0,
         `${candidate.id} should grant XP`

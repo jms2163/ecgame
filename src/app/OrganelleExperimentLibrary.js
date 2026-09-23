@@ -12,6 +12,14 @@ import RoughERProteinTargetingExperiment
     from "./RoughERProteinTargetingCatalog.js";
 import RibosomeTranslationExperiment
     from "./RibosomeTranslationCatalog.js";
+import SmoothERLipidCompositionExperiment
+    from "./SmoothERLipidCompositionCatalog.js";
+import SmoothERDetoxRoutingExperiment
+    from "./SmoothERDetoxRoutingCatalog.js";
+import SmoothERCalciumPulseExperiment
+    from "./SmoothERCalciumPulseCatalog.js";
+import SmoothERMembraneSupplyExperiment
+    from "./SmoothERMembraneSupplyCatalog.js";
 
 const MEMBRANE_TRANSPORT_LABELS = [
 
@@ -32,6 +40,18 @@ const MEMBRANE_TRANSPORT_LABELS = [
 ];
 
 const OrganelleExperimentLibrary = {
+
+    smooth_er_lipid_composition:
+        SmoothERLipidCompositionExperiment,
+
+    smooth_er_detox_routing:
+        SmoothERDetoxRoutingExperiment,
+
+    smooth_er_calcium_pulses:
+        SmoothERCalciumPulseExperiment,
+
+    smooth_er_membrane_supply:
+        SmoothERMembraneSupplyExperiment,
 
     rough_er_protein_targeting:
         RoughERProteinTargetingExperiment,

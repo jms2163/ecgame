@@ -478,7 +478,7 @@ const organelleLibrary = {
         {
             "id": "lumen",
             "label": "Lumen",
-            "description": "The internal, fluid-filled compartment enclosed by the endoplasmic reticulum membrane where chemical modifications occur."
+            "description": "The internal, fluid-filled space inside the smooth ER that primarily stores and buffers calcium."
         },
         {
             "id": "rough_er",
@@ -499,14 +499,14 @@ const organelleLibrary = {
         "benefits": [
             {
                 "id": "smooth_endoplasmic_reticulum_benefit",
-                "label": "Lipid Production",
-                "description": "Proposed benefit: improved lipid-production capacity.",
-                "status": "planned",
+                "label": "Lipid Research",
+                "description": "Experiments award XP, achievements, and selected Polymerizer or lipid recipe discoveries without directly changing cell-wide metrics.",
+                "status": "active",
                 "effectReference": null
             }
         ],
         "unlock": {
-            "status": "preview",
+            "status": "active",
             "mode": "all",
             "requirements": [
                 {
@@ -523,7 +523,7 @@ const organelleLibrary = {
             ],
             "proposal": null,
             "displayRequirement": "synthesize a membrane lipid (PC, PE, PS, or PI).",
-            "comingSoonMessage": "Smooth ER revealed through membrane-lipid synthesis. Lipid-processing activities are coming soon."
+            "comingSoonMessage": "Smooth ER revealed through membrane-lipid synthesis."
         }
     },
     "ribosomes": {

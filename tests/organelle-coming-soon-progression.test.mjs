@@ -51,20 +51,30 @@ try {
     gameState.zones.macromolecularizer
         .state.motifInventory.PE = 1;
 
-    const smoothPreview =
+    const smoothStatus =
         OrganelleProgressionManager
             .getStatus(
                 "smooth_endoplasmic_reticulum"
             );
 
-    assert.equal(smoothPreview.available, false);
+    assert.equal(smoothStatus.available, true);
     assert.equal(
-        smoothPreview.previewAvailable,
-        true
+        smoothStatus.previewAvailable,
+        false
     );
     assert.equal(
-        smoothPreview.progressionState,
-        "coming-soon"
+        smoothStatus.progressionState,
+        "available"
+    );
+    assert.equal(
+        organelleLibrary
+            .smooth_endoplasmic_reticulum
+            .components
+            .find(component =>
+                component.id === "lumen"
+            )
+            .description,
+        "The internal, fluid-filled space inside the smooth ER that primarily stores and buffers calcium."
     );
     assert.match(
         OrganelleProgressionManager
@@ -72,9 +82,9 @@ try {
                 organelleLibrary[
                     "smooth_endoplasmic_reticulum"
                 ],
-                smoothPreview
+                smoothStatus
             ),
-        /coming soon/i
+        /select an available experiment/i
     );
 
     gameState.zones.polymerizer
@@ -183,5 +193,5 @@ try {
 }
 
 console.log(
-    "PASS: membrane lipids preview Smooth ER, Glucose Transporter unlocks the playable Rough ER lab, ER targeting previews Golgi, and Lysosome retains its dual future prerequisite."
+    "PASS: membrane lipids unlock the playable Smooth ER lab, Glucose Transporter unlocks the playable Rough ER lab, ER targeting previews Golgi, and Lysosome retains its dual future prerequisite."
 );

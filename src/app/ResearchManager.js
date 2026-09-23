@@ -299,10 +299,20 @@ const ResearchManager = {
                 exists: false,
                 completed: false,
                 available: false,
+                releaseStatus: "unknown",
+                comingSoon: false,
                 missingDiscoveries: [],
                 incompleteExperiments: []
             };
         }
+
+        const releaseStatus =
+            experiment.releaseStatus ??
+            "active";
+
+        const comingSoon =
+            releaseStatus ===
+            "coming-soon";
 
         const requiredDiscoveries =
             experiment.requirements?.discoveries ?? [];
@@ -336,7 +346,11 @@ const ResearchManager = {
             exists: true,
             completed,
 
+            releaseStatus,
+            comingSoon,
+
             available:
+                !comingSoon &&
                 !completed &&
                 missingDiscoveries.length === 0 &&
                 incompleteExperiments.length === 0,

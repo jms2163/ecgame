@@ -66,6 +66,20 @@ export const proteinLibrary =  Object.freeze({
     "Models": {},
     "Info": "A simplified teaching module that uses the 1EI0 alpha-helical scaffold to represent an early phosphate-transfer enzyme converting a generic high-energy metabolite and ADP into ATP."
   },
+  "Glycerol3PhosphateAcyltransferase": {
+    // Instructor-derived ChimeraX motif totals for PDB 5XJ6. The totals are
+    // authoritative; no linear motif order is asserted by this recipe.
+    "PPC": "",
+    "Recipe": {"H": 10, "B": 0, "L": 11},
+    "Class": "Lipid Metabolism Teaching Model",
+    "Function": "Acylates glycerol-3-phosphate during phospholipid synthesis",
+    "Tier": 2,
+    "Location": "Membrane",
+    "Requires": ["MembraneLipidFactory"],
+    "Source": "5XJ6",
+    "Models": {},
+    "Info": "PDB 5XJ6 is the bacterial membrane-integral glycerol-3-phosphate acyltransferase PlsY. ECGame uses its experimentally determined structure as a representative phospholipid-synthesis teaching model; it is not presented as a eukaryotic Smooth ER homolog."
+  },
   /* ============================================================
    Active Transport Pumps & Channels (Bio-Craft Core Systems)
    ------------------------------------------------------------

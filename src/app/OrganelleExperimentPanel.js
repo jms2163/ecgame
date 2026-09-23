@@ -179,6 +179,8 @@ const OrganelleExperimentPanel = {
         const state =
             status.completed
                 ? "completed"
+                : status.comingSoon
+                    ? "coming-soon"
                 : status.available
                     ? "available"
                     : "locked";
@@ -225,6 +227,8 @@ const OrganelleExperimentPanel = {
         statusElement.textContent =
             state === "available"
                     ? "Available"
+                    : state === "coming-soon"
+                        ? "Coming Soon"
                     : state === "locked"
                         ? "Locked"
                         : "Completed · ";
@@ -530,7 +534,10 @@ starElement.setAttribute(
 
 }
 
-        if (state === "locked") {
+        if (
+            state === "locked" ||
+            state === "coming-soon"
+        ) {
 
             const requirements =
                 document.createElement("p");
@@ -540,7 +547,11 @@ starElement.setAttribute(
 
             const details = [];
 
-            if (status.organelleLocked) {
+            if (state === "coming-soon") {
+                details.push(
+                    "This activity is visible for planning but cannot be opened until its implementation is complete."
+                );
+            } else if (status.organelleLocked) {
                 details.push(
                     "Unlock the selected organelle first."
                 );

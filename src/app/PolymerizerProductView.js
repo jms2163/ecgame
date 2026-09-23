@@ -168,7 +168,10 @@ const PolymerizerProductView = {
                         ? "Finalizing"
                         : "Assembling"
                     : product.locked
-                        ? "Coming Soon"
+                        ? product.implementationStatus ===
+                            "research-locked"
+                            ? "Research Locked"
+                            : "Coming Soon"
                     : product.completion
                         ?.source === "quest"
                         ? "Quest completed"
@@ -258,17 +261,24 @@ const PolymerizerProductView = {
         );
 
         if (product.locked) {
+            const researchLocked =
+                product.implementationStatus ===
+                "research-locked";
             elements.progressPanel.hidden = true;
             elements.progress.value = 0;
             elements.countdown.textContent =
-                "Assembly timing not configured";
+                researchLocked
+                    ? "Complete required investigation"
+                    : "Assembly timing not configured";
             elements.chamberMode.textContent =
-                "Coming Soon";
+                researchLocked
+                    ? "Research Locked"
+                    : "Coming Soon";
             elements.chamberStatus.textContent =
                 product.lockedMessage;
             elements.assembleButton.disabled = true;
             elements.assembleButton.textContent =
-                `${product.definition.name} · Coming Soon`;
+                `${product.definition.name} · ${researchLocked ? "Locked" : "Coming Soon"}`;
             return;
         }
 
@@ -403,7 +413,10 @@ const PolymerizerProductView = {
             const label =
                 document.createElement("span");
             label.textContent =
-                "Development status";
+                product.implementationStatus ===
+                    "research-locked"
+                    ? "Research requirement"
+                    : "Development status";
 
             const count =
                 document.createElement("strong");
