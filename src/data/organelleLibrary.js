@@ -248,7 +248,7 @@ const organelleLibrary = {
             }
         ],
         "unlock": {
-            "status": "preview",
+            "status": "active",
             "mode": "all",
             "requirements": [
                 {
@@ -259,7 +259,7 @@ const organelleLibrary = {
             ],
             "proposal": null,
             "displayRequirement": "complete Pseudopod Extension: Curve, Push, Stabilize.",
-            "comingSoonMessage": "Pseudopod-extension mastery reveals the Food Vacuole Lab. Phagocytosis activities are coming soon."
+            "comingSoonMessage": null
         }
     },
     "cytoskeleton": {

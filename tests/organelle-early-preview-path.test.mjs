@@ -62,7 +62,7 @@ try {
         };
     expectState(
         "food_vacuole",
-        "coming-soon"
+        "available"
     );
 
     gameState.registry.discoveries.push(
@@ -115,5 +115,5 @@ try {
 }
 
 console.log(
-    "PASS: Polymerizer access unlocks Ribosome Translation, Pseudopodia completion reveals the Food Vacuole preview, and Lysosome still requires Golgi routing plus a completed cargo-uptake route."
+    "PASS: Polymerizer access unlocks Ribosome Translation, Pseudopodia completion unlocks the Food Vacuole Lab, and Lysosome still requires Golgi routing plus a completed cargo-uptake route."
 );
