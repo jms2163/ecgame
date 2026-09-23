@@ -92,27 +92,25 @@ try {
     assert.equal(
         OrganelleProgressionManager.getStatus("food_vacuole")
             .progressionState,
-        "coming-soon"
+        "available"
     );
 
     const phagocytosis = OrganelleExperimentLibrary
         .food_vacuole_phagocytosis;
     assert.equal(phagocytosis.organelleId, "food_vacuole");
-    assert.equal(phagocytosis.releaseStatus, "coming-soon");
+    assert.equal(phagocytosis.releaseStatus, "active");
     assert.deepEqual(
         phagocytosis.requirements.completedExperiments,
         ["pseudopodia_membrane_extension"]
     );
     assert.deepEqual(
-        phagocytosis.plannedMissions.map(mission => mission.id),
-        ["surround_food_particle", "pinch_and_seal"]
-    );
-    assert.deepEqual(
-        phagocytosis.plannedGrants.discoveries,
+        phagocytosis.grants.discoveries,
         ["successful_phagocytosis", "food_vacuole"]
     );
+    assert.equal(phagocytosis.grants.xp, 250);
+    assert.deepEqual(phagocytosis.grants.metricEffects, []);
     assert.equal(
-        ResearchManager.getExperimentStatus(phagocytosis.id).comingSoon,
+        ResearchManager.getExperimentStatus(phagocytosis.id).available,
         true
     );
 } finally {
@@ -121,5 +119,5 @@ try {
 }
 
 console.log(
-    "PASS: the Cytoskeleton Lab requires a perfect transport result before releasing the two-mission pseudopod activity, whose completion reveals Food Vacuole phagocytosis without premature rewards."
+    "PASS: the Cytoskeleton Lab requires a perfect transport result before releasing Pseudopod Extension, whose completion unlocks the active two-mission Food Vacuole phagocytosis lab."
 );
