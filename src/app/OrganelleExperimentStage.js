@@ -44,6 +44,8 @@ import SmoothERLipidCompositionView
     from "./SmoothERLipidCompositionView.js";
 import SmoothERSterolBufferView
     from "./SmoothERSterolBufferView.js";
+import SmoothERMembraneCurvatureView
+    from "./SmoothERMembraneCurvatureView.js";
 import GuidedExperimentManager from './GuidedExperimentManager.js';
 import GuidedExperimentView from './GuidedExperimentView.js';
 import ContractileVacuoleReviewView from './ContractileVacuoleReviewView.js';
@@ -150,6 +152,7 @@ const OrganelleExperimentStage = {
         RibosomeTranslationView.clear();
         SmoothERLipidCompositionView.clear();
         SmoothERSterolBufferView.clear();
+        SmoothERMembraneCurvatureView.clear();
 
         this.simulationStructureResizeObserver?.disconnect();
 
@@ -1996,6 +1999,27 @@ stage.append(
             return;
         }
 
+        if (
+            experiment.stage?.template ===
+            "smooth_er_membrane_curvature"
+        ) {
+            this.stopParticleSimulation();
+            OrganelleExperimentPlacementController.reset();
+            OrganelleExperimentAttemptManager.reset();
+            this.activeResolvedExperiment = experiment;
+            this.titleElement.textContent =
+                `${experiment.title}${this.isReexamineMode ? " - Re-examine" : mode === "improve" ? " - Improve Score" : ""}`;
+            this.controlsElement.replaceChildren();
+            SmoothERMembraneCurvatureView.mount(
+                this.contentElement,
+                {
+                    sandbox: this.isReexamineMode,
+                    improve: mode === "improve"
+                }
+            );
+            return;
+        }
+
         if (experiment.stage?.template === "cytoskeleton_transport") {
             this.stopParticleSimulation();
             OrganelleExperimentPlacementController.reset();
@@ -2324,6 +2348,22 @@ this.contentElement.appendChild(
                 `${experiment.title} - Submission Review`;
             this.controlsElement.replaceChildren();
             SmoothERSterolBufferView.mount(
+                this.contentElement,
+                { review: true }
+            );
+            return;
+        }
+
+        if (
+            experiment.stage?.template ===
+            "smooth_er_membrane_curvature"
+        ) {
+            OrganelleExperimentPlacementController.reset();
+            OrganelleExperimentAttemptManager.reset();
+            this.titleElement.textContent =
+                `${experiment.title} - Submission Review`;
+            this.controlsElement.replaceChildren();
+            SmoothERMembraneCurvatureView.mount(
                 this.contentElement,
                 { review: true }
             );

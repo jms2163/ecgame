@@ -409,7 +409,7 @@
 .ser-fluidity-meter {
     position: relative;
     display: grid;
-    grid-template-columns: 40fr 20fr 40fr;
+    grid-template-columns: 33fr 34fr 33fr;
     height: 3rem;
     margin: 0.8rem 0 0.65rem;
     overflow: visible;
@@ -894,5 +894,476 @@
 
     .ser-cholesterol-site .ser-cholesterol-icon {
         transform: scale(0.52) rotate(90deg);
+    }
+}
+
+/* --------------------------------------------------
+   Smooth ER Lab 3: destination-membrane curvature
+-------------------------------------------------- */
+
+.ser-curvature-lab {
+    width: 100%;
+    max-width: 1120px;
+    min-width: 0;
+    margin: 0 auto;
+    color: #e9fff8;
+    container-type: inline-size;
+}
+
+.ser-curvature-context {
+    margin-bottom: 0.85rem;
+    padding: 0.75rem 1rem;
+    color: #d9f8ef;
+    background: #19364a;
+    border: 1px solid #5ba7c7;
+    border-left: 5px solid #7cdcf2;
+    border-radius: 10px;
+}
+
+.ser-curvature-context strong {
+    color: #a5efff;
+    font-size: 0.83rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.ser-curvature-context p {
+    margin: 0.3rem 0 0;
+}
+
+.ser-curvature-mission {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.ser-curvature-mission > span {
+    align-self: start;
+    color: #9ddcca;
+    font-size: 0.76rem;
+    font-weight: 850;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.ser-curvature-workspace {
+    display: grid;
+    grid-template-columns: minmax(235px, 0.72fr) minmax(0, 1.65fr);
+    gap: 1rem;
+    min-width: 0;
+}
+
+.ser-curvature-rack,
+.ser-curvature-lab .ser-fluidity-canvas,
+.ser-curvature-lab .ser-fluidity-meter-panel {
+    min-width: 0;
+    padding: 1rem;
+    background: #102e29;
+    border: 1px solid #398f79;
+    border-radius: 12px;
+}
+
+.ser-curvature-rack h4 {
+    margin: 0.25rem 0;
+    font-size: 1.12rem;
+}
+
+.ser-curvature-card-list {
+    display: grid;
+    gap: 0.75rem;
+    margin: 1rem 0;
+}
+
+.ser-curvature-card {
+    display: grid;
+    grid-template-columns: 4.3rem minmax(0, 1fr);
+    gap: 0.7rem;
+    align-items: center;
+    width: 100%;
+    padding: 0.7rem;
+    color: #effff9;
+    text-align: left;
+    background: #0a231f;
+    border: 2px solid #2e6e60;
+    border-radius: 12px;
+}
+
+.ser-curvature-card.is-selected {
+    border-color: #f3d46a;
+    box-shadow: 0 0 0 4px rgb(243 212 106 / 16%);
+}
+
+.ser-curvature-card strong,
+.ser-curvature-card b,
+.ser-curvature-card small {
+    display: block;
+}
+
+.ser-curvature-card b {
+    color: #87ead0;
+    font-size: 0.78rem;
+}
+
+.ser-curvature-card small {
+    margin-top: 0.22rem;
+    color: #b9d9cf;
+    line-height: 1.25;
+}
+
+.ser-curvature-card-icon {
+    position: relative;
+    display: block;
+    width: 3.8rem;
+    height: 3.8rem;
+}
+
+.ser-curvature-card-icon i:first-child {
+    position: absolute;
+    top: 0.1rem;
+    left: 50%;
+    width: 2.2rem;
+    height: 2.2rem;
+    background: #e9a24b;
+    border: 3px solid #ffe0a5;
+    border-radius: 50%;
+    transform: translateX(-50%);
+}
+
+.ser-curvature-card-icon i:nth-child(2),
+.ser-curvature-card-icon i:nth-child(3) {
+    position: absolute;
+    top: 2rem;
+    left: 50%;
+    width: 0.28rem;
+    height: 1.65rem;
+    background: #bd73da;
+    border-radius: 999px;
+    transform-origin: top;
+}
+
+.ser-curvature-card-icon i:nth-child(2) {
+    transform: translateX(-0.6rem);
+}
+
+.ser-curvature-card-icon i:nth-child(3) {
+    transform: translateX(0.3rem);
+}
+
+.ser-curvature-card--curvature .ser-curvature-card-icon i:first-child {
+    width: 3rem;
+    height: 2.55rem;
+    top: 0;
+}
+
+.ser-curvature-card--curvature .ser-curvature-card-icon i:nth-child(2) {
+    transform: translateX(-0.42rem) rotate(-5deg);
+}
+
+.ser-curvature-card--curvature .ser-curvature-card-icon i:nth-child(3) {
+    transform: translateX(0.12rem) rotate(5deg);
+}
+
+.ser-curvature-card--negative .ser-curvature-card-icon i:first-child {
+    width: 1.55rem;
+    height: 1.55rem;
+    top: 0.35rem;
+}
+
+.ser-curvature-card--negative .ser-curvature-card-icon i:nth-child(2) {
+    top: 1.7rem;
+    transform: translateX(-0.42rem) rotate(18deg);
+}
+
+.ser-curvature-card--negative .ser-curvature-card-icon i:nth-child(3) {
+    top: 1.7rem;
+    transform: translateX(0.12rem) rotate(-18deg);
+}
+
+.ser-curvature-selection {
+    min-height: 2.5rem;
+    color: #a9ebd8;
+    font-weight: 750;
+}
+
+.ser-curvature-fixed {
+    margin: 1rem 0 0;
+    padding: 0.65rem;
+    color: #c1ded7;
+    background: #173832;
+    border: 1px dashed #5e9e8e;
+    border-radius: 8px;
+    font-size: 0.77rem;
+}
+
+.ser-curvature-legend {
+    display: grid;
+    gap: 0.38rem;
+    margin-top: 1rem;
+    padding: 0.7rem;
+    color: #cce9e1;
+    background: #0b2621;
+    border: 1px solid #3e796b;
+    border-radius: 8px;
+    font-size: 0.75rem;
+}
+
+.ser-curvature-legend span {
+    display: flex;
+    gap: 0.35rem;
+    align-items: center;
+}
+
+.ser-curvature-legend-dot {
+    display: inline-block;
+    width: 0.9rem;
+    height: 0.9rem;
+    flex: 0 0 auto;
+    border: 2px solid;
+    border-radius: 50%;
+}
+
+.ser-curvature-legend-dot--fixed {
+    background: #65cbe7;
+    border-color: #c8f4ff;
+}
+
+.ser-curvature-legend-dot--neutral {
+    background: #e9a24b;
+    border-color: #ffe0a5;
+}
+
+.ser-curvature-legend-dot--curvature {
+    background: #bd73da;
+    border-color: #efd2fa;
+}
+
+.ser-curvature-scene {
+    display: block;
+    width: 100%;
+    min-height: 390px;
+    background:
+        radial-gradient(circle at 50% 45%, rgb(102 209 184 / 8%) 0 2px, transparent 3px),
+        linear-gradient(#102733 0 48%, #0b2b25 52% 100%);
+    background-size: 44px 44px, auto;
+    border: 1px solid #397966;
+    border-radius: 11px;
+}
+
+.ser-curvature-target {
+    fill: none;
+    stroke: #f7e58d;
+    stroke-width: 4;
+    stroke-dasharray: 8 10;
+    opacity: 0.78;
+}
+
+.ser-curvature-current {
+    fill: none;
+    stroke: #7be1c1;
+    stroke-width: 5;
+    filter: drop-shadow(0 2px 3px rgb(0 0 0 / 35%));
+}
+
+.ser-curvature-current--inner {
+    stroke: #c580e0;
+}
+
+.ser-curvature-side-label,
+.ser-curvature-target-label,
+.ser-curvature-cargo text {
+    fill: #a6d5c8;
+    font-family: system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+}
+
+.ser-curvature-target-label {
+    fill: #f7e58d;
+    text-anchor: middle;
+}
+
+.ser-curvature-cargo circle {
+    fill: #66b6e4;
+    stroke: #d3f1ff;
+    stroke-width: 3;
+}
+
+.ser-curvature-cargo--nutrients .ser-nutrient-dot {
+    fill: #a86bd5;
+    stroke: #efd8ff;
+    stroke-width: 2.5;
+}
+
+.ser-curvature-cargo--nutrients .ser-nutrient-triangle {
+    fill: #e75f68;
+    stroke: #ffd6d9;
+    stroke-width: 2.5;
+    stroke-linejoin: round;
+}
+
+.ser-curvature-cargo--waste > circle:first-child {
+    fill: #b44f5b;
+    stroke: #ffd0d5;
+}
+
+.ser-curvature-cargo--waste > circle:not(:first-child) {
+    fill: #7a2841;
+    stroke: #f4a7b6;
+    stroke-width: 2;
+}
+
+.ser-curvature-cargo--waste polygon {
+    fill: #ef9b3d;
+    stroke: #ffe0a9;
+    stroke-width: 2;
+    stroke-linejoin: round;
+}
+
+.ser-curvature-cargo--waste text {
+    fill: #ffdce1;
+}
+
+.ser-curvature-cargo text {
+    fill: #dff7ff;
+    text-anchor: middle;
+}
+
+.ser-curvature-lipid {
+    cursor: pointer;
+    outline: none;
+}
+
+.ser-curvature-lipid:focus .ser-curvature-head--editable,
+.ser-curvature-lipid:hover .ser-curvature-head--editable {
+    stroke: #fff3a7;
+    stroke-width: 5;
+}
+
+.ser-curvature-head {
+    stroke-width: 3;
+}
+
+.ser-curvature-head--fixed {
+    fill: #65cbe7;
+    stroke: #c8f4ff;
+}
+
+.ser-curvature-head--editable {
+    fill: #e9a24b;
+    stroke: #ffe0a5;
+}
+
+.ser-curvature-lipid.is-curvature .ser-curvature-head--editable {
+    fill: #bd73da;
+    stroke: #efd2fa;
+}
+
+.ser-curvature-empty-slot {
+    fill: rgb(10 35 31 / 75%);
+    stroke: #89b9ac;
+    stroke-width: 2;
+    stroke-dasharray: 3 3;
+}
+
+.ser-curvature-empty-number {
+    fill: #b5d5cc;
+    font-family: system-ui, sans-serif;
+    font-size: 10px;
+    font-weight: 800;
+    text-anchor: middle;
+}
+
+.ser-curvature-tail {
+    stroke: #d19349;
+    stroke-width: 4;
+    stroke-linecap: round;
+}
+
+.ser-curvature-tail--fixed {
+    stroke: #7abed1;
+}
+
+.ser-curvature-tail--narrow {
+    stroke: #bd73da;
+    stroke-width: 4;
+}
+
+.ser-curvature-tail--spread {
+    stroke: #bd73da;
+    stroke-width: 4;
+}
+
+.ser-curvature-reading--flat {
+    color: #eaf7ff;
+    background: #42667a;
+}
+
+.ser-curvature-reading--building {
+    color: #e5f7f1;
+    background: #41675d;
+}
+
+.ser-curvature-reading--matched {
+    color: #092d22;
+    background: #71e5b2;
+}
+
+.ser-curvature-reading--curved {
+    color: #401d09;
+    background: #efaa67;
+}
+
+.ser-curvature-meter {
+    grid-template-columns: 34fr 32fr 34fr;
+}
+
+.ser-curvature-zone--flat {
+    color: #e8f5ff;
+    background: linear-gradient(90deg, #29475e, #4b7081);
+    border-radius: 999px 0 0 999px;
+}
+
+.ser-curvature-zone--matched {
+    color: #092d22;
+    background: #6ee0ad;
+}
+
+.ser-curvature-zone--curved {
+    color: #411e09;
+    background: linear-gradient(90deg, #e4b36e, #df844f);
+    border-radius: 0 999px 999px 0;
+}
+
+.ser-curvature-conclusion ul {
+    display: inline-block;
+    text-align: left;
+}
+
+@media (max-width: 900px) {
+    .ser-curvature-workspace {
+        grid-template-columns: 1fr;
+    }
+}
+
+@container (max-width: 660px) {
+    .ser-curvature-workspace {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 620px) {
+    .ser-curvature-mission {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .ser-curvature-mission > span {
+        grid-column: 2;
+    }
+
+    .ser-curvature-scene {
+        min-height: 310px;
+    }
+
+    .ser-curvature-card {
+        grid-template-columns: 3.7rem minmax(0, 1fr);
     }
 }

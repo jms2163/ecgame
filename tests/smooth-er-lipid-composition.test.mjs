@@ -15,6 +15,7 @@ import PolymerizerRecipeCatalog
     from "../src/data/PolymerizerRecipeCatalog.js";
 import {
     calculateFluidity,
+    calculateFluidityScore,
     getFluidityBand
 } from "../src/app/SmoothERLipidCompositionView.js";
 
@@ -59,11 +60,20 @@ try {
         "a fully unsaturated teaching patch reaches the loose end of the meter"
     );
     assert.equal(getFluidityBand(20), "stiff");
+    assert.equal(getFluidityBand(33), "functional");
     assert.equal(
         getFluidityBand(50),
         "functional"
     );
+    assert.equal(getFluidityBand(67), "functional");
     assert.equal(getFluidityBand(80), "loose");
+    assert.equal(calculateFluidityScore(32), 0);
+    assert.equal(calculateFluidityScore(33), 80);
+    assert.equal(calculateFluidityScore(42), 91);
+    assert.equal(calculateFluidityScore(50), 100);
+    assert.equal(calculateFluidityScore(58), 91);
+    assert.equal(calculateFluidityScore(67), 80);
+    assert.equal(calculateFluidityScore(68), 0);
 
     assert.equal(
         OrganelleExperimentLibrary

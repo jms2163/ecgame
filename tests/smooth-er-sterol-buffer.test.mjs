@@ -11,6 +11,7 @@ import CurvatureCatalog
 import {
     CHOLESTEROL_SITE_COUNT,
     TRIALS,
+    calculateSterolMatchScore,
     calculateSterolStability,
     getSterolStabilityBand
 } from "../src/app/SmoothERSterolBufferView.js";
@@ -58,7 +59,19 @@ try {
     ), "buffered");
     assert.equal(getSterolStabilityBand(
         calculateSterolStability(4)
+    ), "buffered");
+    assert.equal(getSterolStabilityBand(
+        calculateSterolStability(5)
     ), "constrained");
+    assert.equal(calculateSterolMatchScore(
+        calculateSterolStability(2)
+    ), 80);
+    assert.equal(calculateSterolMatchScore(
+        calculateSterolStability(3)
+    ), 100);
+    assert.equal(calculateSterolMatchScore(
+        calculateSterolStability(4)
+    ), 80);
 
     gameState.registry ??= {};
     gameState.registry.discoveries = [];
@@ -104,16 +117,16 @@ try {
         "erg7_lanosterol_synthase_recipe"
     ));
 
-    assert.equal(CurvatureCatalog.releaseStatus, "coming-soon");
+    assert.equal(CurvatureCatalog.releaseStatus, "active");
     const curvatureStatus = ResearchManager.getExperimentStatus(
         CurvatureCatalog.id
     );
-    assert.equal(curvatureStatus.comingSoon, true);
+    assert.equal(curvatureStatus.comingSoon, false);
     assert.equal(curvatureStatus.incompleteExperiments.length, 0);
     assert.equal(
         curvatureStatus.available,
-        false,
-        "Lab 2 satisfies progression without bypassing Lab 3's release lock"
+        true,
+        "Lab 2 immediately unlocks the active curvature lab"
     );
 
     const viewSource = fs.readFileSync(
@@ -161,5 +174,5 @@ try {
 }
 
 console.log(
-    "PASS: Smooth ER Lab 2 varies only cholesterol across cold and warm trials, grants 250 XP, Membrane Buffer, and ERG1/ERG7 recipe discoveries, and opens the release-locked curvature lab without cell-wide metric effects."
+    "PASS: Smooth ER Lab 2 varies only cholesterol across cold and warm trials, grants 250 XP, Membrane Buffer, and ERG1/ERG7 recipe discoveries, and unlocks the active curvature lab without cell-wide metric effects."
 );
