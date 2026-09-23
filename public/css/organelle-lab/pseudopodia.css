@@ -1,0 +1,481 @@
+.pseudo-extension-lab {
+    width: 100%;
+    max-width: 1120px;
+    min-width: 0;
+    margin: 0 auto;
+    color: #ebfff8;
+    container-type: inline-size;
+}
+
+.pseudo-heading,
+.pseudo-canvas-heading,
+.pseudo-meter-heading {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.pseudo-heading {
+    margin-bottom: 0.85rem;
+    padding: 0.9rem 1rem;
+    background: #16352e;
+    border: 1px solid #459b83;
+    border-radius: 12px;
+}
+
+.pseudo-heading p,
+.pseudo-step,
+.pseudo-conclusion > p:first-of-type {
+    margin: 0;
+    color: #77ddc0;
+    font-size: 0.76rem;
+    font-weight: 850;
+    letter-spacing: 0.065em;
+    text-transform: uppercase;
+}
+
+.pseudo-heading h3,
+.pseudo-controls h4,
+.pseudo-canvas-heading h4,
+.pseudo-meter-heading h4 {
+    margin: 0.18rem 0 0;
+}
+
+.pseudo-heading > strong {
+    color: #ffe386;
+    white-space: nowrap;
+}
+
+.pseudo-context {
+    margin-bottom: 0.9rem;
+    padding: 0.8rem 1rem;
+    color: #d9f8ef;
+    background: #19384a;
+    border: 1px solid #5ca8c7;
+    border-left: 5px solid #7ce0f2;
+    border-radius: 10px;
+}
+
+.pseudo-context--actin {
+    background: #293649;
+    border-color: #8f83d4;
+    border-left-color: #b6a3ff;
+}
+
+.pseudo-context p {
+    margin: 0.3rem 0 0;
+}
+
+.pseudo-workspace {
+    display: grid;
+    grid-template-columns: minmax(245px, 0.76fr) minmax(0, 1.7fr);
+    gap: 1rem;
+    min-width: 0;
+}
+
+.pseudo-controls,
+.pseudo-canvas-panel,
+.pseudo-meter-panel {
+    min-width: 0;
+    padding: 1rem;
+    background: #102e29;
+    border: 1px solid #3b8f79;
+    border-radius: 12px;
+}
+
+.pseudo-lipid-cards {
+    display: grid;
+    gap: 0.65rem;
+    margin: 0.85rem 0;
+}
+
+.pseudo-lipid-card,
+.pseudo-actin-card {
+    display: grid;
+    grid-template-columns: 3.2rem minmax(0, 1fr);
+    gap: 0.7rem;
+    align-items: center;
+    width: 100%;
+    padding: 0.68rem;
+    color: #f0fff9;
+    text-align: left;
+    background: #0a231f;
+    border: 2px solid #2e6f60;
+    border-radius: 11px;
+}
+
+.pseudo-lipid-card.is-selected {
+    border-color: #f4d46d;
+    box-shadow: 0 0 0 4px rgb(244 212 109 / 14%);
+}
+
+.pseudo-lipid-card > i {
+    display: block;
+    width: 2rem;
+    height: 2rem;
+    margin: auto;
+    background: #eaa34b;
+    border: 3px solid #ffe2a8;
+    border-radius: 50%;
+    box-shadow: -5px 21px 0 -3px #d58b3d, 5px 21px 0 -3px #d58b3d;
+}
+
+.pseudo-lipid-card--curvature > i {
+    width: 2.65rem;
+    background: #bd73da;
+    border-color: #f0d4fb;
+    box-shadow: -3px 21px 0 -4px #ad63ca, 3px 21px 0 -4px #ad63ca;
+}
+
+.pseudo-lipid-card strong,
+.pseudo-lipid-card b,
+.pseudo-lipid-card small,
+.pseudo-actin-card strong,
+.pseudo-actin-card small {
+    display: block;
+}
+
+.pseudo-lipid-card b {
+    color: #8cebd1;
+    font-size: 0.78rem;
+}
+
+.pseudo-lipid-card small,
+.pseudo-actin-card small {
+    margin-top: 0.18rem;
+    color: #b9d9cf;
+    line-height: 1.25;
+}
+
+.pseudo-selection {
+    min-height: 2rem;
+    color: #a9ecd8;
+    font-weight: 750;
+}
+
+.pseudo-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+}
+
+.pseudo-actions button,
+.pseudo-continue,
+.pseudo-conclusion button {
+    padding: 0.65rem 0.85rem;
+    color: #ecfff9;
+    background: #1d594b;
+    border: 1px solid #62d5b5;
+    border-radius: 9px;
+    font-weight: 800;
+}
+
+.pseudo-actions button:disabled,
+.pseudo-actin-card:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+.pseudo-key {
+    display: grid;
+    gap: 0.35rem;
+    margin-top: 1rem;
+    padding: 0.65rem;
+    color: #cae9df;
+    background: #0b2621;
+    border: 1px solid #3d796b;
+    border-radius: 8px;
+    font-size: 0.74rem;
+}
+
+.pseudo-key span {
+    display: flex;
+    gap: 0.45rem;
+    align-items: center;
+}
+
+.pseudo-key i {
+    width: 0.85rem;
+    height: 0.85rem;
+    border: 2px solid;
+    border-radius: 50%;
+}
+
+.pseudo-key .is-neutral {
+    background: #eaa34b;
+    border-color: #ffe2a8;
+}
+
+.pseudo-key .is-curvature {
+    background: #bd73da;
+    border-color: #f0d4fb;
+}
+
+.pseudo-canvas-heading > span {
+    color: #9fe3cf;
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.pseudo-scene {
+    display: block;
+    width: 100%;
+    min-height: 390px;
+    margin-top: 0.8rem;
+    background: linear-gradient(#102a37 0 47%, #0a2923 53% 100%);
+    border: 1px solid #3a7a68;
+    border-radius: 11px;
+}
+
+.pseudo-target,
+.pseudo-current {
+    fill: none;
+    stroke-linecap: round;
+}
+
+.pseudo-target {
+    stroke: #f6e38a;
+    stroke-width: 4;
+    stroke-dasharray: 8 10;
+    opacity: 0.76;
+}
+
+.pseudo-current {
+    stroke: #73dfbd;
+    stroke-width: 7;
+    filter: drop-shadow(0 2px 3px rgb(0 0 0 / 35%));
+}
+
+.pseudo-current.is-complete {
+    stroke: #92ecd0;
+}
+
+.pseudo-cell-body {
+    fill: #1f5146;
+    stroke: #7bdfc3;
+    stroke-width: 6;
+}
+
+.pseudo-side-label,
+.pseudo-cytosol-label,
+.pseudo-cell-label {
+    fill: #a8d9cb;
+    font-family: system-ui, sans-serif;
+    font-size: 12px;
+    font-weight: 850;
+    letter-spacing: 0.05em;
+}
+
+.pseudo-cell-label {
+    fill: #dffbf2;
+    font-size: 15px;
+}
+
+.pseudo-cytosol-label {
+    text-anchor: middle;
+}
+
+.pseudo-lipid {
+    cursor: pointer;
+    outline: none;
+}
+
+.pseudo-lipid line {
+    stroke: #d58b3d;
+    stroke-width: 3.2;
+    stroke-linecap: round;
+}
+
+.pseudo-lipid circle:not(.pseudo-empty-slot) {
+    fill: #eaa34b;
+    stroke: #ffe2a8;
+    stroke-width: 2;
+}
+
+.pseudo-lipid.is-curvature line {
+    stroke: #ab63c7;
+}
+
+.pseudo-lipid.is-curvature circle {
+    fill: #bd73da;
+    stroke: #f0d4fb;
+}
+
+.pseudo-lipid:focus circle,
+.pseudo-lipid:hover circle {
+    stroke: #fff6aa;
+    stroke-width: 4;
+}
+
+.pseudo-empty-slot {
+    fill: rgb(9 38 32 / 78%);
+    stroke: #8dbbad;
+    stroke-width: 1.5;
+    stroke-dasharray: 2 2;
+}
+
+.pseudo-meter-panel {
+    margin-top: 1rem;
+}
+
+.pseudo-reading {
+    padding: 0.42rem 0.7rem;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.pseudo-reading--building,
+.pseudo-reading--weak {
+    color: #e5f5ff;
+    background: #426779;
+}
+
+.pseudo-reading--matched {
+    color: #092e22;
+    background: #71e4b1;
+}
+
+.pseudo-reading--over,
+.pseudo-reading--crowded {
+    color: #431e08;
+    background: #efaa67;
+}
+
+.pseudo-meter {
+    position: relative;
+    display: grid;
+    grid-template-columns: 34fr 32fr 34fr;
+    height: 3rem;
+    margin: 0.8rem 0 0.65rem;
+}
+
+.pseudo-meter > div {
+    display: grid;
+    place-items: center;
+    color: #effff9;
+    background: #466979;
+    font-size: 0.7rem;
+    font-weight: 850;
+    text-transform: uppercase;
+}
+
+.pseudo-meter > div:first-child {
+    border-radius: 999px 0 0 999px;
+}
+
+.pseudo-meter > div:nth-child(2) {
+    color: #082d21;
+    background: #6ee0ad;
+}
+
+.pseudo-meter > div:nth-child(3) {
+    color: #421e09;
+    background: #e5a163;
+    border-radius: 0 999px 999px 0;
+}
+
+.pseudo-meter > i {
+    position: absolute;
+    top: -0.35rem;
+    width: 0.26rem;
+    height: 3.7rem;
+    background: #fff8bb;
+    border: 1px solid #6c5c11;
+    border-radius: 999px;
+    box-shadow: 0 0 0 3px rgb(255 248 187 / 18%);
+    transform: translateX(-50%);
+}
+
+.pseudo-feedback {
+    color: #cce9e1;
+}
+
+.pseudo-continue {
+    display: block;
+    margin-left: auto;
+}
+
+.pseudo-actin-card {
+    margin: 1rem 0;
+    border-color: #8070c3;
+}
+
+.pseudo-actin-card > span:first-child {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pseudo-actin-card > span:first-child i {
+    width: 1.15rem;
+    height: 1.15rem;
+    margin-left: -0.28rem;
+    background: #7ee0a0;
+    border: 2px solid #d8ffe4;
+    border-radius: 50%;
+}
+
+.pseudo-actin-filament {
+    fill: none;
+    stroke: #60c985;
+    stroke-width: 8;
+    stroke-linecap: round;
+    opacity: 0.42;
+}
+
+.pseudo-actin-bead {
+    fill: #7ee0a0;
+    stroke: #d8ffe4;
+    stroke-width: 1.5;
+}
+
+.pseudo-conclusion {
+    padding: 1.4rem;
+    text-align: center;
+    background: #12332c;
+    border: 1px solid #52b99c;
+    border-radius: 13px;
+}
+
+.pseudo-conclusion > span {
+    display: inline-grid;
+    width: 3rem;
+    height: 3rem;
+    place-items: center;
+    color: #0c3628;
+    background: #77e2b4;
+    border-radius: 50%;
+    font-size: 1.8rem;
+    font-weight: 900;
+}
+
+.pseudo-conclusion ul {
+    display: inline-block;
+    text-align: left;
+}
+
+@media (max-width: 900px) {
+    .pseudo-workspace {
+        grid-template-columns: 1fr;
+    }
+}
+
+@container (max-width: 650px) {
+    .pseudo-workspace {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 620px) {
+    .pseudo-heading,
+    .pseudo-canvas-heading,
+    .pseudo-meter-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .pseudo-scene {
+        min-height: 310px;
+    }
+}

@@ -52,15 +52,21 @@ try {
         "Polymerizer access now releases the Ribosome Translation prerequisite lab"
     );
 
-    // These future Pond systems will grant permanent discoveries when
-    // their actual interactions are implemented. This milestone only
-    // defines the read-only progression contract.
-    gameState.registry.discoveries.push(
-        "successful_phagocytosis"
-    );
+    // The future Pseudopodia activity reveals the Food Vacuole Lab;
+    // successful phagocytosis is not awarded until the later Food
+    // Vacuole activity is actually completed.
+    gameState.registry.research
+        .completedExperiments
+        .pseudopodia_membrane_extension = {
+            completedAtMs: 20
+        };
     expectState(
         "food_vacuole",
         "coming-soon"
+    );
+
+    gameState.registry.discoveries.push(
+        "successful_phagocytosis"
     );
 
     gameState.registry.discoveries.push(
@@ -109,5 +115,5 @@ try {
 }
 
 console.log(
-    "PASS: Polymerizer access unlocks the Ribosome Translation lab, future Pond uptake discoveries reveal Food Vacuole and Endosome previews, and Lysosome still requires Golgi routing plus either cargo route."
+    "PASS: Polymerizer access unlocks Ribosome Translation, Pseudopodia completion reveals the Food Vacuole preview, and Lysosome still requires Golgi routing plus a completed cargo-uptake route."
 );
