@@ -164,133 +164,33 @@ try {
         1
     );
 
-    // Later assemblies add products without duplicating the discovery.
-    const second =
-        PolymerizerManager.startAssembly(
-            "Aquaporin",
-            firstCompletedAtMs + 1_000
-        );
-    assert.equal(second.success, true);
-    const secondCompletedAtMs =
-        second.activeAssembly
-            .completesAtMs;
-
-    rejectWrites = true;
-    const failedReconciliation =
-        PolymerizerManager.reconcileAssembly(
-            secondCompletedAtMs
-        );
-    rejectWrites = false;
-
-    assert.equal(
-        failedReconciliation.reason,
-        "save-failed"
+    // Stored completion blocks a second synthesis without spending ATP.
+    const atpAfterCompletion = ResourceManager.getATPStatus().current;
+    const duplicateStart = PolymerizerManager.startAssembly(
+        "Aquaporin", firstCompletedAtMs + 1_000
     );
+    assert.equal(duplicateStart.success, false);
+    assert.equal(duplicateStart.reason, "product-already-synthesized");
+    assert.equal(ResourceManager.getATPStatus().current, atpAfterCompletion);
+
+    // Older saves with multiple copies remain readable and normalize to one.
+    state.productInventory.Aquaporin.count = 3;
+    assert.equal(PolymerizerManager.getProductRecord("Aquaporin").count, 1);
+    assert.equal(SaveManager.load(), true);
+    assert.equal(gameState.zones.polymerizer.state.activeAssembly, null);
     assert.equal(
-        state.productInventory.Aquaporin
-            .count,
+        gameState.zones.polymerizer.state.productInventory.Aquaporin.count,
         1
     );
     assert.equal(
-        gameState.registry.discoveries
-            .filter(id => id === "aquaporin")
-            .length,
-        1
-    );
-
-    // Repeated animation frames do not hammer storage after a failed save.
-    const throttledRetry =
-        PolymerizerManager.reconcileAssembly(
-            secondCompletedAtMs + 500
-        );
-    assert.equal(throttledRetry.complete, true);
-    assert.equal(
-        state.productInventory.Aquaporin
-            .count,
-        1
-    );
-
-    const reconciled =
-        PolymerizerManager.reconcileAssembly(
-            secondCompletedAtMs + 1_000
-        );
-    assert.equal(reconciled.success, true);
-    assert.equal(reconciled.quantity, 2);
-    assert.equal(
-        reconciled.discoveryGranted,
-        false
-    );
-    assert.deepEqual(
-        state.productInventory.Aquaporin,
-        {
-            count: 2,
-            firstCompletedAtMs,
-            lastCompletedAtMs:
-                secondCompletedAtMs
-        }
-    );
-    assert.equal(
-        gameState.registry.discoveries
-            .filter(id => id === "aquaporin")
-            .length,
+        gameState.registry.discoveries.filter(id => id === "aquaporin").length,
         1
     );
     assert.deepEqual(motifInventory, motifsBefore);
     assert.deepEqual(gameState.player.xp, xpBefore);
     assert.deepEqual(
         ResourceManager.getATPStatus(),
-        { current: 20, maximum: 50 }
-    );
-
-    // A reload preserves completed output and does not resurrect the job.
-    state.productInventory.Aquaporin.count =
-        99;
-    assert.equal(SaveManager.load(), true);
-    PolymerizerManager.ensureState();
-
-    assert.equal(
-        gameState.zones.polymerizer.state
-            .activeAssembly,
-        null
-    );
-    assert.equal(
-        gameState.zones.polymerizer.state
-            .productInventory.Aquaporin
-            .count,
-        2
-    );
-    assert.equal(
-        gameState.registry.discoveries
-            .filter(id => id === "aquaporin")
-            .length,
-        1
-    );
-
-    // Loading an expired persisted job triggers the subscribed global
-    // reconciliation path; visiting Polymerizer is not required.
-    const third =
-        PolymerizerManager.startAssembly(
-            "Aquaporin",
-            40_000
-        );
-    assert.equal(third.success, true);
-    assert.equal(SaveManager.load(), true);
-    assert.equal(
-        gameState.zones.polymerizer.state
-            .activeAssembly,
-        null
-    );
-    assert.equal(
-        gameState.zones.polymerizer.state
-            .productInventory.Aquaporin
-            .count,
-        3
-    );
-    assert.equal(
-        gameState.registry.discoveries
-            .filter(id => id === "aquaporin")
-            .length,
-        1
+        { current: 35, maximum: 50 }
     );
 
     // Polymerizer grants the prerequisite through the existing discovery

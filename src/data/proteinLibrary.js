@@ -16,7 +16,20 @@ export const proteinLibrary =  Object.freeze({
     "Requires": ["AminoAcids", "BasicTranscription"],
     "Source": "1RC2",
     "Models": {},
-    "Info": "Integral membrane channel protein that selectively conducts water molecules while preventing proton passage. Essential for cellular osmotic balance."
+    "Info": "Integral membrane channel protein that selectively conducts water molecules while preventing proton passage. Essential for cellular osmotic balance.",
+    "Profile": {
+      "type": "Membrane water channel",
+      "function": "Facilitates rapid water movement for osmoregulation.",
+      "optimalPH": "Not established for Amoeba proteus aquaporin",
+      "speed": "Rapid passive water transport; a rate for this Amoeba proteus channel is not established here.",
+      "selectivity": "Conducts water while excluding protons; other solutes are not represented by this model.",
+      "reaction": "None — passive transport down a water potential gradient.",
+      "locations": [
+        "Contractile vacuole membrane — observed in Amoeba proteus",
+        "Vesicles around the contractile vacuole — observed in Amoeba proteus"
+      ],
+      "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/18004980/"
+    }
   },
   // proteinLibrary.js — Lactate Dehydrogenase (4LDA)
 

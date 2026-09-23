@@ -16,6 +16,36 @@ const MOTIF_NAMES = Object.freeze({
 // render. A page reload clears this cache after new image files are added.
 const failedImageUrls = new Set();
 
+// Keep catalog order within each group, even as ATP and quest state change.
+export function groupPolymerizerProducts(
+    products = [],
+    activeAssembly = null
+) {
+
+    const groups = [
+        { id: "ready", label: "Ready", products: [] },
+        { id: "incomplete", label: "Incomplete", products: [] },
+        { id: "quest", label: "Quest Completed", products: [] },
+        { id: "synthesized", label: "Synthesis Completed", products: [] }
+    ];
+
+    products.forEach(product => {
+        const groupIndex =
+            product.completion?.source === "synthesized"
+                ? 3
+                : product.completion?.source === "quest"
+                    ? 2
+                    : activeAssembly?.productId === product.id ||
+                        (!product.locked && product.canStart)
+                        ? 0
+                        : 1;
+        groups[groupIndex].products.push(product);
+    });
+
+    return groups.filter(group => group.products.length);
+
+}
+
 function renderProductImage(
     elements,
     product,
@@ -51,10 +81,7 @@ function renderProductImage(
                         null,
                     completed:
                         !productAssembly &&
-                        Boolean(
-                            product.completion
-                                ?.completed
-                        )
+                        product.completion?.completed
                 }
             );
 
@@ -113,7 +140,20 @@ const PolymerizerProductView = {
 
         if (!container) return;
 
-        const cards = products.map(product => {
+        const groups = groupPolymerizerProducts(
+            products,
+            activeAssembly
+        );
+        const nodes = [];
+
+        groups.forEach(group => {
+            const heading = document.createElement("h3");
+            heading.className = "poly-product-group-heading";
+            heading.textContent =
+                `${group.label} (${group.products.length})`;
+            nodes.push(heading);
+
+            group.products.forEach(product => {
             const button =
                 document.createElement("button");
 
@@ -232,10 +272,11 @@ const PolymerizerProductView = {
                 );
             }
 
-            return button;
+            nodes.push(button);
+            });
         });
 
-        container.replaceChildren(...cards);
+        container.replaceChildren(...nodes);
 
     },
 
@@ -309,28 +350,23 @@ const PolymerizerProductView = {
         }
 
         if (
-            product.completion?.source ===
-                "quest"
+            product.completion?.source === "quest"
         ) {
             elements.progressPanel.hidden = true;
             elements.progress.value = 0;
             elements.countdown.textContent =
-                "Assembly bypassed by quest completion";
-            elements.chamberMode.textContent =
-                "Quest Completed";
+                "Completed by Protein Building Blocks quest";
+            elements.chamberMode.textContent = "Quest Completed";
             elements.chamberStatus.textContent =
-                `${product.definition.name} was unlocked through the Protein Building Blocks quest. No Polymerizer product was synthesized or added to output inventory.`;
+                `${product.definition.name} is complete through the Protein Building Blocks quest.`;
             elements.assembleButton.disabled = true;
             elements.assembleButton.textContent =
-                `${product.definition.name} · Quest Completed`;
+                `${product.definition.name} · Complete`;
             return;
         }
 
         if (
-            product.completion?.source ===
-                "synthesized" &&
-            product.definition
-                .maxCompletions === 1
+            product.output.quantity > 0
         ) {
             elements.progressPanel.hidden = true;
             elements.progress.value = 0;
@@ -372,34 +408,36 @@ const PolymerizerProductView = {
 
     },
 
-    renderPreflight(container, product) {
+    renderPreflight(container, product, panel, guidance) {
 
         if (!container || !product) return;
 
-        if (
-            product.completion?.source ===
-                "quest"
-        ) {
+        const synthesized =
+            product.completion?.completed === true;
+        const heading = panel?.querySelector("h2");
+        if (heading) {
+            heading.textContent = synthesized
+                ? "Synthesis COMPLETE"
+                : "Structural Requirements";
+            heading.classList.toggle(
+                "poly-synthesis-complete",
+                synthesized
+            );
+        }
+        if (guidance) guidance.hidden = synthesized;
+
+        if (synthesized) {
             const item =
                 document.createElement("li");
             item.className =
                 "poly-requirement poly-requirement--complete";
-
             const label =
                 document.createElement("span");
-            label.textContent =
-                "Protein Building Blocks quest";
-
+            label.textContent = product.definition.name;
             const count =
                 document.createElement("strong");
-            count.textContent = "Complete";
-
-            const note =
-                document.createElement("small");
-            note.textContent =
-                "Aquaporin discovery granted; no motifs or ATP were consumed here.";
-
-            item.append(label, count, note);
+            count.textContent = "COMPLETE";
+            item.append(label, count);
             container.replaceChildren(item);
             return;
         }
@@ -496,22 +534,54 @@ const PolymerizerProductView = {
 
     },
 
-    renderOutput(elements, product) {
+    renderProfile(elements, product) {
 
         if (!product) return;
-
-        elements.outputQuantity.textContent =
-            String(product.output.quantity);
-
-        elements.outputMessage.textContent =
+        elements.profileHeading.textContent =
+            product.definition.name;
+        const profile = product.definition.profile ?? {};
+        const details = elements.profileDetails;
+        const list = document.createElement("dl");
+        list.className = "poly-profile-details";
+        const addField = (label, value) => {
+            if (!value) return;
+            const term = document.createElement("dt");
+            term.textContent = label;
+            const description = document.createElement("dd");
+            description.textContent = value;
+            list.append(term, description);
+        };
+        addField("Type", profile.type ??
+            `${product.definition.className} protein`);
+        addField("Function", profile.function ??
+            product.definition.function);
+        addField("Optimal pH", profile.optimalPH);
+        addField("Speed", profile.speed);
+        addField("Selectivity", profile.selectivity);
+        addField("Reaction", profile.reaction);
+        addField("Organelle location in Amoeba proteus",
+            profile.locations?.join("; "));
+        if (!profile.locations?.length) {
+            addField("Location (game model)",
+                product.definition.location);
+        }
+        addField("Status",
             product.output.quantity > 0
-                ? `${product.definition.name} × ${product.output.quantity} stored in Polymerizer output inventory.`
-                : product.completion?.source ===
-                    "quest"
-                    ? `${product.definition.name} was unlocked by quest completion. No synthesized protein is stored in the output tray.`
-                : product.locked
-                    ? `${product.definition.name} output is unavailable until its recipe is implemented.`
-                    : `No completed ${product.definition.name} proteins yet.`;
+                ? "Synthesis complete"
+                : product.completion?.source === "quest"
+                    ? "Completed by Protein Building Blocks quest"
+                    : product.locked
+                        ? "Research locked"
+                        : "Not yet synthesized");
+        details.replaceChildren(list);
+        if (profile.sourceUrl) {
+            const source = document.createElement("a");
+            source.href = profile.sourceUrl;
+            source.textContent = "Aquaporin research source";
+            source.target = "_blank";
+            source.rel = "noopener noreferrer";
+            details.append(source);
+        }
 
     }
 
