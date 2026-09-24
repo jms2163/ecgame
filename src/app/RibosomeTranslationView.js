@@ -8,7 +8,7 @@ import gameState from "./GameState.js";
 const QUESTIONS = Object.freeze([
     {
         id: "reaction_type",
-        prompt: "In this introductory monomer-linking model, which reaction joins amino acids into a polypeptide?",
+        prompt: "In this introductory monomer-linking model, which reaction joins monomers into a polypeptide?",
         answers: [
             ["condensation", "Condensation (dehydration)"],
             ["hydrolysis", "Hydrolysis"],
