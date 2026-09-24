@@ -93,6 +93,20 @@ export const proteinLibrary =  Object.freeze({
     "Models": {},
     "Info": "PDB 5XJ6 is the bacterial membrane-integral glycerol-3-phosphate acyltransferase PlsY. ECGame uses its experimentally determined structure as a representative phospholipid-synthesis teaching model; it is not presented as a eukaryotic Smooth ER homolog."
   },
+  "Glycogenin": {
+    // Instructor-derived motif totals for PDB 3U2U. This human structure is
+    // used as a representative teaching model; motif order is not asserted.
+    "PPC": "",
+    "Recipe": {"H": 12, "B": 12, "L": 25},
+    "Class": "Carbohydrate Metabolism Teaching Model",
+    "Function": "Primes glycogen synthesis by adding glucose residues to itself.",
+    "Tier": 2,
+    "Location": "Cytosol",
+    "Requires": ["GlycogenSynthesis"],
+    "Source": "3U2U",
+    "Models": {},
+    "Info": "PDB 3U2U is human glycogenin-1. ECGame uses its structure to illustrate the protein that starts a glycogen chain; this is a representative teaching model, not an identified Amoeba proteus protein."
+  },
   /* ============================================================
    Active Transport Pumps & Channels (Bio-Craft Core Systems)
    ------------------------------------------------------------

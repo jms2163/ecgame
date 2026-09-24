@@ -50,6 +50,26 @@ const VISUAL_CONFIGS = Object.freeze({
             "Energy Kinase assembly preview",
         fallbackFileName: null
     }),
+    Glycogenin: Object.freeze({
+        directoryName: "3u2u_motifs",
+        filePrefix: "3u2u",
+        firstFrameNumber: 0,
+        lastFrameNumber: 15,
+        alt: "Glycogenin motif assembly from PDB 3U2U.",
+        accent: "gold",
+        placeholderLabel: "Glycogenin motif assembly preview",
+        fallbackFileName: null
+    }),
+    Glycerol3PhosphateAcyltransferase: Object.freeze({
+        directoryName: "5xj6_motifs",
+        filePrefix: "5xj6",
+        firstFrameNumber: 0,
+        lastFrameNumber: 10,
+        alt: "Glycerol-3-phosphate acyltransferase motif assembly from PDB 5XJ6.",
+        accent: "gold",
+        placeholderLabel: "Glycerol-3-phosphate acyltransferase motif assembly preview",
+        fallbackFileName: null
+    }),
     Hexokinase: Object.freeze({
         directoryName: "1bg3_motifs",
         filePrefix: "1bg3",
