@@ -25,6 +25,7 @@ const DEHYDRATION_DISCOVERY_BY_CATEGORY = Object.freeze({
 });
 
 const HYDROLYSIS_DISCOVERY_BY_CATEGORY = Object.freeze({
+    motifs: "hydrolysis-2",
     nucleotides: "hydrolysis-4"
 });
 
@@ -38,6 +39,8 @@ const MacromolecularizerUI = {
     feedbackMessage: "",
     synthesisFeedbackMessage: "",
     upgradeFeedbackMessage: "",
+    lastSynthesisPointBalance: null,
+    synthesisPointPromptDismissed: false,
     chamberViewMode: "synthesis",
     reactionExplorationActive: false,
     activeReactionExplorationId:
@@ -963,7 +966,8 @@ const MacromolecularizerUI = {
                             button.dataset.assemblyCategory === "lipids" ||
                             (
                                 this.activeReactionExplorationId === "hydrolysis" &&
-                                button.dataset.assemblyCategory !== "nucleotides"
+                                button.dataset.assemblyCategory !== "nucleotides" &&
+                                button.dataset.assemblyCategory !== "motifs"
                             )
                         ) {
                             this.reactionExplorationActive = false;
@@ -1063,7 +1067,7 @@ const MacromolecularizerUI = {
                             reactionId === "dehydration" ||
                             (
                                 reactionId === "hydrolysis" &&
-                                category === "nucleotides"
+                                (category === "nucleotides" || category === "motifs")
                             );
 
                         if (hasExploration) {
@@ -1188,6 +1192,7 @@ const MacromolecularizerUI = {
             .addEventListener(
                 "click",
                 () => {
+                    this.dismissSynthesisPointPrompt();
                     const result =
                         MacromolecularizerManager
                             .spendSynthesisPointOnDehydrationSpeed();
@@ -1426,15 +1431,15 @@ const MacromolecularizerUI = {
                 const reactionId =
                     button.dataset.reactionId;
 
-                const nucleotideHydrolysis =
+                const guidedHydrolysis =
                     reactionId === "hydrolysis" &&
-                    activeCategory === "nucleotides";
+                    (activeCategory === "nucleotides" || activeCategory === "motifs");
                 const discovered =
                     reactionId === "dehydration"
                         ? this.dehydrationExplorationDiscovered(
                             activeCategory
                         )
-                        : nucleotideHydrolysis
+                        : guidedHydrolysis
                             ? this.hydrolysisExplorationDiscovered(
                                 activeCategory
                             )
@@ -1445,7 +1450,7 @@ const MacromolecularizerUI = {
                             );
                 const replayable =
                     reactionId === "dehydration" ||
-                    nucleotideHydrolysis;
+                    guidedHydrolysis;
 
                 button.disabled = (activeCategory === "lipids" && reactionId === "dehydration") ||
                     (discovered && !replayable);
@@ -1463,7 +1468,7 @@ const MacromolecularizerUI = {
 
                 if (
                     reactionId === "dehydration" ||
-                    nucleotideHydrolysis
+                    guidedHydrolysis
                 ) {
                     button.textContent = discovered
                         ? `Explore ${this.formatReactionName(reactionId)} Again`
@@ -2729,12 +2734,29 @@ const MacromolecularizerUI = {
     // --------------------------------------------------
     // Render Synthesis Points and speed-upgrade status
     // --------------------------------------------------
+    dismissSynthesisPointPrompt() {
+        this.synthesisPointPromptDismissed = true;
+        this.elements.upgradeSpeedButton.classList.remove(
+            "macro-button--point-ready"
+        );
+    },
+
     renderSpeedUpgrade(speed) {
+
+        const balance = speed.points.current;
+        if (balance > 0 && (
+            this.lastSynthesisPointBalance === null ||
+            this.lastSynthesisPointBalance === 0 ||
+            balance > this.lastSynthesisPointBalance
+        )) {
+            this.synthesisPointPromptDismissed = false;
+        }
+        this.lastSynthesisPointBalance = balance;
 
         this.elements.synthesisPoints
             .textContent =
                 String(
-                    speed.points.current
+                    balance
                 );
 
         this.elements.speedLevel
@@ -2753,8 +2775,13 @@ const MacromolecularizerUI = {
 
         this.elements.upgradeSpeedButton
             .disabled =
-                speed.points.current <
+                balance <
                 speed.synthesisPointCost;
+        this.elements.upgradeSpeedButton.classList.toggle(
+            "macro-button--point-ready",
+            !this.elements.upgradeSpeedButton.disabled &&
+                !this.synthesisPointPromptDismissed
+        );
 
         this.elements.upgradeFeedback
             .textContent =
