@@ -2290,6 +2290,68 @@
     gap: 34px;
 }
 
+.macro-exp-nucleotide-energy-supply,
+.macro-exp-nucleotide-energy-target,
+.macro-exp-nucleotide-energy-placed {
+    display: grid;
+    place-items: center;
+    color: #ffd34d;
+}
+
+.macro-exp-nucleotide-energy-supply {
+    min-width: 94px;
+    min-height: 100px;
+    padding: 8px;
+    border: 1px solid rgba(255, 211, 77, 0.7);
+    border-radius: 6px;
+    background: rgba(255, 211, 77, 0.08);
+    font: 700 0.72rem "Oxanium", sans-serif;
+    cursor: grab;
+    touch-action: none;
+}
+
+.macro-exp-nucleotide-energy-icon {
+    width: 32px;
+    height: 47px;
+    filter: drop-shadow(0 0 8px rgba(255, 211, 77, 0.75));
+}
+
+.macro-exp-nucleotide-energy-target,
+.macro-exp-nucleotide-energy-placed {
+    position: absolute;
+    z-index: 6;
+    top: 12px;
+    left: 50%;
+    width: 54px;
+    height: 64px;
+    transform: translateX(-50%);
+}
+
+.macro-exp-nucleotide-energy-target {
+    border: 2px dashed #ffd34d;
+    border-radius: 6px;
+    background: rgba(255, 211, 77, 0.08);
+    cursor: pointer;
+}
+
+.macro-exp-nucleotide-energy-placed { pointer-events: none; }
+
+.macro-exp-nucleotide-energy--absorbed {
+    animation: macro-exp-nucleotide-energy-absorb 1.15s 420ms ease-in forwards;
+}
+
+@keyframes macro-exp-nucleotide-energy-absorb {
+    0%, 25% { opacity: 1; transform: translate(-50%, 0); }
+    100% { opacity: 0; transform: translate(-50%, 95px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .macro-exp-nucleotide-energy--absorbed {
+        animation: none;
+        visibility: hidden;
+    }
+}
+
 .macro-exp-template--nucleotide {
     display: grid;
     width: 190px;
@@ -2622,11 +2684,25 @@ button.macro-exp-atp-terminal-bond {
 }
 
 .macro-exp-hydrolysis-products {
+    position: relative;
     display: grid;
     width: min(100%, 760px);
     grid-template-columns: minmax(390px, 1.7fr) minmax(190px, 0.8fr);
     align-items: center;
     gap: 48px;
+}
+
+.macro-exp-hydrolysis-energy {
+    position: absolute;
+    z-index: 6;
+    top: 45%;
+    left: 69%;
+    width: 54px;
+    height: 78px;
+    color: #ffd34d;
+    filter: drop-shadow(0 0 12px rgba(255, 211, 77, 0.85));
+    pointer-events: none;
+    animation: macro-exp-water-rise 2.1s 420ms ease-out both;
 }
 
 .macro-exp-hydrolysis-product {
@@ -2686,9 +2762,15 @@ button.macro-exp-atp-terminal-bond {
     .macro-exp-hydrolysis-product--adp {
         transform: scale(0.82);
     }
+
+    .macro-exp-hydrolysis-energy {
+        top: 57%;
+        left: 50%;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .macro-exp-hydrolysis-energy { display: none; }
     .macro-exp-hydrolysis-adp-added,
     .macro-exp-hydrolysis-adp-hydrogen,
     .macro-exp-hydrolysis-phosphate-water-fragment {

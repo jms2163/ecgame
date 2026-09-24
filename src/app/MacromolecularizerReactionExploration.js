@@ -27,6 +27,7 @@ const INSTRUCTIONS = Object.freeze({
     nucleotides: [
         "Drag ADP to the left dotted template.",
         "Drag phosphate to the right dotted template.",
+        "Drag energy into the work area above ADP and phosphate.",
         "Drag OH from the incoming phosphate to the collection tray.",
         "Drag H from the terminal ADP hydroxyl to the collection tray.",
         "Drag the incoming phosphate to the terminal oxygen on ADP.",
@@ -45,6 +46,9 @@ const INSTRUCTIONS = Object.freeze({
 
 const DEHYDRATION_ACTIONS = Object.freeze([
     "left", "right", "oh", "h", "bond"
+]);
+const NUCLEOTIDE_DEHYDRATION_ACTIONS = Object.freeze([
+    "left", "right", "energy", "oh", "h", "bond"
 ]);
 
 const HYDROLYSIS_ACTIONS = Object.freeze([
@@ -72,6 +76,7 @@ const TARGETS_BY_CATEGORY = Object.freeze({
     nucleotides: Object.freeze([
         "left",
         "right",
+        "energy-slot",
         "waste",
         "waste",
         "terminal"
@@ -243,8 +248,15 @@ function hydrolysisWaterMarkup() {
     </button>`;
 }
 
+function energyBoltMarkup(className) {
+    return `<svg class="${className}" viewBox="0 0 64 92" aria-hidden="true" focusable="false">
+        <path d="M36 4 11 48h19l-8 39 32-51H35L43 4Z" fill="currentColor" stroke="#fff0aa" stroke-width="2" />
+    </svg>`;
+}
+
 function hydrolysisProductsMarkup() {
     return `<div class="macro-exp-hydrolysis-products" aria-label="ADP and phosphate products">
+        ${energyBoltMarkup("macro-exp-hydrolysis-energy")}
         <div class="macro-exp-hydrolysis-product macro-exp-hydrolysis-product--adp" aria-label="ADP product ending in P-O-H">
             <span class="macro-exp-nucleotide-unit macro-exp-nucleotide-unit--adenosine">Adenosine</span>
             <span class="macro-exp-nucleotide-link"></span>
@@ -354,6 +366,8 @@ const MacromolecularizerReactionExploration = {
             ? PROTEIN_HYDROLYSIS_ACTIONS
             : this.activityKey() === "nucleotide-hydrolysis"
                 ? HYDROLYSIS_ACTIONS
+                : this.activityKey() === "nucleotides"
+                    ? NUCLEOTIDE_DEHYDRATION_ACTIONS
                 : DEHYDRATION_ACTIONS;
     },
 
@@ -610,16 +624,19 @@ const MacromolecularizerReactionExploration = {
     renderNucleotide() {
         const adpDocked = this.step >= 1;
         const phosphateDocked = this.step >= 2;
-        const removedOH = this.step >= 3;
-        const removedH = this.step >= 4;
-        const bonded = this.step >= 5;
+        const energyPlaced = this.step >= 3;
+        const removedOH = this.step >= 4;
+        const removedH = this.step >= 5;
+        const bonded = this.step >= 6;
         this.element.innerHTML = `
             <div class="macro-exp-heading"><span>Reaction exploration · energy nucleotide</span>
                 <button type="button" data-explore-exit>Return to synthesis</button></div>
-            <div class="macro-exp-progress" aria-label="Reaction progress">${Math.min(this.step, 5)} / 5 steps</div>
+            <div class="macro-exp-progress" aria-label="Reaction progress">${Math.min(this.step, 6)} / 6 steps</div>
             <p class="macro-exp-instruction" role="status" aria-live="polite">${this.instructions()[this.step]}</p>
             <div class="macro-exp-field macro-exp-field--nucleotide" aria-label="ADP phosphorylation reaction field">
                 ${bonded ? '<span class="macro-exp-nucleotide-bond" role="img" aria-label="New bond between the terminal ADP phosphate and incoming phosphate"></span>' : ""}
+                ${this.step === 2 ? `<button type="button" class="macro-exp-nucleotide-energy-target" data-explore-drop="energy-slot" aria-label="Energy input for joining ADP and phosphate">${energyBoltMarkup("macro-exp-nucleotide-energy-icon")}</button>` : ""}
+                ${energyPlaced ? `<span class="macro-exp-nucleotide-energy-placed ${bonded ? "macro-exp-nucleotide-energy--absorbed" : ""}" aria-hidden="true">${energyBoltMarkup("macro-exp-nucleotide-energy-icon")}</span>` : ""}
                 <div class="macro-exp-slot" data-side="left">
                     ${adpDocked ? adpMarkup(true, removedH, bonded) : nucleotideTemplateMarkup("left")}
                 </div>
@@ -628,7 +645,7 @@ const MacromolecularizerReactionExploration = {
                 </div>
             </div>
             <div class="macro-exp-toolbar macro-exp-toolbar--nucleotide">
-                <div class="macro-exp-supply" aria-label="Nucleotide component supply">${!adpDocked ? adpMarkup(false) : ""}${!phosphateDocked ? phosphateMarkup(false) : ""}</div>
+                <div class="macro-exp-supply" aria-label="Nucleotide component and energy supply">${!adpDocked ? adpMarkup(false) : ""}${!phosphateDocked ? phosphateMarkup(false) : ""}${this.step === 2 ? `<button type="button" class="macro-exp-nucleotide-energy-supply" data-explore-drag="energy" aria-label="Drag energy into the reaction work area">${energyBoltMarkup("macro-exp-nucleotide-energy-icon")}<span>Energy</span></button>` : ""}</div>
                 <button type="button" class="macro-exp-collection" data-explore-drop="waste" aria-label="Collection tray for OH and H">
                     ${removedH ? '<span class="macro-exp-water">H₂O ↑</span>' : removedOH ? "OH + H → H₂O" : "OH + H collection tray"}
                 </button>

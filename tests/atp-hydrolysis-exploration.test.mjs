@@ -84,6 +84,7 @@ assert.match(
     placedATPMarkup,
     /data-explore-drop="terminal-bond"/
 );
+assert.doesNotMatch(placedATPMarkup, /macro-exp-hydrolysis-energy/);
 assert(
     waterHIndex >= 0 && waterHIndex < waterOHIndex,
     "water must face the activity as H-OH"
@@ -97,6 +98,10 @@ assert.equal(
 );
 
 const productMarkup = explorationElement.innerHTML;
+assert.match(
+    productMarkup,
+    /<svg class="macro-exp-hydrolysis-energy"[\s\S]*?<path d="M36 4 11 48h19l-8 39 32-51H35L43 4Z"/
+);
 const adpPIndex = productMarkup.indexOf(
     "macro-exp-hydrolysis-adp-terminal-p"
 );
@@ -177,9 +182,14 @@ assert.match(
     cssSource,
     /macro-exp-hydrolysis-phosphate-slide/
 );
+assert.match(
+    cssSource,
+    /\.macro-exp-hydrolysis-energy\s*\{[^}]*animation: macro-exp-water-rise 2\.1s 420ms ease-out both;/
+);
+assert.match(cssSource, /\.macro-exp-hydrolysis-energy \{ display: none; \}/);
 assert.match(uiSource, /completeHydrolysisExploration/);
 assert.match(uiSource, /hydrolysisExplorationDiscovered/);
 
 console.log(
-    "PASS: nucleotide hydrolysis places ATP and H-OH, animates ADP as P-O-H and phosphate as H-O-P, records hydrolysis-4, displays released energy, and changes no inventory or ATP resource."
+    "PASS: nucleotide hydrolysis places ATP and H-OH, animates ADP and phosphate plus a rising, fading energy bolt, records hydrolysis-4, and changes no inventory or ATP resource."
 );
