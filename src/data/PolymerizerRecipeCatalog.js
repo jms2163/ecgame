@@ -52,6 +52,12 @@ const PRODUCT_CONFIGS = Object.freeze({
             "Complete Membrane Lipid Factory: Composition and Fluidity in the Smooth ER Lab.",
         lockedMessage: null
     }),
+    Glycogenin: Object.freeze({
+        name: "Glycogenin",
+        implemented: true,
+        discoveryId: null,
+        lockedMessage: null
+    }),
     Hexokinase: Object.freeze({
         name: "Hexokinase",
         implemented: true,
