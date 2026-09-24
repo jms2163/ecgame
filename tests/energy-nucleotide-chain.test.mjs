@@ -193,6 +193,21 @@ assert.match(
     placedReactionMarkup,
     /class="macro-exp-terminal-oxygen" data-explore-drop="terminal"/
 );
+assert.match(placedReactionMarkup, /data-explore-drag="energy"/);
+assert.match(placedReactionMarkup, /data-explore-drop="energy-slot"/);
+assert.equal(
+    MacromolecularizerReactionExploration.accept("oh", "waste"),
+    false,
+    "energy must be placed before the reaction proceeds"
+);
+const explorationReserve = ResourceManager.getATPStatus().current;
+assert.equal(
+    MacromolecularizerReactionExploration.accept("energy", "energy-slot"),
+    true
+);
+assert.match(explorationElement.innerHTML, /macro-exp-nucleotide-energy-placed/);
+assert.doesNotMatch(explorationElement.innerHTML, /data-explore-drag="energy"/);
+assert.equal(ResourceManager.getATPStatus().current, explorationReserve);
 
 [
     ["oh", "waste"],
@@ -226,6 +241,8 @@ assert.match(
     explorationElement.innerHTML,
     /macro-exp-nucleotide-bond/
 );
+assert.match(explorationElement.innerHTML, /macro-exp-nucleotide-energy--absorbed/);
+assert.equal(ResourceManager.getATPStatus().current, explorationReserve);
 
 const macromolecularizerCSS =
     fs.readFileSync(
@@ -244,6 +261,11 @@ assert.match(
     macromolecularizerCSS,
     /macro-exp-nucleotide-bond-reveal 650ms 420ms/
 );
+assert.match(
+    macromolecularizerCSS,
+    /macro-exp-nucleotide-energy--absorbed[\s\S]*?macro-exp-nucleotide-energy-absorb 1\.15s 420ms/
+);
+assert.match(macromolecularizerCSS, /translate\(-50%, 95px\)/);
 assert.equal(
     MacromolecularizerManager
         .hasReactionDiscovery("dehydration-4"),
@@ -316,5 +338,5 @@ assert.equal(
 );
 
 console.log(
-    "PASS: ADP and stored ATP form a non-consuming phosphate chain, the nucleotide exploration records dehydration-4, and molecular ATP remains separate from the spendable reserve."
+    "PASS: ADP and phosphate require a dragged energy bolt before bonding, the bolt descends and fades during bond formation, dehydration-4 records without spending ATP, and stored ATP stays separate from the reserve."
 );
