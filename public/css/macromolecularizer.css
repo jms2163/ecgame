@@ -1619,6 +1619,24 @@
     width: 100%;
 }
 
+.macro-button--upgrade.macro-button--point-ready:not(:disabled) {
+    outline: 3px solid #ffd34d;
+    outline-offset: 3px;
+    animation: macro-point-ready-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes macro-point-ready-pulse {
+    0%, 100% { outline-color: rgba(255, 211, 77, 0.35); }
+    50% { outline-color: #ffd34d; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .macro-button--upgrade.macro-button--point-ready:not(:disabled) {
+        animation: none;
+        outline-color: #ffd34d;
+    }
+}
+
 @keyframes macro-status-pulse {
     0%, 100% {
         opacity: 0.58;
@@ -2128,6 +2146,142 @@
 
 @media (prefers-reduced-motion: reduce) {
     .macro-exp-peptide-bond { animation: none; }
+}
+
+/* Protein hydrolysis reuses the dehydration amino acid drawings. */
+.macro-exp-field--protein-hydrolysis .macro-exp-peptide-bond {
+    border: 0;
+    padding: 0;
+    animation: none;
+}
+
+.macro-exp-field--protein-hydrolysis .macro-exp-peptide-bond--target {
+    min-height: 12px;
+    cursor: pointer;
+    pointer-events: auto;
+    background: #70d5ff;
+    box-shadow: 0 0 12px #70d5ff;
+}
+
+.macro-exp-field--protein-hydrolysis .macro-exp-peptide-bond--breaking {
+    animation: macro-exp-protein-bond-break 220ms 360ms forwards;
+}
+
+.macro-exp-field--protein-reacted [data-side="left"] {
+    animation: macro-exp-protein-left-separate 450ms 740ms both;
+}
+.macro-exp-field--protein-reacted [data-side="right"] {
+    animation: macro-exp-protein-right-separate 450ms 740ms both;
+}
+
+.macro-exp-protein-water {
+    position: relative;
+    display: flex;
+    width: 140px;
+    min-height: 104px;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 10px 25px;
+    border: 0;
+    background: transparent;
+    color: var(--macro-text);
+    cursor: grab;
+    touch-action: none;
+}
+
+.macro-exp-protein-water.macro-exp-drag-ghost {
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.85;
+    transform: translate(-50%, -50%);
+}
+
+.macro-exp-protein-water-oh,
+.macro-exp-protein-water-h {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 2px solid #ffaaaa;
+    border-radius: 50%;
+    background: #a2282b;
+    color: white;
+    font: 700 0.85rem "Oxanium", sans-serif;
+}
+
+.macro-exp-protein-water-h {
+    width: 30px;
+    height: 30px;
+    border-color: #d6e0eb;
+    background: #758393;
+}
+
+.macro-exp-protein-water-link { color: #eef3fb; font-weight: bold; }
+
+.macro-exp-protein-water-animation {
+    position: absolute;
+    z-index: 7;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    animation: macro-exp-protein-water-leave 800ms forwards;
+}
+
+.macro-exp-protein-water-animation .macro-exp-protein-water-oh {
+    animation: macro-exp-protein-oh-to-carbon 750ms ease-in-out forwards;
+}
+.macro-exp-protein-water-animation .macro-exp-protein-water-h {
+    animation: macro-exp-protein-h-to-nitrogen 750ms ease-in-out forwards;
+}
+.macro-exp-protein-water-animation .macro-exp-protein-water-link {
+    animation: macro-exp-protein-bond-break 180ms 210ms forwards;
+}
+
+.macro-exp-hydrolysis-toolbar .macro-exp-supply {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 110px;
+}
+
+.macro-exp-field--protein-reacted .macro-exp-protein-added-oh,
+.macro-exp-field--protein-reacted .macro-exp-protein-added-h {
+    opacity: 0;
+    animation: macro-exp-protein-attach 250ms 620ms forwards;
+}
+
+.macro-exp-field--protein-reacted ~ .macro-exp-reveal {
+    opacity: 0;
+    animation-delay: 900ms;
+    animation-fill-mode: forwards;
+}
+
+@keyframes macro-exp-protein-bond-break { to { opacity: 0; } }
+@keyframes macro-exp-protein-water-leave { 0%, 75% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes macro-exp-protein-oh-to-carbon {
+    0%, 27% { transform: translate(0, 0); }
+    100% { transform: translate(-85px, 45px); }
+}
+@keyframes macro-exp-protein-h-to-nitrogen {
+    0%, 27% { transform: translate(0, 0); }
+    100% { transform: translate(80px, -45px); }
+}
+@keyframes macro-exp-protein-attach { to { opacity: 1; } }
+@keyframes macro-exp-protein-left-separate { to { transform: translateX(-24px); } }
+@keyframes macro-exp-protein-right-separate { to { transform: translateX(24px); } }
+
+@media (prefers-reduced-motion: reduce) {
+    .macro-exp-field--protein-hydrolysis *,
+    .macro-exp-field--protein-reacted ~ .macro-exp-reveal { animation: none; }
+    .macro-exp-field--protein-hydrolysis .macro-exp-peptide-bond--breaking,
+    .macro-exp-field--protein-hydrolysis .macro-exp-protein-water-animation { display: none; }
+    .macro-exp-field--protein-reacted .macro-exp-protein-added-oh,
+    .macro-exp-field--protein-reacted .macro-exp-protein-added-h,
+    .macro-exp-field--protein-reacted ~ .macro-exp-reveal { opacity: 1; }
 }
 
 /* Nucleotide dehydration: ADP gains one phosphate to form stored ATP. */

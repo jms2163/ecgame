@@ -4,6 +4,7 @@
 // and persistent-state normalization
 // --------------------------------------------------
 
+import gameState from "./GameState.js";
 import GameStateManager from "./GameStateManager.js";
 import GameStateObserver from "./GameStateObserver.js";
 import DiscoveryManager from "./DiscoveryManager.js";
@@ -33,6 +34,7 @@ const DEHYDRATION_EXPLORATION_IDS = Object.freeze({
     nucleotides: "dehydration-4"
 });
 const HYDROLYSIS_EXPLORATION_IDS = Object.freeze({
+    motifs: "hydrolysis-2",
     nucleotides: "hydrolysis-4"
 });
 const DEHYDRATION_DISCOVERY_IDS = Object.freeze([
@@ -42,6 +44,7 @@ const DEHYDRATION_DISCOVERY_IDS = Object.freeze([
     "dehydration-4"
 ]);
 const HYDROLYSIS_DISCOVERY_IDS = Object.freeze([
+    "hydrolysis-2",
     "hydrolysis-4"
 ]);
 
@@ -1844,7 +1847,7 @@ const MacromolecularizerManager = {
 
     },
 
-    // Complete the nucleotide hydrolysis activity while retaining the
+    // Complete a guided hydrolysis activity while retaining the
     // generic hydrolysis discovery used by older saves and callers.
     completeHydrolysisExploration(category) {
 
@@ -1900,10 +1903,37 @@ const MacromolecularizerManager = {
             };
         }
 
+        // Existing students may have completed this exploration before it
+        // awarded a point. Keep the award marker on the same discovery record
+        // so their next replay grants it once without a save migration.
+        const proteinRecord = category === "motifs"
+            ? gameState.discoveries.reactions[discoveryId]
+            : null;
+        const awardPoint = proteinRecord &&
+            proteinRecord.synthesisPointAwarded !== true;
+        const pointsBefore = awardPoint
+            ? SynthesisPointManager.getStatus()
+            : null;
+        if (awardPoint) {
+            if (SynthesisPointManager.addPoints(1, "protein-hydrolysis-discovered") === false) {
+                return {
+                    success: false,
+                    saved: false,
+                    message: "The synthesis point could not be awarded. Replay to retry."
+                };
+            }
+            proteinRecord.synthesisPointAwarded = true;
+        }
+
         const saved = SaveManager.save({
             reason:
                 `macromolecularizer-${discoveryId}-discovered`
         });
+
+        if (!saved && awardPoint) {
+            delete proteinRecord.synthesisPointAwarded;
+            SynthesisPointManager.restoreStatus(pointsBefore);
+        }
 
         this.notifyStateChange(
             "reaction-discovered",
@@ -1917,8 +1947,11 @@ const MacromolecularizerManager = {
             success: saved,
             saved,
             discoveryId,
+            synthesisPointsAwarded: saved && awardPoint ? 1 : 0,
             message: saved
-                ? "ATP reacts with water to produce ADP, phosphate, and energy."
+                ? category === "motifs"
+                    ? `Hydrolysis discovered: water breaks a peptide bond.${awardPoint ? " +1 Synthesis Point." : ""}`
+                    : "ATP reacts with water to produce ADP, phosphate, and energy."
                 : "The hydrolysis occurred, but the browser save failed."
         };
 

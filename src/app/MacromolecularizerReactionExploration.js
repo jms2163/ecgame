@@ -36,6 +36,10 @@ const INSTRUCTIONS = Object.freeze({
         "Drag ATP to the reaction pane.",
         "Drag H–OH to the terminal phosphate bond in ATP.",
         "ATP reacts with water to produce ADP, phosphate, and energy."
+    ],
+    "protein-hydrolysis": [
+        "Drag water onto the highlighted C—N peptide bond.",
+        "Hydrolysis discovered: water breaks a peptide bond."
     ]
 });
 
@@ -45,6 +49,9 @@ const DEHYDRATION_ACTIONS = Object.freeze([
 
 const HYDROLYSIS_ACTIONS = Object.freeze([
     "left", "water"
+]);
+const PROTEIN_HYDROLYSIS_ACTIONS = Object.freeze([
+    "water"
 ]);
 
 const TARGETS_BY_CATEGORY = Object.freeze({
@@ -72,6 +79,9 @@ const TARGETS_BY_CATEGORY = Object.freeze({
     "nucleotide-hydrolysis": Object.freeze([
         "left",
         "terminal-bond"
+    ]),
+    "protein-hydrolysis": Object.freeze([
+        "peptide-bond"
     ])
 });
 
@@ -93,21 +103,21 @@ function templateMarkup(side) {
     </button>`;
 }
 
-function aminoAcidMarkup(side, docked, removedOH = false, removedH = false, bonded = false) {
+function aminoAcidMarkup(side, docked, removedOH = false, removedH = false, bonded = false, hydrolysisStep = null) {
     const isLeft = side === "left";
     const interactiveCarbon = docked && isLeft;
     const interactiveNitrogen = docked && !isLeft;
-    const removableOH = interactiveCarbon && !removedOH;
-    const removableH = interactiveNitrogen && !removedH;
+    const removableOH = interactiveCarbon && !removedOH && hydrolysisStep === null;
+    const removableH = interactiveNitrogen && !removedH && hydrolysisStep === null;
     const svg = `<svg class="macro-exp-amino-svg" viewBox="0 0 180 150" aria-hidden="true" focusable="false">
         <g class="macro-aa-bonds">
             <line x1="37" y1="76" x2="64" y2="76" />
             <line x1="90" y1="76" x2="117" y2="76" />
             <line x1="77" y1="63" x2="77" y2="39" />
             <line x1="77" y1="89" x2="77" y2="110" />
-            <line x1="17" y1="65" x2="14" y2="48" ${removedH && interactiveNitrogen ? 'hidden' : ''} />
+            <line ${hydrolysisStep === 1 && interactiveNitrogen ? 'class="macro-exp-protein-added-h"' : ''} x1="17" y1="65" x2="14" y2="48" ${removedH && interactiveNitrogen ? 'hidden' : ''} />
             <line x1="17" y1="87" x2="14" y2="103" />
-            <line x1="140" y1="86" x2="153" y2="106" ${removedOH && interactiveCarbon ? 'hidden' : ''} />
+            <line ${hydrolysisStep === 1 && interactiveCarbon ? 'class="macro-exp-protein-added-oh"' : ''} x1="140" y1="86" x2="153" y2="106" ${removedOH && interactiveCarbon ? 'hidden' : ''} />
             <line class="macro-aa-double" x1="140" y1="68" x2="155" y2="48" />
             <line class="macro-aa-double" x1="144" y1="71" x2="159" y2="51" />
         </g>
@@ -115,21 +125,23 @@ function aminoAcidMarkup(side, docked, removedOH = false, removedH = false, bond
         ${interactiveCarbon ? '' : '<circle class="macro-aa-c" cx="130" cy="76" r="13" /><text x="130" y="81">C</text>'}
         <circle class="macro-aa-c" cx="77" cy="76" r="13" /><text x="77" y="81">C</text>
         <circle class="macro-aa-h" cx="77" cy="28" r="10" /><text x="77" y="32">H</text>
-        ${removableH || (removedH && interactiveNitrogen) ? '' : '<circle class="macro-aa-h" cx="14" cy="38" r="10" /><text x="14" y="42">H</text>'}
+        ${removableH || (removedH && interactiveNitrogen) ? '' : `<circle class="macro-aa-h ${hydrolysisStep === 1 && interactiveNitrogen ? 'macro-exp-protein-added-h' : ''}" cx="14" cy="38" r="10" /><text class="${hydrolysisStep === 1 && interactiveNitrogen ? 'macro-exp-protein-added-h' : ''}" x="14" y="42">H</text>`}
         <circle class="macro-aa-h" cx="14" cy="113" r="10" /><text x="14" y="117">H</text>
         <rect class="macro-aa-r" x="62" y="111" width="30" height="28" /><text x="77" y="130">R</text>
         <circle class="macro-aa-o" cx="164" cy="38" r="11" /><text x="164" y="42">O</text>
-        ${removableOH || (removedOH && interactiveCarbon) ? '' : '<circle class="macro-aa-o" cx="162" cy="116" r="16" /><text x="162" y="120">OH</text>'}
+        ${removableOH || (removedOH && interactiveCarbon) ? '' : `<circle class="macro-aa-o ${hydrolysisStep === 1 && interactiveCarbon ? 'macro-exp-protein-added-oh' : ''}" cx="162" cy="116" r="16" /><text class="${hydrolysisStep === 1 && interactiveCarbon ? 'macro-exp-protein-added-oh' : ''}" x="162" y="120">OH</text>`}
     </svg>`;
-    const inner = `${svg}<span class="macro-exp-amino-name">Amino acid ${isLeft ? "1" : "2"}</span>
+    const inner = `${svg}<span class="macro-exp-amino-name">${bonded ? "Residue" : "Amino acid"} ${isLeft ? "1" : "2"}</span>
         ${interactiveCarbon ? bonded
-            ? '<span class="macro-exp-amino-atom macro-exp-amino-atom--carbon" aria-label="Carboxyl carbon">C</span>'
-            : '<button type="button" class="macro-exp-amino-atom macro-exp-amino-atom--carbon" data-explore-drop="carbon" aria-label="Carboxyl carbon, peptide bond target">C</button>' : ''}
+            ? '<span class="macro-exp-amino-atom macro-exp-amino-atom--carbon" aria-label="Carbonyl carbon">C</span>'
+            : hydrolysisStep !== null
+                ? '<span class="macro-exp-amino-atom macro-exp-amino-atom--carbon" aria-label="Carboxyl carbon bearing OH">C</span>'
+                : '<button type="button" class="macro-exp-amino-atom macro-exp-amino-atom--carbon" data-explore-drop="carbon" aria-label="Carboxyl carbon, peptide bond target">C</button>' : ''}
         ${removableOH ? '<button type="button" class="macro-exp-amino-atom macro-exp-amino-atom--oh" data-explore-drag="oh" aria-label="Detach OH from left carboxyl group">OH</button>' : ''}
-        ${interactiveNitrogen ? removedH && !bonded
+        ${interactiveNitrogen ? removedH && !bonded && hydrolysisStep === null
             ? '<button type="button" class="macro-exp-amino-atom macro-exp-amino-atom--nitrogen" data-explore-drag="bond" aria-label="Drag amino nitrogen to the carboxyl carbon">N</button>'
             : '<span class="macro-exp-amino-atom macro-exp-amino-atom--nitrogen" aria-label="Amino nitrogen">N</span>' : ''}
-        ${removableH ? '<button type="button" class="macro-exp-amino-atom macro-exp-amino-atom--h" data-explore-drag="h" aria-label="Detach upper H from right amino nitrogen">H</button>' : ''}`;
+        ${removableH && hydrolysisStep === null ? '<button type="button" class="macro-exp-amino-atom macro-exp-amino-atom--h" data-explore-drag="h" aria-label="Detach upper H from right amino nitrogen">H</button>' : ''}`;
     return docked
         ? `<div class="macro-exp-amino macro-exp-amino--docked" aria-label="Amino acid ${isLeft ? "1" : "2"} placed">${inner}</div>`
         : `<button type="button" class="macro-exp-amino" data-explore-drag="${side}" aria-label="Drag amino acid ${isLeft ? "1" : "2"} to the ${side} template">${inner}</button>`;
@@ -266,6 +278,7 @@ const MacromolecularizerReactionExploration = {
     reactionId: "dehydration",
     step: 0,
     completed: false,
+    synthesisPointAwarded: false,
     selectedToken: null,
     pointerDrag: null,
 
@@ -307,11 +320,12 @@ const MacromolecularizerReactionExploration = {
         this.category = Object.hasOwn(CATEGORY_IDS, category) ? category : "motifs";
         this.reactionId =
             reactionId === "hydrolysis" &&
-            this.category === "nucleotides"
+            (this.category === "nucleotides" || this.category === "motifs")
                 ? "hydrolysis"
                 : "dehydration";
         this.step = 0;
         this.completed = false;
+        this.synthesisPointAwarded = false;
         this.selectedToken = null;
         this.render();
     },
@@ -330,12 +344,15 @@ const MacromolecularizerReactionExploration = {
         return this.reactionId === "hydrolysis" &&
             this.category === "nucleotides"
                 ? "nucleotide-hydrolysis"
+                : this.reactionId === "hydrolysis" && this.category === "motifs"
+                    ? "protein-hydrolysis"
                 : this.category;
     },
 
     actions() {
-        return this.activityKey() ===
-            "nucleotide-hydrolysis"
+        return this.activityKey() === "protein-hydrolysis"
+            ? PROTEIN_HYDROLYSIS_ACTIONS
+            : this.activityKey() === "nucleotide-hydrolysis"
                 ? HYDROLYSIS_ACTIONS
                 : DEHYDRATION_ACTIONS;
     },
@@ -360,9 +377,10 @@ const MacromolecularizerReactionExploration = {
                 this.category,
                 this.reactionId
             );
+            this.synthesisPointAwarded = result?.synthesisPointsAwarded === 1;
             this.render();
             const message = result?.saved === false
-                ? "The bond formed, but the discovery could not be saved. Please retry."
+                ? "The reaction completed, but the discovery could not be saved. Replay to retry."
                 : this.instructions()[this.step];
             this.announce(message);
         } else {
@@ -561,6 +579,34 @@ const MacromolecularizerReactionExploration = {
         if (bonded) this.positionPeptideBond();
     },
 
+    renderProteinHydrolysis() {
+        const reacted = this.step >= 1;
+        this.element.innerHTML = `
+            <div class="macro-exp-heading"><span>Reaction exploration · protein hydrolysis</span>
+                <button type="button" data-explore-exit>Return to synthesis</button></div>
+            <div class="macro-exp-progress" aria-label="Reaction progress">${this.step} / 1 step</div>
+            <p class="macro-exp-instruction" role="status" aria-live="polite">${this.instructions()[this.step]}</p>
+            <div class="macro-exp-field macro-exp-field--amino macro-exp-field--protein-hydrolysis ${reacted ? "macro-exp-field--protein-reacted" : ""}" aria-label="${reacted ? "Two amino acids after peptide bond cleavage" : "Two residues joined by a peptide bond"}">
+                ${reacted
+                    ? '<span class="macro-exp-peptide-bond macro-exp-peptide-bond--breaking" aria-hidden="true"></span>'
+                    : '<button type="button" class="macro-exp-peptide-bond macro-exp-peptide-bond--target" data-explore-drop="peptide-bond" aria-label="Peptide bond between the left carbonyl carbon and right amino nitrogen; drop water here"></button>'}
+                ${reacted ? '<div class="macro-exp-protein-water-animation" aria-hidden="true"><span class="macro-exp-protein-water-oh">OH</span><span class="macro-exp-protein-water-link">—</span><span class="macro-exp-protein-water-h">H</span></div>' : ""}
+                <div class="macro-exp-slot" data-side="left">
+                    ${aminoAcidMarkup("left", true, !reacted, false, !reacted, this.step)}
+                </div>
+                <div class="macro-exp-slot" data-side="right">
+                    ${aminoAcidMarkup("right", true, false, !reacted, !reacted, this.step)}
+                </div>
+            </div>
+            <div class="macro-exp-toolbar macro-exp-toolbar--amino macro-exp-hydrolysis-toolbar">
+                <div class="macro-exp-supply" aria-label="Water supply">
+                    ${!reacted ? '<button type="button" class="macro-exp-protein-water" data-explore-drag="water" aria-label="Drag water, OH on the left and H on the right, onto the peptide bond"><span class="macro-exp-protein-water-oh">OH</span><span class="macro-exp-protein-water-link">—</span><span class="macro-exp-protein-water-h">H</span><span class="macro-exp-amino-name">Water · H₂O</span></button>' : ""}
+                </div>
+            </div>
+            ${reacted ? `<div class="macro-exp-reveal" role="status">Hydrolysis discovered: water breaks a peptide bond.<small>Peptide + H₂O → two amino acids · OH to carbon, H to nitrogen${this.synthesisPointAwarded ? " · +1 Synthesis Point" : ""}</small></div>` : ""}`;
+        this.positionPeptideBond();
+    },
+
     renderNucleotide() {
         const adpDocked = this.step >= 1;
         const phosphateDocked = this.step >= 2;
@@ -623,6 +669,10 @@ const MacromolecularizerReactionExploration = {
 
     render() {
         if (!this.element) return;
+        if (this.activityKey() === "protein-hydrolysis") {
+            this.renderProteinHydrolysis();
+            return;
+        }
         if (
             this.category === "nucleotides" &&
             this.reactionId === "hydrolysis"
