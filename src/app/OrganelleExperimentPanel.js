@@ -576,6 +576,15 @@ starElement.setAttribute(
                 status.incompleteExperiments
                     .forEach(experimentId => {
 
+                        if (experiment.requirements
+                            ?.perfectScoreExperiments
+                            ?.includes(experimentId)) {
+                            details.push(
+                                `Requires: 100% on ${this.getExperimentTitle(experimentId)}.`
+                            );
+                            return;
+                        }
+
                         const progressionPolicy =
                             ResearchManager
                                 .getProgressionPolicy(

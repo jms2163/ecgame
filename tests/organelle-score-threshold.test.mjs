@@ -128,7 +128,7 @@ try {
         new URL('../src/app/OrganelleExperimentStage.js', import.meta.url),
         'utf8'
     );
-    assert.doesNotMatch(panelSource, /Requires: 100%/);
+    assert.match(panelSource, /perfectScoreExperiments/);
     assert.match(panelSource, /getProgressionPolicy/);
     assert.match(stageSource, /meetsSubmissionCompletionRequirement/);
     assert.doesNotMatch(
