@@ -598,8 +598,24 @@ const ProgressReportBuilder = {
                     this.firstFiniteNumber(
                         value,
                         value?.score,
-                        value?.bestScore
-                    )
+                        value?.bestScore,
+                        value?.scorePoints
+                    ),
+                scorePoints:
+                    this.toFiniteNumber(
+                        value?.scorePoints
+                    ),
+                scoreMaximum:
+                    this.toFiniteNumber(
+                        value?.scoreMaximum
+                    ),
+                scorePercent:
+                    this.toFiniteNumber(
+                        value?.scorePercent
+                    ),
+                isPerfect:
+                    typeof value?.isPerfect === "boolean"
+                        ? value.isPerfect : null
             }))
             .filter(record =>
                 record.score !== null
@@ -680,8 +696,24 @@ const ProgressReportBuilder = {
                     score:
                         this.firstFiniteNumber(
                             lastRecord?.score,
-                            lastRecord?.points
+                            lastRecord?.points,
+                            lastRecord?.scorePoints
                         ),
+                    scorePoints:
+                        this.toFiniteNumber(
+                            lastRecord?.scorePoints
+                        ),
+                    scoreMaximum:
+                        this.toFiniteNumber(
+                            lastRecord?.scoreMaximum
+                        ),
+                    scorePercent:
+                        this.toFiniteNumber(
+                            lastRecord?.scorePercent
+                        ),
+                    isPerfect:
+                        typeof lastRecord?.isPerfect === "boolean"
+                            ? lastRecord.isPerfect : null,
                     lastSubmittedAt:
                         this.toISOString(
                             lastRecord
