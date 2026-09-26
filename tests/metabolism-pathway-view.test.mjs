@@ -65,7 +65,7 @@ assert.doesNotMatch(
 );
 assert.match(
     uiSource,
-    /Systems Architecture Preview/
+    /Cellular Energy Systems/
 );
 assert.match(
     uiSource,

@@ -332,7 +332,15 @@ const QuestManager = {
     },
 
     arePrerequisitesMet(definition) {
-        return definition.prerequisites
+        const requiredBiomes =
+            definition.activationBiomeIds ?? [];
+        const discoveries =
+            gameState.zones?.pond?.state
+                ?.discoveredMicrobiomes ?? {};
+
+        return requiredBiomes.every(
+            biomeId => Boolean(discoveries[biomeId])
+        ) && definition.prerequisites
             .every(prerequisiteId =>
                 this.getRecord(
                     prerequisiteId

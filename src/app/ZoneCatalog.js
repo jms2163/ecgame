@@ -86,11 +86,10 @@ const ZONE_DEFINITIONS = Object.freeze([
     Object.freeze({
         id: "metabolism",
         label: "Metabolism",
-        releaseState: RELEASE_STATE.COMING_SOON,
+        releaseState: RELEASE_STATE.PLAYABLE,
         lockedMessage:
-            "Complete the required earlier activities first.",
-        comingSoonMessage:
-            "Metabolism activities are planned for a later release."
+            "Synthesize Glucose Transporter in the Polymerizer first.",
+        comingSoonMessage: ""
     }),
 
     Object.freeze({
