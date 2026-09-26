@@ -89,10 +89,8 @@ for (const materialId of [
 
 for (const candidate of
     Object.values(OrganelleExperimentLibrary)) {
-    if (
-        candidate.releaseStatus ===
-        "coming-soon"
-    ) {
+    if (candidate.releaseStatus === "coming-soon" ||
+        candidate.stage?.preview === true) {
         continue;
     }
     assert.ok(

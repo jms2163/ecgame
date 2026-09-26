@@ -1,0 +1,50 @@
+.psii-lab { color: #f7efff; font: inherit; }
+.psii-intro { margin: 0 0 1rem; padding: .85rem 1rem; border: 1px solid #b581c7; border-radius: 10px; background: #16051e; color: #fff; line-height: 1.5; }
+.psii-intro p { margin: .35rem 0; }
+.psii-intro strong { color: #fff; }
+.psii-progress { color: #fff; font-weight: 700; min-height: 1.5em; }
+.psii-workspace { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+.psii-board { border: 2px solid #466e60; border-radius: 18px; overflow: hidden; background: #101918; }
+.psii-board svg { display: block; width: 100%; height: auto; touch-action: none; }
+.psii-background { fill: #101918; }
+.psii-heads { fill: #dce8e4; stroke: #0c1714; stroke-width: 3; }
+.psii-tails { fill: none; stroke: #f5af24; stroke-width: 10; stroke-linecap: round; }
+.psii-body { fill: rgba(154, 82, 163, .12); stroke: #c698cf; stroke-width: 5; stroke-dasharray: 12 9; cursor: pointer; }
+.psii-body-filled { fill: #925099; stroke: #27122a; stroke-dasharray: none; }
+.psii-core { fill: #9ccfe6; stroke: #12242b; stroke-width: 5; pointer-events: none; }
+.psii-target { fill: rgba(119, 193, 64, .13); stroke: #d0f8a2; stroke-width: 4; stroke-dasharray: 7 6; cursor: pointer; }
+.psii-filled { fill: #6bbd37; stroke: #152b0c; stroke-dasharray: none; }
+.psii-acceptor { fill: rgba(150, 208, 239, .15); stroke: #e1f5fd; stroke-width: 4; stroke-dasharray: 9 6; cursor: pointer; }
+.psii-acceptor-filled { fill: #86c8e9; stroke: #173447; stroke-dasharray: none; }
+.psii-p680 { fill: rgba(119, 193, 64, .13); stroke: #d0f8a2; stroke-width: 4; stroke-dasharray: 7 6; cursor: pointer; }
+.psii-p680.psii-filled { fill: #6bbd37; stroke: #152b0c; stroke-dasharray: none; }
+.psii-side-label, .psii-center-label, .psii-small-label { font-family: system-ui, sans-serif; font-weight: 800; pointer-events: none; }
+.psii-side-label { fill: #f2f4e8; font-size: 20px; letter-spacing: 2px; }
+.psii-center-label { fill: #173044; font-size: 20px; }
+.psii-small-label { fill: #f2f4e8; font-size: 15px; letter-spacing: 1px; }
+.psii-tray.organelle-experiment-material-tray { display: grid; gap: .7rem; margin: 0; padding: 1rem; border-radius: 10px; background: #16051e; }
+.psii-tray h3, .psii-tray p { margin: .1rem 0; }
+.psii-tray p { color: #f7efff; font-size: .9rem; line-height: 1.45; }
+.psii-material-list { gap: .85rem; }
+.psii-material-card.organelle-experiment-material { width: 9.5rem; min-width: 9.5rem; min-height: 9.7rem; grid-template-rows: 6.5rem auto; gap: .4rem; background: #fff; border: 2px solid #c8a4d8; border-radius: 8px; color: #171320; cursor: default; }
+.psii-material-card .organelle-experiment-material-name { color: #171320; font-size: .84rem; font-weight: 700; line-height: 1.2; white-space: normal; text-align: center; }
+.psii-source { display: grid; place-items: center; width: 100%; height: 6.5rem; border: 0; border-radius: 5px; background: #fff; cursor: grab; touch-action: none; }
+.psii-source:active { cursor: grabbing; }
+.psii-source:focus-visible, .psii-reset:focus-visible { outline: 3px solid #a448d4; outline-offset: 2px; }
+.psii-source.selected { outline: 3px solid #9751aa; }
+.psii-source:disabled { opacity: .45; cursor: default; }
+.psii-source svg { width: 5.4rem; height: 5.5rem; pointer-events: none; }
+.psii-reset { justify-self: start; padding: .5rem .8rem; border: 1px solid #f7efff; border-radius: 6px; background: #fff; color: #281138; font: inherit; font-weight: 700; cursor: pointer; }
+.psii-drag-ghost { position: fixed; z-index: 9999; pointer-events: none; width: 5.7rem; height: 6rem; transform: translate(-50%, -50%); opacity: .92; background: transparent; border: 0; padding: 0; }
+.psii-drag-ghost svg { display: block; width: 100%; height: 100%; }
+.psii-quiz { margin-top: 1rem; padding: 1rem; border: 1px solid #b581c7; border-radius: 10px; background: #16051e; color: #fff; }
+.psii-quiz h3 { margin: 0 0 .4rem; color: #fff; }
+.psii-quiz p { color: #fff; line-height: 1.45; }
+.psii-quiz fieldset { margin: 1rem 0; padding: .75rem 1rem; border: 1px solid #ccacd9; border-radius: 8px; }
+.psii-quiz legend { padding: 0 .25rem; color: #fff; font-weight: 700; }
+.psii-quiz label { display: block; margin: .55rem 0; color: #fff; cursor: pointer; }
+.psii-quiz input { accent-color: #e9b4ff; margin-right: .45rem; }
+.psii-quiz button { padding: .6rem .9rem; border: 2px solid #fff; border-radius: 7px; background: #fff; color: #281138; font: inherit; font-weight: 700; cursor: pointer; }
+.psii-quiz button:disabled { opacity: .55; cursor: default; }
+.psii-quiz button:focus-visible { outline: 3px solid #f6c758; outline-offset: 3px; }
+.psii-score { font-weight: 800; }

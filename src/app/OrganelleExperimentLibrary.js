@@ -28,6 +28,10 @@ import PseudopodiaMembraneExtensionExperiment
     from "./PseudopodiaMembraneExtensionCatalog.js";
 import FoodVacuolePhagocytosisExperiment
     from "./FoodVacuolePhagocytosisCatalog.js";
+import PhotosystemIIAssemblyExperiment
+    from "./PhotosystemIIAssemblyCatalog.js";
+import PhotosystemIIExcitationExperiment
+    from "./PhotosystemIIExcitationCatalog.js";
 
 const MEMBRANE_TRANSPORT_LABELS = [
 
@@ -54,6 +58,12 @@ const OrganelleExperimentLibrary = {
 
     food_vacuole_phagocytosis:
         FoodVacuolePhagocytosisExperiment,
+
+    photosystem_ii_assembly:
+        PhotosystemIIAssemblyExperiment,
+
+    photosystem_ii_excitation:
+        PhotosystemIIExcitationExperiment,
 
     smooth_er_lipid_composition:
         SmoothERLipidCompositionExperiment,
