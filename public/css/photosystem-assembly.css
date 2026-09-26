@@ -95,7 +95,6 @@
 .etc-cytochrome-label { fill: #17142b; font-family: system-ui, sans-serif; font-size: 26px; font-weight: 800; pointer-events: none; }
 .etc-cytochrome-target { fill: rgba(170, 167, 206, .14); stroke: #d7d0ff; stroke-width: 5; stroke-dasharray: 10 8; }
 .etc-lab [data-etc-material="cytochrome"] svg { width: 4.9rem; height: 6.1rem; }
-.etc-donor { transform-box: fill-box; transform-origin: center; }
 .etc-lab .water-hydrogen-label, .etc-lab .water-oxygen-label { font-size: 18px; }
 .etc-lab .water-covalent-bond, .etc-lab .water-double-bond { stroke-width: 5; }
 .etc-lab .water-protons-label { font-size: 18px; }

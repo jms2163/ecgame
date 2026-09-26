@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import gameState from "../src/app/GameState.js";
 import ResearchManager from "../src/app/ResearchManager.js";
 import Library from "../src/app/OrganelleExperimentLibrary.js";
@@ -146,7 +147,7 @@ try {
     assert.match(View.root.innerHTML, /Fe-S/);
     assert.match(View.root.innerHTML, /cyt f|>f</);
     assert.match(View.root.innerHTML, /data-etc-qi role="img"/);
-    assert.match(View.root.innerHTML, /x="428" y="95" width="108"/);
+    assert.match(View.root.innerHTML, /x="482" y="95" width="108"/);
     assert.match(View.controls.innerHTML, /Run Q cycle · 1\/2/);
     await View.runQCycle();
     assert.equal(View.phase, "await-second-pq");
@@ -204,7 +205,7 @@ try {
     assert.equal(View.fElectrons, 3);
     assert.equal(View.qiElectrons, 1);
     assert.equal(View.qiProtons, 1);
-    assert.ok(moves.some(move => move.node === nodes.get("[data-etc-qi]") && move.dx === 2 && move.dy === 140));
+    assert.ok(moves.some(move => move.node === nodes.get("[data-etc-qi]") && move.dx === -52 && move.dy === 140));
     assert.match(View.root.innerHTML, /data-etc-qi role="img" aria-label="Qi-side PQ, 1 of two electrons loaded"/);
     assert.equal((View.root.innerHTML.match(/data-etc-lumen-proton=/g) ?? []).length, 6);
     assert.equal((View.root.innerHTML.match(/data-etc-water-proton=/g) ?? []).length, 4);
@@ -222,6 +223,32 @@ try {
     View.controls = null;
     for (const key of Object.keys(gameState)) delete gameState[key];
     Object.assign(gameState, backup);
+}
+
+// The donor's visual rotation must use the SVG canvas coordinates, without
+// a second CSS transform origin that makes it fly away and then respawn.
+assert.doesNotMatch(readFileSync(new URL("../public/css/photosystem-assembly.css", import.meta.url), "utf8"),
+    /\.etc-donor\s*\{[^}]*transform-origin/);
+const savedRaf = globalThis.requestAnimationFrame;
+const savedRoot = View.root;
+const savedGeneration = View.generation;
+try {
+    const transforms = [];
+    const started = performance.now();
+    let frameCount = 0;
+    globalThis.requestAnimationFrame = callback => callback(started + ++frameCount * 500);
+    View.root = {};
+    View.generation = 4;
+    const rotated = await View.rotateAndDock({ setAttribute(key, value) {
+        if (key === "transform") transforms.push(value);
+    } }, 4);
+    assert.equal(rotated, true);
+    assert.equal(transforms.at(-1), "translate(0 58) rotate(180 498 285)");
+    assert.ok(transforms.every(transform => !transform.includes("translate(498")));
+} finally {
+    globalThis.requestAnimationFrame = savedRaf;
+    View.root = savedRoot;
+    View.generation = savedGeneration;
 }
 
 console.log("PASS: ETC preview shows four O–H electron replacements, O₂ release, and three PQH₂ deliveries with ten lumen protons.");

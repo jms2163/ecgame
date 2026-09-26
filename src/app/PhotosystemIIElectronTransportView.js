@@ -10,7 +10,7 @@ const PQ_FINISH = { x: 430, y: 235 };
 const CYTOCHROME_X = 551;
 const CYTOCHROME_Y = 156;
 const DOCK_SHIFT = 58;
-const QI_X = 428;
+const QI_X = 482;
 const QI_Y = 95;
 const QI_PROTON_SOURCE_X = [600, 650];
 const PQ_SLOTS = [415, 481];
@@ -291,7 +291,10 @@ const PhotosystemIIElectronTransportView = {
                 if (generation !== this.generation || !this.root) { resolve(false); return; }
                 const t = Math.min(1, (now - started) / duration);
                 const eased = t * t * (3 - 2 * t);
-                node.setAttribute("transform", `translate(0 ${DOCK_SHIFT * eased}) translate(${cx} ${cy}) rotate(${180 * eased}) translate(${-cx} ${-cy})`);
+                // SVG's rotate(angle cx cy) keeps the carrier anchored to its
+                // actual canvas center. CSS transform-origin would add a second
+                // origin and send the filled carrier off the board.
+                node.setAttribute("transform", `translate(0 ${DOCK_SHIFT * eased}) rotate(${180 * eased} ${cx} ${cy})`);
                 if (t < 1) requestAnimationFrame(frame);
                 else resolve(true);
             };
