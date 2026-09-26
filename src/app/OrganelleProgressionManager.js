@@ -162,6 +162,15 @@ const OrganelleProgressionManager = {
                     );
                 break;
 
+            case "microbiome_discovered":
+                met = Boolean(
+                    GameStateManager
+                        .getZoneSnapshot("pond")
+                        ?.state?.discoveredMicrobiomes
+                        ?.[requirement.id]
+                );
+                break;
+
             case "metric_threshold": {
 
                 const system =

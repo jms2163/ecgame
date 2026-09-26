@@ -665,7 +665,7 @@ const organelleLibrary = {
         "name": "Symbiosomes",
         "classification": "symbiont-containing compartments",
         "shortSummary": "House symbiotic partners within the host cell.",
-        "description": "This game profile represents compartments housing photosynthetic partners. The planned learning path connects exploration of a photosynthetic habitat with establishing a symbiotic partnership.",
+        "description": "A host-derived compartment holding an engulfed photosynthetic alga. Its survival and benefit to the host remain questions for investigation.",
         "figure": {
             "src": null,
             "alt": "Labeled symbiosome showing a host-derived membrane and a photosynthetic symbiont.",
@@ -680,24 +680,28 @@ const organelleLibrary = {
             {
                 "id": "symbiont",
                 "label": "Photosynthetic Symbiont",
-                "description": "The partner represented in the planned photosynthetic association."
+                "description": "An intact, Chlorella-like single-celled green alga engulfed in a photosynthetic algae patch."
             }
         ],
         "benefits": [
             {
                 "id": "symbiosomes_benefit",
                 "label": "Photosynthetic Partnership",
-                "description": "Proposed benefit: access to photosynthetic energy through a suitable symbiont.",
+                "description": "Potential benefit: photosynthetic products if the alga remains active and is retained.",
                 "status": "planned",
                 "effectReference": null
             }
         ],
         "unlock": {
-            "status": "deferred",
+            "status": "active",
             "mode": "all",
-            "requirements": [],
-            "proposal": "Move into the photosynthetic zone; discuss whether entry alone or a symbiont encounter grants the permanent discovery.",
-            "displayRequirement": "enter a photosynthetic region and encounter a photosynthetic symbiont."
+            "requirements": [{
+                "type": "microbiome_discovered",
+                "id": "algae_patch",
+                "label": "enter a photosynthetic algae patch"
+            }],
+            "proposal": null,
+            "displayRequirement": "enter a photosynthetic algae patch in the Pond."
         }
     },
     "endosome": {

@@ -36,6 +36,30 @@ const PondQuestCatalog = Object.freeze({
             zoneUnlocks: ["signaling"],
             collectorUnlocks: []
         }
+    },
+
+    photosynthetic_partner: {
+        id: "photosynthetic_partner",
+        title: "A Cell in the Light",
+        category: "main",
+        releaseState: "playable",
+        // The quest appears only after an intentional arrival in algae_patch.
+        activationBiomeIds: ["algae_patch"],
+        description:
+            "In the algae patch, your amoeba engulfed a single-celled green alga (Chlorella-like) by phagocytosis. The cell is still intact inside a host-derived compartment. Explore whether it can persist in light rather than being digested.",
+        prerequisites: [],
+        objectives: [{
+            type: "microbiome-discovery",
+            biomeIds: ["algae_patch"],
+            label: "Photosynthetic algae patch discovered",
+            target: 1
+        }],
+        rewards: {
+            xp: 500,
+            discoveries: [],
+            zoneUnlocks: [],
+            collectorUnlocks: []
+        }
     }
 
 });

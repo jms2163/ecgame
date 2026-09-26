@@ -1,6 +1,6 @@
 // --------------------------------------------------
 // MetabolismUI.js
-// Console-only Metabolism pathway placement orchestration.
+// Metabolism pathway placement orchestration.
 // --------------------------------------------------
 
 import GameStateObserver
@@ -187,16 +187,16 @@ const MetabolismUI = {
                     <div>
                         <p class="metabolism-kicker">Cellular Energy Pathways</p>
                         <h1>Metabolism</h1>
-                        <p class="metabolism-subtitle">Development preview · Student navigation remains locked</p>
+                        <p class="metabolism-subtitle">Explore cellular energy after synthesizing Glucose Transporter</p>
                     </div>
                     <div class="metabolism-topbar-actions">
                         <div class="metabolism-view-switcher" aria-label="Metabolism view">
                             <button id="metabolism-show-systems" type="button" aria-pressed="true">Systems Map</button>
                             <button id="metabolism-show-detail" type="button" aria-pressed="false">Pathway Detail</button>
                         </div>
-                        <div class="metabolism-status-chip" aria-label="Development status">
+                        <div class="metabolism-status-chip" aria-label="Systems map status">
                             <span aria-hidden="true"></span>
-                            Systems Architecture Preview
+                            Cellular Energy Systems
                         </div>
                     </div>
                 </header>

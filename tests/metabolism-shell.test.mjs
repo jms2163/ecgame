@@ -18,7 +18,7 @@ globalThis.localStorage = {
 assert.equal(
     ZoneCatalog.get("metabolism")
         .releaseState,
-    ZoneCatalog.RELEASE_STATE.COMING_SOON
+    ZoneCatalog.RELEASE_STATE.PLAYABLE
 );
 assert.equal(
     ZoneStatusResolver.getStatus(
@@ -166,5 +166,5 @@ assert.match(
 );
 
 console.log(
-    "PASS: Metabolism Milestone 1 remains student-locked, accepts legacy saves without migration, reads the authoritative Polymerizer inventory, and performs a read-only Glucose Transporter unlock check."
+    "PASS: Metabolism starts locked, accepts legacy saves without migration, and reads Glucose Transporter inventory for Glycolysis."
 );

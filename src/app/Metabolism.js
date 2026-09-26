@@ -1,6 +1,6 @@
 // --------------------------------------------------
 // Metabolism.js
-// Zone lifecycle controller for the locked development preview.
+// Zone lifecycle controller for student-accessible pathways.
 // --------------------------------------------------
 
 import MetabolismManager
