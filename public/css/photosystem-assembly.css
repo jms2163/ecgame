@@ -69,7 +69,25 @@
 .psii-reference-card { user-select: none; }
 .psii-reference-art { display: grid; place-items: center; height: 6.5rem; }
 .psii-reference-art svg { width: 5.4rem; height: 5.5rem; }
+.water-lab [data-water-material="water"] { background: #17252d; }
+.water-lab [data-water-material="water"] svg { width: 8rem; height: 5.5rem; }
+.water-art-electron, .water-bond-electron { fill: #47bbff; stroke: #082b48; stroke-width: 2; pointer-events: none; }
+.water-covalent-bond, .water-double-bond { stroke: #fff; stroke-width: 7; stroke-linecap: round; }
+.water-hydrogen { fill: #fff; stroke: #d6e5ee; stroke-width: 2; }
+.water-oxygen { fill: #ec3926; stroke: #9c2117; stroke-width: 2; }
+.water-hydrogen-label, .water-oxygen-label { fill: #101010; font-family: system-ui, sans-serif; font-size: 28px; font-weight: 800; pointer-events: none; }
+.water-etc { fill: rgba(112, 67, 29, .2); stroke: #dbad6c; stroke-width: 4; stroke-dasharray: 10 8; }
+.water-etc-filled { fill: #70431d; stroke: #e1b778; stroke-dasharray: none; }
+.water-etc-label { fill: #fff; font-family: system-ui, sans-serif; font-size: 23px; font-weight: 800; pointer-events: none; }
+.water-proton { fill: #fff; stroke: #b6d9f6; stroke-width: 3; }
+.water-proton-label { fill: #15334c; font-family: system-ui, sans-serif; font-size: 19px; font-weight: 800; pointer-events: none; }
+.water-protons-label { fill: #fff; font-family: system-ui, sans-serif; font-size: 20px; font-weight: 800; }
+.water-o2-spin { transform-box: fill-box; transform-origin: center; animation: water-o2-tumble .9s linear infinite; }
+@keyframes water-o2-tumble { to { transform: rotate(360deg); } }
+.psii-header-button.water-action-ready { border-color: #f6c758; animation: psii-excite-pulse 2.2s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
     .psii-excited, .psii-electron-shake { animation-duration: .6s; }
     .psii-header-button.psii-excite-ready { animation: none; box-shadow: 0 0 0 3px #f6c758; }
+    .water-o2-spin { animation: none; }
+    .psii-header-button.water-action-ready { animation: none; box-shadow: 0 0 0 3px #f6c758; }
 }

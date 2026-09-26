@@ -54,6 +54,8 @@ import PhotosystemIIAssemblyView
     from "./PhotosystemIIAssemblyView.js";
 import PhotosystemIIExcitationView
     from "./PhotosystemIIExcitationView.js";
+import PhotosystemIIWaterSplittingView
+    from "./PhotosystemIIWaterSplittingView.js";
 import GuidedExperimentManager from './GuidedExperimentManager.js';
 import GuidedExperimentView from './GuidedExperimentView.js';
 import ContractileVacuoleReviewView from './ContractileVacuoleReviewView.js';
@@ -165,6 +167,7 @@ const OrganelleExperimentStage = {
         FoodVacuolePhagocytosisView.clear();
         PhotosystemIIAssemblyView.clear();
         PhotosystemIIExcitationView.clear();
+        PhotosystemIIWaterSplittingView.clear();
 
         this.simulationStructureResizeObserver?.disconnect();
 
@@ -1994,6 +1997,20 @@ stage.append(
             return;
         }
 
+        if (experiment.stage?.template === "photosystem_ii_water_splitting") {
+            this.stopParticleSimulation();
+            OrganelleExperimentPlacementController.reset();
+            OrganelleExperimentAttemptManager.reset();
+            this.activeResolvedExperiment = experiment;
+            this.titleElement.textContent = experiment.title;
+            this.controlsElement.replaceChildren();
+            PhotosystemIIWaterSplittingView.mount(this.contentElement, {
+                sandbox: this.isReexamineMode,
+                controlsElement: this.controlsElement
+            });
+            return;
+        }
+
         if (
             experiment.stage?.template ===
             "smooth_er_lipid_composition"
@@ -2414,6 +2431,13 @@ this.contentElement.appendChild(
             this.titleElement.textContent = `${experiment.title} - Submission Review`;
             this.controlsElement.replaceChildren();
             PhotosystemIIExcitationView.mount(this.contentElement, { review: true });
+            return;
+        }
+
+        if (experiment.stage?.template === "photosystem_ii_water_splitting") {
+            this.titleElement.textContent = `${experiment.title} - Submission Review`;
+            this.controlsElement.replaceChildren();
+            PhotosystemIIWaterSplittingView.mount(this.contentElement, { review: true });
             return;
         }
 

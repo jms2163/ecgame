@@ -32,6 +32,8 @@ import PhotosystemIIAssemblyExperiment
     from "./PhotosystemIIAssemblyCatalog.js";
 import PhotosystemIIExcitationExperiment
     from "./PhotosystemIIExcitationCatalog.js";
+import PhotosystemIIWaterSplittingExperiment
+    from "./PhotosystemIIWaterSplittingCatalog.js";
 
 const MEMBRANE_TRANSPORT_LABELS = [
 
@@ -64,6 +66,9 @@ const OrganelleExperimentLibrary = {
 
     photosystem_ii_excitation:
         PhotosystemIIExcitationExperiment,
+
+    photosystem_ii_water_splitting:
+        PhotosystemIIWaterSplittingExperiment,
 
     smooth_er_lipid_composition:
         SmoothERLipidCompositionExperiment,
