@@ -2006,6 +2006,8 @@ stage.append(
             this.controlsElement.replaceChildren();
             PhotosystemIIWaterSplittingView.mount(this.contentElement, {
                 sandbox: this.isReexamineMode,
+                quizOnly: mode === "improve" &&
+                    ResearchManager.isExperimentCompleted(experiment.id),
                 controlsElement: this.controlsElement
             });
             return;

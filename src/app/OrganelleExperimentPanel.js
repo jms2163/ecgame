@@ -231,7 +231,7 @@ const OrganelleExperimentPanel = {
                         ? "Coming Soon"
                     : state === "locked"
                         ? "Locked"
-                        : "Completed · ";
+                        : "Completed";
 
         card.append(
             titleRow,
@@ -278,18 +278,15 @@ const OrganelleExperimentPanel = {
                             ) / 100
                             : null;
 
+                const starEarned = Boolean(
+                    OrganelleExperimentSubmissionManager
+                        .getStar(experiment.id)
+                );
+
                 score.textContent =
-                    (
-                        state === "available"
-                            ? " · "
-                            : ""
-                    ) +
-                    `Highest score: ${bestScore.scorePoints} / ${bestScore.scoreMaximum}` +
-                    (
-                        Number.isFinite(scorePercent)
-                            ? ` (${scorePercent}%) · `
-                            : " · "
-                    );
+                    `Highest score: ${bestScore.scorePoints}/${bestScore.scoreMaximum}` +
+                    (Number.isFinite(scorePercent) ? ` (${scorePercent}%)` : "") +
+                    (starEarned ? " · ★ Perfect-score star earned" : "");
 
                 statusElement.appendChild(score);
 
@@ -322,47 +319,33 @@ const OrganelleExperimentPanel = {
 
         if (state === "completed") {
 
-            const reviewLink =
-                document.createElement("a");
+            const hasWaterSubmission =
+                experiment.id !== "photosystem_ii_water_splitting" ||
+                OrganelleExperimentSubmissionManager
+                    .getSubmissions(experiment.id).length > 0;
 
-            reviewLink.href = "#";
+            if (experiment.id === "photosystem_ii_water_splitting" &&
+                !this.getBestScore(experiment.id)) {
+                const scoreNotice = document.createElement("span");
+                scoreNotice.className = "organelle-experiment-best-score";
+                scoreNotice.textContent = "Quiz score not saved yet. Choose Score Quiz to record it.";
+                statusElement.appendChild(scoreNotice);
+            }
 
-            reviewLink.className =
-                "organelle-experiment-review-link";
-
-            reviewLink.textContent =
-                "Review submission";
-
-            reviewLink.addEventListener(
-                "click",
-                event => {
-
+            if (hasWaterSubmission) {
+                const reviewLink = document.createElement("a");
+                reviewLink.href = "#";
+                reviewLink.className = "organelle-experiment-review-link";
+                reviewLink.textContent = "Review submission";
+                reviewLink.addEventListener("click", event => {
                     event.preventDefault();
-
-                    if (
-                        typeof this.onReviewSubmission !==
-                        "function"
-                    ) {
-                        return;
-                    }
-
-                    const submissions =
-                        OrganelleExperimentSubmissionManager
-                            .getSubmissions(
-                                experiment.id
-                            );
-
-                    this.onReviewSubmission(
-                        experiment,
-                        submissions.at(-1) ?? null
-                    );
-
-                }
-            );
-
-            statusElement.appendChild(
-                reviewLink
-            );
+                    if (typeof this.onReviewSubmission !== "function") return;
+                    const submissions = OrganelleExperimentSubmissionManager
+                        .getSubmissions(experiment.id);
+                    this.onReviewSubmission(experiment, submissions.at(-1) ?? null);
+                });
+                statusElement.appendChild(reviewLink);
+            }
 
             const reexamineButton =
                 document.createElement("button");
@@ -373,8 +356,7 @@ const OrganelleExperimentPanel = {
             reexamineButton.className =
                 "organelle-experiment-run-button";
 
-            reexamineButton.textContent =
-                "Re-examine";
+            reexamineButton.textContent = "Re-examine";
 
             reexamineButton.addEventListener(
                 "click",
@@ -406,6 +388,17 @@ const OrganelleExperimentPanel = {
                 this.getBestScore(
                     experiment.id
                 );
+
+            if (experiment.id === "photosystem_ii_water_splitting" && !bestScore) {
+                const scoreQuizButton = document.createElement("button");
+                scoreQuizButton.type = "button";
+                scoreQuizButton.className = "organelle-experiment-run-button";
+                scoreQuizButton.textContent = "Score Quiz";
+                scoreQuizButton.addEventListener("click", () =>
+                    this.onOpenExperiment?.(experiment, { mode: "improve" })
+                );
+                card.appendChild(scoreQuizButton);
+            }
 
             const bestPercent =
                 Number.isFinite(
@@ -462,7 +455,7 @@ const OrganelleExperimentPanel = {
 
 starElement.setAttribute(
     "data-tooltip",
-    "Exceptional Work!"
+    "Perfect score: 100%"
 );
 
 starElement.setAttribute(
@@ -472,12 +465,12 @@ starElement.setAttribute(
 
                 starElement.setAttribute(
                     "title",
-                    "Exceptional Work!"
+                    "Perfect score: 100%"
                 );
 
                 starElement.setAttribute(
                     "aria-label",
-                    "Exceptional Work!"
+                    "Perfect-score star earned (100%)"
                 );
 
                 starElement.setAttribute(
