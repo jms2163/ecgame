@@ -126,6 +126,7 @@ const PhotosystemIIWaterSplittingView = {
     dragging: null,
     selected: null,
     sandbox: false,
+    quizOnly: false,
     psii: false,
     waters: 0,
     etc: false,
@@ -161,22 +162,24 @@ const PhotosystemIIWaterSplittingView = {
     reset() {
         this.clear();
         if (this.container) this.mount(this.container, {
-            sandbox: this.sandbox || ResearchManager.isExperimentCompleted(Catalog.id),
+            sandbox: this.sandbox,
+            quizOnly: this.quizOnly,
             controlsElement: this.controlContainer
         });
     },
 
-    mount(container, { sandbox = false, review = false, controlsElement = null } = {}) {
+    mount(container, { sandbox = false, review = false, quizOnly = false, controlsElement = null } = {}) {
         this.clear();
         this.container = container;
         this.controlContainer = controlsElement;
         this.sandbox = sandbox;
+        this.quizOnly = quizOnly;
         this.psii = false;
         this.waters = 0;
         this.etc = false;
         this.photon = null;
         this.splits = 0;
-        this.phase = "setup";
+        this.phase = quizOnly ? "quiz" : "setup";
         this.animationStep = null;
         this.bondCount = 0;
         this.answers = {};
@@ -186,8 +189,10 @@ const PhotosystemIIWaterSplittingView = {
         container.replaceChildren(this.root);
         if (review) {
             const latest = SubmissionManager.getSubmissions(Catalog.id).at(-1);
+            const best = SubmissionManager.getBestScore(Catalog.id) ?? latest;
+            const star = SubmissionManager.getStar(Catalog.id);
             this.root.innerHTML = latest
-                ? `<div class="psii-intro"><h3>Water Splitting submission</h3><p>${latest.scorePoints} / ${latest.scoreMaximum} correct</p><p>${ResearchManager.isExperimentCompleted(Catalog.id) ? "Completed: two H₂O yielded four H⁺ and O₂." : "Review the model and try again for completion."}</p></div>`
+                ? `<div class="psii-intro"><h3>Water Splitting submission</h3><p>Latest score: ${latest.scorePoints}/${latest.scoreMaximum} (${latest.scorePercent}%).</p><p>Highest score: ${best.scorePoints}/${best.scoreMaximum} (${best.scorePercent}%). ${star ? "★ Perfect-score star earned." : ""}</p><p>${ResearchManager.isExperimentCompleted(Catalog.id) ? "Completed: two H₂O yielded four H⁺ and O₂." : "Review the model and try again for completion."}</p></div>`
                 : `<div class="psii-intro"><p>No saved submission is available.</p></div>`;
             return;
         }
@@ -429,16 +434,26 @@ const PhotosystemIIWaterSplittingView = {
         const backup = structuredClone(gameState);
         try {
             const passes = ResearchManager.meetsCompletionThreshold(Catalog, report);
-            const completion = passes ? ResearchManager.completeExperiment(Catalog.id) : null;
-            if (passes && !completion?.completed) {
+            const alreadyCompleted = ResearchManager.isExperimentCompleted(Catalog.id);
+            const completion = passes && !alreadyCompleted
+                ? ResearchManager.completeExperiment(Catalog.id)
+                : null;
+            if (passes && !alreadyCompleted && !completion?.completed) {
                 throw new Error(completion?.reason ?? "completion-failed");
             }
             const submission = SubmissionManager.recordSubmission({
                 experiment: Catalog,
                 report,
                 completion,
-                placementSnapshot: { excitedPSII: true, waterMolecules: 2, etcPlaced: true },
-                attemptSnapshot: { answers: { ...this.answers }, waterSplits: 4, oxygenFormed: true }
+                placementSnapshot: this.quizOnly
+                    ? { priorCompletion: true }
+                    : { excitedPSII: true, waterMolecules: 2, etcPlaced: true },
+                attemptSnapshot: {
+                    answers: { ...this.answers },
+                    quizOnly: this.quizOnly,
+                    waterSplits: this.quizOnly ? null : 4,
+                    oxygenFormed: !this.quizOnly
+                }
             });
             if (!submission || !SaveManager.save({ reason: "photosystem-ii-water-splitting-submission" })) {
                 throw new Error("save-failed");
@@ -502,7 +517,7 @@ const PhotosystemIIWaterSplittingView = {
         }[this.phase] ?? "Watch the animation.");
         const quiz = this.phase === "quiz" ? `<section class="psii-quiz" aria-labelledby="water-quiz-title">
             <h3 id="water-quiz-title">Check the water splitting model</h3>
-            <p>Answer all four questions. A score of 4/4 completes Water Splitting.</p>
+            <p>Answer all four questions. A score of 4/4 earns a star.</p>
             ${Catalog.assessment.questions.map((question, index) => `<fieldset>
                 <legend>${index + 1}. ${question.prompt}</legend>
                 ${question.options.map(option => `<label><input type="radio" name="${question.id}"
@@ -510,10 +525,15 @@ const PhotosystemIIWaterSplittingView = {
                     ${this.answers[question.id] === option.id ? "checked" : ""}
                     ${this.result ? "disabled" : ""}> ${option.text}</label>`).join("")}
             </fieldset>`).join("")}
-            ${this.result ? `<p class="psii-score" role="status">Score: ${this.result.scorePoints}/${this.result.scoreMaximum}. ${this.result.isPerfect ? "Water Splitting complete." : "Review the model and try again."}</p>
+            ${this.result ? `<p class="psii-score" role="status">Score: ${this.result.scorePoints}/${this.result.scoreMaximum} (${this.result.scorePercent}%). ${this.result.isPerfect ? this.sandbox ? "Perfect re-examination; saved progress is unchanged." : "★ Perfect-score star earned. Water Splitting complete." : "Review the model and try again."}</p>
                 ${this.result.isPerfect ? "" : `<button type="button" data-water-retry>Try questions again</button>`}`
                 : `<button type="button" data-water-submit ${Catalog.assessment.questions.some(question => !this.answers[question.id]) ? "disabled" : ""}>Submit for Score</button>`}
         </section>` : "";
+        if (this.quizOnly) {
+            this.root.innerHTML = `<div class="psii-intro"><p><strong>Water Splitting is completed.</strong> Take the quiz to save a score for this activity. Your previous completion reward stays the same.</p></div>${quiz}`;
+            if (this.controls) this.controls.innerHTML = "";
+            return;
+        }
         this.root.innerHTML = `<div class="psii-intro"><p><strong>Water Splitting:</strong> Drag the already excited PSII into the membrane, add two H–O–H molecules to the thylakoid lumen, and drag the electron transport chain (ETC) to the right. Each water shows two shared electrons along each white O–H bond.</p>
             <p class="psii-progress" role="status" data-water-status>${description}</p></div>
             <div class="psii-workspace"><div class="psii-board"><svg data-water-board viewBox="0 0 1000 700" role="img" aria-label="Water splitting model in a thylakoid membrane">
