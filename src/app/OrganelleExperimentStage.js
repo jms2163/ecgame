@@ -52,6 +52,8 @@ import FoodVacuolePhagocytosisView
     from "./FoodVacuolePhagocytosisView.js";
 import PhotosystemIIAssemblyView
     from "./PhotosystemIIAssemblyView.js";
+import PhotosystemIIExcitationView
+    from "./PhotosystemIIExcitationView.js";
 import GuidedExperimentManager from './GuidedExperimentManager.js';
 import GuidedExperimentView from './GuidedExperimentView.js';
 import ContractileVacuoleReviewView from './ContractileVacuoleReviewView.js';
@@ -162,6 +164,7 @@ const OrganelleExperimentStage = {
         PseudopodiaMembraneExtensionView.clear();
         FoodVacuolePhagocytosisView.clear();
         PhotosystemIIAssemblyView.clear();
+        PhotosystemIIExcitationView.clear();
 
         this.simulationStructureResizeObserver?.disconnect();
 
@@ -1979,13 +1982,15 @@ stage.append(
 
         if (experiment.stage?.template === "photosystem_ii_excitation") {
             this.stopParticleSimulation();
+            OrganelleExperimentPlacementController.reset();
+            OrganelleExperimentAttemptManager.reset();
             this.activeResolvedExperiment = experiment;
             this.titleElement.textContent = experiment.title;
             this.controlsElement.replaceChildren();
-            this.contentElement.innerHTML = `<div class="psii-intro">
-                <h3>Excite Photosystem II</h3>
-                <p>Your assembly score unlocked this next lab. The light excitation and electron-flow activity is coming in a later update.</p>
-            </div>`;
+            PhotosystemIIExcitationView.mount(this.contentElement, {
+                sandbox: this.isReexamineMode,
+                controlsElement: this.controlsElement
+            });
             return;
         }
 
@@ -2402,6 +2407,13 @@ this.contentElement.appendChild(
             this.titleElement.textContent = `${experiment.title} - Submission Review`;
             this.controlsElement.replaceChildren();
             PhotosystemIIAssemblyView.mount(this.contentElement, { review: true });
+            return;
+        }
+
+        if (experiment.stage?.template === "photosystem_ii_excitation") {
+            this.titleElement.textContent = `${experiment.title} - Submission Review`;
+            this.controlsElement.replaceChildren();
+            PhotosystemIIExcitationView.mount(this.contentElement, { review: true });
             return;
         }
 

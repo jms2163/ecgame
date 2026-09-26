@@ -48,3 +48,28 @@
 .psii-quiz button:disabled { opacity: .55; cursor: default; }
 .psii-quiz button:focus-visible { outline: 3px solid #f6c758; outline-offset: 3px; }
 .psii-score { font-weight: 800; }
+.psii-photon { stroke-width: 4; pointer-events: none; }
+.psii-photon--red { fill: #e64641; stroke: #61120e; filter: drop-shadow(0 0 8px #f58b83); }
+.psii-photon--blue { fill: #328be8; stroke: #103963; filter: drop-shadow(0 0 8px #8dc2ff); }
+.psii-photon--green { fill: #54c744; stroke: #1d4b17; filter: drop-shadow(0 0 8px #a5ed86); }
+.psii-electron { fill: #47bbff; stroke: #082b48; stroke-width: 3; pointer-events: none; }
+.psii-electron-label { fill: #082b48; font-family: system-ui, sans-serif; font-size: 12px; font-weight: 800; pointer-events: none; }
+.psii-excited { transform-box: fill-box; transform-origin: center; animation: psii-excitation-shake .15s ease-in-out infinite alternate; }
+.psii-electron-shake { transform-box: fill-box; transform-origin: center; animation: psii-electron-shake .2s ease-in-out infinite alternate; }
+@keyframes psii-excitation-shake { from { transform: translate(-3px, 0); } to { transform: translate(3px, 0); } }
+@keyframes psii-electron-shake { from { transform: translate(-2px, 0); } to { transform: translate(2px, 0); } }
+.psii-header-button { padding: .6rem .9rem; border: 2px solid #efb7ff; border-radius: 7px; background: #542076; color: #fff; font: inherit; font-size: .9rem; font-weight: 800; cursor: pointer; }
+.psii-header-button:disabled { opacity: .6; cursor: default; }
+.psii-header-button:focus-visible { outline: 3px solid #f6c758; outline-offset: 3px; }
+.psii-header-button.psii-excite-ready { border-color: #f6c758; animation: psii-excite-pulse 2.2s ease-in-out infinite; }
+@keyframes psii-excite-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(246, 199, 88, .15); }
+    50% { box-shadow: 0 0 0 5px rgba(246, 199, 88, .45), 0 0 18px rgba(246, 199, 88, .65); }
+}
+.psii-reference-card { user-select: none; }
+.psii-reference-art { display: grid; place-items: center; height: 6.5rem; }
+.psii-reference-art svg { width: 5.4rem; height: 5.5rem; }
+@media (prefers-reduced-motion: reduce) {
+    .psii-excited, .psii-electron-shake { animation-duration: .6s; }
+    .psii-header-button.psii-excite-ready { animation: none; box-shadow: 0 0 0 3px #f6c758; }
+}
