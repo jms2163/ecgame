@@ -56,6 +56,8 @@ import PhotosystemIIExcitationView
     from "./PhotosystemIIExcitationView.js";
 import PhotosystemIIWaterSplittingView
     from "./PhotosystemIIWaterSplittingView.js";
+import PhotosystemIIElectronTransportView
+    from "./PhotosystemIIElectronTransportView.js";
 import GuidedExperimentManager from './GuidedExperimentManager.js';
 import GuidedExperimentView from './GuidedExperimentView.js';
 import ContractileVacuoleReviewView from './ContractileVacuoleReviewView.js';
@@ -168,6 +170,7 @@ const OrganelleExperimentStage = {
         PhotosystemIIAssemblyView.clear();
         PhotosystemIIExcitationView.clear();
         PhotosystemIIWaterSplittingView.clear();
+        PhotosystemIIElectronTransportView.clear();
 
         this.simulationStructureResizeObserver?.disconnect();
 
@@ -2008,6 +2011,19 @@ stage.append(
                 sandbox: this.isReexamineMode,
                 quizOnly: mode === "improve" &&
                     ResearchManager.isExperimentCompleted(experiment.id),
+                controlsElement: this.controlsElement
+            });
+            return;
+        }
+
+        if (experiment.stage?.template === "photosystem_ii_electron_transport") {
+            this.stopParticleSimulation();
+            OrganelleExperimentPlacementController.reset();
+            OrganelleExperimentAttemptManager.reset();
+            this.activeResolvedExperiment = experiment;
+            this.titleElement.textContent = experiment.title;
+            this.controlsElement.replaceChildren();
+            PhotosystemIIElectronTransportView.mount(this.contentElement, {
                 controlsElement: this.controlsElement
             });
             return;
