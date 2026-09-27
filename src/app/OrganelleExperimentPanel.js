@@ -15,6 +15,8 @@ import GuidedExperimentManager
     from "./GuidedExperimentManager.js";
 import SaveManager
     from "./SaveManager.js";
+import { hasPerfectLightReactions, ensureLightReactionsAchievement }
+    from "./LightReactionsReward.js";
 
 const OrganelleExperimentPanel = {
 
@@ -694,6 +696,12 @@ starElement.setAttribute(
             organelleAvailable
         };
 
+        // Reconcile perfect-score saves from before the achievement existed.
+        if (ensureLightReactionsAchievement() &&
+            !SaveManager.save({ reason: "light-reactions-achievement" })) {
+            // A later save will persist the idempotent achievement record.
+        }
+
         this.unlockedListElement.replaceChildren();
 
         this.lockedListElement.replaceChildren();
@@ -741,9 +749,13 @@ starElement.setAttribute(
 
         const organelleNote = {
             mitochondria: "Completing all labs in this organelle will tremendously boost overall ATP production.",
-            symbiosomes: "Completing all experiments in this organelle will boost ATP production x10 in sunlit microbiomes."
+            symbiosomes: "Scoring 100% on every released experiment in this organelle earns Light Reactions. The symbiotic alga can supply photosynthetic products for sugar synthesis."
         }[organelleId];
         if (organelleNote) this.summaryElement.textContent += ` ${organelleNote}`;
+        if (organelleId === "symbiosomes" && hasPerfectLightReactions()) {
+            this.summaryElement.textContent +=
+                " Light Reactions achieved: all experiments scored 100%. Go to metabolics to build sugars with your ATP and NADPH.";
+        }
 
         const experimentStatuses =
             experiments.map(experiment => {

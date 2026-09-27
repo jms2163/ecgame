@@ -2031,6 +2031,7 @@ stage.append(
             this.controlsElement.replaceChildren();
             PhotosyntheticATPSynthaseView.mount(this.contentElement, {
                 sandbox: this.isReexamineMode,
+                organelleId: OrganelleExperimentPanel.currentOrganelleId,
                 controlsElement: this.controlsElement
             });
             return;

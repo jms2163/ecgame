@@ -19,6 +19,9 @@
 .atp-lab .atp-product-flight { animation: atp-bolt-fly 1.35s ease-in both; }
 .atp-lab .atp-bolt-label { fill: #ffec72; font: 900 23px system-ui, sans-serif; stroke: #60360d; stroke-width: 1; paint-order: stroke; }
 .atp-lab .atp-count { fill: #f8f4e8; font: 800 23px system-ui, sans-serif; }
+.atp-lab .atp-reference { margin-top: 12px; }
+.atp-lab .atp-reference summary { cursor: pointer; font-weight: 700; }
+.atp-lab .atp-reference img { display: block; max-width: min(100%, 260px); max-height: 290px; margin-top: 8px; background: #fff; border-radius: 5px; }
 @keyframes atp-part-glide { from { transform: translate(-430px, 0); } to { transform: translate(0, 0); } }
 @keyframes atp-ring-turn { from { transform: rotate(var(--atp-rotor-start)); } to { transform: rotate(var(--atp-rotor-end)); } }
 @keyframes atp-shaft-turn { 0% { transform: skewX(0deg); } 50% { transform: skewX(5deg); } 100% { transform: skewX(0deg); } }

@@ -1,5 +1,5 @@
 /* Stage, activity layout, label tray, and membrane geometry. */
-#organelle-experiment-stage { min-height: 40rem; box-sizing: border-box; color: #f7efff; background: #0f041c; border: 3px solid #f4a0ff; border-radius: 12px; overflow: hidden; }
+#organelle-experiment-stage { min-height: 40rem; box-sizing: border-box; color: #f7efff; background: #0f041c; border: 3px solid #f4a0ff; border-radius: 12px; overflow: hidden; scroll-margin-top: 12px; }
 #organelle-experiment-stage-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-bottom: 1px solid rgba(244, 160, 255, 0.55); }
 #organelle-experiment-stage-heading > p { margin: 0; color: #f4a0ff; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; }
 #organelle-experiment-stage-title { margin: 6px 0 0; color: #f7efff; }

@@ -5,6 +5,7 @@
 // --------------------------------------------------
 
 import gameState from "./GameState.js";
+import { ensureLightReactionsAchievement } from "./LightReactionsReward.js";
 
 const OrganelleExperimentSubmissionManager = {
 
@@ -281,6 +282,9 @@ const OrganelleExperimentSubmissionManager = {
             };
         }
 
+        submission.earnedLightReactionsAchievement =
+            ensureLightReactionsAchievement();
+
         gameState.registry.journal.push(
             {
                 id: `journal-${submission.id}`,
@@ -295,7 +299,9 @@ const OrganelleExperimentSubmissionManager = {
                 isPerfect: submission.isPerfect,
                 completedResearch:
                     Boolean(completion?.completed),
-                earnedStar: wasStarAwarded
+                earnedStar: wasStarAwarded,
+                earnedLightReactionsAchievement:
+                    submission.earnedLightReactionsAchievement
             }
         );
 

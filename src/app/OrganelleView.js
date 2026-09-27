@@ -70,12 +70,19 @@ const OrganelleView = {
     // --------------------------------------------------
     // Open one experiment on the stage
     // --------------------------------------------------
+    bringExperimentStageIntoView() {
+        document.getElementById("organelle-experiment-stage")
+            ?.scrollIntoView?.({ behavior: "smooth", block: "start" });
+    },
+
     openExperiment(experiment, options = {}) {
 
         OrganelleExperimentStage.open(
             experiment,
             options
         );
+
+        this.bringExperimentStageIntoView();
 
     },
 
@@ -93,6 +100,8 @@ const OrganelleView = {
             submission
         );
 
+        this.bringExperimentStageIntoView();
+
     },
 
     // --------------------------------------------------
@@ -104,6 +113,8 @@ const OrganelleView = {
         OrganelleExperimentStage.openReexamine(
             experiment
         );
+
+        this.bringExperimentStageIntoView();
 
     },
 

@@ -5,11 +5,27 @@ import OrganelleExperimentPanel from "./OrganelleExperimentPanel.js";
 import SaveManager from "./SaveManager.js";
 import gameState from "./GameState.js";
 import { randomizedOptions } from "./PhotosystemIIQuizOptions.js";
+import { hasPerfectLightReactions } from "./LightReactionsReward.js";
 
 export const TOTAL_PROTONS = 10;
-export const PROTONS_PER_ATP = 5; // Rounded classroom model: chloroplast c14 ring makes 3 ATP per 14 H+.
+export const PROTONS_PER_ATP = 5; // Classroom animation budget; ring size and H+/ATP vary between organelles.
+export const ASSEMBLY_STEPS = Object.freeze([
+    { id: "c-ring", label: "c rotor ring", detail: "A ring of proton-binding c subunits rotates inside the membrane. Ring size differs between organelles." },
+    { id: "a", label: "a channel", detail: "Subunit a forms two separate half channels beside the c ring: one for proton entry and one for exit." },
+    { id: "epsilon", label: "ε connector", detail: "Epsilon links the c ring to the central shaft and helps regulate the motor." },
+    { id: "gamma", label: "γ central shaft", detail: "Gamma turns with the c ring and changes the catalytic head's shape." },
+    { id: "alpha", label: "α head subunits", detail: "Three alpha subunits help form the ATP-making head." },
+    { id: "beta", label: "β catalytic subunits", detail: "Three beta subunits bind ADP and Pi and catalyze ATP synthesis." },
+    { id: "b-stalk", label: "peripheral stalk", detail: "The outer stalk holds the catalytic head steady while the central rotor turns." },
+    { id: "delta", label: "head connector", detail: "A connector secures the peripheral stalk to the catalytic head; the exact subunits differ between organelles." }
+]);
+export function atpContext(organelleId) {
+    return organelleId === "mitochondria"
+        ? { organelleId: "mitochondria", highSide: "INTERMEMBRANE SPACE", lowSide: "MATRIX", entry: "intermembrane space", exit: "matrix", membrane: "inner mitochondrial membrane" }
+        : { organelleId: "symbiosomes", highSide: "THYLAKOID LUMEN", lowSide: "STROMA", entry: "thylakoid lumen", exit: "stroma", membrane: "thylakoid membrane" };
+}
 export function protonPosition(index) {
-    return { x: 125 + index % 5 * 145, y: 467 + Math.floor(index / 5) * 75 };
+    return { x: 375 + index % 5 * 125, y: 525 + Math.floor(index / 5) * 60 };
 }
 export function flightAngle(random = Math.random) { return (random() * 2 - 1) * 20; }
 export function scoreAnswers(answers) {
@@ -22,66 +38,61 @@ export function scoreAnswers(answers) {
     return { checks, scorePoints, scoreMaximum: checks.length,
         scorePercent: scorePoints / checks.length * 100, isPerfect: scorePoints === checks.length };
 }
-const towerArt = `<svg viewBox="0 0 100 110" aria-hidden="true"><rect x="39" y="52" width="22" height="53" rx="4" fill="#df792f" stroke="#5f2a0f" stroke-width="3"/><ellipse cx="50" cy="47" rx="38" ry="36" fill="#f4a354" stroke="#71350f" stroke-width="4"/><path d="M29 42 Q50 61 71 42" fill="none" stroke="#803a14" stroke-width="3"/></svg>`;
-const membrane = () => `<g class="psii-heads">${Array.from({ length: 18 }, (_, i) => 25 + i * 50).map(x => `<ellipse cx="${x}" cy="245" rx="18" ry="14"/><ellipse cx="${x}" cy="382" rx="18" ry="14"/>`).join("")}</g><g class="psii-tails">${Array.from({ length: 36 }, (_, i) => 13 + i * 25).map(x => `<path d="M${x} 265 q-9 22 0 44 t0 49 M${x} 363 q9-24 0-49 t0-49"/>`).join("")}</g>`;
-const proton = (x, y, id, flight = false) => `<g data-atp-proton="${id}" class="${flight ? "atp-proton-flight" : ""}" ${flight ? `style="--atp-dx:${450 - x}px;--atp-dy:${205 - y}px"` : ""}><circle cx="${x}" cy="${y}" r="20" class="water-proton"/><text x="${x}" y="${y + 6}" text-anchor="middle" class="water-proton-label">H⁺</text></g>`;
-const bolt = (x, y, scale = 1) => `<g transform="translate(${x} ${y}) scale(${scale})"><path d="M-10 -25 H7 L0 -5 H16 L-12 29 L-4 3 H-18 Z" fill="#ffe453" stroke="#8c5811" stroke-width="3"/><text x="25" y="8" class="atp-bolt-label">ATP</text></g>`;
+const label = (x, y, content, visible) => visible ? `<text x="${x}" y="${y}" text-anchor="middle" class="atp-part-label">${content}</text>` : "";
+function partArt(id, visible, used, turning) {
+    const rotorStyle = `--atp-rotor-start:${used * 30}deg;--atp-rotor-end:${(used + 1) * 30}deg`;
+    switch (id) {
+        case "c-ring": return `<g class="atp-c-ring ${turning ? "atp-c-ring-turn" : ""}" style="${rotorStyle}"><circle cx="600" cy="393" r="60" fill="#a369b6" stroke="#5b3474" stroke-width="5"/>${Array.from({ length: 12 }, (_, i) => { const angle = 2 * Math.PI * i / 12; const x = 600 + 48 * Math.cos(angle), y = 393 + 48 * Math.sin(angle); return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="10" fill="${i % 2 ? "#ca93d2" : "#8f5ca9"}" stroke="#5b3474" stroke-width="2"/>`; }).join("")}${label(600, 399, "c", visible)}</g>`;
+        case "a": return `<g class="atp-a"><path d="M516 308 Q484 318 487 356 L487 427 Q489 454 525 451 L553 433 Q520 420 522 399 L522 354 Q526 330 555 329 Z" fill="#a6d47c" stroke="#477540" stroke-width="5"/>${label(495, 371, "a", visible)}<path d="M519 438 V401 M530 369 V321" fill="none" stroke="#eaf9b9" stroke-width="8" stroke-linecap="round"/></g>`;
+        case "epsilon": return `<g><ellipse cx="615" cy="325" rx="25" ry="20" fill="#bdb9a8" stroke="#5e5b55" stroke-width="4"/>${label(615, 332, "ε", visible)}</g>`;
+        case "gamma": return `<g class="atp-gamma ${turning ? "atp-gamma-turn" : ""}"><rect x="589" y="232" width="22" height="99" rx="9" fill="#d2c89f" stroke="#5f5a4a" stroke-width="4"/>${label(600, 289, "γ", visible)}</g>`;
+        case "alpha": return `<g class="atp-head-alpha ${turning ? "atp-head-pulse" : ""}">${[[549, 185], [651, 185], [600, 130]].map(([x,y]) => `<ellipse cx="${x}" cy="${y}" rx="46" ry="42" fill="#726fd0" stroke="#433fa1" stroke-width="4"/>${label(x, y + 8, "α", visible)}`).join("")}</g>`;
+        case "beta": return `<g class="atp-head-beta ${turning ? "atp-head-pulse" : ""}">${[[600, 196], [550, 130], [650, 130]].map(([x,y]) => `<ellipse cx="${x}" cy="${y}" rx="45" ry="43" fill="#76a1d6" stroke="#396b9d" stroke-width="4"/>${label(x, y + 8, "β", visible)}`).join("")}</g>`;
+        case "b-stalk": return `<g><path d="M510 300 Q475 282 475 233 L475 148 Q475 110 518 106" fill="none" stroke="#e79b56" stroke-width="19" stroke-linecap="round"/>${label(480, 208, "stalk", visible)}</g>`;
+        case "delta": return `<g><path d="M526 102 Q600 60 674 102 L658 122 Q600 94 542 122 Z" fill="#e7ca64" stroke="#946b18" stroke-width="4"/>${label(600, 104, "δ", visible)}</g>`;
+        default: return "";
+    }
+}
+const membrane = () => `<g class="psii-heads">${Array.from({ length: 20 }, (_, i) => 25 + i * 50).map(x => `<ellipse cx="${x}" cy="317" rx="18" ry="14"/><ellipse cx="${x}" cy="440" rx="18" ry="14"/>`).join("")}</g><g class="psii-tails">${Array.from({ length: 40 }, (_, i) => 13 + i * 25).map(x => `<path d="M${x} 336 q-9 21 0 41 t0 43 M${x} 420 q9-22 0-43 t0-41"/>`).join("")}</g>`;
+const proton = (x, y, id, motion) => `<g data-atp-proton="${id}" class="${motion ? `atp-proton-${motion}` : ""}" style="--atp-source-x:${x}px;--atp-source-y:${y}px;--atp-entry-x:${520 - x}px;--atp-entry-y:${425 - y}px"><circle cx="${x}" cy="${y}" r="18" class="water-proton"/><text x="${x}" y="${y + 6}" text-anchor="middle" class="water-proton-label">H⁺</text></g>`;
+const bolt = () => `<g transform="translate(600 100)"><path d="M-10 -25 H7 L0 -5 H16 L-12 29 L-4 3 H-18 Z" fill="#ffe453" stroke="#8c5811" stroke-width="3"/><text x="25" y="8" class="atp-bolt-label">ATP</text></g>`;
 
 const View = {
-    root: null, controls: null, events: null, dragging: null, generation: 0,
+    root: null, controls: null, events: null, generation: 0,
     clear() {
-        this.generation++;
-        this.events?.abort(); this.events = null;
-        this.dragging?.ghost.remove(); this.dragging = null;
-        this.root = null; this.controls = null; this.selected = false;
+        this.generation++; this.events?.abort(); this.events = null;
+        this.root = null; this.controls = null;
     },
-    mount(container, { controlsElement = null, sandbox = false, review = false } = {}) {
+    mount(container, { controlsElement = null, sandbox = false, review = false, organelleId = "symbiosomes" } = {}) {
         this.clear(); this.container = container; this.controlContainer = controlsElement;
-        this.sandbox = sandbox; this.placed = false; this.selected = false;
-        this.used = 0; this.produced = 0; this.currentProton = null;
-        this.motion = ""; this.phase = "setup"; this.flightDegrees = 0;
-        this.answers = {}; this.optionOrder = randomizedOptions(Catalog.assessment.questions);
-        this.result = null;
+        this.sandbox = sandbox; this.organelleId = organelleId; this.assembled = new Set(); this.assemblyIndex = 0;
+        this.showLabels = true; this.used = 0; this.produced = 0;
+        this.currentProton = null; this.motion = ""; this.phase = "assembly";
+        this.flightDegrees = 0; this.answers = {};
+        this.optionOrder = randomizedOptions(Catalog.assessment.questions); this.result = null;
         this.root = document.createElement("section"); this.root.className = "psii-lab atp-lab";
         container.replaceChildren(this.root); this.controls = controlsElement;
         if (review) {
             const latest = SubmissionManager.getSubmissions(Catalog.id).at(-1);
             const best = SubmissionManager.getBestScore(Catalog.id) ?? latest;
             this.root.innerHTML = latest
-                ? `<div class="psii-intro"><h3>Generate ATP submission</h3><p>Latest score: ${latest.scorePoints}/${latest.scoreMaximum} (${latest.scorePercent}%).</p><p>Highest score: ${best.scorePoints}/${best.scoreMaximum} (${best.scorePercent}%).</p></div>`
+                ? `<div class="psii-intro"><h3>Assemble F-ATPase submission</h3><p>Latest score: ${latest.scorePoints}/${latest.scoreMaximum} (${latest.scorePercent}%).</p><p>Highest score: ${best.scorePoints}/${best.scoreMaximum} (${best.scorePercent}%).</p></div>`
                 : '<div class="psii-intro">No saved submission is available.</div>';
             return;
         }
         this.events = new AbortController(); const { signal } = this.events;
         this.controls?.addEventListener("click", event => {
+            if (event.target.closest("[data-atp-assemble]")) void this.assemble();
             if (event.target.closest("[data-atp-operate]")) void this.operate();
-            if (event.target.closest("[data-atp-reset]")) this.mount(this.container, { controlsElement: this.controlContainer, sandbox: this.sandbox });
-        }, { signal });
-        this.root.addEventListener("pointerdown", event => {
-            const source = event.target.closest("[data-atp-source]");
-            if (!source || source.disabled) return;
-            event.preventDefault(); this.selected = true;
-            const ghost = document.createElement("div"); ghost.className = "psii-drag-ghost";
-            ghost.setAttribute("aria-hidden", "true"); ghost.innerHTML = towerArt;
-            document.body.appendChild(ghost); this.dragging = { ghost };
-            this.moveGhost(event);
-        }, { signal });
-        window.addEventListener("pointermove", event => this.moveGhost(event), { signal });
-        window.addEventListener("pointerup", event => {
-            if (!this.dragging) return;
-            this.dragging.ghost.remove(); this.dragging = null;
-            const target = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-atp-target]");
-            if (target && this.root.contains(target)) this.place(); else this.render();
+            if (event.target.closest("[data-atp-labels]")) { this.showLabels = !this.showLabels; this.render(); }
+            if (event.target.closest("[data-atp-reset]")) this.mount(this.container, { controlsElement: this.controlContainer, sandbox: this.sandbox, organelleId: this.organelleId });
         }, { signal });
         this.root.addEventListener("click", event => {
             if (event.target.closest("[data-atp-submit]")) return void this.submit();
             if (event.target.closest("[data-atp-retry]")) {
                 this.answers = {}; this.result = null;
-                this.optionOrder = randomizedOptions(Catalog.assessment.questions); this.render(); return;
+                this.optionOrder = randomizedOptions(Catalog.assessment.questions); this.render();
             }
-            const source = event.target.closest("[data-atp-source]");
-            if (source && !source.disabled) { this.selected = true; this.render(); return; }
-            if (event.target.closest("[data-atp-target]") && this.selected) this.place();
         }, { signal });
         this.root.addEventListener("change", event => {
             const input = event.target.closest("input[data-atp-question]"); if (!input) return;
@@ -90,13 +101,6 @@ const View = {
             if (submit) submit.disabled = Catalog.assessment.questions.some(q => !this.answers[q.id]);
         }, { signal });
         this.render();
-    },
-    moveGhost(event) {
-        if (this.dragging) { this.dragging.ghost.style.left = `${event.clientX}px`; this.dragging.ghost.style.top = `${event.clientY}px`; }
-    },
-    place() {
-        if (this.phase !== "setup" || this.placed) return;
-        this.placed = true; this.selected = false; this.phase = "ready"; this.render();
     },
     async pause(ms, token) {
         await new Promise(resolve => setTimeout(resolve, ms));
@@ -107,14 +111,27 @@ const View = {
         this.motion = motion; this.render();
         return this.pause(ms, token);
     },
+    async assemble() {
+        if (this.phase !== "assembly" || this.assemblyIndex >= ASSEMBLY_STEPS.length) return;
+        const token = this.generation;
+        const part = ASSEMBLY_STEPS[this.assemblyIndex];
+        this.phase = "assembling";
+        if (!await this.step("glide", 1050, token)) return;
+        this.assembled.add(part.id); this.assemblyIndex++;
+        this.motion = "";
+        this.phase = this.assemblyIndex === ASSEMBLY_STEPS.length ? "ready" : "assembly";
+        this.render();
+    },
     async operate() {
-        if (this.phase !== "ready" || !this.placed || this.used !== 0) return;
+        if (this.phase !== "ready" || this.assembled.size !== ASSEMBLY_STEPS.length || this.used !== 0) return;
         const token = this.generation; this.phase = "running";
         for (let turn = 0; turn < 2; turn++) {
-            if (!await this.step("binding", 1200, token)) return;
+            if (!await this.step("binding", 1100, token)) return;
             for (let count = 0; count < PROTONS_PER_ATP; count++) {
                 this.currentProton = this.used;
-                if (!await this.step("proton", 750, token)) return;
+                for (const motion of ["inlet", "bind-c", "rotate", "exit"]) {
+                    if (!await this.step(motion, motion === "rotate" ? 800 : 600, token)) return;
+                }
                 this.used++; this.currentProton = null;
             }
             this.flightDegrees = flightAngle();
@@ -131,12 +148,12 @@ const View = {
         try {
             const passes = ResearchManager.meetsCompletionThreshold(Catalog, report);
             const alreadyCompleted = ResearchManager.isExperimentCompleted(Catalog.id);
-            const completion = passes && !alreadyCompleted ? ResearchManager.completeExperiment(Catalog.id) : null;
+            const completion = passes && !alreadyCompleted ? ResearchManager.completeExperiment(Catalog.id, this.organelleId) : null;
             if (passes && !alreadyCompleted && !completion?.completed)
                 throw new Error(completion?.reason ?? "completion-failed");
             const submission = SubmissionManager.recordSubmission({ experiment: Catalog, report, completion,
-                placementSnapshot: { atpSynthase: this.placed },
-                attemptSnapshot: { answers: { ...this.answers }, protonsUsed: this.used, atpProduced: this.produced } });
+                placementSnapshot: { assembledParts: [...this.assembled] },
+                attemptSnapshot: { answers: { ...this.answers }, organelleId: this.organelleId, protonsUsed: this.used, atpProduced: this.produced } });
             if (!submission || !SaveManager.save({ reason: "photosynthetic-atp-synthase-submission" })) throw new Error("save-failed");
             this.result = report; OrganelleExperimentPanel.refresh(); this.render();
         } catch {
@@ -147,29 +164,42 @@ const View = {
     },
     render(message = "") {
         if (!this.root) return;
+        const next = ASSEMBLY_STEPS[this.assemblyIndex] ?? null;
+        const context = atpContext(this.organelleId);
         const status = message || ({
-            setup: "Drag ATP synthase onto the dotted membrane target, or select its card and then the target.",
-            ready: "Ten H⁺ are in the lumen. Press Operate to bring in ADP and Pi.",
-            running: this.motion === "binding" ? "ADP and Pi are binding on the stromal side." :
-                this.motion === "proton" ? `H⁺ ${this.used + 1} of 10 is passing from lumen to stroma.` :
-                    `ATP ${this.produced + 1} is released into the stroma.`,
-            done: "All ten H⁺ passed through. ATP synthase stopped after producing two ATP. Answer the questions below."
+            assembly: `Read the component at left, then press Assemble. ${this.assemblyIndex}/${ASSEMBLY_STEPS.length} parts placed.`,
+            assembling: `${next?.label ?? "Component"} is gliding into position.`,
+            ready: "All eight component groups are assembled. Press Operate to bring in ADP and Pi.",
+            running: this.motion === "binding" ? `ADP and Pi are binding at the ${context.exit} catalytic head.` :
+                this.motion === "product" ? `ATP ${this.produced + 1} is leaving into the ${context.exit}.` :
+                    `H⁺ ${this.used + 1}/10: ${this.motion === "inlet" ? `entering the a channel from the ${context.entry}` : this.motion === "bind-c" ? "binding the c ring" : this.motion === "rotate" ? "turning with the c ring and γ shaft" : `leaving through the a channel into the ${context.exit}`}.`,
+            done: "All ten H⁺ passed through. The rotor stopped after two ATP were produced. Answer the questions below."
         }[this.phase]);
+        const turn = this.phase === "running" && this.motion === "rotate";
+        const completed = ASSEMBLY_STEPS.filter(part => this.assembled.has(part.id))
+            .map(part => partArt(part.id, this.showLabels, this.used, turn)).join("");
+        const preview = next && this.phase === "assembly" ? `<g class="atp-preview-part" transform="translate(-430 0)">${partArt(next.id, this.showLabels, this.used, false)}</g>` : "";
+        const flying = next && this.phase === "assembling" ? `<g class="atp-part-glide">${partArt(next.id, this.showLabels, this.used, false)}</g>` : "";
         const protons = Array.from({ length: TOTAL_PROTONS }, (_, index) => {
             if (index < this.used) return "";
             const { x, y } = protonPosition(index);
-            return proton(x, y, index, this.motion === "proton" && this.currentProton === index);
+            return proton(x, y, index, index === this.currentProton ? this.motion : "");
         }).join("");
-        const quiz = this.phase === "done" ? `<section class="psii-quiz"><h3>Check your ATP model</h3><p>Answer all five questions and submit for a saved score.</p>${Catalog.assessment.questions.map((q, i) => `<fieldset><legend>${i + 1}. ${q.prompt}</legend>${(this.optionOrder?.get(q.id) ?? q.options).map(o => `<label><input type="radio" name="${q.id}" data-atp-question="${q.id}" value="${o.id}" ${this.answers[q.id] === o.id ? "checked" : ""} ${this.result ? "disabled" : ""}> ${o.text}</label>`).join("")}</fieldset>`).join("")}${this.result ? `<p class="psii-score" role="status">Score: ${this.result.scorePoints}/${this.result.scoreMaximum} (${this.result.scorePercent}%). ${this.result.isPerfect ? this.sandbox ? "Perfect re-examination; saved progress is unchanged." : "Perfect score." : "Review the model and try again."}</p>${this.result.isPerfect ? "" : '<button type="button" data-atp-retry>Try questions again</button>'}` : `<button type="button" data-atp-submit ${Catalog.assessment.questions.some(q => !this.answers[q.id]) ? "disabled" : ""}>Submit for Score</button>`}</section>` : "";
-        this.root.innerHTML = `<div class="psii-intro"><p><strong>Generate ATP:</strong> Place orange ATP synthase across the thylakoid membrane. ADP and Pi bind in the stroma as H⁺ flows from the lumen. This classroom model rounds the chloroplast ratio to 5 H⁺ per ATP; actual chloroplast ATP synthase uses about 14 H⁺ per 3 ATP.</p><p class="psii-progress" role="status" aria-live="polite">${status}</p></div>
-        <div class="psii-workspace"><div class="psii-board"><svg viewBox="0 0 900 600" role="img" aria-label="Thylakoid membrane with ten lumen protons and ATP synthase"><rect width="900" height="600" rx="24" class="psii-background"/><text x="30" y="62" class="psii-side-label">STROMA</text><text x="30" y="580" class="psii-side-label">THYLAKOID LUMEN</text>${membrane()}
-        ${this.placed ? `<g class="atp-tower ${this.phase === "running" && this.motion === "proton" ? "atp-tower-turn" : ""}" role="img" aria-label="ATP synthase with catalytic head in the stroma and proton channel across the membrane"><rect x="425" y="236" width="50" height="159" rx="8" class="atp-tower-stem"/><ellipse cx="450" cy="184" rx="80" ry="66" class="atp-tower-head"/><path d="M400 178 Q450 216 500 178" class="atp-tower-seam"/><text x="450" y="192" text-anchor="middle" class="atp-tower-label">ATP synthase</text></g>` : `<g data-atp-target role="button" aria-label="Place ATP synthase"><rect x="425" y="236" width="50" height="159" rx="8" class="atp-tower-target"/><ellipse cx="450" cy="184" rx="80" ry="66" class="atp-tower-target"/><text x="450" y="193" text-anchor="middle" class="psii-small-label">ATP synthase</text></g>`}
+        const masteryMessage = this.result && !this.sandbox && hasPerfectLightReactions()
+            ? " All symbiosome experiments scored 100%. Light Reactions achieved! Go to metabolics to build sugars with your ATP and NADPH."
+            : "";
+        const quiz = this.phase === "done" ? `<section class="psii-quiz"><h3>Check your ATP model</h3><p>Answer all five questions and submit for a saved score.</p>${Catalog.assessment.questions.map((q, i) => `<fieldset><legend>${i + 1}. ${q.prompt}</legend>${(this.optionOrder?.get(q.id) ?? q.options).map(o => `<label><input type="radio" name="${q.id}" data-atp-question="${q.id}" value="${o.id}" ${this.answers[q.id] === o.id ? "checked" : ""} ${this.result ? "disabled" : ""}> ${o.text}</label>`).join("")}</fieldset>`).join("")}${this.result ? `<p class="psii-score" role="status">Score: ${this.result.scorePoints}/${this.result.scoreMaximum} (${this.result.scorePercent}%). ${this.result.isPerfect ? this.sandbox ? "Perfect re-examination; saved progress is unchanged." : "Perfect score." : "Review the model and try again."}${masteryMessage}</p>${this.result.isPerfect ? "" : '<button type="button" data-atp-retry>Try questions again</button>'}` : `<button type="button" data-atp-submit ${Catalog.assessment.questions.some(q => !this.answers[q.id]) ? "disabled" : ""}>Submit for Score</button>`}</section>` : "";
+        this.root.innerHTML = `<div class="psii-intro"><p><strong>Assemble F-ATPase:</strong> Build the F-type enzyme in the ${context.membrane}. During ATP synthesis, H⁺ moves from the ${context.entry} to the ${context.exit}, turning the c ring and γ shaft. The stationary α/β head changes shape to release ATP. This animation uses 10 H⁺ to show two ATP releases; the actual H⁺/ATP ratio and c-ring size differ between chloroplasts and mitochondria.</p><p class="psii-progress" role="status" aria-live="polite">${status}</p></div>
+        <div class="psii-workspace"><div class="psii-board"><svg viewBox="0 0 1000 650" role="img" aria-label="Guided assembly and proton-driven operation of F-type ATP synthase"><rect width="1000" height="650" rx="24" class="psii-background"/><text x="30" y="55" class="psii-side-label">${context.lowSide}</text><text x="30" y="632" class="psii-side-label">${context.highSide}</text>${membrane()}
+        ${next ? `<rect x="23" y="77" width="285" height="430" rx="15" class="atp-preview-box"/><text x="165" y="105" text-anchor="middle" class="atp-preview-title">NEXT COMPONENT</text>` : ""}${preview}${flying}
+        ${completed}
         ${protons}
-        ${this.motion === "binding" ? `<g class="atp-adp-bind"><circle cx="175" cy="105" r="35" class="atp-substrate"/><text x="175" y="113" text-anchor="middle" class="atp-substrate-label">ADP</text></g><g class="atp-pi-bind"><circle cx="275" cy="105" r="29" class="atp-substrate"/><text x="275" y="113" text-anchor="middle" class="atp-substrate-label">Pi</text></g>` : this.motion === "proton" ? `<g><circle cx="400" cy="115" r="25" class="atp-substrate"/><text x="400" y="122" text-anchor="middle" class="atp-substrate-label">ADP</text><circle cx="500" cy="115" r="25" class="atp-substrate"/><text x="500" y="122" text-anchor="middle" class="atp-substrate-label">Pi</text></g>` : ""}
-        ${this.motion === "product" ? `<g class="atp-product-flight" style="--atp-flight-x:${Math.tan(this.flightDegrees * Math.PI / 180) * 240}px">${bolt(450, 108)}</g>` : ""}
-        <text x="745" y="72" class="atp-count">H⁺: ${TOTAL_PROTONS - this.used}/10</text><text x="745" y="102" class="atp-count">ATP: ${this.produced}/2</text>
-        </svg></div><div class="psii-tray organelle-experiment-material-tray"><h3>Materials</h3><div class="psii-material-list organelle-experiment-material-list"><div class="organelle-experiment-material psii-material-card"><button type="button" class="psii-source ${this.selected ? "selected" : ""}" data-atp-source aria-label="Drag ATP synthase" ${this.placed ? "disabled" : ""}>${towerArt}</button><span class="organelle-experiment-material-name">ATP synthase</span></div></div><p>Position the enzyme first. Operate uses two rounds of ADP + Pi and five H⁺ each. The yellow ATP bolts leave upward; the tenth H⁺ stops the model.</p></div></div>${quiz}`;
-        if (this.controls) this.controls.innerHTML = `<button type="button" class="psii-header-button ${this.phase === "ready" ? "water-action-ready" : ""}" data-atp-operate ${this.phase !== "ready" ? "disabled" : ""}>Operate</button><button type="button" class="psii-header-button" data-atp-reset>Reset model</button>`;
+        ${this.phase === "running" ? `<path d="M520 479 V423 L555 393 Q635 463 651 393 Q640 347 530 369 V283" class="atp-proton-guide"/>` : ""}
+        ${this.motion === "binding" ? `<g class="atp-adp-bind"><circle cx="340" cy="90" r="31" class="atp-substrate"/><text x="340" y="97" text-anchor="middle" class="atp-substrate-label">ADP</text></g><g class="atp-pi-bind"><circle cx="425" cy="90" r="27" class="atp-substrate"/><text x="425" y="97" text-anchor="middle" class="atp-substrate-label">Pi</text></g>` : this.phase === "running" && this.motion !== "product" ? `<g><circle cx="522" cy="108" r="25" class="atp-substrate"/><text x="522" y="116" text-anchor="middle" class="atp-substrate-label">ADP</text><circle cx="678" cy="108" r="25" class="atp-substrate"/><text x="678" y="116" text-anchor="middle" class="atp-substrate-label">Pi</text></g>` : ""}
+        ${this.motion === "product" ? `<g class="atp-product-flight" style="--atp-flight-x:${Math.tan(this.flightDegrees * Math.PI / 180) * 250}px">${bolt()}</g>` : ""}
+        <text x="795" y="72" class="atp-count">H⁺: ${TOTAL_PROTONS - this.used}/10</text><text x="795" y="105" class="atp-count">ATP: ${this.produced}/2</text>
+        </svg></div><div class="psii-tray organelle-experiment-material-tray"><h3>${next ? `${this.assemblyIndex + 1}. ${next.label}` : "F-type ATP synthase"}</h3><p>${next ? next.detail : "Assembly complete. The central c ring and γ shaft rotate; α and β stay in the head and change shape as ATP is made."}</p><p>${next ? "Read this part, then press Assemble. It glides from the preview box into the enzyme." : `Operate uses two rounds of ADP + Pi and five H⁺ each from the ${context.entry}. The yellow ATP bolts leave upward.`}</p><details class="atp-reference"><summary>View F-ATPase reference figure</summary><img src="${Catalog.figure}" alt="F-type ATPase structure, with arrows for the reverse proton-pumping mode"/><p>The reference arrows show proton pumping. In this activity, H⁺ travels upward through the enzyme to make ATP.</p></details></div></div>${quiz}`;
+        if (this.controls) this.controls.innerHTML = `${this.phase === "assembly" || this.phase === "assembling" ? `<button type="button" class="psii-header-button ${this.phase === "assembly" ? "water-action-ready" : ""}" data-atp-assemble ${this.phase !== "assembly" ? "disabled" : ""}>Assemble ${next?.label ?? "part"}</button>` : ""}<button type="button" class="psii-header-button ${this.phase === "ready" ? "water-action-ready" : ""}" data-atp-operate ${this.phase !== "ready" ? "disabled" : ""}>Operate</button><button type="button" class="psii-header-button" data-atp-labels aria-pressed="${!this.showLabels}">${this.showLabels ? "Hide labels" : "Show labels"}</button><button type="button" class="psii-header-button" data-atp-reset>Reset model</button>`;
     }
 };
 export default View;

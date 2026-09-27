@@ -418,7 +418,7 @@ const ResearchManager = {
     // --------------------------------------------------
     // Complete one experiment exactly once
     // --------------------------------------------------
-    completeExperiment(experimentId) {
+    completeExperiment(experimentId, organelleId = null) {
 
         this.ensureRegistryStructures();
 
@@ -438,7 +438,8 @@ const ResearchManager = {
 
         const status =
             this.getExperimentStatus(
-                experimentId
+                experimentId,
+                organelleId
             );
 
         // A preview cannot accidentally grant full-experiment rewards.

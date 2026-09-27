@@ -4,6 +4,8 @@
 // is open. This view reads static profile data only.
 // --------------------------------------------------
 
+import { hasPerfectLightReactions } from "./LightReactionsReward.js";
+
 const OrganelleOverviewView = {
 
     getElements() {
@@ -312,7 +314,9 @@ const OrganelleOverviewView = {
                 "p",
                 `organelle-overview-status organelle-overview-status--${availability}`,
 
-                message ||
+                (profile.id === "symbiosomes" && available && hasPerfectLightReactions()
+                    ? "All experiments are Mastered. Go to metabolics to build sugars with your ATP and NADPH."
+                    : message) ||
                 (
                     available
                         ? "Select an available experiment from the organelle panel to begin."
