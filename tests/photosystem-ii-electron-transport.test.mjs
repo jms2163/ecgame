@@ -4,20 +4,42 @@ import gameState from "../src/app/GameState.js";
 import ResearchManager from "../src/app/ResearchManager.js";
 import Library from "../src/app/OrganelleExperimentLibrary.js";
 import Catalog from "../src/app/PhotosystemIIElectronTransportCatalog.js";
-import View, { excitationPath } from "../src/app/PhotosystemIIElectronTransportView.js";
+import View, { excitationPath, scoreAnswers } from "../src/app/PhotosystemIIElectronTransportView.js";
+import Panel from "../src/app/OrganelleExperimentPanel.js";
+import SubmissionManager from "../src/app/OrganelleExperimentSubmissionManager.js";
+import ProgressReportExporter from "../src/app/ProgressReportExporter.js";
+import { randomizedOptions } from "../src/app/PhotosystemIIQuizOptions.js";
 
 assert.equal(Library.photosystem_ii_electron_transport, Catalog);
 assert.deepEqual(Catalog.requirements.perfectScoreExperiments, ["photosystem_ii_water_splitting"]);
 assert.deepEqual([0, .25, .5, .75].map(n => excitationPath(() => n)), [
     [0, 1, 2], [1, 2], [3, 4, 5], [4, 5]
 ]);
+assert.equal(Catalog.grants.xp, 600);
+assert.equal(Catalog.assessment.scoreMaximum, 5);
+assert.equal(Catalog.assessment.rubricVersion, "photosystem-ii-electron-transport-v2");
+assert.equal(Catalog.assessment.questions[0].prompt, "How many electrons can one plastoquinone (PQ) carry?");
+assert.equal(Catalog.assessment.questions[2].prompt, "Which molecule takes an electron from cytochrome f to PSI?");
+assert.equal(Catalog.assessment.questions[3].prompt, "Where do protons increase in concentration?");
+assert.equal(scoreAnswers({ pq_electrons: "two", pq_protons: "stroma", last_carrier: "pc", gradient: "lumen", lumen_total: "ten" }).scorePoints, 5);
+const shuffled = randomizedOptions(Catalog.assessment.questions, () => 0);
+assert.notDeepEqual(shuffled.get("pq_electrons").map(option => option.id), Catalog.assessment.questions[0].options.map(option => option.id));
+assert.deepEqual(randomizedOptions([{ id: "tf", options: [{ id: "true", text: "True" }, { id: "false", text: "False" }] },
+    { id: "none", options: [{ id: "a", text: "A" }, { id: "none", text: "None of these" }, { id: "b", text: "B" }] }], () => 0).get("none").map(option => option.id), ["a", "none", "b"]);
 
 const backup = structuredClone(gameState);
 const oldMove = View.move;
 const oldPause = View.pause;
 const oldAnimateFrames = View.animateFrames;
 const oldRotateAndDock = View.rotateAndDock;
+const oldRefresh = Panel.refresh;
+const oldStorage = globalThis.localStorage;
 try {
+    Panel.refresh = () => true;
+    const storage = new Map();
+    globalThis.localStorage = { getItem: key => storage.get(key) ?? null,
+        setItem: (key, value) => storage.set(key, String(value)),
+        removeItem: key => storage.delete(key) };
     ResearchManager.ensureRegistryStructures();
     gameState.registry.research.bestExperimentScores.photosystem_ii_water_splitting = {
         scorePoints: 3, scoreMaximum: 4, scorePercent: 75
@@ -48,6 +70,10 @@ try {
     View.psii = false;
     View.pq = false;
     View.cytochrome = false;
+    View.pc = false;
+    View.pcLoaded = false;
+    View.pcNearCytochrome = false;
+    View.pcTransfers = 0;
     View.loaded = 0;
     View.cycle = 0;
     View.donorVisible = true;
@@ -63,6 +89,9 @@ try {
     View.photonVisible = true;
     View.phase = "setup";
     View.animationStep = null;
+    View.answers = {};
+    View.result = null;
+    View.sandbox = false;
     View.generation = 0;
     const moves = [];
     let loadedFrame = "";
@@ -74,12 +103,12 @@ try {
         animations.push({ node, frames, html: View.root.innerHTML });
         return true;
     };
-    View.move = async (node, dx, dy) => {
+    View.move = async (node, dx, dy, _duration, _generation, fromX, fromY) => {
         if (node === nodes.get("[data-etc-accepted]")) {
             const frame = View.root.innerHTML;
             electronDrawnAbovePQ = frame.indexOf("data-etc-pq") < frame.indexOf("data-etc-accepted");
         }
-        moves.push({ node, dx, dy });
+        moves.push({ node, dx, dy, fromX, fromY, html: View.root.innerHTML });
         return true;
     };
     View.pause = async () => {
@@ -141,8 +170,18 @@ try {
     View.place("cytochrome", 300, 300);
     assert.equal(View.phase, "await-cytochrome");
     View.place("cytochrome", 650, 300);
+    assert.equal(View.phase, "await-pc");
+    assert.match(View.root.innerHTML, /data-etc-pc-target/);
+    assert.match(View.root.innerHTML, /data-etc-material="pc"(?![^>]*disabled)/);
+    View.place("pc", 650, 300);
+    assert.equal(View.phase, "await-pc");
+    View.place("pc", 788, 480);
     assert.equal(View.phase, "ready-qcycle");
     assert.equal(View.cytochrome, true);
+    assert.equal(View.pc, true);
+    assert.match(View.root.innerHTML, /data-etc-psi/);
+    assert.match(View.root.innerHTML, /data-etc-pc role="img"/);
+    assert.doesNotMatch(View.root.innerHTML, /toward PC|2 H₂O supply electrons|H⁺ in thylakoid lumen/);
     assert.match(View.root.innerHTML, /data-etc-cytochrome role="img"/);
     assert.match(View.root.innerHTML, /Fe-S/);
     assert.match(View.root.innerHTML, /cyt f|>f</);
@@ -155,7 +194,8 @@ try {
     assert.equal(View.lumenProtons, 2);
     assert.equal(View.qiElectrons, 1);
     assert.equal(View.qiProtons, 1);
-    assert.equal(View.fElectrons, 1);
+    assert.equal(View.fElectrons, 0);
+    assert.equal(View.pcTransfers, 1);
     assert.match(View.root.innerHTML, /data-etc-qi-bound-electron="0"/);
     assert.doesNotMatch(View.root.innerHTML, /data-etc-qi-bound-electron="1"/);
     assert.match(View.root.innerHTML, /data-etc-material="pq"(?![^>]*disabled)/);
@@ -192,7 +232,8 @@ try {
     assert.equal(View.phase, "ready-recycle");
     assert.equal(View.cycle, 2);
     assert.equal(View.lumenProtons, 4);
-    assert.equal(View.fElectrons, 2);
+    assert.equal(View.fElectrons, 0);
+    assert.equal(View.pcTransfers, 2);
     assert.equal(View.qiElectrons, 2);
     assert.equal(View.qiProtons, 2);
     assert.match(View.controls.innerHTML, /Recycle Qi PQH₂/);
@@ -202,7 +243,15 @@ try {
     assert.equal(View.phase, "done");
     assert.equal(View.cycle, 3);
     assert.equal(View.lumenProtons, 6);
-    assert.equal(View.fElectrons, 3);
+    assert.equal(View.fElectrons, 0);
+    assert.equal(View.pcTransfers, 3);
+    const pcMoves = moves.filter(move => move.node === nodes.get("[data-etc-pc]"));
+    assert.deepEqual(pcMoves.map(move => move.dx), [-85, 125, 0, -85, 125, 0, -85, 125, 0]);
+    assert.equal(pcMoves[1].fromX, -85);
+    assert.equal(pcMoves[1].fromY, -50);
+    assert.match(pcMoves[1].html, /data-etc-pc role="img"[^>]*transform="translate\(-85 -50\)"/);
+    assert.equal(View.pcNearCytochrome, false);
+    assert.ok(moves.filter(move => move.node === nodes.get("[data-etc-pc-electron]")).length === 3);
     assert.equal(View.qiElectrons, 1);
     assert.equal(View.qiProtons, 1);
     assert.ok(moves.some(move => move.node === nodes.get("[data-etc-qi]") && move.dx === -52 && move.dy === 140));
@@ -214,11 +263,38 @@ try {
     assert.doesNotMatch(View.root.innerHTML, /data-etc-proton="1"/);
     assert.equal(gameState.player.xp, xp);
     assert.equal(ResearchManager.isExperimentCompleted(Catalog.id), false);
+    assert.match(View.root.innerHTML, /data-etc-submit/);
+    View.answers = { pq_electrons: "one", pq_protons: "stroma", last_carrier: "pc", gradient: "lumen", lumen_total: "ten" };
+    View.submit();
+    assert.equal(SubmissionManager.getSubmissions(Catalog.id).length, 1);
+    assert.equal(gameState.player.xp, xp + 600);
+    assert.equal(SubmissionManager.getBestScore(Catalog.id).scorePercent, 80);
+    View.result = null;
+    View.answers.pq_electrons = "two";
+    View.submit();
+    assert.equal(SubmissionManager.getSubmissions(Catalog.id).length, 2);
+    assert.equal(gameState.player.xp, xp + 600);
+    assert.equal(SubmissionManager.getBestScore(Catalog.id).scorePercent, 100);
+    assert.ok(SubmissionManager.getStar(Catalog.id));
+    assert.match(View.root.innerHTML, /★ Perfect-score star earned/);
+    gameState.player.id = "etc-report-test-player";
+    gameState.player.name = "ETC Test";
+    gameState.player.displayName = "ETCtester";
+    gameState.player.profileCreatedAtMs = Date.now();
+    gameState.player.nameLockedAtMs = Date.now();
+    const report = (await ProgressReportExporter.createReportFile({
+        generatedAtMs: Date.UTC(2026, 8, 26), reportId: "etc-report-test"
+    })).payload;
+    const best = report.progress.research.bestScores.find(entry => entry.activityId === Catalog.id);
+    assert.deepEqual([best.scorePoints, best.scoreMaximum, best.isPerfect], [5, 5, true]);
 } finally {
     View.move = oldMove;
     View.pause = oldPause;
     View.animateFrames = oldAnimateFrames;
     View.rotateAndDock = oldRotateAndDock;
+    Panel.refresh = oldRefresh;
+    if (oldStorage === undefined) delete globalThis.localStorage;
+    else globalThis.localStorage = oldStorage;
     View.root = null;
     View.controls = null;
     for (const key of Object.keys(gameState)) delete gameState[key];

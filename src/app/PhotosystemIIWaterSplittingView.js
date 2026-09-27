@@ -4,6 +4,7 @@ import SaveManager from "./SaveManager.js";
 import gameState from "./GameState.js";
 import OrganelleExperimentPanel from "./OrganelleExperimentPanel.js";
 import SubmissionManager from "./OrganelleExperimentSubmissionManager.js";
+import { randomizedOptions } from "./PhotosystemIIQuizOptions.js";
 
 const CHLOROPHYLLS = [
     [330, 205], [300, 285], [350, 365],
@@ -136,6 +137,7 @@ const PhotosystemIIWaterSplittingView = {
     animationStep: null,
     bondCount: 0,
     answers: {},
+    optionOrder: null,
     result: null,
     generation: 0,
     timer: null,
@@ -183,6 +185,7 @@ const PhotosystemIIWaterSplittingView = {
         this.animationStep = null;
         this.bondCount = 0;
         this.answers = {};
+        this.optionOrder = randomizedOptions(Catalog.assessment.questions);
         this.result = null;
         this.root = document.createElement("section");
         this.root.className = "psii-lab water-lab";
@@ -236,6 +239,7 @@ const PhotosystemIIWaterSplittingView = {
             if (event.target.closest("[data-water-submit]")) { this.submit(); return; }
             if (event.target.closest("[data-water-retry]")) {
                 this.answers = {};
+                this.optionOrder = randomizedOptions(Catalog.assessment.questions);
                 this.result = null;
                 this.render();
                 return;
@@ -513,14 +517,14 @@ const PhotosystemIIWaterSplittingView = {
             "ready-o2": "Four H⁺ have formed. Press Create O₂.",
             "oxygen-bonding": "Two bonds form between the oxygens; the electron dots fade.",
             "o2-flight": "O₂ is moving toward the stroma.",
-            quiz: "O₂ has departed. Answer the four questions below and submit for a saved score."
+            quiz: "O₂ has departed. Answer the questions below and submit for a saved score."
         }[this.phase] ?? "Watch the animation.");
         const quiz = this.phase === "quiz" ? `<section class="psii-quiz" aria-labelledby="water-quiz-title">
             <h3 id="water-quiz-title">Check the water splitting model</h3>
-            <p>Answer all four questions. A score of 4/4 earns a star.</p>
+            <p>Answer all ${Catalog.assessment.questions.length} questions. A perfect score earns a star.</p>
             ${Catalog.assessment.questions.map((question, index) => `<fieldset>
                 <legend>${index + 1}. ${question.prompt}</legend>
-                ${question.options.map(option => `<label><input type="radio" name="${question.id}"
+                ${(this.optionOrder?.get(question.id) ?? question.options).map(option => `<label><input type="radio" name="${question.id}"
                     data-water-question="${question.id}" value="${option.id}"
                     ${this.answers[question.id] === option.id ? "checked" : ""}
                     ${this.result ? "disabled" : ""}> ${option.text}</label>`).join("")}

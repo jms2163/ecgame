@@ -5,14 +5,14 @@ export default Object.freeze({
     title: "Water Splitting",
     summary: "Restore P680 four times with electrons from two water molecules, then release oxygen and protons.",
     objective: "Track four electron replacements, four H⁺ ions, and the formation of O₂.",
-    catalogReward: "+150 XP • Discovery: Water Splitting • 4/4 required",
+    catalogReward: "+150 XP • Discovery: Water Splitting • perfect score unlocks ETC",
     stage: {
         template: "photosystem_ii_water_splitting",
         materials: [], labels: [], controls: []
     },
     assessment: {
-        rubricVersion: "photosystem-ii-water-splitting-v1",
-        scoreMaximum: 4,
+        rubricVersion: "photosystem-ii-water-splitting-v2",
+        scoreMaximum: 6,
         completionThresholdPercent: 80,
         questions: [
             {
@@ -39,7 +39,7 @@ export default Object.freeze({
             },
             {
                 id: "electron_count",
-                prompt: "How many electrons are pulled from two H₂O molecules in this net process?",
+                prompt: "How many electrons are produced when two water molecules are split?",
                 options: [
                     { id: "one", text: "1" },
                     { id: "two", text: "2" },
@@ -58,6 +58,18 @@ export default Object.freeze({
                     { id: "ch4", text: "CH₄" }
                 ],
                 correctOptionId: "o2"
+            },
+            {
+                id: "lumen_acidic",
+                prompt: "The thylakoid lumen becomes more acidic as H⁺ accumulate during photosynthesis. True or false?",
+                options: [{ id: "true", text: "True" }, { id: "false", text: "False" }],
+                correctOptionId: "true"
+            },
+            {
+                id: "pc_one_electron",
+                prompt: "Plastocyanin (PC) carries only one electron at a time. True or false?",
+                options: [{ id: "true", text: "True" }, { id: "false", text: "False" }],
+                correctOptionId: "true"
             }
         ]
     },

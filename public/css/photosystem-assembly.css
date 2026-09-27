@@ -95,6 +95,12 @@
 .etc-cytochrome-label { fill: #17142b; font-family: system-ui, sans-serif; font-size: 26px; font-weight: 800; pointer-events: none; }
 .etc-cytochrome-target { fill: rgba(170, 167, 206, .14); stroke: #d7d0ff; stroke-width: 5; stroke-dasharray: 10 8; }
 .etc-lab [data-etc-material="cytochrome"] svg { width: 4.9rem; height: 6.1rem; }
+.etc-lab [data-etc-material="pc"] svg { width: 5.5rem; height: 4.5rem; }
+.etc-pc { fill: #a6e5f2; stroke: #377ba3; stroke-width: 4; }
+.etc-pc-target { fill: rgba(166, 229, 242, .13); stroke: #9ee6f5; stroke-width: 4; stroke-dasharray: 8 6; }
+.etc-pc-label { fill: #153b55; font: 800 27px system-ui, sans-serif; pointer-events: none; }
+.etc-psi { fill: #8860a8; stroke: #e7cafa; stroke-width: 4; }
+.etc-psi-label { fill: #fff; font: 800 27px system-ui, sans-serif; pointer-events: none; }
 .etc-lab .water-hydrogen-label, .etc-lab .water-oxygen-label { font-size: 18px; }
 .etc-lab .water-covalent-bond, .etc-lab .water-double-bond { stroke-width: 5; }
 .etc-lab .water-protons-label { font-size: 18px; }

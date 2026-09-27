@@ -10,13 +10,13 @@ import ProgressReportExporter from "../src/app/ProgressReportExporter.js";
 
 assert.equal(Library.photosystem_ii_water_splitting, Catalog);
 assert.deepEqual(Catalog.requirements.perfectScoreExperiments, ["photosystem_ii_excitation"]);
-assert.equal(Catalog.assessment.scoreMaximum, 4);
+assert.equal(Catalog.assessment.scoreMaximum, 6);
 assert.equal(scoreAnswers({
     electron_source: "bonds",
     electron_attractor: "p680_plus",
     electron_count: "four",
-    byproduct: "o2"
-}).scorePoints, 4);
+    byproduct: "o2", lumen_acidic: "true", pc_one_electron: "true"
+}).scorePoints, 6);
 assert.deepEqual([0, 1, 2, 3].map(stepForSplit), [
     { waterIndex: 0, side: "left" },
     { waterIndex: 0, side: "right" },
@@ -135,7 +135,7 @@ try {
         electron_source: "bonds",
         electron_attractor: "photons",
         electron_count: "two",
-        byproduct: "o2"
+        byproduct: "o2", lumen_acidic: "true", pc_one_electron: "true"
     };
     View.submit();
     assert.equal(SubmissionManager.getSubmissions(Catalog.id).length, 1);
@@ -146,7 +146,7 @@ try {
         electron_source: "bonds",
         electron_attractor: "p680_plus",
         electron_count: "four",
-        byproduct: "o2"
+        byproduct: "o2", lumen_acidic: "true", pc_one_electron: "true"
     };
     View.submit();
     assert.equal(SubmissionManager.getSubmissions(Catalog.id).length, 2);
@@ -156,10 +156,10 @@ try {
     const star = SubmissionManager.getStar(Catalog.id);
     assert.deepEqual(
         [bestSavedScore.scorePoints, bestSavedScore.scoreMaximum, bestSavedScore.scorePercent],
-        [4, 4, 100]
+        [6, 6, 100]
     );
     assert.equal(star.sourceSubmissionId, SubmissionManager.getSubmissions(Catalog.id)[1].id);
-    assert.match(View.root.innerHTML, /Score: 4\/4 \(100%\).*★ Perfect-score star earned/);
+    assert.match(View.root.innerHTML, /Score: 6\/6 \(100%\).*★ Perfect-score star earned/);
 
     class FakeElement {
         constructor() { this.children = []; this.dataset = {}; this.value = ""; this._text = ""; }
@@ -174,7 +174,7 @@ try {
     globalThis.document = { createElement: () => new FakeElement() };
     const card = Panel.createExperimentCard(Catalog, ResearchManager.getExperimentStatus(Catalog.id));
     assert.match(card.textContent, /Completed/);
-    assert.match(card.textContent, /Highest score: 4\/4 \(100%\)/);
+    assert.match(card.textContent, /Highest score: 6\/6 \(100%\)/);
     assert.match(card.textContent, /★ Perfect-score star earned/);
     const reexamine = card.children.find(child => child.textContent === "Re-examine");
     assert.ok(reexamine);
@@ -210,20 +210,20 @@ try {
     );
     assert.deepEqual(
         [best.scorePoints, best.scoreMaximum, best.scorePercent, best.isPerfect],
-        [4, 4, 100, true]
+        [6, 6, 100, true]
     );
     const latest = report.progress.research.submissions.find(
         entry => entry.activityId === Catalog.id
     );
     assert.deepEqual(
         [latest.submissionCount, latest.scorePoints, latest.scoreMaximum, latest.scorePercent],
-        [2, 4, 4, 100]
+        [2, 6, 6, 100]
     );
     const journal = report.progress.journal.experimentEntries.filter(
         entry => entry.experimentId === Catalog.id
     );
-    assert.deepEqual(journal.map(entry => entry.scorePoints), [2, 4]);
-    assert.equal(journal[1].assessmentReport.checks.length, 4);
+    assert.deepEqual(journal.map(entry => entry.scorePoints), [4, 6]);
+    assert.equal(journal[1].assessmentReport.checks.length, 6);
     assert.equal((await ProgressReportExporter.verifyReportText(reportFile.text)).ok, true);
     await View.createO2();
     assert.equal(gameState.player.xp, xp + 150);
@@ -250,14 +250,14 @@ try {
         electron_source: "bonds",
         electron_attractor: "p680_plus",
         electron_count: "four",
-        byproduct: "o2"
+        byproduct: "o2", lumen_acidic: "true", pc_one_electron: "true"
     };
     View.submit();
     assert.equal(SubmissionManager.getSubmissions(Catalog.id).length, 1);
     assert.equal(SubmissionManager.getBestScore(Catalog.id).scorePercent, 100);
     assert.ok(SubmissionManager.getStar(Catalog.id));
     assert.equal(gameState.player.xp, xp + 150);
-    assert.match(View.root.innerHTML, /Score: 4\/4 \(100%\).*★ Perfect-score star earned/);
+    assert.match(View.root.innerHTML, /Score: 6\/6 \(100%\).*★ Perfect-score star earned/);
     const oldMount = View.mount;
     try {
         let resetOptions = null;
@@ -286,4 +286,4 @@ try {
     Object.assign(gameState, backup);
 }
 
-console.log("PASS: perfect excitation gate, four splits, oxygen and protons, scored attempts, reward once.");
+console.log("PASS: perfect excitation gate, four splits, oxygen and protons, six-question scoring, reward once.");

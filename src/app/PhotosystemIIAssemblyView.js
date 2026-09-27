@@ -5,6 +5,7 @@ import SubmissionManager from "./OrganelleExperimentSubmissionManager.js";
 import OrganelleExperimentPanel from "./OrganelleExperimentPanel.js";
 import SaveManager from "./SaveManager.js";
 import gameState from "./GameState.js";
+import { randomizedOptions } from "./PhotosystemIIQuizOptions.js";
 
 const CHLOROPHYLLS = [
     [330, 205], [300, 285], [350, 365],
@@ -71,6 +72,7 @@ const PhotosystemIIAssemblyView = {
     selected: null,
     dragging: null,
     answers: {},
+    optionOrder: null,
     result: null,
     sandbox: false,
 
@@ -88,6 +90,7 @@ const PhotosystemIIAssemblyView = {
         this.sandbox = sandbox;
         this.placed = new Set();
         this.answers = {};
+        this.optionOrder = randomizedOptions(Catalog.assessment.questions);
         this.result = null;
         this.root = document.createElement("section");
         this.root.className = "psii-lab";
@@ -141,6 +144,7 @@ const PhotosystemIIAssemblyView = {
             }
             if (event.target.closest("[data-retry-quiz]")) {
                 this.answers = {};
+                this.optionOrder = randomizedOptions(Catalog.assessment.questions);
                 this.result = null;
                 this.render();
                 return;
@@ -243,7 +247,7 @@ const PhotosystemIIAssemblyView = {
             <p>Answer all three questions. A score of 3/3 unlocks Excite Photosystem II.</p>
             ${Catalog.assessment.questions.map((question, index) => `<fieldset>
                 <legend>${index + 1}. ${question.prompt}</legend>
-                ${question.options.map(option => `<label><input type="radio" name="${question.id}" data-question="${question.id}" value="${option.id}" ${this.answers[question.id] === option.id ? "checked" : ""} ${this.result ? "disabled" : ""}> ${option.text}</label>`).join("")}
+                ${(this.optionOrder?.get(question.id) ?? question.options).map(option => `<label><input type="radio" name="${question.id}" data-question="${question.id}" value="${option.id}" ${this.answers[question.id] === option.id ? "checked" : ""} ${this.result ? "disabled" : ""}> ${option.text}</label>`).join("")}
             </fieldset>`).join("")}
             ${this.result ? `<p class="psii-score" role="status">Score: ${this.result.scorePoints}/${this.result.scoreMaximum}. ${this.result.isPerfect ? "Excite Photosystem II unlocked." : "Review the model and try again."}</p>
                 ${this.result.isPerfect ? "" : `<button type="button" data-retry-quiz>Try questions again</button>`}`

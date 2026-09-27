@@ -2024,6 +2024,7 @@ stage.append(
             this.titleElement.textContent = experiment.title;
             this.controlsElement.replaceChildren();
             PhotosystemIIElectronTransportView.mount(this.contentElement, {
+                sandbox: this.isReexamineMode,
                 controlsElement: this.controlsElement
             });
             return;
@@ -2456,6 +2457,13 @@ this.contentElement.appendChild(
             this.titleElement.textContent = `${experiment.title} - Submission Review`;
             this.controlsElement.replaceChildren();
             PhotosystemIIWaterSplittingView.mount(this.contentElement, { review: true });
+            return;
+        }
+
+        if (experiment.stage?.template === "photosystem_ii_electron_transport") {
+            this.titleElement.textContent = `${experiment.title} - Submission Review`;
+            this.controlsElement.replaceChildren();
+            PhotosystemIIElectronTransportView.mount(this.contentElement, { review: true });
             return;
         }
 

@@ -4,6 +4,7 @@ import SubmissionManager from "./OrganelleExperimentSubmissionManager.js";
 import OrganelleExperimentPanel from "./OrganelleExperimentPanel.js";
 import SaveManager from "./SaveManager.js";
 import gameState from "./GameState.js";
+import { randomizedOptions } from "./PhotosystemIIQuizOptions.js";
 
 // The four possible photon targets are the two upper antenna pigments on each side.
 const CHLOROPHYLLS = [
@@ -91,6 +92,7 @@ const PhotosystemIIExcitationView = {
     greenMissed: false,
     p680Oxidized: false,
     answers: {},
+    optionOrder: null,
     result: null,
     sandbox: false,
     generation: 0,
@@ -125,6 +127,7 @@ const PhotosystemIIExcitationView = {
         this.greenMissed = false;
         this.p680Oxidized = false;
         this.answers = {};
+        this.optionOrder = randomizedOptions(Catalog.assessment.questions);
         this.result = null;
         this.root = document.createElement("section");
         this.root.className = "psii-lab psii-excitation";
@@ -184,6 +187,7 @@ const PhotosystemIIExcitationView = {
             }
             if (event.target.closest("[data-retry-quiz]")) {
                 this.answers = {};
+                this.optionOrder = randomizedOptions(Catalog.assessment.questions);
                 this.result = null;
                 this.render();
                 return;
@@ -263,6 +267,7 @@ const PhotosystemIIExcitationView = {
         this.greenMissed = false;
         this.p680Oxidized = false;
         this.answers = {};
+        this.optionOrder = randomizedOptions(Catalog.assessment.questions);
         this.result = null;
         this.selected = null;
         this.render();
@@ -418,7 +423,7 @@ const PhotosystemIIExcitationView = {
             <p>Answer all four questions and submit for a saved score.</p>
             ${Catalog.assessment.questions.map((question, i) => `<fieldset>
                 <legend>${i + 1}. ${question.prompt}</legend>
-                ${question.options.map(option => `<label><input type="radio" name="${question.id}"
+                ${(this.optionOrder?.get(question.id) ?? question.options).map(option => `<label><input type="radio" name="${question.id}"
                     data-excitation-question="${question.id}" value="${option.id}"
                     ${this.answers[question.id] === option.id ? "checked" : ""}
                     ${this.result ? "disabled" : ""}> ${option.text}</label>`).join("")}

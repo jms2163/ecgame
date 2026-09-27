@@ -1,5 +1,11 @@
-// First ETC model: two PSII electrons and two stromal protons load PQ.
-// The downstream carriers and a scored assessment will be added separately.
+import Catalog from "./PhotosystemIIElectronTransportCatalog.js";
+import ResearchManager from "./ResearchManager.js";
+import SubmissionManager from "./OrganelleExperimentSubmissionManager.js";
+import SaveManager from "./SaveManager.js";
+import OrganelleExperimentPanel from "./OrganelleExperimentPanel.js";
+import gameState from "./GameState.js";
+import { randomizedOptions } from "./PhotosystemIIQuizOptions.js";
+
 const CHLOROPHYLLS = [[180, 205], [150, 285], [200, 365], [420, 205], [450, 285], [400, 365]];
 const PATHS = [[0, 1, 2], [1, 2], [3, 4, 5], [4, 5]];
 const PSII_SHIFT = 100;
@@ -13,6 +19,16 @@ const DOCK_SHIFT = 58;
 const QI_X = 482;
 const QI_Y = 95;
 const QI_PROTON_SOURCE_X = [600, 650];
+const PC_X = 744;
+const PC_Y = 452;
+const PC_CENTER_X = PC_X + 44;
+const PC_CENTER_Y = PC_Y + 29;
+const PC_APPROACH_X = -85;
+const PC_APPROACH_Y = -50;
+const PC_TRAVEL_X = 125;
+const PC_TRAVEL_Y = -17;
+const PSI_ACCEPTOR_X = 925;
+const PSI_ACCEPTOR_Y = 394;
 const PQ_SLOTS = [415, 481];
 const STROMAL_PROTON_X = [620, 690];
 const REFILL_STROMAL_PROTON_X = [790, 860];
@@ -20,7 +36,7 @@ const WATER_X = [115, 285];
 const WATER_Y = 525;
 
 function lumenPosition(index) {
-    return { x: 690 + index % 5 * 58, y: 555 + Math.floor(index / 5) * 65 };
+    return { x: 690 + index % 5 * 58, y: 580 + Math.floor(index / 5) * 60 };
 }
 
 function waterPair(splits, oxygenStage) {
@@ -78,6 +94,7 @@ const CYTOCHROME_SHAPE = `<path d="M15 45 Q15 13 43 13 Q70 13 73 42 L73 170 Q68 
     <text x="121" y="128" text-anchor="middle" class="etc-cytochrome-label">f</text>
     <text x="91" y="215" text-anchor="middle" class="etc-cytochrome-label">Fe-S</text>`;
 const CYTOCHROME_ART = `<svg viewBox="0 0 170 280" aria-hidden="true">${CYTOCHROME_SHAPE}</svg>`;
+const PC_ART = `<svg viewBox="0 0 100 75" aria-hidden="true"><ellipse cx="50" cy="38" rx="43" ry="27" fill="#a6e5f2" stroke="#377ba3" stroke-width="4"/><text x="50" y="47" text-anchor="middle" fill="#153b55" font-size="29" font-weight="800">PC</text></svg>`;
 const BLUE_ART = `<svg viewBox="0 0 92 100" aria-hidden="true"><circle cx="46" cy="50" r="24" fill="#328be8" stroke="#103963" stroke-width="4"/></svg>`;
 const PROTON_ART = `<svg viewBox="0 0 92 100" aria-hidden="true"><circle cx="46" cy="50" r="24" fill="#fff" stroke="#b6d9f6" stroke-width="3"/><text x="46" y="57" text-anchor="middle" fill="#15334c" font-size="21" font-weight="800">H⁺</text></svg>`;
 
@@ -97,6 +114,19 @@ function proton(x, y, attribute = "") {
     return `<g ${attribute}><circle cx="${x}" cy="${y}" r="21" class="water-proton"/><text x="${x}" y="${y + 6}" text-anchor="middle" class="water-proton-label">H⁺</text></g>`;
 }
 
+export function scoreAnswers(answers) {
+    const checks = Catalog.assessment.questions.map(question => {
+        const passed = answers[question.id] === question.correctOptionId;
+        return { id: question.id, selectedOptionId: answers[question.id] ?? null,
+            correctOptionId: question.correctOptionId, passed,
+            awardedPoints: passed ? 1 : 0, maximumPoints: 1 };
+    });
+    const scorePoints = checks.filter(check => check.passed).length;
+    return { scorePoints, scoreMaximum: checks.length,
+        scorePercent: scorePoints / checks.length * 100,
+        isPerfect: scorePoints === checks.length, checks };
+}
+
 function membrane() {
     const heads = Array.from({ length: 20 }, (_, i) => 26 + i * 50)
         .map(x => `<ellipse cx="${x}" cy="174" rx="19" ry="15"/><ellipse cx="${x}" cy="426" rx="19" ry="15"/>`).join("");
@@ -107,11 +137,14 @@ function membrane() {
 
 const PhotosystemIIElectronTransportView = {
     root: null, controls: null, events: null, dragging: null, selected: null,
-    psii: false, pq: false, cytochrome: false, loaded: 0, photonVisible: true,
+    psii: false, pq: false, cytochrome: false, pc: false, pcLoaded: false,
+    pcNearCytochrome: false,
+    pcTransfers: 0, loaded: 0, photonVisible: true,
     cycle: 0, donorVisible: true, donorDocked: false, donorProtonsVisible: true,
     donorElectronsUsed: [false, false],
     qiElectrons: 0, qiProtons: 0, fElectrons: 0, lumenProtons: 0,
     waterSplits: 0, oxygenStage: "water",
+    sandbox: false, answers: {}, optionOrder: null, result: null,
     phase: "setup", animationStep: null, generation: 0,
     timer: null, wake: null, animations: new Set(),
 
@@ -134,16 +167,24 @@ const PhotosystemIIElectronTransportView = {
 
     reset() {
         const { container, controlContainer } = this;
-        if (container) this.mount(container, { controlsElement: controlContainer });
+        if (container) this.mount(container, { controlsElement: controlContainer, sandbox: this.sandbox });
     },
 
-    mount(container, { controlsElement = null } = {}) {
+    mount(container, { controlsElement = null, sandbox = false, review = false } = {}) {
         this.clear();
         this.container = container;
         this.controlContainer = controlsElement;
+        this.sandbox = sandbox;
+        this.answers = {};
+        this.optionOrder = randomizedOptions(Catalog.assessment.questions);
+        this.result = null;
         this.psii = false;
         this.pq = false;
         this.cytochrome = false;
+        this.pc = false;
+        this.pcLoaded = false;
+        this.pcNearCytochrome = false;
+        this.pcTransfers = 0;
         this.loaded = 0;
         this.photonVisible = true;
         this.cycle = 0;
@@ -163,6 +204,14 @@ const PhotosystemIIElectronTransportView = {
         this.root.className = "psii-lab etc-lab";
         container.replaceChildren(this.root);
         this.controls = controlsElement;
+        if (review) {
+            const latest = SubmissionManager.getSubmissions(Catalog.id).at(-1);
+            const best = SubmissionManager.getBestScore(Catalog.id) ?? latest;
+            this.root.innerHTML = latest
+                ? `<div class="psii-intro"><h3>Electron Transport Chain submission</h3><p>Latest score: ${latest.scorePoints}/${latest.scoreMaximum} (${latest.scorePercent}%).</p><p>Highest score: ${best.scorePoints}/${best.scoreMaximum} (${best.scorePercent}%).</p></div>`
+                : `<div class="psii-intro"><p>No saved submission is available.</p></div>`;
+            return;
+        }
         this.events = new AbortController();
         const signal = this.events.signal;
         this.controls?.addEventListener("click", event => {
@@ -196,6 +245,14 @@ const PhotosystemIIElectronTransportView = {
             else this.render();
         }, { signal });
         this.root.addEventListener("click", event => {
+            if (event.target.closest("[data-etc-submit]")) { this.submit(); return; }
+            if (event.target.closest("[data-etc-retry]")) {
+                this.answers = {};
+                this.optionOrder = randomizedOptions(Catalog.assessment.questions);
+                this.result = null;
+                this.render();
+                return;
+            }
             const item = event.target.closest("[data-etc-material]");
             if (item && !item.disabled) {
                 this.selected = item.dataset.etcMaterial;
@@ -203,6 +260,13 @@ const PhotosystemIIElectronTransportView = {
             } else if (event.target.closest("[data-etc-board]") && this.selected) {
                 this.place(this.selected);
             }
+        }, { signal });
+        this.root.addEventListener("change", event => {
+            const input = event.target.closest("input[data-etc-question]");
+            if (!input) return;
+            this.answers[input.dataset.etcQuestion] = input.value;
+            const submit = this.root.querySelector("[data-etc-submit]");
+            if (submit) submit.disabled = Catalog.assessment.questions.some(question => !this.answers[question.id]);
         }, { signal });
         this.render();
     },
@@ -224,6 +288,17 @@ const PhotosystemIIElectronTransportView = {
                 return;
             }
             this.cytochrome = true;
+            this.selected = null;
+            this.phase = "await-pc";
+            this.render();
+            return;
+        }
+        if (material === "pc" && this.phase === "await-pc") {
+            if (point && (point.x < 725 || point.x > 875 || point.y < 420 || point.y > 545)) {
+                this.render("Place PC in its dotted lumen-side target beside cytochrome f.");
+                return;
+            }
+            this.pc = true;
             this.selected = null;
             this.phase = "ready-qcycle";
             this.render();
@@ -397,7 +472,7 @@ const PhotosystemIIElectronTransportView = {
             if (!await this.pause(650, generation)) return;
             const carrier = this.root.querySelector("[data-etc-pq]");
             if (!await this.move(carrier, PQ_FINISH.x - PQ_START.x, PQ_FINISH.y - startY, 1250, generation)) return;
-            this.phase = this.cytochrome ? "ready-second" : "await-cytochrome";
+            this.phase = this.pc ? "ready-second" : "await-cytochrome";
         } else this.phase = "ready-excite";
         this.animationStep = null;
         this.render();
@@ -428,7 +503,7 @@ const PhotosystemIIElectronTransportView = {
     },
 
     async runQCycle() {
-        if (!["ready-qcycle", "ready-second", "ready-recycle"].includes(this.phase) || !this.cytochrome || !this.root) return;
+        if (!["ready-qcycle", "ready-second", "ready-recycle"].includes(this.phase) || !this.cytochrome || !this.pc || !this.root) return;
         const generation = ++this.generation;
         const turn = this.cycle;
         this.phase = "qcycle-running";
@@ -465,7 +540,7 @@ const PhotosystemIIElectronTransportView = {
         if (!(await Promise.all(protonMoves)).every(Boolean)) return;
         this.lumenProtons += 2;
         this.donorProtonsVisible = false;
-        this.render("One electron goes through the Fe-S center toward cytochrome f.");
+        this.render("One electron goes through the Fe-S center and cytochrome f toward PC.");
 
         const first = this.lift(this.root.querySelector('[data-etc-bound-electron="0"]'));
         const firstX = PQ_FINISH.x + 35;
@@ -510,6 +585,7 @@ const PhotosystemIIElectronTransportView = {
             ? "Qi-side PQ holds one electron and one H⁺. It remains here for a second turnover."
             : "Qi-side PQ has gained its second electron and H⁺, becoming PQH₂.");
         if (!await this.pause(650, generation)) return;
+        if (!await this.transferToPSI(generation)) return;
 
         const spentDonor = this.root.querySelector("[data-etc-pq]");
         const spentLabel = spentDonor?.querySelector?.(".etc-pq-label");
@@ -529,6 +605,70 @@ const PhotosystemIIElectronTransportView = {
         } else {
             this.phase = "await-second-pq";
             this.render();
+        }
+    },
+
+    async transferToPSI(generation) {
+        this.announce("Empty PC moves left to cytochrome f.");
+        const approaching = this.root.querySelector("[data-etc-pc]");
+        if (!await this.move(approaching, PC_APPROACH_X, PC_APPROACH_Y, 800, generation)) return false;
+        this.pcNearCytochrome = true;
+        this.announce("PC takes the electron waiting at cytochrome f.");
+        const waiting = this.lift(this.root.querySelector('[data-etc-f-electron="0"]'));
+        if (!await this.move(waiting, PC_CENTER_X + 26 + PC_APPROACH_X - (CYTOCHROME_X + 145),
+            PC_CENTER_Y - 8 + PC_APPROACH_Y - (CYTOCHROME_Y + 225), 850, generation)) return false;
+        this.fElectrons = 0;
+        this.pcLoaded = true;
+        this.render("PC carries one electron through the lumen toward PSI.");
+        const pc = this.root.querySelector("[data-etc-pc]");
+        if (!await this.move(pc, PC_TRAVEL_X, PC_TRAVEL_Y, 1000, generation,
+            PC_APPROACH_X, PC_APPROACH_Y)) return false;
+        this.announce("PC delivers its electron to Photosystem I (PSI).");
+        const electronInPC = this.root.querySelector("[data-etc-pc-electron]");
+        if (!await this.move(electronInPC,
+            PSI_ACCEPTOR_X - (PC_CENTER_X + 26 + PC_TRAVEL_X),
+            PSI_ACCEPTOR_Y - (PC_CENTER_Y - 8 + PC_TRAVEL_Y), 750, generation)) return false;
+        electronInPC.style.display = "none";
+        this.announce("Empty PC returns to cytochrome f for another electron.");
+        if (!await this.move(pc, 0, 0, 850, generation, PC_TRAVEL_X, PC_TRAVEL_Y)) return false;
+        this.pcLoaded = false;
+        this.pcNearCytochrome = false;
+        this.pcTransfers++;
+        this.render("PC has returned to cytochrome f after delivering one electron to PSI.");
+        return true;
+    },
+
+    submit() {
+        if (this.phase !== "done" || this.result ||
+            Catalog.assessment.questions.some(question => !this.answers[question.id])) return;
+        const report = scoreAnswers(this.answers);
+        if (this.sandbox) { this.result = report; this.render(); return; }
+        const backup = structuredClone(gameState);
+        try {
+            const passes = ResearchManager.meetsCompletionThreshold(Catalog, report);
+            const alreadyCompleted = ResearchManager.isExperimentCompleted(Catalog.id);
+            const completion = passes && !alreadyCompleted
+                ? ResearchManager.completeExperiment(Catalog.id) : null;
+            if (passes && !alreadyCompleted && !completion?.completed) {
+                throw new Error(completion?.reason ?? "completion-failed");
+            }
+            const submission = SubmissionManager.recordSubmission({
+                experiment: Catalog, report, completion,
+                placementSnapshot: { psii: true, pq: true, cytochrome: true, pc: true },
+                attemptSnapshot: { answers: { ...this.answers },
+                    waterSplits: this.waterSplits, qCycleDeliveries: this.cycle,
+                    pcTransfers: this.pcTransfers }
+            });
+            if (!submission || !SaveManager.save({ reason: "photosystem-ii-electron-transport-submission" })) {
+                throw new Error("save-failed");
+            }
+            this.result = report;
+            OrganelleExperimentPanel.refresh();
+            this.render();
+        } catch {
+            for (const key of Object.keys(gameState)) delete gameState[key];
+            Object.assign(gameState, backup);
+            this.render("Score could not be saved. Please try Submit for Score again.");
         }
     },
 
@@ -578,14 +718,23 @@ const PhotosystemIIElectronTransportView = {
             running: "Follow the electron and proton movements.",
             "pq-loaded": "PQH₂ carries two electrons and two H⁺; watch it move away from PSII.",
             "await-cytochrome": "PQH₂ has moved right. Drag cytochrome b₆f into the dotted membrane target beside it.",
+            "await-pc": "Drag plastocyanin (PC) into the dotted target on the lumen side of cytochrome f.",
             "ready-qcycle": "Press Run Q cycle to deliver PQH₂ to b₆f (turnover 1 of 2).",
             "await-second-pq": "Drag another empty PQ beside PSII. Two more Excite and Split H₂O rounds will load it for turnover 2 of 2.",
             "ready-second": "Qi PQ has one electron and one H⁺. Press Run Q cycle for a fresh PQH₂ delivery (turnover 2 of 2).",
             "ready-recycle": "Qi PQH₂ is fully loaded. Recycle it to the donor side to release its protons and electrons.",
             "qcycle-running": "Watch the PQH₂ oxidation, proton release, and two electron paths.",
-            done: "Two waters supplied four electrons and four lumen H⁺, releasing O₂. Three PQH₂ deliveries added six more lumen H⁺; a new Qi PQ has started loading. PC pickup comes next."
+            done: "Four H⁺ came from water and six from PQH₂. PC delivered three electrons, one at a time, toward PSI. Answer the questions below."
         }[this.phase] ?? "Place the materials to begin.");
-        this.root.innerHTML = `<div class="psii-intro"><p><strong>Electron Transport Chain preview:</strong> Two H–O–H molecules appear at PSII. Break an O–H bond with each electron replacement; after four replacements, the oxygens form O₂. Build each PQH₂ with two excitations, then follow two Q-cycle turnovers and a recycled delivery. Water-derived and PQH₂-derived H⁺ collect in the lumen.</p><p class="psii-progress" role="status" data-etc-status>${description}</p></div>
+        const quiz = this.phase === "done" ? `<section class="psii-quiz" aria-labelledby="etc-quiz-title">
+            <h3 id="etc-quiz-title">Check the electron transport model</h3>
+            <p>Answer all ${Catalog.assessment.questions.length} questions and submit for a saved score.</p>
+            ${Catalog.assessment.questions.map((question, index) => `<fieldset><legend>${index + 1}. ${question.prompt}</legend>
+                ${(this.optionOrder?.get(question.id) ?? question.options).map(option => `<label><input type="radio" name="${question.id}" data-etc-question="${question.id}" value="${option.id}" ${this.answers[question.id] === option.id ? "checked" : ""} ${this.result ? "disabled" : ""}> ${option.text}</label>`).join("")}</fieldset>`).join("")}
+            ${this.result ? `<p class="psii-score" role="status">Score: ${this.result.scorePoints}/${this.result.scoreMaximum} (${this.result.scorePercent}%). ${this.result.isPerfect ? this.sandbox ? "Perfect re-examination; saved progress is unchanged." : "★ Perfect-score star earned." : "Review the model and try again."}</p>${this.result.isPerfect ? "" : `<button type="button" data-etc-retry>Try questions again</button>`}`
+                : `<button type="button" data-etc-submit ${Catalog.assessment.questions.some(question => !this.answers[question.id]) ? "disabled" : ""}>Submit for Score</button>`}
+        </section>` : "";
+        this.root.innerHTML = `<div class="psii-intro"><p><strong>Electron Transport Chain:</strong> Place cytochrome b₆f and PC. Two H–O–H molecules provide four replacement electrons, four lumen H⁺, and O₂. Each PQH₂ releases two more H⁺; one electron goes through cytochrome f to PC and then PSI, while the other helps reduce Qi-side PQ.</p><p class="psii-progress" role="status" data-etc-status>${description}</p></div>
             <div class="psii-workspace"><div class="psii-board"><svg data-etc-board viewBox="0 0 1000 700" role="img" aria-label="PSII and plastoquinone in a thylakoid membrane"><rect width="1000" height="700" rx="24" class="psii-background"/>
                 <text x="35" y="70" class="psii-side-label">STROMA</text><text x="35" y="678" class="psii-side-label">THYLAKOID LUMEN</text>
                 ${membrane()}
@@ -596,21 +745,23 @@ const PhotosystemIIElectronTransportView = {
                 ${this.cytochrome
                     ? `<g data-etc-cytochrome role="img" aria-label="Cytochrome b₆f complex with b₆, f, and Fe-S regions" transform="translate(${cytochromeX} ${cytochromeY})">${CYTOCHROME_SHAPE}</g>`
                     : this.loaded === 2 ? `<g data-etc-cytochrome-target transform="translate(${cytochromeX} ${cytochromeY})"><path d="M15 45 Q15 13 43 13 Q70 13 73 42 L73 170 Q68 215 44 220 Q15 219 15 183 Z M74 43 Q76 12 105 12 Q135 13 138 47 L138 173 Q161 194 153 233 Q146 265 106 269 Q67 270 65 237 L78 172 Z" class="etc-cytochrome-target"/><text x="84" y="265" text-anchor="middle" class="psii-small-label">b₆f</text></g>` : ""}
+                ${this.cytochrome ? `<g data-etc-psi role="img" aria-label="Photosystem I, next electron recipient"><rect x="900" y="190" width="76" height="235" rx="25" class="etc-psi"/><text x="938" y="320" text-anchor="middle" class="etc-psi-label">PSI</text></g>` : ""}
+                ${this.pc ? `<g data-etc-pc role="img" aria-label="Plastocyanin, ${this.pcLoaded ? "carrying one electron" : "empty"}" ${this.pcNearCytochrome ? `transform="translate(${PC_APPROACH_X} ${PC_APPROACH_Y})"` : ""}><ellipse cx="${PC_CENTER_X}" cy="${PC_CENTER_Y}" rx="44" ry="29" class="etc-pc"/><text x="${PC_CENTER_X}" y="${PC_CENTER_Y + 8}" text-anchor="middle" class="etc-pc-label">PC</text>${this.pcLoaded ? electron(PC_CENTER_X + 26, PC_CENTER_Y - 8, "data-etc-pc-electron") : ""}</g>`
+                    : this.cytochrome ? `<ellipse data-etc-pc-target cx="${PC_CENTER_X}" cy="${PC_CENTER_Y}" rx="44" ry="29" class="etc-pc-target"/>` : ""}
                 ${this.psii ? `${waterPair(this.waterSplits, this.oxygenStage)}${oxygenProduct(this.oxygenStage)}` : ""}
                 ${Array.from({ length: this.waterSplits }, (_, index) => { const position = lumenPosition(index); return proton(position.x, position.y, `data-etc-water-proton="${index}"`); }).join("")}
                 ${this.cytochrome ? `<text x="${QI_X + 54}" y="76" text-anchor="middle" class="psii-small-label">Qi SITE</text>${qi}
                     ${[0, 1].map(index => index < this.qiProtons ? "" : proton(QI_PROTON_SOURCE_X[index], 65, `data-etc-qi-source="${index}"`)).join("")}
                     ${Array.from({ length: this.lumenProtons }, (_, index) => { const position = lumenPosition(4 + index); return proton(position.x, position.y, `data-etc-lumen-proton="${index}"`); }).join("")}
-                    ${Array.from({ length: this.fElectrons }, (_, index) => electron(CYTOCHROME_X + 145 + index * 20, CYTOCHROME_Y + 225 + index * 18, `data-etc-f-electron="${index}"`)).join("")}
-                    ${this.fElectrons ? `<text x="${CYTOCHROME_X + 188}" y="${CYTOCHROME_Y + 205}" class="psii-small-label">toward PC</text>` : ""}` : ""}
-                ${this.psii ? `<text x="60" y="595" class="psii-small-label">2 H₂O supply electrons, H⁺, and O₂</text><text x="810" y="677" text-anchor="middle" class="water-protons-label">H⁺ in thylakoid lumen</text>` : ""}
+                    ${this.fElectrons ? electron(CYTOCHROME_X + 145, CYTOCHROME_Y + 225, 'data-etc-f-electron="0"') : ""}` : ""}
             </svg></div><div class="psii-tray organelle-experiment-material-tray"><h3>Materials</h3><div class="psii-material-list organelle-experiment-material-list">
                 ${material("psii", "Assembled PSII", PSII_ART, this.psii || this.phase !== "setup", this.selected === "psii")}
                 ${material("pq", "Plastoquinone (PQ)", PQ_ART, this.phase !== "await-second-pq" && (this.pq || this.phase !== "setup"), this.selected === "pq")}
                 ${material("cytochrome", "Cytochrome b₆f complex", CYTOCHROME_ART, this.phase !== "await-cytochrome" || this.cytochrome, this.selected === "cytochrome")}
+                ${material("pc", "Plastocyanin (PC)", PC_ART, this.phase !== "await-pc" || this.pc, this.selected === "pc")}
                 ${reference("Blue light (already positioned)", BLUE_ART)}
                 ${reference("H⁺ from stroma (already positioned)", PROTON_ART)}
-            </div><p>Place PSII and PQ first; cytochrome b₆f becomes draggable after PQH₂ forms. Place a fresh PQ after turnover 1, then load it at PSII. One donor electron goes via Fe-S and f toward PC; the other goes via b₆ to the Qi-side PQ. The blue dots to the right mark future PC transfers, not permanent storage in f.</p></div></div>`;
+            </div><p>Place PSII and PQ first; then place cytochrome b₆f and PC. Load a second PQ at PSII after turnover 1. PC carries one electron at a time from cytochrome f to PSI and returns empty.</p></div></div>${quiz}`;
         if (this.controls) {
             const action = this.phase === "ready-excite" ? `<button type="button" class="psii-header-button water-action-ready" data-etc-excite>Excite</button>`
                 : this.phase === "ready-split" ? `<button type="button" class="psii-header-button water-action-ready" data-etc-split>Split H₂O</button>`
