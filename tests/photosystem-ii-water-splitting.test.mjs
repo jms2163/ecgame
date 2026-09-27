@@ -159,7 +159,8 @@ try {
         [6, 6, 100]
     );
     assert.equal(star.sourceSubmissionId, SubmissionManager.getSubmissions(Catalog.id)[1].id);
-    assert.match(View.root.innerHTML, /Score: 6\/6 \(100%\).*★ Perfect-score star earned/);
+    assert.match(View.root.innerHTML, /Score: 6\/6 \(100%\).*Perfect score/);
+    assert.doesNotMatch(View.root.innerHTML, /★ Perfect-score star earned/);
 
     class FakeElement {
         constructor() { this.children = []; this.dataset = {}; this.value = ""; this._text = ""; }
@@ -175,7 +176,9 @@ try {
     const card = Panel.createExperimentCard(Catalog, ResearchManager.getExperimentStatus(Catalog.id));
     assert.match(card.textContent, /Completed/);
     assert.match(card.textContent, /Highest score: 6\/6 \(100%\)/);
-    assert.match(card.textContent, /★ Perfect-score star earned/);
+    assert.doesNotMatch(card.textContent, /★ Perfect-score star earned/);
+    assert.equal(card.children[0].children.filter(child =>
+        child.className === "organelle-experiment-star").length, 1);
     const reexamine = card.children.find(child => child.textContent === "Re-examine");
     assert.ok(reexamine);
     assert.equal(card.children.some(child => child.textContent === "Score Quiz"), false);
@@ -257,7 +260,8 @@ try {
     assert.equal(SubmissionManager.getBestScore(Catalog.id).scorePercent, 100);
     assert.ok(SubmissionManager.getStar(Catalog.id));
     assert.equal(gameState.player.xp, xp + 150);
-    assert.match(View.root.innerHTML, /Score: 6\/6 \(100%\).*★ Perfect-score star earned/);
+    assert.match(View.root.innerHTML, /Score: 6\/6 \(100%\).*Perfect score/);
+    assert.doesNotMatch(View.root.innerHTML, /★ Perfect-score star earned/);
     const oldMount = View.mount;
     try {
         let resetOptions = null;

@@ -1,0 +1,42 @@
+/* PSI uses the same thylakoid palette, membrane, and material cards as PSII. */
+.psi-lab .psi-fd { fill: rgba(183, 232, 120, .13); stroke: #b7e878; stroke-width: 4; stroke-dasharray: 8 6; cursor: pointer; }
+.psi-lab .psi-fd.psi-filled { fill: #b7e878; stroke: #416727; stroke-dasharray: none; }
+.psi-lab .psi-fnr { fill: rgba(239, 171, 100, .14); stroke: #efab64; stroke-width: 4; stroke-dasharray: 8 6; cursor: pointer; }
+.psi-lab .psi-fnr.psi-filled { fill: #efab64; stroke: #673d1e; stroke-dasharray: none; }
+.psi-lab .psi-carrier-label { fill: #17201a; font: 800 22px system-ui, sans-serif; pointer-events: none; }
+.psi-lab .psi-nadp { fill: #ffed55; stroke: #6b5000; stroke-width: 4; }
+.psi-lab .psi-nadp-rim { fill: none; stroke: #6b5000; stroke-width: 3; }
+.psi-lab .psi-pc { transform: translate(-170px, 0); }
+.psi-lab .psi-pc-approach { animation: psi-pc-in 1.3s ease-in-out both; }
+.psi-lab .psi-pc-donate { transform: translate(195px, 0); }
+.psi-lab .psi-pc-depart { animation: psi-pc-out 1.3s ease-in-out both; }
+.psi-lab .psi-photon-flight { animation: psi-photon 1.15s ease-in both; }
+.psi-lab [data-psi-electron="pc"] { transform-box: fill-box; transform-origin: center; animation: psii-electron-shake .2s ease-in-out infinite alternate; }
+.psi-lab .psi-pc-donate [data-psi-electron="pc"] { animation: psi-pc-donation 1s ease-in-out both; }
+.psi-lab [data-psi-electron="flight"] { animation: psi-acceptor 1.55s ease-in both; }
+.psi-lab [data-psi-electron="to-fd"] { animation: psi-to-fd 1.55s ease-in both; }
+.psi-lab .psi-fd-to-fnr { animation: psi-fd-dock 1.4s ease-in-out both; }
+.psi-lab .psi-fd-docked { transform: translate(87px, 0); }
+.psi-lab .psi-fd-return { animation: psi-fd-back 1s ease-in-out both; }
+.psi-lab .psi-fd-handoff [data-psi-electron="fd-0"] { animation: psi-fd-hand-off-left .9s ease-in-out both; }
+.psi-lab .psi-fd-handoff [data-psi-electron="fd-1"] { animation: psi-fd-hand-off-right .9s ease-in-out both; }
+.psi-lab [data-psi-electron^="fnr-to-nadp"] { animation: psi-to-nadp 1.4s ease-in both; }
+.psi-lab [data-psi-proton] { animation: psi-proton 1.3s ease-in both; animation-play-state: paused; }
+.psi-lab .psi-proton-flight [data-psi-proton] { animation-play-state: running; }
+.psi-lab .psi-nadp-approach { animation: psi-nadp-in 1.1s ease-in-out both; }
+.psi-lab .psi-nadp-docked { transform: translate(15px, 70px); }
+.psi-lab .psi-nadph-return { animation: psi-nadp-out 1.3s ease-in-out both; }
+@keyframes psi-pc-in { from { transform: translate(-170px, 0); } to { transform: translate(195px, 0); } }
+@keyframes psi-pc-out { from { transform: translate(195px, 0); } to { transform: translate(-170px, 0); } }
+@keyframes psi-pc-donation { from { transform: translate(0, 0); } to { transform: translate(19px, -97px); } }
+@keyframes psi-photon { from { transform: translate(0, 0); opacity: 1; } to { transform: translate(var(--psi-photon-dx), var(--psi-photon-dy)); opacity: 0; } }
+@keyframes psi-acceptor { to { transform: translate(0, -94px); } }
+@keyframes psi-to-fd { to { transform: translate(130px, -95px); } }
+@keyframes psi-fd-dock { to { transform: translate(87px, 0); } }
+@keyframes psi-fd-back { from { transform: translate(87px, 0); } to { transform: translate(0, 0); } }
+@keyframes psi-fd-hand-off-left { to { transform: translate(108px, 22px); } }
+@keyframes psi-fd-hand-off-right { to { transform: translate(79px, 22px); } }
+@keyframes psi-nadp-in { to { transform: translate(15px, 70px); } }
+@keyframes psi-nadp-out { from { transform: translate(15px, 70px); } to { transform: translate(0, 0); } }
+@keyframes psi-to-nadp { to { transform: translate(91px, -25px); } }
+@keyframes psi-proton { to { transform: translate(125px, 49px); opacity: 0; } }

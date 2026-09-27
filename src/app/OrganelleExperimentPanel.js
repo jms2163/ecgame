@@ -286,7 +286,8 @@ const OrganelleExperimentPanel = {
                 score.textContent =
                     `Highest score: ${bestScore.scorePoints}/${bestScore.scoreMaximum}` +
                     (Number.isFinite(scorePercent) ? ` (${scorePercent}%)` : "") +
-                    (starEarned ? " · ★ Perfect-score star earned" : "");
+                    (starEarned && experiment.organelleId !== "symbiosomes"
+                        ? " · ★ Perfect-score star earned" : "");
 
                 statusElement.appendChild(score);
 

@@ -276,7 +276,8 @@ try {
     assert.equal(gameState.player.xp, xp + 600);
     assert.equal(SubmissionManager.getBestScore(Catalog.id).scorePercent, 100);
     assert.ok(SubmissionManager.getStar(Catalog.id));
-    assert.match(View.root.innerHTML, /★ Perfect-score star earned/);
+    assert.match(View.root.innerHTML, /Perfect score/);
+    assert.doesNotMatch(View.root.innerHTML, /★ Perfect-score star earned/);
     gameState.player.id = "etc-report-test-player";
     gameState.player.name = "ETC Test";
     gameState.player.displayName = "ETCtester";

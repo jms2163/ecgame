@@ -193,9 +193,8 @@ const PhotosystemIIWaterSplittingView = {
         if (review) {
             const latest = SubmissionManager.getSubmissions(Catalog.id).at(-1);
             const best = SubmissionManager.getBestScore(Catalog.id) ?? latest;
-            const star = SubmissionManager.getStar(Catalog.id);
             this.root.innerHTML = latest
-                ? `<div class="psii-intro"><h3>Water Splitting submission</h3><p>Latest score: ${latest.scorePoints}/${latest.scoreMaximum} (${latest.scorePercent}%).</p><p>Highest score: ${best.scorePoints}/${best.scoreMaximum} (${best.scorePercent}%). ${star ? "★ Perfect-score star earned." : ""}</p><p>${ResearchManager.isExperimentCompleted(Catalog.id) ? "Completed: two H₂O yielded four H⁺ and O₂." : "Review the model and try again for completion."}</p></div>`
+                ? `<div class="psii-intro"><h3>Water Splitting submission</h3><p>Latest score: ${latest.scorePoints}/${latest.scoreMaximum} (${latest.scorePercent}%).</p><p>Highest score: ${best.scorePoints}/${best.scoreMaximum} (${best.scorePercent}%).</p><p>${ResearchManager.isExperimentCompleted(Catalog.id) ? "Completed: two H₂O yielded four H⁺ and O₂." : "Review the model and try again for completion."}</p></div>`
                 : `<div class="psii-intro"><p>No saved submission is available.</p></div>`;
             return;
         }
@@ -529,7 +528,7 @@ const PhotosystemIIWaterSplittingView = {
                     ${this.answers[question.id] === option.id ? "checked" : ""}
                     ${this.result ? "disabled" : ""}> ${option.text}</label>`).join("")}
             </fieldset>`).join("")}
-            ${this.result ? `<p class="psii-score" role="status">Score: ${this.result.scorePoints}/${this.result.scoreMaximum} (${this.result.scorePercent}%). ${this.result.isPerfect ? this.sandbox ? "Perfect re-examination; saved progress is unchanged." : "★ Perfect-score star earned. Water Splitting complete." : "Review the model and try again."}</p>
+            ${this.result ? `<p class="psii-score" role="status">Score: ${this.result.scorePoints}/${this.result.scoreMaximum} (${this.result.scorePercent}%). ${this.result.isPerfect ? this.sandbox ? "Perfect re-examination; saved progress is unchanged." : "Perfect score. Water Splitting complete." : "Review the model and try again."}</p>
                 ${this.result.isPerfect ? "" : `<button type="button" data-water-retry>Try questions again</button>`}`
                 : `<button type="button" data-water-submit ${Catalog.assessment.questions.some(question => !this.answers[question.id]) ? "disabled" : ""}>Submit for Score</button>`}
         </section>` : "";
