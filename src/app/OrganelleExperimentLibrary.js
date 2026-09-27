@@ -37,6 +37,8 @@ import PhotosystemIIWaterSplittingExperiment
 import PhotosystemIIElectronTransportExperiment
     from "./PhotosystemIIElectronTransportCatalog.js";
 import PhotosystemIExcitationExperiment from "./PhotosystemIExcitationCatalog.js";
+import PhotosyntheticATPSynthaseExperiment from "./PhotosyntheticATPSynthaseCatalog.js";
+import VATPaseAssemblyExperiment from "./VATPaseAssemblyCatalog.js";
 
 const MEMBRANE_TRANSPORT_LABELS = [
 
@@ -78,6 +80,12 @@ const OrganelleExperimentLibrary = {
 
     photosystem_i_excitation:
         PhotosystemIExcitationExperiment,
+
+    photosynthetic_atp_synthase:
+        PhotosyntheticATPSynthaseExperiment,
+
+    v_atpase_assembly:
+        VATPaseAssemblyExperiment,
 
     smooth_er_lipid_composition:
         SmoothERLipidCompositionExperiment,

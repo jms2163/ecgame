@@ -109,8 +109,8 @@ const OrganelleExperimentPanel = {
             OrganelleExperimentLibrary
         ).filter(
             experiment =>
-                experiment.organelleId ===
-                organelleId
+                experiment.organelleId === organelleId ||
+                experiment.organelleIds?.includes(organelleId)
         );
 
     },
@@ -239,6 +239,18 @@ const OrganelleExperimentPanel = {
             statusElement
         );
 
+        if (experiment.figure && (state === "locked" || state === "coming-soon")) {
+            const figure = document.createElement("figure");
+            figure.className = "organelle-experiment-reference";
+            const image = document.createElement("img");
+            image.src = experiment.figure;
+            image.alt = "F-ATPase reference diagram showing the proton-pumping direction; ATP synthesis reverses the H⁺ arrows.";
+            const caption = document.createElement("figcaption");
+            caption.textContent = "Reference diagram: reverse the H⁺ arrows for ATP synthesis.";
+            figure.append(image, caption);
+            card.appendChild(figure);
+        }
+
         if (experiment.stage?.template === "passive_diffusion_exploration" && state === "available") {
             const review = document.createElement("button");
             review.type = "button";
@@ -286,7 +298,7 @@ const OrganelleExperimentPanel = {
                 score.textContent =
                     `Highest score: ${bestScore.scorePoints}/${bestScore.scoreMaximum}` +
                     (Number.isFinite(scorePercent) ? ` (${scorePercent}%)` : "") +
-                    (starEarned && experiment.organelleId !== "symbiosomes"
+                    (starEarned && !experiment.organelleIds?.includes("symbiosomes") && experiment.organelleId !== "symbiosomes"
                         ? " · ★ Perfect-score star earned" : "");
 
                 statusElement.appendChild(score);
@@ -551,6 +563,8 @@ starElement.setAttribute(
                 );
             }
 
+            if (experiment.lockedMessage) details.push(experiment.lockedMessage);
+
             if (
                 status.missingDiscoveries.length > 0
             ) {
@@ -570,7 +584,7 @@ starElement.setAttribute(
                 status.incompleteExperiments
                     .forEach(experimentId => {
 
-                        if (experiment.requirements
+                        if ((experiment.requirementsByOrganelle?.[this.currentOrganelleId] ?? experiment.requirements)
                             ?.perfectScoreExperiments
                             ?.includes(experimentId)) {
                             details.push(
@@ -725,12 +739,19 @@ starElement.setAttribute(
             organelleLibrary[organelleId]?.shortSummary ??
             "Experiments reveal how molecular structure affects cell function.";
 
+        const organelleNote = {
+            mitochondria: "Completing all labs in this organelle will tremendously boost overall ATP production.",
+            symbiosomes: "Completing all experiments in this organelle will boost ATP production x10 in sunlit microbiomes."
+        }[organelleId];
+        if (organelleNote) this.summaryElement.textContent += ` ${organelleNote}`;
+
         const experimentStatuses =
             experiments.map(experiment => {
 
                 const experimentStatus =
                     ResearchManager.getExperimentStatus(
-                        experiment.id
+                        experiment.id,
+                        organelleId
                     );
 
                 return {

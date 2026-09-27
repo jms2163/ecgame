@@ -289,7 +289,7 @@ const ResearchManager = {
     },
 
 
-    getExperimentStatus(experimentId) {
+    getExperimentStatus(experimentId, organelleId = null) {
 
         const experiment =
             this.getExperiment(experimentId);
@@ -314,15 +314,21 @@ const ResearchManager = {
             releaseStatus ===
             "coming-soon";
 
+        const explicitlyLocked = releaseStatus === "locked";
+
+        const requirements = organelleId && experiment.requirementsByOrganelle?.[organelleId]
+            ? experiment.requirementsByOrganelle[organelleId]
+            : experiment.requirements;
+
         const requiredDiscoveries =
-            experiment.requirements?.discoveries ?? [];
+            requirements?.discoveries ?? [];
 
         const requiredExperiments =
-            experiment.requirements
+            requirements
                 ?.completedExperiments ?? [];
 
         const perfectScoreExperiments =
-            experiment.requirements
+            requirements
                 ?.perfectScoreExperiments ?? [];
 
         const missingDiscoveries =
@@ -370,6 +376,7 @@ const ResearchManager = {
 
             available:
                 !comingSoon &&
+                !explicitlyLocked &&
                 !completed &&
                 missingDiscoveries.length === 0 &&
                 incompleteExperiments.length === 0,

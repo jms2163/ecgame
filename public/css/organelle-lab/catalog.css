@@ -16,6 +16,9 @@
 .organelle-experiment-title-row .organelle-experiment-star { margin-left: 0; }
 .organelle-experiment-card h4 { margin: 0 0 4px; color: #f7efff; font-size: 0.95rem; }
 .organelle-experiment-card p { margin: 0; color: #cdbfd8; }
+.organelle-experiment-reference { margin: 10px 0 0; }
+.organelle-experiment-reference img { display: block; max-width: 100%; max-height: 220px; object-fit: contain; background: #fff; border-radius: 4px; }
+.organelle-experiment-reference figcaption { margin-top: 5px; color: #e5d2f0; font-size: .8rem; }
 .organelle-experiment-reward { margin-bottom: 8px !important; color: #df80ff !important; font-size: 0.85rem; font-weight: bold; }
 .organelle-experiment-status { margin-top: 10px !important; font-weight: bold; }
 .organelle-experiment-best-score { display: block; margin-top: 0.4rem; color: #f7efff; font-weight: 700; line-height: 1.4; }

@@ -59,6 +59,8 @@ import PhotosystemIIWaterSplittingView
 import PhotosystemIIElectronTransportView
     from "./PhotosystemIIElectronTransportView.js";
 import PhotosystemIExcitationView from "./PhotosystemIExcitationView.js";
+import PhotosyntheticATPSynthaseView from "./PhotosyntheticATPSynthaseView.js";
+import VATPaseAssemblyView from "./VATPaseAssemblyView.js";
 import GuidedExperimentManager from './GuidedExperimentManager.js';
 import GuidedExperimentView from './GuidedExperimentView.js';
 import ContractileVacuoleReviewView from './ContractileVacuoleReviewView.js';
@@ -173,6 +175,8 @@ const OrganelleExperimentStage = {
         PhotosystemIIWaterSplittingView.clear();
         PhotosystemIIElectronTransportView.clear();
         PhotosystemIExcitationView.clear();
+        PhotosyntheticATPSynthaseView.clear();
+        VATPaseAssemblyView.clear();
 
         this.simulationStructureResizeObserver?.disconnect();
 
@@ -2018,6 +2022,31 @@ stage.append(
             return;
         }
 
+        if (experiment.stage?.template === "photosynthetic_atp_synthase") {
+            this.stopParticleSimulation();
+            OrganelleExperimentPlacementController.reset();
+            OrganelleExperimentAttemptManager.reset();
+            this.activeResolvedExperiment = experiment;
+            this.titleElement.textContent = experiment.title;
+            this.controlsElement.replaceChildren();
+            PhotosyntheticATPSynthaseView.mount(this.contentElement, {
+                sandbox: this.isReexamineMode,
+                controlsElement: this.controlsElement
+            });
+            return;
+        }
+
+        if (experiment.stage?.template === "v_atpase_assembly") {
+            this.stopParticleSimulation();
+            OrganelleExperimentPlacementController.reset();
+            OrganelleExperimentAttemptManager.reset();
+            this.activeResolvedExperiment = experiment;
+            this.titleElement.textContent = experiment.title;
+            this.controlsElement.replaceChildren();
+            VATPaseAssemblyView.mount(this.contentElement, { controlsElement: this.controlsElement });
+            return;
+        }
+
         if (experiment.stage?.template === "photosystem_i_excitation") {
             this.stopParticleSimulation();
             OrganelleExperimentPlacementController.reset();
@@ -2473,6 +2502,13 @@ this.contentElement.appendChild(
             this.titleElement.textContent = `${experiment.title} - Submission Review`;
             this.controlsElement.replaceChildren();
             PhotosystemIIWaterSplittingView.mount(this.contentElement, { review: true });
+            return;
+        }
+
+        if (experiment.stage?.template === "photosynthetic_atp_synthase") {
+            this.titleElement.textContent = `${experiment.title} - Submission Review`;
+            this.controlsElement.replaceChildren();
+            PhotosyntheticATPSynthaseView.mount(this.contentElement, { review: true });
             return;
         }
 
