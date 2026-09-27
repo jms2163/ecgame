@@ -571,6 +571,23 @@
     box-shadow: inset 0 0 22px var(--pathway-card-tint);
 }
 
+.metabolism-pathway-card--completed {
+    border-color: #63b9ff;
+    box-shadow: inset 0 0 22px rgba(59, 145, 235, 0.14);
+}
+
+.metabolism-card-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.metabolism-card-star {
+    color: #63b9ff;
+    font-size: 1.05rem;
+    line-height: 1;
+}
+
 .metabolism-pathway-card--theme-blue {
     --pathway-card-accent: #57a9ff;
     --pathway-card-soft: rgba(87, 169, 255, 0.42);
@@ -617,7 +634,8 @@
     text-transform: uppercase;
 }
 
-.metabolism-pathway-card--available .metabolism-card-heading > span {
+.metabolism-pathway-card--available .metabolism-card-heading > span,
+.metabolism-pathway-card--completed .metabolism-card-heading > span {
     border-color: rgba(101, 230, 154, 0.45);
     color: var(--metabolism-ready);
 }
@@ -652,6 +670,7 @@
 
 .metabolism-map-panel {
     min-width: 0;
+    container-type: inline-size;
 }
 
 .metabolism-map-heading {
@@ -1030,7 +1049,21 @@
     font: inherit;
     text-align: left;
     background: rgba(255, 216, 77, 0.07);
-    cursor: grab;
+    cursor: pointer;
+}
+
+.metabolism-enzyme-card--ready {
+    border-color: rgba(255, 216, 77, 0.65);
+}
+
+.metabolism-enzyme-card--required {
+    opacity: 0.75;
+}
+
+.metabolism-enzyme-card:hover,
+.metabolism-enzyme-card:focus-visible {
+    border-color: var(--metabolism-accent-bright);
+    outline-offset: 2px;
 }
 
 .metabolism-enzyme-card span,
@@ -1042,8 +1075,68 @@
 
 .metabolism-enzyme-card--placed {
     border-color: rgba(101, 230, 154, 0.5);
-    cursor: default;
-    opacity: 0.72;
+}
+
+.metabolism-protein-dialog {
+    width: min(440px, calc(100vw - 32px));
+    max-height: min(90vh, 740px);
+    padding: 20px;
+    border: 2px solid var(--metabolism-accent);
+    border-radius: 16px;
+    color: var(--metabolism-text);
+    background: var(--metabolism-panel);
+    box-shadow: 0 20px 70px rgba(0, 0, 0, 0.7);
+}
+
+.metabolism-protein-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.72);
+}
+
+.metabolism-protein-dialog h2 {
+    margin: 0 0 14px;
+    font-size: 1.1rem;
+}
+
+.metabolism-protein-image-frame {
+    display: grid;
+    place-items: center;
+    min-height: 220px;
+    border-radius: 10px;
+    color: var(--metabolism-muted);
+    background: white;
+    overflow: hidden;
+}
+
+.metabolism-protein-image-frame img {
+    display: block;
+    width: 100%;
+    max-height: 320px;
+    object-fit: contain;
+}
+
+.metabolism-protein-image-frame > span {
+    color: #343434;
+    font-size: 0.76rem;
+    text-align: center;
+}
+
+.metabolism-protein-message {
+    line-height: 1.5;
+}
+
+.metabolism-protein-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.metabolism-protein-actions button {
+    padding: 9px 14px;
+    border: 1px solid var(--metabolism-accent);
+    border-radius: 8px;
+    color: var(--metabolism-text);
+    background: rgba(255, 216, 77, 0.14);
+    cursor: pointer;
 }
 
 .metabolism-enzyme-tray-empty {
@@ -1177,6 +1270,35 @@
 
     .metabolism-pathway-connection--complete,
     .metabolism-pathway-connection--vertical.metabolism-pathway-connection--complete {
+        border-left-color: var(--metabolism-ready);
+    }
+}
+
+/* Follow the pathway panel's actual width, not only the browser width. */
+@container (max-width: 850px) {
+    .metabolism-pathway-track {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        padding: 18px;
+    }
+    .metabolism-pathway-track > * {
+        grid-row: auto !important;
+        grid-column: auto !important;
+    }
+    .metabolism-pathway-connection,
+    .metabolism-pathway-connection--vertical {
+        align-self: center;
+        width: 0;
+        height: 30px;
+        border-top: 0;
+        border-left: 4px dotted #ef6452;
+    }
+    .metabolism-pathway-connection--adjacent {
+        border-left-color: var(--metabolism-accent);
+        border-left-style: solid;
+    }
+    .metabolism-pathway-connection--complete {
         border-left-color: var(--metabolism-ready);
     }
 }

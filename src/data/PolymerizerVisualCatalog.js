@@ -210,7 +210,7 @@ Enolase: Object.freeze({
 }),
 // PolymerizerVisualCatalog.js — Lactate Dehydrogenase (4LDA)
 
-LactateDehydrogenase: Object.freeze({
+    LactateDehydrogenase: Object.freeze({
     directoryName: "4lda_motifs",
     filePrefix: "4lda",
     firstFrameNumber: 0,
@@ -220,8 +220,57 @@ LactateDehydrogenase: Object.freeze({
     accent: "gold",
     placeholderLabel:
         "Lactate dehydrogenase motif assembly preview",
-    fallbackFileName: null
-})
+        fallbackFileName: null
+    }),
+    TriosePhosphateTranslocator: Object.freeze({
+        directoryName: "5y78_motifs", filePrefix: "5y78",
+        firstFrameNumber: 0, lastFrameNumber: 12,
+        alt: "TPT motif assembly from PDB 5Y78.",
+        accent: "green", placeholderLabel: "TPT assembly preview",
+        fallbackFileName: null
+    }),
+    SucroseSynthase1: Object.freeze({
+        directoryName: "3s27_motifs", filePrefix: "3s27",
+        firstFrameNumber: 0, lastFrameNumber: 51,
+        alt: "Sucrose synthase 1 motif assembly from PDB 3S27.",
+        accent: "gold", placeholderLabel: "Sucrose synthase assembly preview",
+        fallbackFileName: null
+    }),
+    GranuleBoundStarchSynthase1: Object.freeze({
+        directoryName: "3vuf_motifs", filePrefix: "3vuf",
+        firstFrameNumber: 0, lastFrameNumber: 32,
+        alt: "Rice granule-bound starch synthase I motif assembly from PDB 3VUF.",
+        accent: "gold", placeholderLabel: "Starch synthase assembly preview",
+        fallbackFileName: null
+    }),
+    Isoamylase: Object.freeze({
+        directoryName: "1bf2_motifs", filePrefix: "1bf2",
+        firstFrameNumber: 0, lastFrameNumber: 44,
+        alt: "Pseudomonas isoamylase motif assembly from PDB 1BF2.",
+        accent: "gold", placeholderLabel: "Isoamylase assembly preview",
+        fallbackFileName: null
+    }),
+    Ferredoxin: Object.freeze({
+        directoryName: "1a70_motifs", filePrefix: "1a70",
+        firstFrameNumber: 0, lastFrameNumber: 8,
+        alt: "Ferredoxin motif assembly from PDB 1A70.",
+        accent: "green", placeholderLabel: "Fd assembly preview",
+        fallbackFileName: null
+    }),
+    FerredoxinNADPReductase: Object.freeze({
+        directoryName: "1fnd_motifs", filePrefix: "1fnd",
+        firstFrameNumber: 0, lastFrameNumber: 23,
+        alt: "Ferredoxin-NADP+ reductase motif assembly from PDB 1FND.",
+        accent: "green", placeholderLabel: "FNR assembly preview",
+        fallbackFileName: null
+    }),
+    Plastocyanin: Object.freeze({
+        directoryName: "1plc_motifs", filePrefix: "1plc",
+        firstFrameNumber: 0, lastFrameNumber: 10,
+        alt: "Plastocyanin motif assembly from PDB 1PLC.",
+        accent: "blue", placeholderLabel: "PC assembly preview",
+        fallbackFileName: null
+    })
 
 
 

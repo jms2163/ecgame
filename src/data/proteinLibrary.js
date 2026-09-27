@@ -491,6 +491,83 @@ export const proteinLibrary =  Object.freeze({
     "Models": {},
     "Info": "Primary carbon-fixing enzyme of photosynthesis, catalyzing the addition of atmospheric carbon dioxide to ribulose bisphosphate."
   },
+  "TriosePhosphateTranslocator": {
+    "PPC": "",
+    "Recipe": {"H": 10, "B": 0, "L": 11},
+    "Class": "Photosynthesis",
+    "Function": "Exchanges triose phosphate for inorganic phosphate across the chloroplast envelope",
+    "Tier": 3,
+    "Location": "Symbiont chloroplast envelope",
+    "Source": "5Y78",
+    "Models": {},
+    "Info": "Triose-phosphate/phosphate translocator (TPT). PDB 5Y78 is from the red alga Galdieria sulphuraria, a structural example for G3P/Pi exchange, not an Arabidopsis structure."
+  },
+  "SucroseSynthase1": {
+    "PPC": "",
+    "Recipe": {"H": 24, "B": 28, "L": 53},
+    "Class": "Carbohydrate Metabolism",
+    "Function": "Reversibly converts sucrose and UDP into UDP-glucose and fructose",
+    "Tier": 3,
+    "Location": "Plant cytosol",
+    "Source": "3S27",
+    "Models": {},
+    "Info": "Arabidopsis thaliana sucrose synthase 1. A later sugar metabolism component, not the enzyme that directly converts Calvin-cycle G3P to glucose."
+  },
+  "GranuleBoundStarchSynthase1": {
+    "PPC": "",
+    "Recipe": {"H": 15, "B": 19, "L": 36},
+    "Class": "Starch Metabolism",
+    "Function": "Extends glucan chains during starch synthesis",
+    "Tier": 3,
+    "Location": "Symbiont chloroplast starch granule",
+    "Source": "3VUF",
+    "Models": {},
+    "Info": "Rice (Oryza sativa) granule-bound starch synthase I catalytic domain. This one isoform is a representative chain-elongating starch synthase, not a complete starch synthesis pathway."
+  },
+  "Isoamylase": {
+    "PPC": "",
+    "Recipe": {"H": 12, "B": 22, "L": 33},
+    "Class": "Starch Metabolism",
+    "Function": "Hydrolyzes alpha-1,6 branches in glucans",
+    "Tier": 3,
+    "Location": "Structural example; bacterial enzyme",
+    "Source": "1BF2",
+    "Models": {},
+    "Info": "Pseudomonas isoamylase structural example. The 67 listed motif segments give 12 alpha helices, 22 beta sheets, and 33 loops; this structure is not a plant isoamylase."
+  },
+  "Ferredoxin": {
+    "PPC": "",
+    "Recipe": {"H": 1, "B": 5, "L": 6},
+    "Class": "Photosynthesis",
+    "Function": "Fd carries electrons from PSI toward FNR",
+    "Tier": 3,
+    "Location": "Symbiont chloroplast stroma",
+    "Source": "1A70",
+    "Models": {},
+    "Info": "Spinach ferredoxin (Fd), used as a structural example for the PSI electron carrier."
+  },
+  "FerredoxinNADPReductase": {
+    "PPC": "",
+    "Recipe": {"H": 6, "B": 12, "L": 19},
+    "Class": "Photosynthesis",
+    "Function": "FNR transfers electrons from Fd to NADP+ to make NADPH",
+    "Tier": 3,
+    "Location": "Symbiont chloroplast stroma-facing thylakoid",
+    "Source": "1FND",
+    "Models": {},
+    "Info": "Spinach ferredoxin-NADP+ reductase (FNR), used as a structural example for NADPH formation."
+  },
+  "Plastocyanin": {
+    "PPC": "",
+    "Recipe": {"H": 1, "B": 7, "L": 9},
+    "Class": "Photosynthesis",
+    "Function": "PC carries electrons from cytochrome b6f to PSI",
+    "Tier": 3,
+    "Location": "Symbiont thylakoid lumen",
+    "Source": "1PLC",
+    "Models": {},
+    "Info": "Poplar plastocyanin (PC), used as a structural example for the lumen-side electron carrier."
+  },
   "PhotosystemII": {
     "PPC": "BBHHLBH",
     "Recipe": {"B": 3, "H": 3, "L": 1},

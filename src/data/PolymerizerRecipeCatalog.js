@@ -129,6 +129,48 @@ const PRODUCT_CONFIGS = Object.freeze({
         implemented: true,
         discoveryId: null,
         lockedMessage: null
+    }),
+    TriosePhosphateTranslocator: Object.freeze({
+        name: "Triose Phosphate/Phosphate Translocator (TPT)",
+        implemented: true,
+        discoveryId: null,
+        lockedMessage: null
+    }),
+    SucroseSynthase1: Object.freeze({
+        name: "Sucrose Synthase 1",
+        implemented: true,
+        discoveryId: null,
+        lockedMessage: null
+    }),
+    GranuleBoundStarchSynthase1: Object.freeze({
+        name: "Starch Synthase (GBSSI)",
+        implemented: true,
+        discoveryId: null,
+        lockedMessage: null
+    }),
+    Isoamylase: Object.freeze({
+        name: "Isoamylase",
+        implemented: true,
+        discoveryId: null,
+        lockedMessage: null
+    }),
+    Ferredoxin: Object.freeze({
+        name: "Ferredoxin (Fd)",
+        implemented: true,
+        discoveryId: null,
+        lockedMessage: null
+    }),
+    FerredoxinNADPReductase: Object.freeze({
+        name: "Ferredoxin-NADP+ Reductase (FNR)",
+        implemented: true,
+        discoveryId: null,
+        lockedMessage: null
+    }),
+    Plastocyanin: Object.freeze({
+        name: "Plastocyanin (PC)",
+        implemented: true,
+        discoveryId: null,
+        lockedMessage: null
     })
 });
 

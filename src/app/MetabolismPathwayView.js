@@ -102,6 +102,7 @@ function getConnectionPosition(
 function createSlotElement(
     slot,
     occupied,
+    synthesized,
     branch = null
 ) {
 
@@ -145,8 +146,8 @@ function createSlotElement(
         "small"
     );
     status.textContent = occupied
-        ? "Enzyme card placed"
-        : "Enzyme card required";
+        ? "Enzyme activated"
+        : synthesized ? "Enzyme unactivated" : "Enzyme required";
 
     element.append(
         number,
@@ -460,6 +461,10 @@ const MetabolismPathwayView = {
         const occupiedIds = new Set(
             occupiedEnzymeIds
         );
+        const synthesizedIds = new Set(
+            (pathway.availableEnzymes ?? [])
+                .map(enzyme => enzyme.enzymeId)
+        );
         const track = document.createElement(
             "div"
         );
@@ -489,6 +494,7 @@ const MetabolismPathwayView = {
                 createSlotElement(
                     slot,
                     occupied,
+                    synthesizedIds.has(slot.enzymeId),
                     slot.branch
                 );
             const slotPosition =

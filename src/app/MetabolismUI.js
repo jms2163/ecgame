@@ -15,6 +15,23 @@ import MetabolismCoreModuleView
     from "./MetabolismCoreModuleView.js";
 import MetabolismSystemsView
     from "./MetabolismSystemsView.js";
+import PolymerizerVisualCatalog
+    from "../data/PolymerizerVisualCatalog.js";
+
+export function pathwayCardState(pathway) {
+    if (pathway.releaseState === "coming-soon") return "coming-soon";
+    if (!pathway.available) return "locked";
+    if (pathway.reconstruction?.requiredCoreEnzymes > 0 &&
+        pathway.reconstruction.complete &&
+        pathway.regenerationComplete) return "completed";
+    return "available";
+}
+
+export function sortPathwayCards(pathways) {
+    const order = { available: 0, locked: 1, completed: 2, "coming-soon": 3 };
+    return [...pathways].sort((left, right) =>
+        order[pathwayCardState(left)] - order[pathwayCardState(right)]);
+}
 
 const MetabolismUI = {
 
@@ -246,11 +263,17 @@ const MetabolismUI = {
                             <span><i class="metabolism-legend-line metabolism-legend-line--complete"></i>Complete pathway</span>
                         </div>
 
-                        <div id="metabolism-pathway-map" class="metabolism-pathway-map"></div>
-
                         <p class="metabolism-map-guidance">
-                            Synthesize an enzyme in Polymerizer, then drag its card to the matching slot. Products are not consumed. Each correctly placed core enzyme adds +1 ATP/min even when neighboring slots are empty.
+                            Select an enzyme below to view its structure and activate it, or drag a synthesized enzyme to its pathway slot. Proteins are not consumed.
                         </p>
+
+                        <section class="metabolism-enzyme-tray-panel" aria-labelledby="metabolism-enzyme-tray-heading">
+                            <p class="metabolism-panel-kicker">Polymerizer Inventory</p>
+                            <h3 id="metabolism-enzyme-tray-heading">Available Enzyme Cards</h3>
+                            <div id="metabolism-enzyme-tray" class="metabolism-enzyme-tray"></div>
+                        </section>
+
+                        <div id="metabolism-pathway-map" class="metabolism-pathway-map"></div>
 
                         <section class="metabolism-production-panel" aria-labelledby="metabolism-production-heading">
                             <div>
@@ -260,15 +283,10 @@ const MetabolismUI = {
                             <strong id="metabolism-production-summary">0 / 10 · +0 ATP/min</strong>
                         </section>
 
-                        <section class="metabolism-enzyme-tray-panel" aria-labelledby="metabolism-enzyme-tray-heading">
-                            <p class="metabolism-panel-kicker">Polymerizer Inventory</p>
-                            <h3 id="metabolism-enzyme-tray-heading">Available Enzyme Cards</h3>
-                            <div id="metabolism-enzyme-tray" class="metabolism-enzyme-tray"></div>
-                        </section>
-
                         <div id="metabolism-chemistry-summary" class="metabolism-chemistry-summary"></div>
                     </main>
                 </div>
+                <dialog id="metabolism-protein-dialog" class="metabolism-protein-dialog" aria-labelledby="metabolism-protein-name"></dialog>
             </div>
         `;
 
@@ -354,7 +372,7 @@ const MetabolismUI = {
         );
 
         this.pathwayListElement.replaceChildren(
-            ...pathways.map(pathway =>
+            ...sortPathwayCards(pathways).map(pathway =>
                 this.createPathwayCard(
                     pathway
                 )
@@ -380,10 +398,12 @@ const MetabolismUI = {
             selectedPathway.themeId;
         this.mapTitleElement.textContent =
             `${selectedPathway.name} Map`;
+        const selectedState = pathwayCardState(selectedPathway);
         this.mapStatusElement.textContent =
-            selectedPathway.available
-                ? "Development Preview"
-                : "Locked · Development Preview";
+            selectedState === "completed" ? "Completed" :
+                selectedState === "locked" ? "Locked" :
+                    selectedPathway.mapType === "network"
+                        ? "Development Preview" : "Available";
 
         const isNetwork =
             selectedPathway.mapType ===
@@ -403,7 +423,7 @@ const MetabolismUI = {
         if (mapGuidance) {
             mapGuidance.textContent = isNetwork
                 ? "ETC components are shown as a functional dependency network. Protein products will remain owned by Polymerizer; metabolites and the proton gradient are never draggable protein cards."
-                : "Synthesize an enzyme in Polymerizer, then drag its card to the matching slot. Products are not consumed. Each configured core enzyme benefit is derived from the selected pathway catalog.";
+                : "Select an enzyme above to inspect and activate it, or drag a synthesized enzyme to its slot. Products are not consumed.";
         }
 
         MetabolismPathwayView.render(
@@ -481,14 +501,7 @@ const MetabolismUI = {
         MetabolismEnzymeTrayView.render(
             this.enzymeTrayElement,
             selectedPathway,
-            (slotNumber, enzymeId) => {
-                MetabolismManager.placeEnzyme(
-                    selectedPathway.id,
-                    slotNumber,
-                    enzymeId
-                );
-                this.render();
-            }
+            (slot, state) => this.inspectEnzyme(selectedPathway, slot, state)
         );
         const trayPanel =
             this.enzymeTrayElement.closest(
@@ -529,6 +542,68 @@ const MetabolismUI = {
 
     },
 
+    inspectEnzyme(pathway, slot, { active, synthesized }) {
+        const dialog = this.rootElement.querySelector("#metabolism-protein-dialog");
+        if (!dialog) return;
+        dialog.replaceChildren();
+        const heading = document.createElement("h2");
+        heading.id = "metabolism-protein-name";
+        heading.textContent = slot.label;
+        const visual = PolymerizerVisualCatalog.get(slot.enzymeId);
+        const imageFrame = document.createElement("div");
+        imageFrame.className = "metabolism-protein-image-frame";
+        const placeholder = document.createElement("span");
+        placeholder.textContent = synthesized
+            ? "Protein image unavailable"
+            : "Protein not synthesized · frame 0";
+        imageFrame.appendChild(placeholder);
+        if (visual) {
+            const image = document.createElement("img");
+            image.alt = synthesized
+                ? visual.alt
+                : `Frame 0 preview of ${slot.label}`;
+            image.src = synthesized
+                ? visual.finalImageUrl
+                : visual.idleImageUrl;
+            image.addEventListener("load", () => { placeholder.hidden = true; });
+            image.addEventListener("error", () => { image.hidden = true; });
+            imageFrame.appendChild(image);
+        }
+        const explanation = document.createElement("p");
+        explanation.className = "metabolism-protein-message";
+        explanation.textContent = active
+            ? `${slot.label} functioning.`
+            : synthesized
+                ? `Drag ${slot.label} to its pathway card, or press Activate enzyme.`
+                : "This enzyme needs to be synthesized in the Polymerizer first.";
+        const actions = document.createElement("div");
+        actions.className = "metabolism-protein-actions";
+        const close = document.createElement("button");
+        close.type = "button";
+        close.textContent = "Close";
+        close.addEventListener("click", () => dialog.close());
+        if (synthesized && !active && pathway.available) {
+            const activate = document.createElement("button");
+            activate.type = "button";
+            activate.textContent = "Activate enzyme";
+            activate.addEventListener("click", () => {
+                const result = MetabolismManager.placeEnzyme(pathway.id, slot.slot, slot.enzymeId);
+                if (result.success) {
+                    dialog.close();
+                    this.render();
+                } else {
+                    explanation.textContent = result.missingRequirements?.length
+                        ? `Requires ${result.missingRequirements.map(item => item.label).join(" + ")} before activation.`
+                        : "Unable to activate this enzyme yet.";
+                }
+            });
+            actions.appendChild(activate);
+        }
+        actions.appendChild(close);
+        dialog.append(heading, imageFrame, explanation, actions);
+        if (!dialog.open) dialog.showModal();
+    },
+
     createPathwayCard(pathway) {
 
         const card = document.createElement(
@@ -536,16 +611,13 @@ const MetabolismUI = {
         );
         const requirements =
             pathway.unlockRequirements ?? [];
-        const comingSoon =
-            pathway.releaseState ===
-                "coming-soon";
+        const state = pathwayCardState(pathway);
+        const comingSoon = state === "coming-soon";
 
         card.className = [
             "metabolism-pathway-card",
             `metabolism-pathway-card--theme-${pathway.themeId}`,
-            pathway.available
-                ? "metabolism-pathway-card--available"
-                : "metabolism-pathway-card--locked",
+            `metabolism-pathway-card--${state}`,
             comingSoon
                 ? "metabolism-pathway-card--coming-soon"
                 : ""
@@ -566,7 +638,12 @@ const MetabolismUI = {
                     <p>${pathway.category}</p>
                     <h3>${pathway.name}</h3>
                 </div>
-                <span>${comingSoon ? "Coming Soon" : pathway.available ? "Preview" : "Locked"}</span>
+                <span class="metabolism-card-status">
+                    ${state === "completed" ? '<b class="metabolism-card-star" aria-hidden="true">★</b>' : ""}
+                    ${state === "coming-soon" ? "Coming Soon" :
+                        state === "completed" ? "Completed" :
+                            state === "available" ? "Available" : "Locked"}
+                </span>
             </div>
             <p>${pathway.description}</p>
             ${requirements.length > 0
