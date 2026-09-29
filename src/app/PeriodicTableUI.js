@@ -44,7 +44,7 @@ const PeriodicTableUI = {
     const isSandboxUnlocked = Boolean(GameStateManager?.hasFeature?.("sandbox_mode"));
 
     this.buttons.forEach((button, symbol) => {
-        const isDiscovered = Boolean(GameStateManager?.hasDiscovery?.(symbol));
+        const isDiscovered = Boolean(GameStateManager?.hasDiscoveryInCategory?.("atoms", symbol));
         const index = elementSequence.indexOf(symbol);
 
         let isUnlocked = false;
@@ -56,7 +56,7 @@ const PeriodicTableUI = {
         } else if (index > 0) {
             // Unlocked if the immediate predecessor is discovered
             const previousSymbol = elementSequence[index - 1];
-            isUnlocked = Boolean(GameStateManager?.hasDiscovery?.(previousSymbol));
+            isUnlocked = Boolean(GameStateManager?.hasDiscoveryInCategory?.("atoms", previousSymbol));
         } else {
             // Elements beyond Oxygen remain locked until sandbox mode
             isUnlocked = false;
@@ -143,7 +143,7 @@ const PeriodicTableUI = {
     },
 
     handleElementClick(symbol) {
-        const isDiscovered = GameStateManager?.hasDiscovery?.(symbol);
+        const isDiscovered = GameStateManager?.hasDiscoveryInCategory?.("atoms", symbol);
 
         if (isDiscovered) {
             console.log(`[PeriodicTable] Viewing discovered element: ${symbol}`);
@@ -170,7 +170,7 @@ const PeriodicTableUI = {
     // 2. Synchronize visual selection/discovery state & category colors
     // 2. Synchronize visual selection/discovery state & category colors
     this.buttons.forEach((button, symbol) => {
-        const isDiscovered = Boolean(GameStateManager?.hasDiscovery?.(symbol));
+        const isDiscovered = Boolean(GameStateManager?.hasDiscoveryInCategory?.("atoms", symbol));
         const isSelected = state.targetElement === symbol || state.selectedElement === symbol;
 
         button.classList.toggle("discovered", isDiscovered);

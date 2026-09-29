@@ -86,14 +86,29 @@ const AtomLabManager = {
             state.freeBuildBuffer.targetElement = currentSymbol(state.freeBuildBuffer.targetElement);
             stateChanged = true;
         }
+        // A released save could retain the previous element's isotope and a
+        // misleading viewing prompt after the player assembled another atom.
+        // Preserve the particles so the player can complete synthesis.
+        const buffer = state.freeBuildBuffer;
+        const pendingIsotope = this.getIsotopesForElement(buffer?.targetElement)
+            .find(iso => iso.p === buffer.protons && iso.n === buffer.neutrons &&
+                (iso.e ?? iso.p) === buffer.electrons);
+        if (state.buildMode === "free-build" && pendingIsotope &&
+            !gsm.hasDiscoveryInCategory("atoms", buffer.targetElement) &&
+            (elementLibrary[state.activeTargetIsotope]?.symbol !== buffer.targetElement ||
+                state.nextPrompt?.startsWith("Viewing Structure:"))) {
+            state.activeTargetIsotope = pendingIsotope.id;
+            state.nextPrompt = `Synthesize ${this.getIsotopeDisplayName(pendingIsotope)}`;
+            stateChanged = true;
+        }
         if (progress.changed || stateChanged) SaveManager.save();
 
         // Check discovery state to assign correct starting build mode
         if (gsm) {
-            if (!gsm.hasDiscovery("H")) {
+            if (!gsm.hasDiscoveryInCategory("atoms", "H")) {
                 state.buildMode = "guided-h";
                 state.guidedStepIndex = 0;
-            } else if (!gsm.hasDiscovery("He")) {
+            } else if (!gsm.hasDiscoveryInCategory("atoms", "He")) {
                 state.buildMode = "guided-he";
                 state.guidedStepIndex = 0;
             } else if (state.buildMode !== "free-build") {
@@ -509,16 +524,20 @@ getIsotopeDisplayName(identifier) {
         // 1. View Discovered Element Structure
 if (actionType === "view_element") {
     buffer.targetElement = payload;
-    
+    const viewedIsotope = GameStateManager.getIsotopeForElement(payload);
     const counts = GameStateManager.getParticleCountsForElement(payload);
     buffer.protons = counts.protons;
     buffer.neutrons = counts.neutrons;
     buffer.electrons = counts.electrons;
 
-    const displayName = this.getIsotopeDisplayName(payload);
+    const displayName = this.getIsotopeDisplayName(viewedIsotope);
 
     state.selectedElement = payload;
     state.targetElement = payload;
+    state.activeTargetIsotope = viewedIsotope?.id ?? null;
+    state.availableIsotopes = GameStateManager.hasFeature("isotope_mode")
+        ? this.getIsotopesForElement(payload)
+        : viewedIsotope ? [viewedIsotope] : [];
     state.nextPrompt = `Viewing Structure: ${displayName}`;
 
     SaveManager.save();
@@ -619,11 +638,17 @@ if (["proton", "neutron", "electron"].includes(particleType)) {
 if (actionType === "synthesize") {
     const targetSymbol = buffer.targetElement || state.targetElement;
     
-    // Resolve target isotope directly from elementLibrary / AtomLabManager
+    // Match the actual assembled isotope. Saved target IDs can belong to the
+    // previous element, and the representative need not be the assembled one.
+    const assembledIsotope = this.getIsotopesForElement(targetSymbol)
+        .find(iso => iso.p === buffer.protons && iso.n === buffer.neutrons &&
+            (iso.e ?? iso.p) === buffer.electrons);
     const activeIsoId = state.activeTargetIsotope;
-    const targetIsotope = (activeIsoId && elementLibrary[activeIsoId]) 
+    const selectedIsotope = (activeIsoId && elementLibrary[activeIsoId]?.symbol === targetSymbol)
         ? { id: activeIsoId, ...elementLibrary[activeIsoId] }
         : this.getRepresentativeIsotope(targetSymbol);
+    const targetIsotope = assembledIsotope && GameStateManager.hasFeature("isotope_mode")
+        ? assembledIsotope : selectedIsotope;
 
     let isValid = false;
     let atomId = targetSymbol || targetIsotope?.symbol;
@@ -654,6 +679,7 @@ if (actionType === "synthesize") {
         // Update banner prompt and retain workspace state
         state.selectedElement = atomId;
         state.targetElement = atomId;
+        state.activeTargetIsotope = isotopeId;
         state.nextPrompt = `Viewing Structure: ${displayName}`;
 
         state.freeBuildBuffer = {

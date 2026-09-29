@@ -878,44 +878,26 @@ hasFeature(featureId) {
  * @param {string} symbol - Element symbol (e.g. "Li", "H", "He")
  * @returns {{protons: number, neutrons: number, electrons: number}}
  */
+getIsotopeForElement(symbol) {
+    const entries = Object.entries(elementLibrary)
+        .filter(([, isotope]) => isotope.symbol === symbol);
+    if (!entries.length) return null;
+
+    const known = gameState.discoveries?.isotopes ?? {};
+    const discovered = entries.find(([id]) => Boolean(known[id]));
+    const representative = entries.reduce((best, entry) =>
+        entry[1].a > best[1].a ? entry : best
+    );
+    const [id, isotope] = discovered ?? representative;
+    return { id, ...isotope };
+},
+
 getParticleCountsForElement(symbol) {
-    // 1. Resolve elementLibrary reference
-    const lib = typeof elementLibrary !== "undefined" 
-        ? elementLibrary 
-        : (window.elementLibrary || window.ECGame?.elementLibrary);
-
-    if (!lib) {
-        console.error("[GameStateManager] elementLibrary is not defined.");
-        return { protons: 1, neutrons: 0, electrons: 1 };
-    }
-
-    // 2. Safely retrieve discoveries across various state object schemas
-    const discoveries = 
-        (typeof this.getGameState === "function" ? this.getGameState()?.discoveries?.isotopes : null) ||
-        this.state?.discoveries?.isotopes ||
-        this.gameState?.discoveries?.isotopes ||
-        this.discoveries?.isotopes ||
-        {};
-
-    // 3. Check for matching discovered isotope key (e.g., "H1", "He4")
-    const discoveredKey = Object.keys(discoveries).find(key => {
-        return lib[key] ? lib[key].symbol === symbol : key.replace(/[0-9]/g, '') === symbol;
-    });
-
-    let isotope = null;
-
-    if (discoveredKey && lib[discoveredKey]) {
-        isotope = lib[discoveredKey];
-    } else {
-        // Fallback to first matching element entry if not discovered yet
-        isotope = Object.values(lib).find(entry => entry.symbol === symbol);
-    }
-
+    const isotope = this.getIsotopeForElement(symbol);
     if (!isotope) {
         console.warn(`[GameStateManager] No isotope entry found for symbol: ${symbol}`);
         return { protons: 1, neutrons: 0, electrons: 1 };
     }
-
     return {
         protons: isotope.p,
         neutrons: isotope.n,

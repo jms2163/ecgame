@@ -54,6 +54,19 @@ const AtomLabProgress = {
             }
         }
 
+        // Older saves can mark a periodic-table tile through the legacy
+        // discovery registry while omitting the categorized atom record.
+        // A selected target or workspace alone is not evidence of synthesis.
+        const legacy = gameState.registry?.discoveries;
+        if (Array.isArray(legacy)) {
+            for (const symbol of symbols) {
+                if (legacy.includes(symbol) && !atoms[symbol]) {
+                    atoms[symbol] = { discoveredAt: Date.now(), count: 1 };
+                    changed = true;
+                }
+            }
+        }
+
         const count = [...symbols].filter(symbol => Boolean(atoms[symbol])).length;
         if (count === this.total && !gameState.zones.atomLab.completed) {
             GameStateManager.setZoneCompleted("atomLab", true);
