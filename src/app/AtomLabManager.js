@@ -15,6 +15,7 @@ import { elementLibrary } from "../data/elementLibrary.js";
 import DiscoveryManager from "./DiscoveryManager.js";
 import AtomCraftUI from "./AtomCraftUI.js";
 import PeriodicTableUI from "./PeriodicTableUI.js";
+import AtomLabProgress from "./AtomLabProgress.js";
 
 const ACTIVITY_ID_H = "guided_hydrogen";
 const ACTIVITY_ID_HE = "guided_helium";
@@ -70,6 +71,22 @@ const AtomLabManager = {
 
         const state = this.ensureState();
         const gsm = GameStateManager;
+        const progress = AtomLabProgress.reconcile();
+        // A selected element from an older save must still be buildable.
+        const currentSymbol = symbol => symbol?.trim() === "Uue" ? "Hr" : symbol?.trim();
+        let stateChanged = false;
+        for (const key of ["selectedElement", "targetElement"]) {
+            if (state[key] && state[key] !== currentSymbol(state[key])) {
+                state[key] = currentSymbol(state[key]);
+                stateChanged = true;
+            }
+        }
+        if (state.freeBuildBuffer?.targetElement &&
+            state.freeBuildBuffer.targetElement !== currentSymbol(state.freeBuildBuffer.targetElement)) {
+            state.freeBuildBuffer.targetElement = currentSymbol(state.freeBuildBuffer.targetElement);
+            stateChanged = true;
+        }
+        if (progress.changed || stateChanged) SaveManager.save();
 
         // Check discovery state to assign correct starting build mode
         if (gsm) {
@@ -605,7 +622,7 @@ if (actionType === "synthesize") {
     // Resolve target isotope directly from elementLibrary / AtomLabManager
     const activeIsoId = state.activeTargetIsotope;
     const targetIsotope = (activeIsoId && elementLibrary[activeIsoId]) 
-        ? elementLibrary[activeIsoId] 
+        ? { id: activeIsoId, ...elementLibrary[activeIsoId] }
         : this.getRepresentativeIsotope(targetSymbol);
 
     let isValid = false;
@@ -632,6 +649,7 @@ if (actionType === "synthesize") {
         DiscoveryManager.record("atoms", atomId);
         DiscoveryManager.record("isotopes", isotopeId);
         GameStateManager?.markElementSynthesized?.(atomId, massNumber);
+        AtomLabProgress.reconcile();
 
         // Update banner prompt and retain workspace state
         state.selectedElement = atomId;

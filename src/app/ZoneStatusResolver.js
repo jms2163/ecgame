@@ -6,6 +6,8 @@
 
 import ZoneCatalog from "./ZoneCatalog.js";
 import GameStateManager from "./GameStateManager.js";
+import AtomLabProgress from "./AtomLabProgress.js";
+import SaveManager from "./SaveManager.js";
 
 const STATUS = Object.freeze({
     AVAILABLE: "available",
@@ -26,6 +28,12 @@ const ZoneStatusResolver = Object.freeze({
     STATUS,
 
     getStatus(zoneId) {
+
+        // Navigation is rendered on load, even when Atom Lab is not opened.
+        // This restores older full collections and their Completed tab.
+        if (zoneId === "atomLab" && AtomLabProgress.reconcile().changed) {
+            SaveManager.save();
+        }
 
         const definition =
             ZoneCatalog.get(zoneId);

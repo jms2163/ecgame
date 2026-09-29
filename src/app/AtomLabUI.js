@@ -7,6 +7,7 @@ import gameState from "./GameState.js";
 import PeriodicTableUI from "./PeriodicTableUI.js";
 import AtomCraftUI from "./AtomCraftUI.js";
 import AtomLabManager from "./AtomLabManager.js";
+import AtomLabProgress from "./AtomLabProgress.js";
 
 const AtomLabUI = {
 
@@ -188,7 +189,7 @@ const AtomLabUI = {
         }
 
         // Retrieve actual counts directly from gameState
-        const discoveredCount = Object.keys(gameState.discoveries?.atoms || {}).length;
+        const discoveredCount = AtomLabProgress.reconcile().count;
         const isotopesCount = Object.keys(gameState.discoveries?.isotopes || {}).length;
 
         // Dynamically update Header Library Stats
