@@ -13,6 +13,42 @@ const PROTEIN_IMAGE_DIRECTORY =
     "../../public/assets/polymerizer/proteins/";
 
 const VISUAL_CONFIGS = Object.freeze({
+    FructoseBisphosphatase: Object.freeze({
+        directoryName: "1spi_motifs", filePrefix: "1spi",
+        firstFrameNumber: 1, lastFrameNumber: 20,
+        alt: "Representative partial motif sequence for spinach chloroplast fructose-1,6-bisphosphatase dimer (1SPI).",
+        accent: "green", placeholderLabel: "FBPase motif sequence", fallbackFileName: null
+    }),
+    Transketolase: Object.freeze({
+        directoryName: "5nd5_motifs", filePrefix: "5nd5",
+        firstFrameNumber: 1, lastFrameNumber: 40,
+        alt: "Representative motif sequence for chloroplast transketolase dimer (5ND5).",
+        accent: "green", placeholderLabel: "Transketolase motif sequence", fallbackFileName: null
+    }),
+    SedoheptuloseBisphosphatase: Object.freeze({
+        directoryName: "7zuv_motifs", filePrefix: "7zuv",
+        firstFrameNumber: 1, lastFrameNumber: 22,
+        alt: "Representative motif sequence for chloroplast sedoheptulose bisphosphatase dimer (7ZUV).",
+        accent: "green", placeholderLabel: "SBPase motif sequence", fallbackFileName: null
+    }),
+    Ribose5PhosphateIsomerase: Object.freeze({
+        directoryName: "6zxt_motifs", filePrefix: "6zxt",
+        firstFrameNumber: 1, lastFrameNumber: 18,
+        alt: "Representative motif sequence for chloroplast ribose-5-phosphate isomerase dimer (6ZXT).",
+        accent: "green", placeholderLabel: "RPI motif sequence", fallbackFileName: null
+    }),
+    Ribulose5PhosphateEpimerase: Object.freeze({
+        directoryName: "7b1w_motifs", filePrefix: "7b1w",
+        firstFrameNumber: 1, lastFrameNumber: 17,
+        alt: "Motif sequence for plastidial ribulose-5-phosphate epimerase monomer (7B1W).",
+        accent: "green", placeholderLabel: "RPE motif sequence", fallbackFileName: null
+    }),
+    Phosphoribulokinase: Object.freeze({
+        directoryName: "6kew_motifs", filePrefix: "6kew",
+        firstFrameNumber: 1, lastFrameNumber: 27,
+        alt: "Representative motif sequence for Arabidopsis phosphoribulokinase monomer (6KEW).",
+        accent: "green", placeholderLabel: "PRK motif sequence", fallbackFileName: null
+    }),
     Aquaporin: Object.freeze({
         directoryName: "1rc2_motifs",
         filePrefix: "1RC2",

@@ -594,6 +594,12 @@
     --pathway-card-tint: rgba(53, 133, 219, 0.14);
 }
 
+.metabolism-pathway-card--theme-green {
+    --pathway-card-accent: #70d899;
+    --pathway-card-soft: rgba(112, 216, 153, 0.42);
+    --pathway-card-tint: rgba(61, 156, 95, 0.14);
+}
+
 .metabolism-pathway-card--theme-purple {
     --pathway-card-accent: #b58cff;
     --pathway-card-soft: rgba(181, 140, 255, 0.42);
@@ -767,6 +773,10 @@
     gap: 0;
     min-width: 780px;
     padding: 24px;
+}
+
+.metabolism-pathway-track--wide {
+    min-width: 940px;
 }
 
 .metabolism-network-track {

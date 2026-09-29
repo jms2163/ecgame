@@ -130,6 +130,30 @@ const PRODUCT_CONFIGS = Object.freeze({
         discoveryId: null,
         lockedMessage: null
     }),
+    FructoseBisphosphatase: Object.freeze({
+        name: "Fructose-1,6-Bisphosphatase", implemented: true,
+        discoveryId: null, lockedMessage: null
+    }),
+    Transketolase: Object.freeze({
+        name: "Transketolase", implemented: true,
+        discoveryId: null, lockedMessage: null
+    }),
+    SedoheptuloseBisphosphatase: Object.freeze({
+        name: "Sedoheptulose-1,7-Bisphosphatase", implemented: true,
+        discoveryId: null, lockedMessage: null
+    }),
+    Ribose5PhosphateIsomerase: Object.freeze({
+        name: "Ribose-5-Phosphate Isomerase", implemented: true,
+        discoveryId: null, lockedMessage: null
+    }),
+    Ribulose5PhosphateEpimerase: Object.freeze({
+        name: "Ribulose-5-Phosphate Epimerase", implemented: true,
+        discoveryId: null, lockedMessage: null
+    }),
+    Phosphoribulokinase: Object.freeze({
+        name: "Phosphoribulokinase", implemented: true,
+        discoveryId: null, lockedMessage: null
+    }),
     TriosePhosphateTranslocator: Object.freeze({
         name: "Triose Phosphate/Phosphate Translocator (TPT)",
         implemented: true,

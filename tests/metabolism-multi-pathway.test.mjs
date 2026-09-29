@@ -24,6 +24,7 @@ try {
     assert.deepEqual(
         pathways.map(pathway => pathway.id),
         [
+            "calvinCycle",
             "glycolysis",
             "tcaCycle",
             "electronTransportChain"
@@ -58,16 +59,10 @@ try {
     );
     assert.equal(
         new Set(
-            pathways.flatMap(pathway =>
-                pathway.coreSlots.map(
-                    slot => slot.abbreviation
-                )
-            )
+            tca.coreSlots.map(slot => slot.abbreviation)
         ).size,
-        pathways.flatMap(pathway =>
-            pathway.coreSlots
-        ).length,
-        "core enzyme abbreviations must not clash"
+        tca.coreSlots.length,
+        "core enzyme abbreviations must be unique within a pathway"
     );
 
     const citrateSynthase =

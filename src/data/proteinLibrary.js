@@ -487,9 +487,48 @@ export const proteinLibrary =  Object.freeze({
     "Tier": 3,
     "PlantOnly": true,
     "Requires": ["ChloroplastUnlocked", "CalvinCycleUnlocked"],
-    "Source": "",
+    "Source": "8QJ0",
     "Models": {},
     "Info": "Primary carbon-fixing enzyme of photosynthesis, catalyzing the addition of atmospheric carbon dioxide to ribulose bisphosphate."
+  },
+  // PDB motif counts below are based on the user's C-terminus to N-terminus
+  // chain annotations. For dimers, totals are doubled from one chain; PPC
+  // stays empty because no complete two-chain assembly order was supplied.
+  "FructoseBisphosphatase": {
+    "PPC": "", "Recipe": {"H": 20, "B": 16, "L": 40}, "Class": "Photosynthesis", "Tier": 3,
+    "Function": "Hydrolyzes fructose-1,6-bisphosphate to fructose-6-phosphate",
+    "Location": "Symbiont chloroplast stroma", "Source": "1SPI", "Models": {},
+    "Info": "Spinach chloroplast fructose-1,6-bisphosphatase. Dimer recipe: twice the chain motif counts; available frames 1-20 are a partial representative sequence."
+  },
+  "Transketolase": {
+    "PPC": "", "Recipe": {"H": 54, "B": 34, "L": 88}, "Class": "Photosynthesis", "Tier": 3,
+    "Function": "Transfers two-carbon units during RuBP regeneration",
+    "Location": "Symbiont chloroplast stroma", "Source": "5ND5", "Models": {},
+    "Info": "Chlamydomonas chloroplast transketolase; acts twice in the Calvin cycle. Dimer recipe doubles the annotated monomer; frames 1-40 are representative."
+  },
+  "SedoheptuloseBisphosphatase": {
+    "PPC": "", "Recipe": {"H": 22, "B": 34, "L": 52}, "Class": "Photosynthesis", "Tier": 3,
+    "Function": "Hydrolyzes sedoheptulose-1,7-bisphosphate",
+    "Location": "Symbiont chloroplast stroma", "Source": "7ZUV", "Models": {},
+    "Info": "Chlamydomonas chloroplast sedoheptulose-1,7-bisphosphatase dimer; frames 1-22 are representative."
+  },
+  "Ribose5PhosphateIsomerase": {
+    "PPC": "", "Recipe": {"H": 14, "B": 30, "L": 44}, "Class": "Photosynthesis", "Tier": 3,
+    "Function": "Converts ribose-5-phosphate to ribulose-5-phosphate",
+    "Location": "Symbiont chloroplast stroma", "Source": "6ZXT", "Models": {},
+    "Info": "Chlamydomonas chloroplast ribose-5-phosphate isomerase dimer; frames 1-18 are representative."
+  },
+  "Ribulose5PhosphateEpimerase": {
+    "PPC": "", "Recipe": {"H": 10, "B": 8, "L": 17}, "Class": "Photosynthesis", "Tier": 3,
+    "Function": "Converts xylulose-5-phosphate to ribulose-5-phosphate",
+    "Location": "Symbiont chloroplast stroma", "Source": "7B1W", "Models": {},
+    "Info": "Plastidial ribulose-5-phosphate epimerase."
+  },
+  "Phosphoribulokinase": {
+    "PPC": "", "Recipe": {"H": 9, "B": 14, "L": 21}, "Class": "Photosynthesis", "Tier": 3,
+    "Function": "Uses ATP to regenerate ribulose-1,5-bisphosphate",
+    "Location": "Symbiont chloroplast stroma", "Source": "6KEW", "Models": {},
+    "Info": "Arabidopsis phosphoribulokinase monomer represented by PDB 6KEW; motif frames 1-27."
   },
   "TriosePhosphateTranslocator": {
     "PPC": "",

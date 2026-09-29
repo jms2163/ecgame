@@ -576,6 +576,12 @@ const MetabolismUI = {
             : synthesized
                 ? `Drag ${slot.label} to its pathway card, or press Activate enzyme.`
                 : "This enzyme needs to be synthesized in the Polymerizer first.";
+        if (slot.teachingNote) {
+            const reaction = document.createElement("p");
+            reaction.className = "metabolism-protein-message";
+            reaction.textContent = slot.teachingNote;
+            dialog.append(heading, imageFrame, reaction, explanation);
+        }
         const actions = document.createElement("div");
         actions.className = "metabolism-protein-actions";
         const close = document.createElement("button");
@@ -600,7 +606,8 @@ const MetabolismUI = {
             actions.appendChild(activate);
         }
         actions.appendChild(close);
-        dialog.append(heading, imageFrame, explanation, actions);
+        if (!slot.teachingNote) dialog.append(heading, imageFrame, explanation);
+        dialog.append(actions);
         if (!dialog.open) dialog.showModal();
     },
 

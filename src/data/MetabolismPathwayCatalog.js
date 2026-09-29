@@ -8,6 +8,48 @@
 // without embedding biological content in the UI.
 // --------------------------------------------------
 
+// Eleven distinct enzyme activities are shown once each. Transketolase and
+// aldolase act more than once during regeneration; their reactions are
+// described in the slot notes without requiring duplicate protein products.
+const CALVIN_CYCLE = {
+    id: "calvinCycle",
+    name: "Calvin Cycle",
+    category: "Carbon Fixation",
+    themeId: "green",
+    releaseState: "development",
+    description: "Fix CO2, reduce 3-phosphoglycerate to G3P, and regenerate RuBP in the symbiont chloroplast.",
+    unlockRequirements: [],
+    coreModule: null,
+    coreSlots: [
+        { slot: 1, enzymeId: "RuBisCO", label: "RuBisCO", abbreviation: "RuBisCO", teachingNote: "CO2 + RuBP → two 3-phosphoglycerate." },
+        { slot: 2, enzymeId: "PhosphoglycerateKinase", label: "Phosphoglycerate Kinase", abbreviation: "PGK", teachingNote: "Uses ATP to make 1,3-bisphosphoglycerate; the reverse of its glycolytic reaction." },
+        { slot: 3, enzymeId: "Glyceraldehyde3PhosphateDehydrogenase", label: "Glyceraldehyde-3-Phosphate Dehydrogenase", abbreviation: "GAPDH", teachingNote: "Chloroplast isoform uses NADPH to produce G3P. The existing game protein is a glycolytic structural representative." },
+        { slot: 4, enzymeId: "TriosePhosphateIsomerase", label: "Triose Phosphate Isomerase", abbreviation: "TPI", teachingNote: "Interconverts G3P and DHAP." },
+        { slot: 5, enzymeId: "Aldolase", label: "Aldolase", abbreviation: "ALDO", teachingNote: "Joins G3P + DHAP to make fructose-1,6-bisphosphate; acts again with erythrose-4-phosphate in regeneration." },
+        { slot: 6, enzymeId: "FructoseBisphosphatase", label: "Fructose-1,6-Bisphosphatase", abbreviation: "FBPase" },
+        { slot: 7, enzymeId: "Transketolase", label: "Transketolase", abbreviation: "TK", teachingNote: "Transfers two-carbon units twice during RuBP regeneration." },
+        { slot: 8, enzymeId: "SedoheptuloseBisphosphatase", label: "Sedoheptulose-1,7-Bisphosphatase", abbreviation: "SBPase" },
+        { slot: 9, enzymeId: "Ribose5PhosphateIsomerase", label: "Ribose-5-Phosphate Isomerase", abbreviation: "RPI" },
+        { slot: 10, enzymeId: "Ribulose5PhosphateEpimerase", label: "Ribulose-5-Phosphate Epimerase", abbreviation: "RPE" },
+        { slot: 11, enzymeId: "Phosphoribulokinase", label: "Phosphoribulokinase", abbreviation: "PRK", teachingNote: "Uses ATP to regenerate RuBP." }
+    ],
+    regenerationBranches: [],
+    chemistry: {
+        inputs: ["3 CO2", "9 ATP", "6 NADPH"],
+        outputs: ["1 net G3P", "9 ADP", "6 NADP+", "Pi"],
+        cofactors: ["Mg2+", "Thiamine pyrophosphate (transketolase)"],
+        atpInvestment: 9,
+        atpGross: 0,
+        atpNet: -9
+    },
+    completionRule: { requiredCoreSlots: 11, requiredRegenerationBranchId: null },
+    reward: {
+        implemented: false, type: "not-configured",
+        amountPerCorrectCoreEnzyme: 0, maximumAmountPerMinute: 0,
+        increasesCapacity: false, activeFromPlacements: false
+    }
+};
+
 const GLYCOLYSIS = {
     id: "glycolysis",
     name: "Glycolysis",
@@ -778,6 +820,8 @@ function deepFreeze(value) {
 
 GLYCOLYSIS.valid =
     validatePathway(GLYCOLYSIS);
+CALVIN_CYCLE.valid =
+    validatePathway(CALVIN_CYCLE);
 TCA_CYCLE.valid =
     validatePathway(TCA_CYCLE);
 ELECTRON_TRANSPORT_CHAIN.valid =
@@ -786,6 +830,7 @@ ELECTRON_TRANSPORT_CHAIN.valid =
     );
 
 const PATHWAYS = deepFreeze([
+    CALVIN_CYCLE,
     GLYCOLYSIS,
     TCA_CYCLE,
     ELECTRON_TRANSPORT_CHAIN

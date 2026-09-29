@@ -43,30 +43,34 @@ function setGridPosition(
 
 }
 
-function getCoreSlotPosition(slotNumber) {
+function getCoreSlotPosition(slotNumber, slotCount = 10) {
 
-    if (slotNumber <= 5) {
+    const topCount = Math.ceil(slotCount / 2);
+
+    if (slotNumber <= topCount) {
         return {
             row: 1,
-            column:
-                (slotNumber * 2) - 1
+            column: (slotNumber * 2) - 1
         };
     }
 
     return {
         row: 3,
-        column:
-            21 - (slotNumber * 2)
+            column: (2 * topCount - 1) -
+                (2 * (slotNumber - topCount - 1))
     };
 
 }
 
 function getConnectionPosition(
     fromSlot,
-    toSlot
+    toSlot,
+    slotCount = 10
 ) {
 
-    if (fromSlot < 5) {
+    const topCount = Math.ceil(slotCount / 2);
+
+    if (fromSlot < topCount) {
         return {
             row: 1,
             column: fromSlot * 2,
@@ -74,19 +78,19 @@ function getConnectionPosition(
         };
     }
 
-    if (fromSlot === 5) {
+    if (fromSlot === topCount) {
         return {
             row: 2,
-            column: 9,
+            column: 2 * topCount - 1,
             vertical: true
         };
     }
 
-    if (toSlot <= 10) {
+    if (toSlot <= slotCount) {
         return {
             row: 3,
-            column:
-                20 - (fromSlot * 2),
+            column: (2 * topCount - 2) -
+                (2 * (fromSlot - topCount - 1)),
             vertical: false
         };
     }
@@ -470,6 +474,15 @@ const MetabolismPathwayView = {
         );
         track.className =
             "metabolism-pathway-track";
+        if (pathway.coreSlots.length > 10) {
+            track.style.gridTemplateColumns =
+                Array.from({ length: 11 }, (_, index) =>
+                    index % 2 === 0
+                        ? "minmax(118px, 1fr)"
+                        : "minmax(28px, 0.3fr)"
+                ).join(" ");
+            track.classList.add("metabolism-pathway-track--wide");
+        }
         track.setAttribute(
             "aria-label",
             `${pathway.name} enzyme pathway`
@@ -498,9 +511,10 @@ const MetabolismPathwayView = {
                     slot.branch
                 );
             const slotPosition =
-                slot.slot <= 10
+                slot.slot <= pathway.coreSlots.length
                     ? getCoreSlotPosition(
-                        slot.slot
+                        slot.slot,
+                        pathway.coreSlots.length
                     )
                     : {
                         row: 5,
@@ -568,7 +582,8 @@ const MetabolismPathwayView = {
             const position =
                 getConnectionPosition(
                     slot.slot,
-                    nextSlot.slot
+                    nextSlot.slot,
+                    pathway.coreSlots.length
                 );
             const connection =
                 createConnectionElement(

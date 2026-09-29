@@ -11,6 +11,11 @@ import ResearchManager
 import organelleLibrary
     from "../data/organelleLibrary.js";
 
+// September 27 through October 4, 2026 in America/New_York (EDT).
+// This is derived access only: it creates no permanent discovery or save flag.
+const SYMBIOSOME_OPEN_AT = Date.parse("2026-09-27T04:00:00Z");
+const SYMBIOSOME_CLOSE_AT = Date.parse("2026-10-05T04:00:00Z");
+
 const OrganelleProgressionManager = {
 
     evaluateRequirement(requirement) {
@@ -303,6 +308,11 @@ const OrganelleProgressionManager = {
                 organelleId
             );
 
+        const temporaryAccess =
+            organelleId === "symbiosomes" &&
+            Date.now() >= SYMBIOSOME_OPEN_AT &&
+            Date.now() < SYMBIOSOME_CLOSE_AT;
+
         const ruleIsActive =
             profile.unlock?.status ===
             "active";
@@ -330,6 +340,7 @@ const OrganelleProgressionManager = {
 
         const available =
             existingDiscovery ||
+            temporaryAccess ||
             (
                 ruleIsActive &&
                 requirementStatus
@@ -356,6 +367,10 @@ const OrganelleProgressionManager = {
             source:
                 existingDiscovery
                     ? "existing-discovery"
+                    : ruleIsActive && requirementStatus.requirementsMet
+                        ? "requirements"
+                    : temporaryAccess
+                        ? "temporary-class-access"
                     : available
                         ? "requirements"
                         : previewAvailable
@@ -369,6 +384,7 @@ const OrganelleProgressionManager = {
             ruleIsActive,
             ruleIsPreview,
             existingDiscovery,
+            temporaryAccess,
             previewAvailable,
             progressionState,
             ...requirementStatus
@@ -395,6 +411,10 @@ const OrganelleProgressionManager = {
         }
 
         if (status.available) {
+            if (status.temporaryAccess && !status.existingDiscovery &&
+                !status.requirementsMet) {
+                return "Class access is open through October 4. Enter a photosynthetic algae patch in the Pond to unlock Symbiosomes permanently.";
+            }
             return "Select an available experiment from the organelle panel to begin.";
         }
 

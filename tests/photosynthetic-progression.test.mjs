@@ -9,6 +9,8 @@ import QuestManager from "../src/app/QuestManager.js";
 import ZoneStatusResolver from "../src/app/ZoneStatusResolver.js";
 
 const store = new Map();
+const originalDateNow = Date.now;
+Date.now = () => Date.parse("2026-10-05T04:00:00Z");
 globalThis.localStorage = {
     getItem: key => store.get(key) ?? null,
     setItem: (key, value) => store.set(key, String(value)),
@@ -56,3 +58,4 @@ assert.equal(GameStateManager.isZoneUnlocked("metabolism"), true,
     "older saves with completed transporter must reconcile");
 
 console.log("PASS: active algae discovery opens symbiosomes and quest; Glucose Transporter opens Metabolism and reconciles old saves.");
+Date.now = originalDateNow;
