@@ -198,7 +198,8 @@ const status =
     PolymerizerManager.getStatus(
         "GlucoseTransporter"
     );
-assert.equal(status.products.length, 30);
+assert.equal(status.products.length, 31);
+assert.equal(status.products.find(product => product.id === "RuBisCO").canStart, false);
 assert.deepEqual(
     status.products
         .filter(product =>

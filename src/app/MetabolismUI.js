@@ -17,6 +17,7 @@ import MetabolismSystemsView
     from "./MetabolismSystemsView.js";
 import PolymerizerVisualCatalog
     from "../data/PolymerizerVisualCatalog.js";
+import CalvinFixationView from "./CalvinFixationView.js";
 
 export function pathwayCardState(pathway) {
     if (pathway.releaseState === "coming-soon") return "coming-soon";
@@ -157,6 +158,10 @@ const MetabolismUI = {
                 }
             }
         );
+        GameStateObserver.on("game-state-loaded", () => {
+            CalvinFixationView.close();
+            if (this.active) this.render();
+        });
 
         this.initialized = true;
         this.render();
@@ -264,8 +269,10 @@ const MetabolismUI = {
                         </div>
 
                         <p class="metabolism-map-guidance">
-                            Select an enzyme below to view its structure and activate it, or drag a synthesized enzyme to its pathway slot. Proteins are not consumed.
+                            Select an enzyme card to view its structure and activate it, or drag a synthesized enzyme to its pathway slot. Proteins are not consumed.
                         </p>
+
+                        <section id="metabolism-calvin-activity" class="guided-reaction-panel" aria-label="Calvin carbon fixation activity" hidden></section>
 
                         <section class="metabolism-enzyme-tray-panel" aria-labelledby="metabolism-enzyme-tray-heading">
                             <p class="metabolism-panel-kicker">Polymerizer Inventory</p>
@@ -312,6 +319,7 @@ const MetabolismUI = {
 
     deactivate() {
 
+        CalvinFixationView.close();
         this.active = false;
         this.rootElement?.classList.add(
             "hidden"
@@ -423,7 +431,7 @@ const MetabolismUI = {
         if (mapGuidance) {
             mapGuidance.textContent = isNetwork
                 ? "ETC components are shown as a functional dependency network. Protein products will remain owned by Polymerizer; metabolites and the proton gradient are never draggable protein cards."
-                : "Select an enzyme above to inspect and activate it, or drag a synthesized enzyme to its slot. Products are not consumed.";
+                : "Select an enzyme card to inspect and activate it, or drag a synthesized enzyme to its slot. Products are not consumed.";
         }
 
         MetabolismPathwayView.render(
@@ -465,12 +473,21 @@ const MetabolismUI = {
 
         const reconstruction =
             selectedPathway.reconstruction;
+        const isCalvin = selectedPathway.id === "calvinCycle";
+        const activityPanel = this.rootElement.querySelector("#metabolism-calvin-activity");
+        if (activityPanel) {
+            activityPanel.hidden = !isCalvin;
+            if (isCalvin && this.viewMode === "detail") CalvinFixationView.render(activityPanel);
+            else CalvinFixationView.close();
+        }
         this.productionSummaryElement
             .textContent =
                 selectedPathway.reward
                     ?.implemented
                     ? `${reconstruction.placedCoreEnzymes} / ${reconstruction.requiredCoreEnzymes} · ${reconstruction.percent}% · +${reconstruction.atpPerMinute} ATP/min`
-                    : `${reconstruction.placedCoreEnzymes} / ${reconstruction.requiredCoreEnzymes} · ATP reward not configured`;
+                    : isCalvin
+                        ? `${reconstruction.placedCoreEnzymes} / ${reconstruction.requiredCoreEnzymes} · Explore carbon fixation above`
+                        : `${reconstruction.placedCoreEnzymes} / ${reconstruction.requiredCoreEnzymes} · ATP reward not configured`;
 
         const productionPanel =
             this.productionSummaryElement
@@ -495,7 +512,7 @@ const MetabolismUI = {
             productionHeading.textContent =
                 isNetwork
                     ? "ATP Balance Deferred"
-                    : "Partial ATP Benefit";
+                    : isCalvin ? "Carbon Fixation Activities" : "Partial ATP Benefit";
         }
 
         MetabolismEnzymeTrayView.render(
@@ -653,6 +670,7 @@ const MetabolismUI = {
                 </span>
             </div>
             <p>${pathway.description}</p>
+            ${pathway.id === "calvinCycle" ? "<p>Guided activity: Carbon Fixation · activate RuBisCO to begin.</p>" : ""}
             ${requirements.length > 0
                 ? requirements.map(requirement => `
                     <div class="metabolism-requirement">

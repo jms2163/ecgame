@@ -1,0 +1,2084 @@
+{
+  "structure_name": "9hvm",
+  "models": 1,
+  "chains_processed": 16,
+  "motif_counts": {
+    "H": 190,
+    "B": 136,
+    "L": 310
+  },
+  "minimum_separate_image_length": 6,
+  "total_pngs_including_initial": 345,
+  "frames": [
+    {
+      "index": 0,
+      "file": "9hvm-0.png",
+      "through_motif": 0,
+      "reason": "initial white assembly"
+    },
+    {
+      "index": 1,
+      "file": "9hvm-1.png",
+      "through_motif": 1,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 2,
+      "file": "9hvm-2.png",
+      "through_motif": 2,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 3,
+      "file": "9hvm-3.png",
+      "through_motif": 4,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 4,
+      "file": "9hvm-4.png",
+      "through_motif": 6,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 5,
+      "file": "9hvm-5.png",
+      "through_motif": 7,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 6,
+      "file": "9hvm-6.png",
+      "through_motif": 10,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 7,
+      "file": "9hvm-7.png",
+      "through_motif": 12,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 8,
+      "file": "9hvm-8.png",
+      "through_motif": 14,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 9,
+      "file": "9hvm-9.png",
+      "through_motif": 17,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 10,
+      "file": "9hvm-10.png",
+      "through_motif": 18,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 11,
+      "file": "9hvm-11.png",
+      "through_motif": 21,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 12,
+      "file": "9hvm-12.png",
+      "through_motif": 22,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 13,
+      "file": "9hvm-13.png",
+      "through_motif": 25,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 14,
+      "file": "9hvm-14.png",
+      "through_motif": 29,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 15,
+      "file": "9hvm-15.png",
+      "through_motif": 33,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 16,
+      "file": "9hvm-16.png",
+      "through_motif": 34,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 17,
+      "file": "9hvm-17.png",
+      "through_motif": 37,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 18,
+      "file": "9hvm-18.png",
+      "through_motif": 38,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 19,
+      "file": "9hvm-19.png",
+      "through_motif": 40,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 20,
+      "file": "9hvm-20.png",
+      "through_motif": 41,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 21,
+      "file": "9hvm-21.png",
+      "through_motif": 42,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 22,
+      "file": "9hvm-22.png",
+      "through_motif": 43,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 23,
+      "file": "9hvm-23.png",
+      "through_motif": 45,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 24,
+      "file": "9hvm-24.png",
+      "through_motif": 46,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 25,
+      "file": "9hvm-25.png",
+      "through_motif": 47,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 26,
+      "file": "9hvm-26.png",
+      "through_motif": 50,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 27,
+      "file": "9hvm-27.png",
+      "through_motif": 51,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 28,
+      "file": "9hvm-28.png",
+      "through_motif": 55,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 29,
+      "file": "9hvm-29.png",
+      "through_motif": 56,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 30,
+      "file": "9hvm-30.png",
+      "through_motif": 58,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 31,
+      "file": "9hvm-31.png",
+      "through_motif": 60,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 32,
+      "file": "9hvm-32.png",
+      "through_motif": 61,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 33,
+      "file": "9hvm-33.png",
+      "through_motif": 63,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 34,
+      "file": "9hvm-34.png",
+      "through_motif": 64,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 35,
+      "file": "9hvm-35.png",
+      "through_motif": 67,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 36,
+      "file": "9hvm-36.png",
+      "through_motif": 69,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 37,
+      "file": "9hvm-37.png",
+      "through_motif": 71,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 38,
+      "file": "9hvm-38.png",
+      "through_motif": 72,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 39,
+      "file": "9hvm-39.png",
+      "through_motif": 73,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 40,
+      "file": "9hvm-40.png",
+      "through_motif": 74,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 41,
+      "file": "9hvm-41.png",
+      "through_motif": 75,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 42,
+      "file": "9hvm-42.png",
+      "through_motif": 77,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 43,
+      "file": "9hvm-43.png",
+      "through_motif": 78,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 44,
+      "file": "9hvm-44.png",
+      "through_motif": 79,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 45,
+      "file": "9hvm-45.png",
+      "through_motif": 80,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 46,
+      "file": "9hvm-46.png",
+      "through_motif": 82,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 47,
+      "file": "9hvm-47.png",
+      "through_motif": 84,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 48,
+      "file": "9hvm-48.png",
+      "through_motif": 85,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 49,
+      "file": "9hvm-49.png",
+      "through_motif": 88,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 50,
+      "file": "9hvm-50.png",
+      "through_motif": 90,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 51,
+      "file": "9hvm-51.png",
+      "through_motif": 92,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 52,
+      "file": "9hvm-52.png",
+      "through_motif": 95,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 53,
+      "file": "9hvm-53.png",
+      "through_motif": 96,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 54,
+      "file": "9hvm-54.png",
+      "through_motif": 99,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 55,
+      "file": "9hvm-55.png",
+      "through_motif": 100,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 56,
+      "file": "9hvm-56.png",
+      "through_motif": 103,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 57,
+      "file": "9hvm-57.png",
+      "through_motif": 107,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 58,
+      "file": "9hvm-58.png",
+      "through_motif": 108,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 59,
+      "file": "9hvm-59.png",
+      "through_motif": 111,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 60,
+      "file": "9hvm-60.png",
+      "through_motif": 113,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 61,
+      "file": "9hvm-61.png",
+      "through_motif": 117,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 62,
+      "file": "9hvm-62.png",
+      "through_motif": 118,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 63,
+      "file": "9hvm-63.png",
+      "through_motif": 120,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 64,
+      "file": "9hvm-64.png",
+      "through_motif": 121,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 65,
+      "file": "9hvm-65.png",
+      "through_motif": 122,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 66,
+      "file": "9hvm-66.png",
+      "through_motif": 123,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 67,
+      "file": "9hvm-67.png",
+      "through_motif": 125,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 68,
+      "file": "9hvm-68.png",
+      "through_motif": 126,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 69,
+      "file": "9hvm-69.png",
+      "through_motif": 127,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 70,
+      "file": "9hvm-70.png",
+      "through_motif": 130,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 71,
+      "file": "9hvm-71.png",
+      "through_motif": 131,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 72,
+      "file": "9hvm-72.png",
+      "through_motif": 135,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 73,
+      "file": "9hvm-73.png",
+      "through_motif": 136,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 74,
+      "file": "9hvm-74.png",
+      "through_motif": 138,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 75,
+      "file": "9hvm-75.png",
+      "through_motif": 140,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 76,
+      "file": "9hvm-76.png",
+      "through_motif": 141,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 77,
+      "file": "9hvm-77.png",
+      "through_motif": 143,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 78,
+      "file": "9hvm-78.png",
+      "through_motif": 144,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 79,
+      "file": "9hvm-79.png",
+      "through_motif": 147,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 80,
+      "file": "9hvm-80.png",
+      "through_motif": 149,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 81,
+      "file": "9hvm-81.png",
+      "through_motif": 151,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 82,
+      "file": "9hvm-82.png",
+      "through_motif": 152,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 83,
+      "file": "9hvm-83.png",
+      "through_motif": 153,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 84,
+      "file": "9hvm-84.png",
+      "through_motif": 154,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 85,
+      "file": "9hvm-85.png",
+      "through_motif": 155,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 86,
+      "file": "9hvm-86.png",
+      "through_motif": 157,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 87,
+      "file": "9hvm-87.png",
+      "through_motif": 158,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 88,
+      "file": "9hvm-88.png",
+      "through_motif": 159,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 89,
+      "file": "9hvm-89.png",
+      "through_motif": 160,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 90,
+      "file": "9hvm-90.png",
+      "through_motif": 162,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 91,
+      "file": "9hvm-91.png",
+      "through_motif": 164,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 92,
+      "file": "9hvm-92.png",
+      "through_motif": 165,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 93,
+      "file": "9hvm-93.png",
+      "through_motif": 168,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 94,
+      "file": "9hvm-94.png",
+      "through_motif": 172,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 95,
+      "file": "9hvm-95.png",
+      "through_motif": 175,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 96,
+      "file": "9hvm-96.png",
+      "through_motif": 176,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 97,
+      "file": "9hvm-97.png",
+      "through_motif": 179,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 98,
+      "file": "9hvm-98.png",
+      "through_motif": 180,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 99,
+      "file": "9hvm-99.png",
+      "through_motif": 183,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 100,
+      "file": "9hvm-100.png",
+      "through_motif": 187,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 101,
+      "file": "9hvm-101.png",
+      "through_motif": 188,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 102,
+      "file": "9hvm-102.png",
+      "through_motif": 191,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 103,
+      "file": "9hvm-103.png",
+      "through_motif": 192,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 104,
+      "file": "9hvm-104.png",
+      "through_motif": 195,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 105,
+      "file": "9hvm-105.png",
+      "through_motif": 196,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 106,
+      "file": "9hvm-106.png",
+      "through_motif": 198,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 107,
+      "file": "9hvm-107.png",
+      "through_motif": 199,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 108,
+      "file": "9hvm-108.png",
+      "through_motif": 200,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 109,
+      "file": "9hvm-109.png",
+      "through_motif": 201,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 110,
+      "file": "9hvm-110.png",
+      "through_motif": 203,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 111,
+      "file": "9hvm-111.png",
+      "through_motif": 204,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 112,
+      "file": "9hvm-112.png",
+      "through_motif": 205,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 113,
+      "file": "9hvm-113.png",
+      "through_motif": 208,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 114,
+      "file": "9hvm-114.png",
+      "through_motif": 209,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 115,
+      "file": "9hvm-115.png",
+      "through_motif": 213,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 116,
+      "file": "9hvm-116.png",
+      "through_motif": 214,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 117,
+      "file": "9hvm-117.png",
+      "through_motif": 216,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 118,
+      "file": "9hvm-118.png",
+      "through_motif": 218,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 119,
+      "file": "9hvm-119.png",
+      "through_motif": 219,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 120,
+      "file": "9hvm-120.png",
+      "through_motif": 221,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 121,
+      "file": "9hvm-121.png",
+      "through_motif": 222,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 122,
+      "file": "9hvm-122.png",
+      "through_motif": 225,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 123,
+      "file": "9hvm-123.png",
+      "through_motif": 227,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 124,
+      "file": "9hvm-124.png",
+      "through_motif": 229,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 125,
+      "file": "9hvm-125.png",
+      "through_motif": 230,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 126,
+      "file": "9hvm-126.png",
+      "through_motif": 231,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 127,
+      "file": "9hvm-127.png",
+      "through_motif": 235,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 128,
+      "file": "9hvm-128.png",
+      "through_motif": 237,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 129,
+      "file": "9hvm-129.png",
+      "through_motif": 238,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 130,
+      "file": "9hvm-130.png",
+      "through_motif": 239,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 131,
+      "file": "9hvm-131.png",
+      "through_motif": 240,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 132,
+      "file": "9hvm-132.png",
+      "through_motif": 242,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 133,
+      "file": "9hvm-133.png",
+      "through_motif": 244,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 134,
+      "file": "9hvm-134.png",
+      "through_motif": 245,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 135,
+      "file": "9hvm-135.png",
+      "through_motif": 248,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 136,
+      "file": "9hvm-136.png",
+      "through_motif": 252,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 137,
+      "file": "9hvm-137.png",
+      "through_motif": 255,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 138,
+      "file": "9hvm-138.png",
+      "through_motif": 256,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 139,
+      "file": "9hvm-139.png",
+      "through_motif": 259,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 140,
+      "file": "9hvm-140.png",
+      "through_motif": 260,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 141,
+      "file": "9hvm-141.png",
+      "through_motif": 263,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 142,
+      "file": "9hvm-142.png",
+      "through_motif": 267,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 143,
+      "file": "9hvm-143.png",
+      "through_motif": 268,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 144,
+      "file": "9hvm-144.png",
+      "through_motif": 271,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 145,
+      "file": "9hvm-145.png",
+      "through_motif": 273,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 146,
+      "file": "9hvm-146.png",
+      "through_motif": 277,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 147,
+      "file": "9hvm-147.png",
+      "through_motif": 278,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 148,
+      "file": "9hvm-148.png",
+      "through_motif": 280,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 149,
+      "file": "9hvm-149.png",
+      "through_motif": 281,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 150,
+      "file": "9hvm-150.png",
+      "through_motif": 282,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 151,
+      "file": "9hvm-151.png",
+      "through_motif": 283,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 152,
+      "file": "9hvm-152.png",
+      "through_motif": 285,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 153,
+      "file": "9hvm-153.png",
+      "through_motif": 286,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 154,
+      "file": "9hvm-154.png",
+      "through_motif": 287,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 155,
+      "file": "9hvm-155.png",
+      "through_motif": 290,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 156,
+      "file": "9hvm-156.png",
+      "through_motif": 291,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 157,
+      "file": "9hvm-157.png",
+      "through_motif": 295,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 158,
+      "file": "9hvm-158.png",
+      "through_motif": 296,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 159,
+      "file": "9hvm-159.png",
+      "through_motif": 298,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 160,
+      "file": "9hvm-160.png",
+      "through_motif": 300,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 161,
+      "file": "9hvm-161.png",
+      "through_motif": 301,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 162,
+      "file": "9hvm-162.png",
+      "through_motif": 303,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 163,
+      "file": "9hvm-163.png",
+      "through_motif": 304,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 164,
+      "file": "9hvm-164.png",
+      "through_motif": 307,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 165,
+      "file": "9hvm-165.png",
+      "through_motif": 309,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 166,
+      "file": "9hvm-166.png",
+      "through_motif": 310,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 167,
+      "file": "9hvm-167.png",
+      "through_motif": 312,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 168,
+      "file": "9hvm-168.png",
+      "through_motif": 313,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 169,
+      "file": "9hvm-169.png",
+      "through_motif": 314,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 170,
+      "file": "9hvm-170.png",
+      "through_motif": 315,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 171,
+      "file": "9hvm-171.png",
+      "through_motif": 317,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 172,
+      "file": "9hvm-172.png",
+      "through_motif": 318,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 173,
+      "file": "9hvm-173.png",
+      "through_motif": 319,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 174,
+      "file": "9hvm-174.png",
+      "through_motif": 320,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 175,
+      "file": "9hvm-175.png",
+      "through_motif": 322,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 176,
+      "file": "9hvm-176.png",
+      "through_motif": 324,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 177,
+      "file": "9hvm-177.png",
+      "through_motif": 325,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 178,
+      "file": "9hvm-178.png",
+      "through_motif": 328,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 179,
+      "file": "9hvm-179.png",
+      "through_motif": 332,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 180,
+      "file": "9hvm-180.png",
+      "through_motif": 335,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 181,
+      "file": "9hvm-181.png",
+      "through_motif": 336,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 182,
+      "file": "9hvm-182.png",
+      "through_motif": 339,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 183,
+      "file": "9hvm-183.png",
+      "through_motif": 340,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 184,
+      "file": "9hvm-184.png",
+      "through_motif": 343,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 185,
+      "file": "9hvm-185.png",
+      "through_motif": 347,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 186,
+      "file": "9hvm-186.png",
+      "through_motif": 348,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 187,
+      "file": "9hvm-187.png",
+      "through_motif": 351,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 188,
+      "file": "9hvm-188.png",
+      "through_motif": 353,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 189,
+      "file": "9hvm-189.png",
+      "through_motif": 357,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 190,
+      "file": "9hvm-190.png",
+      "through_motif": 358,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 191,
+      "file": "9hvm-191.png",
+      "through_motif": 360,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 192,
+      "file": "9hvm-192.png",
+      "through_motif": 361,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 193,
+      "file": "9hvm-193.png",
+      "through_motif": 362,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 194,
+      "file": "9hvm-194.png",
+      "through_motif": 363,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 195,
+      "file": "9hvm-195.png",
+      "through_motif": 365,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 196,
+      "file": "9hvm-196.png",
+      "through_motif": 366,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 197,
+      "file": "9hvm-197.png",
+      "through_motif": 367,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 198,
+      "file": "9hvm-198.png",
+      "through_motif": 370,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 199,
+      "file": "9hvm-199.png",
+      "through_motif": 371,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 200,
+      "file": "9hvm-200.png",
+      "through_motif": 375,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 201,
+      "file": "9hvm-201.png",
+      "through_motif": 376,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 202,
+      "file": "9hvm-202.png",
+      "through_motif": 378,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 203,
+      "file": "9hvm-203.png",
+      "through_motif": 380,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 204,
+      "file": "9hvm-204.png",
+      "through_motif": 381,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 205,
+      "file": "9hvm-205.png",
+      "through_motif": 383,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 206,
+      "file": "9hvm-206.png",
+      "through_motif": 384,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 207,
+      "file": "9hvm-207.png",
+      "through_motif": 387,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 208,
+      "file": "9hvm-208.png",
+      "through_motif": 389,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 209,
+      "file": "9hvm-209.png",
+      "through_motif": 391,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 210,
+      "file": "9hvm-210.png",
+      "through_motif": 392,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 211,
+      "file": "9hvm-211.png",
+      "through_motif": 393,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 212,
+      "file": "9hvm-212.png",
+      "through_motif": 394,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 213,
+      "file": "9hvm-213.png",
+      "through_motif": 395,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 214,
+      "file": "9hvm-214.png",
+      "through_motif": 397,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 215,
+      "file": "9hvm-215.png",
+      "through_motif": 398,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 216,
+      "file": "9hvm-216.png",
+      "through_motif": 399,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 217,
+      "file": "9hvm-217.png",
+      "through_motif": 400,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 218,
+      "file": "9hvm-218.png",
+      "through_motif": 402,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 219,
+      "file": "9hvm-219.png",
+      "through_motif": 404,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 220,
+      "file": "9hvm-220.png",
+      "through_motif": 405,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 221,
+      "file": "9hvm-221.png",
+      "through_motif": 408,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 222,
+      "file": "9hvm-222.png",
+      "through_motif": 412,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 223,
+      "file": "9hvm-223.png",
+      "through_motif": 415,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 224,
+      "file": "9hvm-224.png",
+      "through_motif": 416,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 225,
+      "file": "9hvm-225.png",
+      "through_motif": 419,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 226,
+      "file": "9hvm-226.png",
+      "through_motif": 420,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 227,
+      "file": "9hvm-227.png",
+      "through_motif": 423,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 228,
+      "file": "9hvm-228.png",
+      "through_motif": 427,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 229,
+      "file": "9hvm-229.png",
+      "through_motif": 428,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 230,
+      "file": "9hvm-230.png",
+      "through_motif": 431,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 231,
+      "file": "9hvm-231.png",
+      "through_motif": 433,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 232,
+      "file": "9hvm-232.png",
+      "through_motif": 437,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 233,
+      "file": "9hvm-233.png",
+      "through_motif": 438,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 234,
+      "file": "9hvm-234.png",
+      "through_motif": 440,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 235,
+      "file": "9hvm-235.png",
+      "through_motif": 441,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 236,
+      "file": "9hvm-236.png",
+      "through_motif": 442,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 237,
+      "file": "9hvm-237.png",
+      "through_motif": 443,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 238,
+      "file": "9hvm-238.png",
+      "through_motif": 445,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 239,
+      "file": "9hvm-239.png",
+      "through_motif": 446,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 240,
+      "file": "9hvm-240.png",
+      "through_motif": 447,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 241,
+      "file": "9hvm-241.png",
+      "through_motif": 450,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 242,
+      "file": "9hvm-242.png",
+      "through_motif": 451,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 243,
+      "file": "9hvm-243.png",
+      "through_motif": 455,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 244,
+      "file": "9hvm-244.png",
+      "through_motif": 456,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 245,
+      "file": "9hvm-245.png",
+      "through_motif": 458,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 246,
+      "file": "9hvm-246.png",
+      "through_motif": 460,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 247,
+      "file": "9hvm-247.png",
+      "through_motif": 461,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 248,
+      "file": "9hvm-248.png",
+      "through_motif": 463,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 249,
+      "file": "9hvm-249.png",
+      "through_motif": 464,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 250,
+      "file": "9hvm-250.png",
+      "through_motif": 467,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 251,
+      "file": "9hvm-251.png",
+      "through_motif": 469,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 252,
+      "file": "9hvm-252.png",
+      "through_motif": 471,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 253,
+      "file": "9hvm-253.png",
+      "through_motif": 472,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 254,
+      "file": "9hvm-254.png",
+      "through_motif": 473,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 255,
+      "file": "9hvm-255.png",
+      "through_motif": 474,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 256,
+      "file": "9hvm-256.png",
+      "through_motif": 475,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 257,
+      "file": "9hvm-257.png",
+      "through_motif": 477,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 258,
+      "file": "9hvm-258.png",
+      "through_motif": 478,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 259,
+      "file": "9hvm-259.png",
+      "through_motif": 479,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 260,
+      "file": "9hvm-260.png",
+      "through_motif": 480,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 261,
+      "file": "9hvm-261.png",
+      "through_motif": 482,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 262,
+      "file": "9hvm-262.png",
+      "through_motif": 484,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 263,
+      "file": "9hvm-263.png",
+      "through_motif": 485,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 264,
+      "file": "9hvm-264.png",
+      "through_motif": 488,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 265,
+      "file": "9hvm-265.png",
+      "through_motif": 492,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 266,
+      "file": "9hvm-266.png",
+      "through_motif": 495,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 267,
+      "file": "9hvm-267.png",
+      "through_motif": 496,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 268,
+      "file": "9hvm-268.png",
+      "through_motif": 499,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 269,
+      "file": "9hvm-269.png",
+      "through_motif": 500,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 270,
+      "file": "9hvm-270.png",
+      "through_motif": 503,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 271,
+      "file": "9hvm-271.png",
+      "through_motif": 507,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 272,
+      "file": "9hvm-272.png",
+      "through_motif": 508,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 273,
+      "file": "9hvm-273.png",
+      "through_motif": 511,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 274,
+      "file": "9hvm-274.png",
+      "through_motif": 512,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 275,
+      "file": "9hvm-275.png",
+      "through_motif": 515,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 276,
+      "file": "9hvm-276.png",
+      "through_motif": 516,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 277,
+      "file": "9hvm-277.png",
+      "through_motif": 518,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 278,
+      "file": "9hvm-278.png",
+      "through_motif": 519,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 279,
+      "file": "9hvm-279.png",
+      "through_motif": 520,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 280,
+      "file": "9hvm-280.png",
+      "through_motif": 521,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 281,
+      "file": "9hvm-281.png",
+      "through_motif": 523,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 282,
+      "file": "9hvm-282.png",
+      "through_motif": 524,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 283,
+      "file": "9hvm-283.png",
+      "through_motif": 525,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 284,
+      "file": "9hvm-284.png",
+      "through_motif": 528,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 285,
+      "file": "9hvm-285.png",
+      "through_motif": 529,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 286,
+      "file": "9hvm-286.png",
+      "through_motif": 533,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 287,
+      "file": "9hvm-287.png",
+      "through_motif": 534,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 288,
+      "file": "9hvm-288.png",
+      "through_motif": 536,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 289,
+      "file": "9hvm-289.png",
+      "through_motif": 538,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 290,
+      "file": "9hvm-290.png",
+      "through_motif": 539,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 291,
+      "file": "9hvm-291.png",
+      "through_motif": 541,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 292,
+      "file": "9hvm-292.png",
+      "through_motif": 542,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 293,
+      "file": "9hvm-293.png",
+      "through_motif": 545,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 294,
+      "file": "9hvm-294.png",
+      "through_motif": 547,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 295,
+      "file": "9hvm-295.png",
+      "through_motif": 549,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 296,
+      "file": "9hvm-296.png",
+      "through_motif": 550,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 297,
+      "file": "9hvm-297.png",
+      "through_motif": 551,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 298,
+      "file": "9hvm-298.png",
+      "through_motif": 552,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 299,
+      "file": "9hvm-299.png",
+      "through_motif": 553,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 300,
+      "file": "9hvm-300.png",
+      "through_motif": 555,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 301,
+      "file": "9hvm-301.png",
+      "through_motif": 556,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 302,
+      "file": "9hvm-302.png",
+      "through_motif": 557,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 303,
+      "file": "9hvm-303.png",
+      "through_motif": 558,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 304,
+      "file": "9hvm-304.png",
+      "through_motif": 560,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 305,
+      "file": "9hvm-305.png",
+      "through_motif": 562,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 306,
+      "file": "9hvm-306.png",
+      "through_motif": 563,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 307,
+      "file": "9hvm-307.png",
+      "through_motif": 566,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 308,
+      "file": "9hvm-308.png",
+      "through_motif": 570,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 309,
+      "file": "9hvm-309.png",
+      "through_motif": 573,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 310,
+      "file": "9hvm-310.png",
+      "through_motif": 574,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 311,
+      "file": "9hvm-311.png",
+      "through_motif": 577,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 312,
+      "file": "9hvm-312.png",
+      "through_motif": 578,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 313,
+      "file": "9hvm-313.png",
+      "through_motif": 581,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 314,
+      "file": "9hvm-314.png",
+      "through_motif": 585,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 315,
+      "file": "9hvm-315.png",
+      "through_motif": 586,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 316,
+      "file": "9hvm-316.png",
+      "through_motif": 589,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 317,
+      "file": "9hvm-317.png",
+      "through_motif": 591,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 318,
+      "file": "9hvm-318.png",
+      "through_motif": 595,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 319,
+      "file": "9hvm-319.png",
+      "through_motif": 596,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 320,
+      "file": "9hvm-320.png",
+      "through_motif": 598,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 321,
+      "file": "9hvm-321.png",
+      "through_motif": 599,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 322,
+      "file": "9hvm-322.png",
+      "through_motif": 600,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 323,
+      "file": "9hvm-323.png",
+      "through_motif": 601,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 324,
+      "file": "9hvm-324.png",
+      "through_motif": 603,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 325,
+      "file": "9hvm-325.png",
+      "through_motif": 604,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 326,
+      "file": "9hvm-326.png",
+      "through_motif": 605,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 327,
+      "file": "9hvm-327.png",
+      "through_motif": 608,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 328,
+      "file": "9hvm-328.png",
+      "through_motif": 609,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 329,
+      "file": "9hvm-329.png",
+      "through_motif": 613,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 330,
+      "file": "9hvm-330.png",
+      "through_motif": 614,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 331,
+      "file": "9hvm-331.png",
+      "through_motif": 616,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 332,
+      "file": "9hvm-332.png",
+      "through_motif": 618,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 333,
+      "file": "9hvm-333.png",
+      "through_motif": 619,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 334,
+      "file": "9hvm-334.png",
+      "through_motif": 621,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 335,
+      "file": "9hvm-335.png",
+      "through_motif": 622,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 336,
+      "file": "9hvm-336.png",
+      "through_motif": 625,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 337,
+      "file": "9hvm-337.png",
+      "through_motif": 627,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 338,
+      "file": "9hvm-338.png",
+      "through_motif": 629,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 339,
+      "file": "9hvm-339.png",
+      "through_motif": 630,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 340,
+      "file": "9hvm-340.png",
+      "through_motif": 631,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 341,
+      "file": "9hvm-341.png",
+      "through_motif": 632,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 342,
+      "file": "9hvm-342.png",
+      "through_motif": 633,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 343,
+      "file": "9hvm-343.png",
+      "through_motif": 635,
+      "reason": "motif reveal"
+    },
+    {
+      "index": 344,
+      "file": "9hvm-344.png",
+      "through_motif": 636,
+      "reason": "motif reveal"
+    }
+  ]
+}

@@ -2,6 +2,80 @@
    Metabolism — locked pathway-building development shell
    ========================================================================== */
 
+/* Guided reaction shell, shared by the staged metabolic activities. */
+.guided-reaction-panel {
+    margin: 18px 0;
+    padding: 20px;
+    border: 1px solid var(--metabolism-ready);
+    border-radius: 14px;
+    background: rgba(20, 52, 36, .65);
+    color: var(--metabolism-text);
+}
+.guided-reaction-heading { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.guided-reaction-heading h3 { margin: 0; font-size: 1.35rem; }
+.guided-reaction-status { font-size: .85rem; color: var(--metabolism-ready); }
+.guided-reaction-ledger { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 16px 0; }
+.guided-reaction-ledger > div { display: grid; gap: 5px; padding: 10px; border-radius: 8px; background: rgba(0,0,0,.25); }
+.guided-reaction-ledger span { font-size: .78rem; }
+.guided-reaction-ledger strong { font-size: 1.1rem; }
+.guided-reaction-workspace { display: grid; grid-template-columns: minmax(160px, .85fr) minmax(260px, 1.5fr) minmax(145px, .8fr); gap: 12px; align-items: start; }
+.guided-reaction-workspace section { padding: 12px; border: 1px solid var(--metabolism-border-soft); border-radius: 10px; background: rgba(0,0,0,.18); min-width: 0; }
+.guided-reaction-workspace h4 { margin: 0 0 12px; }
+.guided-reaction-workspace p, .guided-reaction-note { font-size: .85rem; line-height: 1.5; }
+.guided-reaction-button { padding: 10px 14px; border: 1px solid var(--metabolism-ready); border-radius: 9px; background: #164a32; color: #fff; font: inherit; font-size: .9rem; cursor: pointer; margin: 5px 8px 5px 0; }
+.guided-reaction-button:hover:not(:disabled) { background: #226544; }
+.guided-reaction-button:focus-visible { outline: 3px solid #ffdc77; outline-offset: 3px; }
+.guided-reaction-button:disabled { opacity: .5; cursor: default; }
+.guided-reaction-tray .guided-reaction-button { display: grid; width: 100%; gap: 8px; text-align: center; margin: 8px 0; padding: 10px 5px; }
+.guided-reaction-tray .guided-reaction-button > span { font-size: .8rem; }
+.guided-reaction-enzyme-icon { border-radius: 40% 60% 55% 45%; padding: 18px 6px; background: #3b7564; font-weight: bold; }
+.guided-reaction-molecule { display: grid; justify-items: center; gap: 6px; padding: 9px 0; }
+.guided-reaction-carbon-chain { display: flex; gap: 3px; justify-content: center; flex-wrap: nowrap; }
+.guided-reaction-carbon { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; color: #082f21; background: #87ddb0; font-size: .75rem; font-weight: bold; border: 1px solid #cbf3dc; }
+.guided-reaction-carbon.is-fixed { background: #ffdc77; color: #342000; border: 2px solid #fff2c9; }
+.guided-reaction-phosphate-group { display: grid; place-items: center; width: 21px; height: 21px; background: #384377; color: #fff; border: 1px solid #bcc7ff; border-radius: 5px; font-size: .7rem; }
+.guided-reaction-rubisco-image { display: block; width: 100%; max-width: 160px; height: 105px; object-fit: contain; margin: 5px auto; }
+.guided-fixation-intermediate { position: relative; margin-top: 12px; }
+.guided-fixation-intermediate svg { display: block; width: 100%; overflow: visible; }
+.guided-fixation-water-target { position: absolute; left: 44%; top: 82%; transform: translate(-50%,-50%); min-height: 22px; padding: 4px; margin: 0; font-size: .65rem; background: #243b28; border-color: #ffc65e; }
+.guided-fixation-water-target::before { content: ""; position: absolute; bottom: 100%; left: 50%; height: 18px; border-left: 2px dashed #ffc65e; }
+.guided-fixation-incoming-carbon { animation: fixation-carbon-join 1.6s ease-in-out both; transform-box: view-box; }
+.is-hydrated .guided-fixation-incoming-carbon { animation: none; }
+.guided-reaction-intermediate-name { animation: fixation-name-appear 1s .9s both; font-weight: bold; }
+@keyframes fixation-carbon-join { from { transform: translate(160px,-18px); opacity: .25; } to { transform: translate(0,0); opacity: 1; } }
+@keyframes fixation-name-appear { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .guided-fixation-incoming-carbon, .guided-reaction-intermediate-name { animation: none; } }
+.guided-reaction-molecule-label { font-size: .8rem; text-align: center; }
+.guided-reaction-phosphates { padding: 2px 7px; background: #283e72; border-radius: 8px; color: #e7eeff; font-size: .7rem; }
+.guided-reaction-carbon-key { font-size: .8rem; line-height: 1.5; }
+.guided-reaction-dock { min-height: 56px; display: grid; place-items: center; text-align: center; border: 2px dashed #76aa8c; border-radius: 9px; padding: 10px; font-size: .85rem; margin-bottom: 10px; }
+.guided-reaction-dock.is-filled { border-style: solid; background: rgba(101,230,154,.12); }
+.guided-reaction-input-docks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.guided-reaction-products { display: flex; justify-content: space-around; gap: 8px; animation: guided-products-appear .5s ease-out; }
+.guided-fixation-local-products { margin-top: 18px; }
+.guided-fixation-local-products .guided-reaction-products { animation-duration: 1.2s; }
+.guided-reaction-output-pair { display: flex; justify-content: space-around; gap: 5px; border-bottom: 1px solid var(--metabolism-border-soft); }
+.guided-reaction-output-tray .guided-reaction-carbon { width: 16px; height: 16px; font-size: .6rem; }
+.guided-reaction-feedback { min-height: 1.5em; line-height: 1.5; font-weight: 600; }
+#metabolism-zone.metabolism-practice-open .metabolism-library,
+#metabolism-zone.metabolism-practice-open .metabolism-topbar-actions,
+#metabolism-zone.metabolism-practice-open .metabolism-map-panel > :not(#metabolism-calvin-activity) { display: none; }
+#metabolism-zone.metabolism-practice-open .metabolism-workspace { grid-template-columns: minmax(0, 1fr); }
+#metabolism-zone.metabolism-practice-open .metabolism-map-panel { padding: 12px; }
+#metabolism-zone.metabolism-practice-open .guided-reaction-panel { margin: 0; }
+.guided-reaction-quiz { padding: 14px 0; }
+@keyframes guided-products-appear { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 1250px) {
+    .guided-reaction-workspace { grid-template-columns: minmax(145px, 1fr) minmax(230px, 1.6fr); }
+    .guided-reaction-output-tray { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+}
+@media (max-width: 700px) {
+    .guided-reaction-panel { padding: 12px; }
+    .guided-reaction-workspace { grid-template-columns: 1fr; }
+    .guided-reaction-ledger { grid-template-columns: 1fr 1fr; }
+}
+@media (prefers-reduced-motion: reduce) { .guided-reaction-products { animation: none; } }
+
 #metabolism-zone {
     --metabolism-background: #151207;
     --metabolism-panel: #211c0c;

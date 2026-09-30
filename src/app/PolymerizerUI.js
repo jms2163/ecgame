@@ -7,6 +7,8 @@ import GameStateObserver from "./GameStateObserver.js";
 import PolymerizerManager from "./PolymerizerManager.js";
 import PolymerizerProductView
     from "./PolymerizerProductView.js";
+import PolymerizerComponentManager from "./PolymerizerComponentManager.js";
+import PolymerizerPracticeView from "./PolymerizerPracticeView.js";
 
 const PolymerizerUI = {
 
@@ -49,6 +51,7 @@ const PolymerizerUI = {
         );
 
         this.initialized = true;
+        GameStateObserver.on("game-state-loaded", () => PolymerizerPracticeView.close());
         this.render();
         return true;
 
@@ -145,6 +148,8 @@ const PolymerizerUI = {
                         <button id="polymerizer-assemble-button" class="poly-assemble-button" type="button" disabled>
                             Assemble Aquaporin · 15 ATP
                         </button>
+                        <div id="polymerizer-component-actions" class="poly-component-actions"></div>
+                        <button id="polymerizer-practice-button" class="poly-practice-button" type="button">Explore assembly · Practice</button>
                     </main>
 
                     <aside class="poly-side-stack">
@@ -201,6 +206,8 @@ const PolymerizerUI = {
                 find("polymerizer-chamber-status"),
             assembleButton:
                 find("polymerizer-assemble-button"),
+            componentActions: find("polymerizer-component-actions"),
+            practiceButton: find("polymerizer-practice-button"),
             requirements:
                 find("polymerizer-requirements"),
             preflightPanel:
@@ -216,6 +223,10 @@ const PolymerizerUI = {
     },
 
     bindEvents() {
+
+        this.elements.practiceButton?.addEventListener("click", () => {
+            PolymerizerPracticeView.open(this.selectedProductId);
+        });
 
         this.elements.assembleButton
             ?.addEventListener(
@@ -249,6 +260,7 @@ const PolymerizerUI = {
 
     deactivate() {
 
+        PolymerizerPracticeView.close();
         this.active = false;
         this.rootElement?.classList.add(
             "hidden"
@@ -318,8 +330,38 @@ const PolymerizerUI = {
             product
         );
 
+        this.renderComponents(product, status.activeAssembly);
+
         return true;
 
+    },
+
+    renderComponents(product, activeAssembly) {
+        const container = this.elements.componentActions;
+        if (!container) return;
+        container.replaceChildren();
+        const components = product?.definition.components ?? [];
+        if (!components.length || product.completion?.completed) return;
+        const note = document.createElement("p");
+        note.textContent = "Synthesize numbered components in order, or finish all remaining components. Benefits require the full complex.";
+        container.append(note);
+        if (!activeAssembly) this.elements.assembleButton.textContent =
+            `Synthesize full complex · ${product.atp.cost} ATP`;
+        for (const component of components) {
+            const status = PolymerizerComponentManager.getStatus(product.id, component.number);
+            const done = status.progress.completedIds.includes(component.number);
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "poly-component-button";
+            button.textContent = `Component ${component.number} · ${done ? "Complete" : `${status.plan.atpCost} ATP`}`;
+            button.title = Object.entries(component.recipe).map(([k,v]) => `${k}${v}`).join(" / ");
+            button.disabled = !status.canStart;
+            button.addEventListener("click", () => {
+                PolymerizerComponentManager.start(product.id, component.number);
+                this.render();
+            });
+            container.append(button);
+        }
     }
 
 };

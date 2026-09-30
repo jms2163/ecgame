@@ -13,6 +13,13 @@ const PROTEIN_IMAGE_DIRECTORY =
     "../../public/assets/polymerizer/proteins/";
 
 const VISUAL_CONFIGS = Object.freeze({
+    RuBisCO: Object.freeze({
+        directoryName: "9hvm_motifs", filePrefix: "9hvm",
+        firstFrameNumber: 0, lastFrameNumber: 344,
+        alt: "Cumulative motif reveal of the 16-subunit Chlamydomonas pyrenoid RuBisCO assembly (9HVM).",
+        accent: "green", placeholderLabel: "RuBisCO full assembly",
+        fallbackFileName: null
+    }),
     FructoseBisphosphatase: Object.freeze({
         directoryName: "1spi_motifs", filePrefix: "1spi",
         firstFrameNumber: 1, lastFrameNumber: 20,

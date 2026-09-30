@@ -480,16 +480,17 @@ export const proteinLibrary =  Object.freeze({
     "Info": "Massive multi-subunit membrane enzyme complex that initiates the electron transport chain by oxidizing NADH."
   },
   "RuBisCO": {
-    "PPC": "HLBBHLH",
-    "Recipe": {"B": 2, "L": 1, "H": 4},
+    "PPC": "LHLHLHLBLHHLBLHLHLBLHLBLHHBLHLBLHLBLHLBLHLHLBLHLHBLBLBLHLHLBLHLLBLBLHLBLHLBLHLLHLHLHLBLHHLBLHLHLBLHLBLHHBLHLBLHLHLBLHLBLHLHLBLHLHBLBLBLHLHLBLHLLBLBLHLBLHLBLHLLHLHLHLBLHHLBLHLHLBLHLBLHHBLHLBLHLBLHLBLHLHLBLHLHBLBLBLHLHLBLHLLBLBLHLBLHLHLBLHLLHLHLHLBLHHLBLHLHLBLHLBLHHBLHLBLHLHLBLHLBLHLHLBLHLHBLBLBLHLHLBLHLLBLBLHLBLHLBLHLLHLHLHLBLHHLBLHLHLBLHLBLHHBLHLBLHLHLBLHLBLHLHLBLHLHBLBLBLHLHLBLHLLBLBLHLBLHLBLHLLHLHLHLBLHHLBLHLHLBLHLBLHHBLHLBLHLHLBLHLBLHLHLBLHLHBLBLBLHLHLBLHLLBLBLHLBLHLBLHLLHLHLHLBLHHLBLHLHLBLHLBLHHBLHLBLHLBLHLBLHLHLBLHLHBLBLBLHLHLBLHLLBLBLHLBLHLBLHLLHLHLHLBLHHLBLHLHLBLHLBLHHBLHLBLHLHLBLHLBLHLHLBLHLHBLBLBLHLHLBLHLLBLBLHLBLHLBLHL",
+    "Recipe": {"H": 190, "B": 136, "L": 310},
     "Class": "Photosynthesis",
     "Function": "Carbon fixation; Calvin cycle entry",
     "Tier": 3,
     "PlantOnly": true,
     "Requires": ["ChloroplastUnlocked", "CalvinCycleUnlocked"],
-    "Source": "8QJ0",
+    "Location": "Symbiont chloroplast stroma / pyrenoid",
+    "Source": "9HVM",
     "Models": {},
-    "Info": "Primary carbon-fixing enzyme of photosynthesis, catalyzing the addition of atmospheric carbon dioxide to ribulose bisphosphate."
+    "Info": "Chlamydomonas reinhardtii pyrenoid RuBisCO, represented by the full 16-subunit (8 large + 8 small) 9HVM assembly. Catalyzes CO2 addition to RuBP to form two 3-PGA. User-generated full-assembly motif counts: H190/B136/L310, including short motifs; cumulative reveal frames 0-344."
   },
   // PDB motif counts below are based on the user's C-terminus to N-terminus
   // chain annotations. For dimers, totals are doubled from one chain; PPC

@@ -16,6 +16,8 @@ import SaveManager from "./SaveManager.js";
 import QuestManager from "./QuestManager.js";
 import PolymerizerRecipeCatalog
     from "../data/PolymerizerRecipeCatalog.js";
+import { componentPlan, componentProgress } from "./ProteinComponentPlan.js";
+import PolymerizerComponentManager from "./PolymerizerComponentManager.js";
 
 const ZONE_ID = "polymerizer";
 const DEFAULT_PRODUCT_ID = "Aquaporin";
@@ -135,6 +137,16 @@ function createJobId(productId, startedAtMs) {
 function normalizeActiveAssembly(job) {
 
     if (!isRecord(job)) return null;
+
+    if (job.componentIds !== undefined) {
+        const definition = PolymerizerRecipeCatalog.get(job.productId);
+        const plan = definition?.implemented && componentPlan(definition, job.componentIds);
+        if (!plan || typeof job.jobId !== "string" || !job.jobId.trim() ||
+            safeTimestamp(job.startedAtMs) === null || job.durationMs !== plan.durationMs ||
+            job.completesAtMs !== job.startedAtMs + plan.durationMs || job.atpCost !== plan.atpCost ||
+            JSON.stringify(job.motifRequirements) !== JSON.stringify(plan.motifRequirements.map(({productId, quantity}) => ({productId, quantity})))) return null;
+        return {...job, componentIds: [...plan.componentIds]};
+    }
 
     const definition =
         PolymerizerRecipeCatalog.get(
@@ -457,7 +469,7 @@ const PolymerizerManager = {
         productId = DEFAULT_PRODUCT_ID
     ) {
 
-        const definition =
+        let definition =
             PolymerizerRecipeCatalog.get(
                 productId
             );
@@ -591,6 +603,14 @@ const PolymerizerManager = {
             };
         }
 
+        const components = definition.components?.length
+            ? componentProgress(definition, this.ensureState().componentAssemblies?.[productId], outputQuantity > 0)
+            : null;
+        if (components) {
+            const plan = componentPlan(definition, definition.components.slice(components.completedCount).map(c => c.number));
+            if (plan) definition = {...definition, atpCost: plan.atpCost,
+                assemblyDurationMs: plan.durationMs, motifRequirements: plan.motifRequirements};
+        }
         const inventory =
             this.getMacromolecularizerInventory();
 
@@ -642,6 +662,7 @@ const PolymerizerManager = {
             outputQuantity >=
                 definition.maxCompletions;
 
+
         return {
             id: productId,
             definition:
@@ -678,6 +699,7 @@ const PolymerizerManager = {
                 !this.ensureState()
                     .activeAssembly,
             completionLimitReached,
+            componentProgress: components,
             implementationStatus:
                 "milestone-4-completion",
             completion,
@@ -858,6 +880,8 @@ const PolymerizerManager = {
                     "That protein is coming soon."
             };
         }
+
+        if (definition.components?.length) return PolymerizerComponentManager.start(productId, null, nowMs);
 
         const eligibility =
             this.getProductEligibility(
@@ -1066,6 +1090,7 @@ const PolymerizerManager = {
         }
 
         const productId = job.productId;
+        if (job.componentIds) return PolymerizerComponentManager.finish(job, nowMs);
         const definition =
             PolymerizerRecipeCatalog.get(
                 productId

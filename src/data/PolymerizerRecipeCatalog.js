@@ -10,6 +10,8 @@
 import { proteinLibrary } from "./proteinLibrary.js";
 import ProteinFunctionCatalog
     from "./ProteinFunctionCatalog.js";
+import ProteinComponentCatalog from "./ProteinComponentCatalog.js";
+import ProteinPurposeCatalog from "./ProteinPurposeCatalog.js";
 
 const MOTIF_ID_BY_SYMBOL = Object.freeze({
     H: "H_helix",
@@ -22,6 +24,12 @@ const MINIMUM_ASSEMBLY_SECONDS = 15;
 const MAXIMUM_ASSEMBLY_SECONDS = 60;
 const SECONDS_PER_MOTIF_UNIT = 0.25;
 const PRODUCT_CONFIGS = Object.freeze({
+    RuBisCO: Object.freeze({
+        name: "RuBisCO (9HVM · full assembly)",
+        implemented: true,
+        discoveryId: null,
+        lockedMessage: null
+    }),
     Aquaporin: Object.freeze({
         name: "Aquaporin",
         implemented: true,
@@ -317,6 +325,8 @@ function createDefinition(id, protein) {
         // This is presentation metadata derived from a catalog reference.
         // It is never copied into Polymerizer save state.
         functionDisplay,
+        purpose: ProteinPurposeCatalog.get(id),
+        components: ProteinComponentCatalog.get(id),
         description:
             protein?.Info ?? "",
         profile: protein?.Profile ?? null,

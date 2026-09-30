@@ -5,6 +5,7 @@
 
 import PolymerizerVisualCatalog
     from "../data/PolymerizerVisualCatalog.js";
+import { componentPlan } from "./ProteinComponentPlan.js";
 
 const MOTIF_NAMES = Object.freeze({
     H_helix: "Alpha Helix Motif",
@@ -24,6 +25,7 @@ export function groupPolymerizerProducts(
 
     const groups = [
         { id: "ready", label: "Ready", products: [] },
+        { id: "components", label: "In Progress", products: [] },
         { id: "incomplete", label: "Incomplete", products: [] },
         { id: "quest", label: "Quest Completed", products: [] },
         { id: "synthesized", label: "Synthesis Completed", products: [] }
@@ -32,13 +34,16 @@ export function groupPolymerizerProducts(
     products.forEach(product => {
         const groupIndex =
             product.completion?.source === "synthesized"
-                ? 3
+                ? 4
                 : product.completion?.source === "quest"
-                    ? 2
+                    ? 3
+                    : product.componentProgress?.completedCount > 0 ||
+                        (activeAssembly?.productId === product.id && activeAssembly.componentIds)
+                        ? 1
                     : activeAssembly?.productId === product.id ||
                         (!product.locked && product.canStart)
                         ? 0
-                        : 1;
+                        : 2;
         groups[groupIndex].products.push(product);
     });
 
@@ -70,7 +75,7 @@ function renderProductImage(
             product.id
             ? activeAssembly
             : null;
-    const requestedImageUrl =
+    let requestedImageUrl =
         PolymerizerVisualCatalog
             .resolveImageUrl(
                 product.id,
@@ -84,6 +89,15 @@ function renderProductImage(
                         product.completion?.completed
                 }
             );
+    if (product.definition.components?.length && !product.completion?.completed) {
+        let frame = product.componentProgress?.frame ?? 0;
+        if (productAssembly?.componentIds) {
+            const plan = componentPlan(product.definition, productAssembly.componentIds);
+            if (plan) frame = Math.min(plan.lastFrame, Math.floor(plan.firstFrame - 1 +
+                (plan.lastFrame - plan.firstFrame + 1) * productAssembly.progress));
+        }
+        requestedImageUrl = visual.frameUrls[frame];
+    }
 
     if (
         failedImageUrls.has(
@@ -124,7 +138,7 @@ function renderProductImage(
 
         elements.productImage.hidden = true;
     };
-    elements.productImage.src = imageUrl;
+    if (elements.productImage.src !== imageUrl) elements.productImage.src = imageUrl;
 
 }
 
@@ -160,6 +174,9 @@ const PolymerizerProductView = {
             button.type = "button";
             button.className = [
                 "poly-product-card",
+                !product.completion?.completed && (product.componentProgress?.completedCount > 0 ||
+                    (activeAssembly?.productId === product.id && activeAssembly.componentIds))
+                    ? "poly-product-card--in-progress" : "",
                 product.id ===
                     selectedProductId
                     ? "poly-product-card--selected"
@@ -201,7 +218,9 @@ const PolymerizerProductView = {
                 document.createElement("span");
             status.className =
                 "poly-product-card-status";
-            status.textContent =
+            status.textContent = !product.completion?.completed && product.componentProgress &&
+                (product.componentProgress.completedCount > 0 || activeAssembly?.productId === product.id)
+                ? `Components ${product.componentProgress.completedCount}/${product.componentProgress.total}${activeAssembly?.productId === product.id ? " · Assembling" : ""}` :
                 activeAssembly
                     ?.productId === product.id
                     ? activeAssembly.complete
@@ -237,12 +256,22 @@ const PolymerizerProductView = {
                 status,
                 level
             );
+            if (product.definition.purpose && product.definition.functionDisplay &&
+                !product.definition.functionDisplay.badgeText.includes(product.definition.purpose)) {
+                const purpose = document.createElement("span");
+                purpose.className = "poly-product-card-purpose";
+                purpose.textContent = product.definition.purpose;
+                content.append(purpose);
+            }
 
             button.append(content);
 
             const functionDisplay =
                 product.definition
-                    .functionDisplay;
+                    .functionDisplay ?? (product.definition.purpose ? {
+                        badgeText: product.definition.purpose, badgeTone: "metabolism",
+                        label: "Purpose", description: product.definition.purpose
+                    } : null);
 
             if (functionDisplay?.badgeText) {
                 const badge =
@@ -375,7 +404,7 @@ const PolymerizerProductView = {
             elements.chamberMode.textContent =
                 "Synthesized";
             elements.chamberStatus.textContent =
-                `${product.definition.name} is complete and its functional benefit is active.`;
+                `${product.definition.name} is fully synthesized and available for use.`;
             elements.assembleButton.disabled = true;
             elements.assembleButton.textContent =
                 `${product.definition.name} · Synthesized`;
