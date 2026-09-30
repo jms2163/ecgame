@@ -54,6 +54,26 @@
 .guided-reaction-products { display: flex; justify-content: space-around; gap: 8px; animation: guided-products-appear .5s ease-out; }
 .guided-fixation-local-products { margin-top: 18px; }
 .guided-fixation-local-products .guided-reaction-products { animation-duration: 1.2s; }
+.calvin-activity-section + .calvin-activity-section { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--metabolism-border-soft); }
+.calvin-activity-section[hidden] { display: none; }
+#metabolism-zone.metabolism-practice-open .calvin-activity-section { margin: 0; padding: 0; border: 0; }
+.guided-reaction-enzyme-image { display: block; width: 100%; max-width: 160px; height: 105px; object-fit: contain; margin: 5px auto; }
+.guided-reduction-carrier { display: grid; gap: 6px; justify-items: center; padding: 9px; border: 1px solid #80b3ce; border-radius: 9px; background: rgba(48,90,120,.15); font-size: .85rem; }
+.guided-reduction-phosphate-chain { display: flex; gap: 4px; }
+.guided-reaction-phosphate-group.is-atp-phosphate { color: #342000; background: #ffdc77; border-color: #ffeeb0; }
+.guided-reduction-product-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: center; }
+.guided-reduction-g3p-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(100px,1fr)); gap: 6px; }
+.guided-reduction-intermediate { align-items: center; flex-wrap: wrap; }
+.guided-transfer-docks { align-items: center; }
+.guided-hydride-bundle { display: flex; align-items: center; justify-content: center; gap: 3px; min-height: 30px; }
+.guided-hydride-h { display: grid; place-items: center; background: white; color: #16334a; width: 30px; height: 30px; border-radius: 50%; font-weight: bold; border: 1px solid #c5e9ff; }
+.guided-hydride-electron { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: #b4e6ff; color: #174460; font-size: .7rem; }
+.guided-transfer-token { pointer-events: none; }
+.guided-reduction-allocation { margin: 18px 0; }
+.guided-allocation-g3p { border: 1px solid #81be96; padding: 8px; border-radius: 9px; background: rgba(0,0,0,.2); }
+.guided-allocation-g3p .guided-reaction-button { font-size: .75rem; padding: 6px; }
+.guided-allocation-pool { border: 2px dashed #81be96; border-radius: 10px; padding: 12px; min-height: 130px; }
+.guided-allocation-pool .guided-reaction-molecule { display: inline-grid; margin-right: 10px; }
 .guided-reaction-output-pair { display: flex; justify-content: space-around; gap: 5px; border-bottom: 1px solid var(--metabolism-border-soft); }
 .guided-reaction-output-tray .guided-reaction-carbon { width: 16px; height: 16px; font-size: .6rem; }
 .guided-reaction-feedback { min-height: 1.5em; line-height: 1.5; font-weight: 600; }

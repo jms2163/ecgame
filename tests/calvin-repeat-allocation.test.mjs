@@ -1,0 +1,37 @@
+import assert from 'node:assert/strict';
+import {createFixationSession,dockFixationInput,beginFixation,finishFixation,storeFixationProducts,repeatRemainingFixation,advanceFixation,fixationLedger} from '../src/app/CalvinFixationModel.js';
+import {createReductionSession,dockReductionInput,phosphorylatePGA,moveToReduction,reduceBPG,storeReductionProducts,
+ repeatRemainingReduction,advanceReduction,allocateReductionG3P,finishReductionAllocation,answerReduction,reductionLedger} from '../src/app/CalvinReductionModel.js';
+
+const c1=createFixationSession(),c2=createReductionSession();
+assert.equal(repeatRemainingFixation(c1),false,'one complete manual fixation is required');
+assert.equal(repeatRemainingReduction(c2),false,'one complete manual reduction is required');
+dockFixationInput(c1,'RuBisCO');dockFixationInput(c1,'RuBP');dockFixationInput(c1,'CO2');beginFixation(c1);
+assert.equal(repeatRemainingFixation(c1),false,'repeat cannot bypass hydration or collection');
+dockFixationInput(c1,'H2O');finishFixation(c1);storeFixationProducts(c1);
+assert.equal(repeatRemainingFixation(c1),true);assert.equal(c1.reactions,3);assert.equal(c1.phase,'stored');
+assert.equal(fixationLedger(c1).pgaProduced,6);assert.equal(repeatRemainingFixation(c1),false);
+assert.equal(advanceFixation(c1),true);assert.equal(c1.phase,'quiz');
+dockReductionInput(c2,'PGK');dockReductionInput(c2,'PGA');dockReductionInput(c2,'ATP');phosphorylatePGA(c2);
+assert.equal(repeatRemainingReduction(c2),false,'repeat cannot bypass reduction');
+moveToReduction(c2);dockReductionInput(c2,'GAPDH');dockReductionInput(c2,'NADPH');reduceBPG(c2);storeReductionProducts(c2);
+assert.equal(repeatRemainingReduction(c2),true);assert.equal(c2.stored,6);assert.equal(c2.phase,'stored');
+const l=reductionLedger(c2);assert.equal(l.atpUsed,6);assert.equal(l.nadphUsed,6);
+assert.equal(l.carbonIn,l.carbonInProducts);assert.equal(l.phosphorusIn,l.phosphorusOut);
+assert.equal(repeatRemainingReduction(c2),false,'cannot collect the batch twice');
+assert.equal(advanceReduction(c2),true);assert.equal(c2.phase,'allocation');
+assert.equal(answerReduction(c2,'phosphate'),false,'allocation precedes the net-output question');
+assert.equal(allocateReductionG3P(c2,'net',5),true);
+assert.equal(allocateReductionG3P(c2,'net',4),false,'only one molecule is net output');
+assert.equal(allocateReductionG3P(c2,'regeneration',5),false,'cannot use a molecule in two pools');
+assert.equal(allocateReductionG3P(c2,'regeneration',-1),false);
+assert.equal(allocateReductionG3P(c2,'regeneration',6),false);
+assert.equal(finishReductionAllocation(c2),false,'cannot continue with too few reserved carbons');
+for(let i=0;i<5;i++)assert.equal(allocateReductionG3P(c2,'regeneration',i),true);
+assert.equal(c2.allocation.regeneration.length*3,15);
+assert.equal(c2.allocation.net.length*3,3);
+assert.equal(finishReductionAllocation(c2),true);assert.equal(c2.phase,'quiz');
+assert.equal(allocateReductionG3P(c2,'net',0),false,'allocation locks once quiz begins');
+const corrupt=createReductionSession();Object.assign(corrupt,{phase:'stored',stored:1,pgk:true,gapdh:true,pgkRuns:6,gapdhRuns:1});
+const before=structuredClone(corrupt);assert.equal(repeatRemainingReduction(corrupt),false);assert.deepEqual(corrupt,before,'failed repeat is atomic');
+console.log('PASS: repeat requires first manual round, conserves the batch, cannot duplicate or bypass collection; G3P allocation teaches 15 reserved carbons and 3 net carbons before questions.');

@@ -2,7 +2,7 @@ import CalvinActivityManager from "./CalvinActivityManager.js";
 import CalvinPracticeManager from "./CalvinPracticeManager.js";
 import PolymerizerVisualCatalog from "../data/PolymerizerVisualCatalog.js";
 import { dockFixationInput, canRunFixation, beginFixation, finishFixation,
-    storeFixationProducts, advanceFixation, answerFixation, fixationLedger } from "./CalvinFixationModel.js";
+    storeFixationProducts, advanceFixation, repeatRemainingFixation, answerFixation, fixationLedger } from "./CalvinFixationModel.js";
 import { activityElement as el, activityButton as button, carbonMolecule,
     reactionDock, draggableInput } from "./GuidedReactionView.js";
 
@@ -12,6 +12,8 @@ const CalvinFixationView = {
     practice: false,
     timer: null,
     message: "",
+    onSessionChange: null,
+    onContinuePractice: null,
 
     close() {
         this.container?.closest("#metabolism-zone")?.classList.remove("metabolism-practice-open");
@@ -22,6 +24,7 @@ const CalvinFixationView = {
         this.manager = CalvinActivityManager;
         this.practice = false;
         this.message = "";
+        this.onSessionChange?.();
     },
 
     start(practice = false) {
@@ -30,6 +33,7 @@ const CalvinFixationView = {
         this.manager = practice ? CalvinPracticeManager : CalvinActivityManager;
         this.manager.start();
         this.render(this.container);
+        this.onSessionChange?.();
     },
 
     render(container) {
@@ -48,7 +52,7 @@ const CalvinFixationView = {
         container.replaceChildren(header);
         if (!session) {
             container.append(el("p", "guided-reaction-intro",
-                "Operate RuBisCO: add CO₂ to RuBP and follow the carbon into 3-PGA."),
+                "Operate RuBisCO: each CO₂ added to RuBP yields two 3-PGA. Three fixations produce the six 3-PGA needed for the next stage."),
                 button(status.completed ? "Re-examine carbon fixation" : "Start carbon fixation", () => this.start(), !status.available));
             container.append(button("Practice carbon fixation", () => this.start(true)));
             if (!status.available) container.append(el("p", "guided-reaction-feedback",
@@ -158,6 +162,11 @@ const CalvinFixationView = {
                 this.message = "";
                 this.render(container);
             }));
+            if (session.reactions < 3) chamber.append(button("Repeat this whole process", () => {
+                if (!repeatRemainingFixation(session)) return;
+                this.message = "Repeated the same fixation and collection for the remaining CO₂. Total: 3 RuBP + 3 CO₂ + 3 H₂O → 6 3-PGA. Three rounds account for three CO₂; the chemistry is unchanged.";
+                this.render(container);
+            }),el("p", "guided-reaction-note", `${3-session.reactions} more identical fixations are needed for the three-CO₂ batch. You can repeat them together or work through another round.`));
         }
         chamber.append(el("p", "guided-reaction-note", "One H₂O hydrates each intermediate before cleavage. RuBisCO catalyzes CO₂ addition, hydration, and cleavage; no ATP or NADPH is used here."));
         const outputs = el("section", "guided-reaction-output-tray");
@@ -246,6 +255,7 @@ const CalvinFixationView = {
             el("p", "", "3-PGA is not yet sugar. Next, ATP and NADPH will help convert it to G3P in the reduction stage."));
         if (!completed) container.append(button("Retry saving completion", () => { this.saveCompletion(); this.render(container); }));
         container.append(button("Re-examine carbon fixation", () => this.start(this.practice)));
+        if (this.practice && completed && this.onContinuePractice) container.append(button("Continue to reduction practice", () => this.onContinuePractice()));
     }
 };
 

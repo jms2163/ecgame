@@ -53,6 +53,16 @@ export function advanceFixation(session) {
     return true;
 }
 
+export function repeatRemainingFixation(session) {
+    if (session.phase !== "stored" || session.reactions < 1 || session.reactions >= 3 || !session.enzymeDocked) return false;
+    const next = { ...session };
+    while (next.reactions < 3) {
+        if (!advanceFixation(next) || !dockFixationInput(next,"RuBP") || !dockFixationInput(next,"CO2") ||
+            !beginFixation(next) || !dockFixationInput(next,"H2O") || !finishFixation(next) || !storeFixationProducts(next)) return false;
+    }
+    Object.assign(session,next);return true;
+}
+
 export function answerFixation(session, answer) {
     if (session.phase !== "quiz") return false;
     if (answer !== "CO2") {
