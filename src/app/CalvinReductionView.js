@@ -1,4 +1,6 @@
 import Manager from "./CalvinReductionManager.js";
+import {reductionMolecule,photosynthesisCarrier,reactionProton,animateCarbonOneReduction} from "./CalvinReductionVisuals.js";
+import RegenerationManager from "./CalvinRegenerationManager.js";
 import Visuals from "../data/PolymerizerVisualCatalog.js";
 import { REDUCTION_ENZYMES, REDUCTION_QUESTIONS, dockReductionInput, phosphorylatePGA,
     moveToReduction, reduceBPG, storeReductionProducts, advanceReduction, answerReduction,
@@ -7,7 +9,7 @@ import {GuidedTransferAnimation} from "./GuidedTransferAnimation.js";
 import {activityElement as el,activityButton as button,carbonMolecule,reactionDock,draggableInput} from "./GuidedReactionView.js";
 
 const CalvinReductionView = {
-    container:null, message:"", onSessionChange:null, busy:false, animator:null, animationVersion:0,
+    container:null, message:"", onSessionChange:null,onProgress:null, onContinuePractice:null, busy:false, animator:null, animationVersion:0,
     close() { this.animationVersion++;this.animator?.cancel();this.animator=null;this.busy=false;Manager.reset();this.message="";this.onSessionChange?.(); },
     start(practice=false) {
         this.close();if(!Manager.start(practice))return false;
@@ -16,6 +18,7 @@ const CalvinReductionView = {
     render(container) {
         if(!container)return;this.container=container;
         if(Manager.session && !Manager.getStatus().available)this.close();
+        this.onProgress?.();
         if(this.busy && Manager.session)return;
         const s=Manager.session,status=Manager.getStatus();
         const heading=el("div","guided-reaction-heading"), title=el("div","");
@@ -32,7 +35,7 @@ const CalvinReductionView = {
         }
         const l=reductionLedger(s),ledger=el("div","guided-reaction-ledger");
         for(const [label,value] of [["3-PGA used",`${l.pgaUsed}/6`],["ATP used · ADP formed",`${l.atpUsed}/6`],
-            ["NADPH used · NADP⁺ formed",`${l.nadphUsed}/6`],["G3P collected",`${s.stored}/6`]]) {
+            ["NADPH + H⁺ used · NADP⁺ formed",`${l.nadphUsed}/6`],["G3P collected",`${s.stored}/6`]]) {
             const item=el("div","");item.append(el("span","",label),el("strong","",value));ledger.append(item);
         }
         container.append(ledger);
@@ -44,6 +47,7 @@ const CalvinReductionView = {
         container.append(button(Manager.practice?"Exit practice":"Return to reconstruction",()=>{this.close();this.render(container);}));
     },
     molecule(label,phosphates,s,round=s.stored) {
+        if(phosphates===2||label.startsWith("G3P"))return reductionMolecule(label,phosphates===2,round%2===1);
         const molecule=carbonMolecule(label,3,{phosphates,fixedCarbon:round%2===1});
         if(phosphates===2) {
             const first=molecule.querySelector(".guided-reaction-phosphate-group");
@@ -52,16 +56,12 @@ const CalvinReductionView = {
         return molecule;
     },
     carrier(label,count=0) {
+        if(["NADPH","NADP⁺"].includes(label))return photosynthesisCarrier(label);
         const item=el("div","guided-reduction-carrier");item.append(el("strong","",label));
         if(count) {
             const row=el("div","guided-reduction-phosphate-chain");
             for(let i=0;i<count;i++)row.append(el("span",`guided-reaction-phosphate-group${i===2||label==="Pᵢ"?" is-atp-phosphate":""}`,"P"));
             item.append(row);
-        }
-        if(label==="NADPH") {
-            const hydride=el("div","guided-hydride-bundle");
-            hydride.append(el("span","guided-hydride-h","H⁻"),el("span","guided-hydride-electron","e⁻"),el("span","guided-hydride-electron","e⁻"));
-            item.append(hydride,el("small","","H⁻ carries the two electrons together"));
         }
         return item;
     },
@@ -86,7 +86,10 @@ const CalvinReductionView = {
         if(!stage2) {
             addInput("PGA","3-PGA",this.molecule("3-PGA · 3 carbons",1,s),s.phase!=="phosphorylation"||s.pga);
             addInput("ATP","ATP",this.carrier("ATP",3),s.phase!=="phosphorylation"||s.atp);
-        } else addInput("NADPH","NADPH",this.carrier("NADPH"),s.phase!=="reduction"||s.nadph);
+        } else {
+            addInput("NADPH","NADPH",this.carrier("NADPH"),s.phase!=="reduction"||s.nadph);
+            addInput("HPLUS","H⁺",reactionProton(),s.phase!=="reduction"||s.hplus);
+        }
         chamber.append(el("h4","",`Molecule ${Math.min(s.stored+1,6)} of 6 · ${stage2?"2. Reduction":"1. Phosphorylation"}`));
         const enzymeDock=reactionDock(`${stage} · reusable enzyme`,stage,s[stage2?"gapdh":"pgk"],dock);
         if(s[stage2?"gapdh":"pgk"])enzymeDock.append(this.enzyme(enzymeId));chamber.append(enzymeDock);
@@ -106,20 +109,21 @@ const CalvinReductionView = {
             const nadphDock=reactionDock("NADPH · electron donor","NADPH",s.nadph,dock);
             if(s.nadph)nadphDock.append(this.carrier("NADPH"));
             inputs.append(nadphDock,bpg);
-            chamber.append(inputs,el("p","","NADPH transfers H⁻, a hydrogen with two electrons, to the enzyme-bound substrate. This schematic shows them moving together. H⁺ from the solution and enzyme intermediates are omitted."),
-                button("Use NADPH to reduce",()=>this.runAnimated(s,"reduction"),!(s.gapdh&&s.nadph)));
+            const protonDock=reactionDock("H⁺ · from solution","HPLUS",s.hplus,dock);if(s.hplus)protonDock.append(reactionProton());
+            chamber.append(inputs,protonDock,el("p","","NADPH transfers H⁻ (a hydrogen nucleus with two electrons) to carbon 1; a separate H⁺ from solution is used in the net reaction. C1 keeps =O while –O–P is replaced by H. This is reduction to an aldehyde, not formation of an –OH group. H⁺ enters the enzyme area; detailed proton transfers and intermediates are omitted."),
+                button("Use NADPH to reduce",()=>this.runAnimated(s,"reduction"),!(s.gapdh&&s.nadph&&s.hplus)));
         } else if(s.phase==="products") {
             const products=el("section","guided-fixation-local-products");products.append(el("h4","","Products ready to collect"));
             const row=el("div","guided-reduction-product-row guided-reaction-products");
             row.append(this.molecule("G3P",1,s),this.carrier("ADP",2),this.carrier("NADP⁺"),this.carrier("Pᵢ",1));
-            products.append(row,el("p","","G3P keeps the original phosphate. Its carbon 1 group is now an aldehyde, instead of 3-PGA's carboxyl group. No carbon was added during reduction."),
+            products.append(row,el("p","","G3P keeps its carbon 3 phosphate. Carbon 1 now has =O and H: an aldehyde. The =O did not become –OH. ADP shown here came from PGK; GAPDH used NADPH and H⁺ and released Pᵢ. No carbon was added."),
                 button("Store reduction products",()=>{if(storeReductionProducts(s)){this.message="Products collected. Moving to the tray is bookkeeping, not another reaction.";this.render(container);}}));
             chamber.append(products);
         } else {
             chamber.append(el("p","","Products collected in the output tray."),button(s.stored===6?"Explore gross and net G3P":"Reduce the next 3-PGA",()=>{advanceReduction(s);this.message="";this.render(container);}));
             if(s.stored<6)chamber.append(button("Repeat this whole process",()=>{
                 if(!repeatRemainingReduction(s))return;
-                this.message="Repeated phosphorylation, reduction, and collection for the remaining molecules. Total: six ATP and six NADPH used; six G3P, six ADP, six NADP⁺, and six Pᵢ formed.";
+                this.message="Repeated phosphorylation, reduction, and collection for the remaining molecules. Total: six ATP, six NADPH, and six solution H⁺ used; six G3P, six ADP, six NADP⁺, and six Pᵢ formed.";
                 this.render(container);
             }),el("p","guided-reaction-note",`${6-s.stored} more 3-PGA complete the six-molecule batch from C1. You can repeat them together or explore another round manually.`));
         }
@@ -141,20 +145,20 @@ const CalvinReductionView = {
     },
     async runAnimated(s,kind) {
         if(this.busy || Manager.session!==s)return;
-        const ready=kind==="phosphorylation"?s.phase==="phosphorylation"&&s.pgk&&s.pga&&s.atp:s.phase==="reduction"&&s.gapdh&&s.nadph;
+        const ready=kind==="phosphorylation"?s.phase==="phosphorylation"&&s.pgk&&s.pga&&s.atp:s.phase==="reduction"&&s.gapdh&&s.nadph&&s.hplus;
         if(!ready)return;
         this.busy=true;const version=++this.animationVersion, animator=new GuidedTransferAnimation();this.animator=animator;
         for(const b of this.container.querySelectorAll("button"))if(!["Exit practice","Return to reconstruction"].includes(b.textContent.trim()))b.disabled=true;
         for(const b of this.container.querySelectorAll("[draggable]"))b.draggable=false;
         const feedback=this.container.querySelector('.guided-reaction-feedback');
-        if(feedback)feedback.textContent=kind==="phosphorylation"?"Watch ATP's terminal phosphate glide onto carbon 1; ADP leaves to the left.":"Watch H⁻ and its two electrons move together from NADPH. NADPH becomes NADP⁺.";
-        const ok=await (kind==="phosphorylation"?animator.phosphorylate(this.container):animator.reduce(this.container));
+        if(feedback)feedback.textContent=kind==="phosphorylation"?"Watch ATP's terminal phosphate glide onto carbon 1; ADP leaves to the left.":"Watch H and its electron pair move together to carbon 1. H⁺ is used separately; =O stays while –O–P leaves and C–H appears.";
+        const ok=await (kind==="phosphorylation"?animator.phosphorylate(this.container):animateCarbonOneReduction(this.container,animator));
         animator.dispose();
         if(version!==this.animationVersion || Manager.session!==s)return;
         this.busy=false;this.animator=null;
         if(ok) {
             if(kind==="phosphorylation") {phosphorylatePGA(s);this.message="ATP became ADP. Its phosphate is now on carbon 1; the original phosphate remains on carbon 3.";}
-            else {reduceBPG(s);this.message="NADPH transferred a hydride (H⁻, including two electrons) and became NADP⁺. G3P formed and the temporary phosphate was released as Pᵢ.";}
+            else {reduceBPG(s);this.message="Carbon 1 was reduced: its =O remains, –O–P left as Pᵢ, and C–H formed. NADPH became NADP⁺; one solution H⁺ was used. ADP was formed in the earlier PGK step.";}
         } else this.message="The animation could not finish. Retry the reaction.";
         this.render(this.container);
     },
@@ -211,6 +215,7 @@ const CalvinReductionView = {
             el("p","","These six G3P are gross production. Five are needed to regenerate three RuBP, leaving one net G3P. Regeneration will use three more ATP in the next milestone."));
         if(!status.completed)container.append(button("Retry saving reduction",()=>{this.saveCompletion();this.render(container);}));
         container.append(button("Re-examine reduction",()=>this.start(Manager.practice)));
+        if(status.completed)container.append(button(Manager.practice?"Continue to regeneration practice":"Continue to regeneration",()=>this.onContinuePractice?.(),!Manager.practice&&!RegenerationManager.getStatus().available));
     }
 };
 export default CalvinReductionView;

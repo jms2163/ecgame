@@ -13,6 +13,7 @@ const CalvinFixationView = {
     timer: null,
     message: "",
     onSessionChange: null,
+    onProgress: null,
     onContinuePractice: null,
 
     close() {
@@ -43,6 +44,7 @@ const CalvinFixationView = {
         if (!status.available && this.manager.session) this.close();
         const session = this.manager.session;
         container.closest("#metabolism-zone")?.classList.toggle("metabolism-practice-open", Boolean(session && this.practice));
+        this.onProgress?.();
         const header = el("div", "guided-reaction-heading");
         const title = el("div", "");
         title.append(el("p", "metabolism-panel-kicker", "Calvin Cycle · Guided Activity 1"),

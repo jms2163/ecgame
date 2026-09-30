@@ -1414,3 +1414,137 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Regeneration keeps one net G3P outside the recycled-carbon bench. */
+.guided-regeneration-net { margin-top: 16px; padding: 12px; border: 2px solid #d4b457; border-radius: 10px; }
+.guided-regeneration-inputs { align-items: start; }
+.guided-regeneration-products { flex-wrap: wrap; }
+.guided-regeneration-fragment { display: flex; gap: 3px; pointer-events: none; }
+.guided-regeneration-return { padding: 16px; border: 1px solid var(--metabolism-border-soft); border-radius: 10px; }
+.guided-regeneration-workspace .guided-reaction-carbon-chain { flex-shrink: 0; }
+.guided-regeneration-workspace .guided-reaction-chamber { overflow-wrap: anywhere; }
+.guided-regeneration-workspace .guided-reaction-molecule-label { font-size: .8rem; }
+.guided-regeneration-workspace .guided-reaction-water,
+.guided-transfer-token.guided-reaction-water { display: inline-block; white-space: nowrap; }
+.guided-regeneration-workspace .guided-reaction-output-tray { display: block; }
+
+/* Aldolase visibly joins two intact carbon fragments without a redox carrier. */
+.guided-reaction-carbon.is-dhap-fragment { background: #8ccdfa; border-color: #d4eeff; }
+.guided-reaction-carbon.is-aldose-fragment { background: #87ddb0; }
+.guided-aldolase-new-bond { display: inline-block; flex: 0 0 12px; width: 12px; height: 3px; align-self: center; background: #ffdc77; box-shadow: 0 0 5px #ffdc77; }
+.guided-aldolase-preview { margin-top: 14px; text-align: center; }
+.guided-aldolase-joined-chain { display: flex; align-items: center; justify-content: center; gap: 3px; margin: 14px 0; }
+.guided-aldolase-fragment { display: flex; gap: 3px; }
+.guided-aldolase-explanation { line-height: 1.5; }
+
+/* Functional-group prototype, restricted to the first C3 TPI reaction. */
+.guided-triose-prototype { width: 100%; }
+.guided-triose-prototype svg { display: block; width: 100%; max-width: 280px; height: auto; overflow: visible; }
+.triose-backbone-bond,.triose-group-bond { stroke: #e6f8ed; stroke-width: 2.5; }
+.triose-carbon { fill: #87ddb0; stroke: #cbf3dc; stroke-width: 1.5; }
+.triose-carbon-label { fill: #082f21; font-size: 15px; font-weight: bold; }
+.triose-position-label { fill: #dcebe3; font-size: 12px; }
+.triose-oxygen-label { fill: #ff9696; font-size: 22px; font-weight: bold; }
+.triose-hydrogen-label { fill: #f5faf7; font-size: 19px; font-weight: bold; }
+.triose-phosphate { fill: #384377; stroke: #bcc7ff; }
+.triose-phosphate-label { fill: white; font-size: 16px; }
+.triose-group-summary { font-size: .8rem; color: #e4f5eb; }
+.guided-triose-note { padding: 10px; border-left: 3px solid #ff9696; }
+
+.guided-triose-inputs > .guided-reaction-dock { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+.guided-triose-inputs > .guided-reaction-dock > span:first-child { grid-column: 1 / -1; }
+.guided-triose-products { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); width: 100%; }
+.guided-reaction-output-tray .guided-triose-prototype svg { max-width: 200px; }
+@media (max-width: 700px) { .guided-triose-products,.guided-triose-inputs > .guided-reaction-dock { grid-template-columns: 1fr; } }
+/* C2 carbon-1 reduction and the photosynthesis NADPH/NADP+ carrier. */
+.guided-c2-functional-molecule { width: 100%; }
+.guided-c2-functional-molecule svg { display: block; width: 100%; max-width: 345px; height: auto; overflow: visible; }
+.c2-chemical-bond { stroke: #e6f8ed; stroke-width: 2.5; }
+.c2-carbon { fill: #87ddb0; stroke: #cbf3dc; stroke-width: 1.5; }
+.c2-carbon.is-fixed { fill: #ffdc77; }
+.c2-carbon-label { fill: #082f21; font-size: 15px; font-weight: bold; }
+.c2-carbon-number { fill: #dcebe3; font-size: 12px; }
+.c2-oxygen { fill: #ff9696; font-size: 22px; font-weight: bold; }
+.c2-hydrogen { fill: #f5faf7; font-size: 21px; font-weight: bold; }
+.c2-phosphate { fill: #384377; stroke: #bcc7ff; }
+.c2-phosphate.is-atp-phosphate { fill: #ffdc77; stroke: #ffecab; }
+.c2-phosphate-label { fill: white; font-size: 16px; font-weight: bold; }
+.c2-acyl-leaving .c2-phosphate-label { fill: #342000; }
+.c2-functional-summary { font-size: .8rem; }
+.guided-photosynthesis-carrier { position: relative; width: 150px; max-width: 100%; background: transparent; border: 0; padding: 0; }
+.guided-photosynthesis-carrier svg { display: block; width: 100%; }
+.c2-nadp-shape { fill: #ffed55; stroke: #6b5000; stroke-width: 4; }
+.c2-nadp-label { fill: #141d12; font-size: 24px; font-weight: bold; }
+.guided-photosynthesis-carrier .c2-bound-hydride { position: absolute; top: 5px; left: 50%; transform: translateX(-50%); gap: 3px; }
+.c2-bound-hydride .guided-hydride-h { border: 3px solid #b7dcf7; color: #183347; }
+.c2-bound-hydride .guided-hydride-electron { background: #86caff; color: #143546; }
+.guided-c2-proton { display: inline-grid; place-items: center; width: 38px; height: 38px; border: 3px solid #b7dcf7; border-radius: 50%; background: white; color: #183347; font-size: 20px; font-weight: bold; }
+.guided-reduction-product-row .guided-c2-functional-molecule { max-width: 345px; }
+.guided-reaction-tray .guided-photosynthesis-carrier,
+.guided-reaction-tray .guided-c2-proton { justify-self: center; }
+
+/* A persistent cycle links the detailed lessons to the complete pathway. */
+#metabolism-calvin-activity { container-type: inline-size; }
+.calvin-guided-layout { display: grid; grid-template-columns: minmax(0,1fr); gap: 18px; align-items: start; }
+.calvin-overview-details { min-width: 0; }
+.calvin-persistent-overview { padding: 16px; border: 1px solid #528369; border-radius: 14px; background: #102c22; max-width: 580px; width: 100%; box-sizing: border-box; margin: 0 auto; }
+.calvin-persistent-overview h3 { margin: 2px 0 8px; font-size: 1.15rem; }
+.calvin-overview-board { position: relative; }
+.calvin-overview-board > svg { display: block; width: 100%; height: auto; overflow: visible; }
+.calvin-overview-center { position: absolute; left: 46.43%; top: 49.12%; width: 43%; transform: translate(-50%,-50%); display: grid; gap: 5px; text-align: center; }
+.calvin-overview-center small { font-size: .72rem; color: #c9dfd2; }
+.calvin-overview-automate { margin: 0; padding: 10px 8px; font-size: .9rem; border-color: #8dddac; }
+.calvin-overview-ring { fill: none; stroke: #294b3b; stroke-width: 20; }
+.calvin-overview-arc { fill: none; stroke: #82c8a1; stroke-width: 2; }
+.calvin-overview-dot { cursor: pointer; }
+.calvin-overview-dot[aria-disabled="true"] { cursor: default; }
+.calvin-overview-dot circle { fill: #234a37; stroke: #86bfa0; stroke-width: 2; }
+.calvin-overview-dot.is-current circle { fill: #ffdc77; stroke: #fff0b2; stroke-width: 4; animation: calvin-dot-pulse 1.8s infinite; }
+.calvin-overview-dot:focus-visible { outline: none; }
+.calvin-overview-dot:focus-visible circle { stroke: white; stroke-width: 5; }
+.calvin-dot-number { fill: white; font-size: 20px; font-weight: bold; }
+.calvin-overview-dot.is-current .calvin-dot-number { fill: #362800; }
+.calvin-dot-abbr { fill: #e4f5eb; font-size: 20px; font-weight: bold; }
+.calvin-dot-p { fill: #80eda9; font-size: 22px; font-weight: bold; display: none; }
+.calvin-overview-dot.is-practiced .calvin-dot-p { display: inline; }
+.calvin-phase-name { fill: #9bd5b3; font-size: 18px; font-weight: bold; letter-spacing: 1px; }
+.calvin-net-bin rect { fill: #332f1a; stroke: #8d7d3e; stroke-width: 2; }
+.calvin-net-bin text { fill: #ffdc77; font-size: 14px; }
+.calvin-net-bin.is-active rect { stroke: #ffdc77; stroke-width: 3; }
+.calvin-light-bin rect { fill: #243d29; stroke: #d6cf73; }
+.calvin-light-bin text { fill: #f9ec9b; font-size: 13px; }
+.calvin-overview-branch { fill: none; stroke: #6b7952; stroke-width: 2; stroke-dasharray: 5 5; }
+.calvin-overview-branch.is-active { stroke: #ffdc77; stroke-width: 3; }
+.calvin-overview-board.is-returning .calvin-overview-arc.is-return-link { stroke: #ffdc77; }
+.calvin-overview-current { display: block; font-size: .92rem; line-height: 1.4; }
+.calvin-overview-caption { min-height: 3em; font-size: .86rem; line-height: 1.45; margin: 8px 0; color: #dceee3; }
+.calvin-overview-budget { display: grid; gap: 4px; padding: 10px; background: #183b2b; border-radius: 8px; font-size: .82rem; }
+.calvin-overview-controls { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.calvin-overview-controls .guided-reaction-button { font-size: .75rem; padding: 7px; margin: 0; }
+.calvin-overview-loop { display: flex; gap: 7px; align-items: center; font-size: .78rem; margin-top: 12px; }
+.calvin-overview-note { font-size: .74rem; color: #b9d0c1; line-height: 1.4; margin: 9px 0 0; }
+.calvin-demo-token { pointer-events: none; }
+.calvin-token-carbon { fill: #87ddb0; stroke: #dcf8e7; }
+.calvin-token-oxygen { fill: #ff9890; stroke: #ffe2d7; }
+.calvin-token-label { fill: #143323; font-size: 10px; font-weight: bold; }
+.calvin-token-bond { stroke: #ecf8ef; stroke-width: 2; }
+.calvin-token-p { fill: #ffdc77; font-size: 16px; font-weight: bold; }
+.calvin-demo-label { fill: #fff9da; font-size: 13px; font-weight: bold; paint-order: stroke; stroke: #102c22; stroke-width: 3px; stroke-linejoin: round; }
+.calvin-energy-card { fill: #253e4d; stroke: #b6d7e8; }
+.calvin-token-phosphate { fill: #aaaad8; }
+.calvin-terminal-p { fill: #ffdc77; }
+.calvin-nadp-card { fill: #ffed55; stroke: #6b5000; stroke-width: 2; }
+.calvin-nadp-card + text { fill: #132617; stroke: none; }
+.calvin-guided-layout.is-automating { grid-template-columns: minmax(0,1fr); }
+.calvin-guided-layout.is-automating .calvin-persistent-overview { max-width: 800px; position: static; }
+.calvin-guided-layout.is-automating .calvin-overview-details { display: none; }
+.calvin-guided-layout.is-automating .calvin-overview-board { max-width: 600px; margin: auto; }
+@container (min-width: 800px) {
+    .calvin-guided-layout { grid-template-columns: minmax(310px,.9fr) minmax(0,2fr); }
+    .calvin-persistent-overview { position: sticky; top: 12px; }
+    .calvin-overview-details .guided-reaction-workspace { grid-template-columns: minmax(135px,.75fr) minmax(230px,1.7fr); }
+    .calvin-overview-details .guided-reaction-output-tray { grid-column: 1 / -1; }
+    .calvin-guided-layout.is-automating { grid-template-columns: minmax(0,1fr); }
+}
+@keyframes calvin-dot-pulse { 50% { filter: drop-shadow(0 0 6px #ffdc77); } }
+@media (prefers-reduced-motion: reduce) { .calvin-overview-dot.is-current circle { animation: none; } }

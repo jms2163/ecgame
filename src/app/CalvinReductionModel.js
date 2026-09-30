@@ -8,13 +8,13 @@ export const REDUCTION_QUESTIONS = [
 ];
 
 export function createReductionSession() {
-    return { phase: "phosphorylation", pgk: false, gapdh: false, pga: false, atp: false, nadph: false,
+    return { phase: "phosphorylation", pgk: false, gapdh: false, pga: false, atp: false, nadph: false, hplus:false,
         pgkRuns: 0, gapdhRuns: 0, stored: 0, quizIndex: 0, firstAnswers: [], mistakes: 0, saved: false,
         allocation: { regeneration: [], net: [] } };
 }
 export function dockReductionInput(s, input) {
     const field = s.phase === "phosphorylation" ? { PGK:"pgk", PGA:"pga", ATP:"atp" }[input] :
-        s.phase === "reduction" ? { GAPDH:"gapdh", NADPH:"nadph" }[input] : null;
+        s.phase === "reduction" ? { GAPDH:"gapdh", NADPH:"nadph", HPLUS:"hplus" }[input] : null;
     if (!field || s[field]) return false;
     s[field] = true; return true;
 }
@@ -27,8 +27,8 @@ export function moveToReduction(s) {
     s.phase = "reduction"; return true;
 }
 export function reduceBPG(s) {
-    if (s.phase !== "reduction" || !s.gapdh || !s.nadph || s.pgkRuns !== s.gapdhRuns + 1) return false;
-    s.gapdhRuns++; s.nadph = false; s.phase = "products"; return true;
+    if (s.phase !== "reduction" || !s.gapdh || !s.nadph || !s.hplus || s.pgkRuns !== s.gapdhRuns + 1) return false;
+    s.gapdhRuns++; s.nadph = false; s.hplus=false; s.phase = "products"; return true;
 }
 export function storeReductionProducts(s) {
     if (s.phase !== "products" || s.gapdhRuns !== s.stored + 1) return false;
@@ -44,7 +44,7 @@ export function repeatRemainingReduction(s) {
     while (next.stored < 6) {
         if (!advanceReduction(next) || !dockReductionInput(next,"PGA") || !dockReductionInput(next,"ATP") ||
             !phosphorylatePGA(next) || !moveToReduction(next) || !dockReductionInput(next,"NADPH") ||
-            !reduceBPG(next) || !storeReductionProducts(next)) return false;
+            !dockReductionInput(next,"HPLUS") || !reduceBPG(next) || !storeReductionProducts(next)) return false;
     }
     Object.assign(s,next);return true;
 }
@@ -72,7 +72,7 @@ export function reductionScore(s) {
 }
 export function reductionLedger(s) {
     return { pgaUsed:s.pgkRuns, atpUsed:s.pgkRuns, adpFormed:s.pgkRuns, nadphUsed:s.gapdhRuns,
-        nadpFormed:s.gapdhRuns, piFormed:s.gapdhRuns, g3pFormed:s.gapdhRuns, stored:s.stored,
+        nadpFormed:s.gapdhRuns, protonsUsed:s.gapdhRuns, piFormed:s.gapdhRuns, g3pFormed:s.gapdhRuns, stored:s.stored,
         carbonIn:s.pgkRuns*3, carbonInProducts:s.gapdhRuns*3, carbonInIntermediate:(s.pgkRuns-s.gapdhRuns)*3,
         // Original substrate P plus the three P groups on each used ATP.
         phosphorusIn:s.pgkRuns*4,
