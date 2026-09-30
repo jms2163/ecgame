@@ -43,7 +43,7 @@ const CalvinFixationView = {
         const title = el("div", "");
         title.append(el("p", "metabolism-panel-kicker", "Calvin Cycle · Guided Activity 1"),
             el("h3", "", "Carbon Fixation"));
-        header.append(title, el("strong", "guided-reaction-status", this.practice ? "Practice · no saved progress" : status.completed ? "Completed · replay available" : "Fix three CO₂"));
+        header.append(title, el("strong", "guided-reaction-status", this.practice ? "Practice · earn P with 100% correct answers" : status.completed ? "Completed · replay available" : "Fix three CO₂"));
         if (session && this.practice) header.append(button("Exit practice", () => { this.close(); this.render(container); }));
         container.replaceChildren(header);
         if (!session) {
@@ -232,13 +232,16 @@ const CalvinFixationView = {
 
     saveCompletion() {
         const result = this.manager.complete();
-        this.message = result.success ? (this.practice ? "Practice complete. Player progress is unchanged." : "Carbon fixation complete.") : "Completion could not be saved. Retry saving before leaving.";
+        this.message = result.success ? (this.practice ? result.scorePercent === 100 ?
+            "Practice complete · 100%. Green P saved on the RuBisCO enzyme card." :
+            `Practice complete · ${result.scorePercent}%. Re-examine and answer without mistakes to earn the green P.`
+            : "Carbon fixation complete.") : "Completion could not be saved. Retry saving before leaving.";
         return result;
     },
 
     renderCompletion(container) {
         const completed = this.manager.getStatus().completed;
-        container.append(el("h4", "", this.practice ? "Practice carbon fixation complete" : completed ? "Carbon fixation mastered" : "Reaction complete · save pending"),
+        container.append(el("h4", "", !completed ? "Reaction complete · save pending" : this.practice ? "Practice carbon fixation complete" : "Carbon fixation mastered"),
             el("p", "", "3 RuBP + 3 CO₂ + 3 H₂O → 6 3-PGA. The enzyme remains available to catalyze more reactions."),
             el("p", "", "3-PGA is not yet sugar. Next, ATP and NADPH will help convert it to G3P in the reduction stage."));
         if (!completed) container.append(button("Retry saving completion", () => { this.saveCompletion(); this.render(container); }));

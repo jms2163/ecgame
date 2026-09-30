@@ -57,6 +57,8 @@
 .guided-reaction-output-pair { display: flex; justify-content: space-around; gap: 5px; border-bottom: 1px solid var(--metabolism-border-soft); }
 .guided-reaction-output-tray .guided-reaction-carbon { width: 16px; height: 16px; font-size: .6rem; }
 .guided-reaction-feedback { min-height: 1.5em; line-height: 1.5; font-weight: 600; }
+.metabolism-enzyme-card { position: relative; padding-right: 45px !important; }
+.metabolism-enzyme-card .metabolism-practice-marker { position: absolute; top: 8px; right: 8px; display: grid; place-items: center; width: 26px; height: 26px; border: 2px solid #81e49e; border-radius: 50%; color: #81e49e; font-size: 15px; font-weight: bold; line-height: 1; background: #163e25; }
 #metabolism-zone.metabolism-practice-open .metabolism-library,
 #metabolism-zone.metabolism-practice-open .metabolism-topbar-actions,
 #metabolism-zone.metabolism-practice-open .metabolism-map-panel > :not(#metabolism-calvin-activity) { display: none; }

@@ -1,0 +1,51 @@
+import assert from 'node:assert/strict';
+import gameState from '../src/app/GameState.js';
+import SaveManager from '../src/app/SaveManager.js';
+import Observer from '../src/app/GameStateObserver.js';
+import Practice from '../src/app/CalvinPracticeManager.js';
+import Progress from '../src/app/MetabolismPracticeProgress.js';
+import {dockFixationInput,beginFixation,finishFixation,storeFixationProducts,advanceFixation,answerFixation} from '../src/app/CalvinFixationModel.js';
+
+const storage=new Map();
+globalThis.localStorage={getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,String(v)),removeItem:k=>storage.delete(k)};
+gameState.zones.metabolism.state={unrelated:{keep:true},practiceMastery:{OtherEnzyme:{scorePercent:100,completedAtMs:10}}};
+const before=structuredClone(gameState);
+let markerEvents=0,productEvents=0;
+Observer.on('metabolism-state-changed',e=>{if(e.reason==='practice-marker')markerEvents++;});
+Observer.on('polymerizer-product-completed',()=>productEvents++);
+function finishPractice(wrong=false){
+ Practice.start();const s=Practice.session;dockFixationInput(s,'RuBisCO');
+ for(let i=0;i<3;i++){dockFixationInput(s,'RuBP');dockFixationInput(s,'CO2');beginFixation(s);dockFixationInput(s,'H2O');finishFixation(s);storeFixationProducts(s);advanceFixation(s);}
+ if(wrong)assert.equal(answerFixation(s,'ATP'),false);
+ assert.equal(answerFixation(s,'CO2'),true);
+}
+Practice.start();assert.equal(Practice.complete().reason,'activity-incomplete');Practice.reset();
+assert.deepEqual(gameState,before);
+finishPractice(true);assert.equal(Practice.complete().scorePercent,0);
+assert.equal(Progress.hasPerfectPractice('RuBisCO'),false);
+assert.equal(storage.size,0);assert.deepEqual(gameState,before);
+finishPractice();const save=SaveManager.save;SaveManager.save=()=>false;
+assert.equal(Practice.complete(100).reason,'save-failed');
+assert.equal(Practice.getStatus().completed,false,'UI offers retry after save failure');
+assert.deepEqual(gameState,before,'failed marker save preserves all prior records');
+SaveManager.save=save;
+assert.equal(Practice.complete(100).success,true);
+assert.equal(Practice.getStatus().completed,true);
+assert.equal(Progress.hasPerfectPractice('RuBisCO'),true);
+const expected=structuredClone(before);
+expected.zones.metabolism.state.practiceMastery.RuBisCO={activityId:'calvin-carbon-fixation',scorePercent:100,completedAtMs:100};
+expected.saveMetadata=structuredClone(gameState.saveMetadata);
+assert.deepEqual(gameState,expected,'only educational marker changes; no resource, inventory, benefit, discovery, or achievement changes');
+assert.equal(markerEvents,1);assert.equal(productEvents,0);
+const persisted=JSON.parse(storage.get('ECGame_Save'));
+Practice.reset();gameState.zones.metabolism.state=persisted.zones.metabolism.state;
+assert.equal(Progress.hasPerfectPractice('RuBisCO'),true,'marker survives save reload');
+finishPractice();assert.equal(Practice.complete(200).reason,'already-practiced');
+assert.equal(gameState.zones.metabolism.state.practiceMastery.RuBisCO.completedAtMs,100);
+finishPractice(true);Practice.complete(300);Practice.reset();
+assert.equal(Progress.hasPerfectPractice('RuBisCO'),true,'later mistakes do not revoke earned P');
+assert.equal(markerEvents,1);
+delete gameState.zones.metabolism.state.practiceMastery;
+finishPractice();SaveManager.save=()=>false;Practice.complete();SaveManager.save=save;
+assert.equal(Object.hasOwn(gameState.zones.metabolism.state,'practiceMastery'),false,'lazy field is removed on save failure');
+console.log('PASS: only perfect complete practice saves P; early exits and mistakes do not; save rollback, retry, reload, and replay preserve progression.');

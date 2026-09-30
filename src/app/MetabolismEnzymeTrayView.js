@@ -1,5 +1,6 @@
 // Compact inventory for every enzyme required by the selected pathway.
 // An inspection dialog handles activation without a long cross-page drag.
+import PracticeProgress from "./MetabolismPracticeProgress.js";
 
 const MetabolismEnzymeTrayView = {
     render(container, pathway, onInspect = null) {
@@ -34,6 +35,14 @@ const MetabolismEnzymeTrayView = {
             const location = document.createElement("small");
             location.textContent = `Slot ${slot.slot} · Select for protein view`;
             card.append(name, status, location);
+            if (PracticeProgress.hasPerfectPractice(slot.enzymeId)) {
+                const marker = document.createElement("span");
+                marker.className = "metabolism-practice-marker";
+                marker.textContent = "P";
+                marker.title = "Practiced · completed with 100% correct answers";
+                marker.setAttribute("aria-label", "Practiced with 100% correct answers");
+                card.append(marker);
+            }
             card.addEventListener("click", () => onInspect?.(slot, { active, synthesized }));
             if (card.draggable) {
                 card.addEventListener("dragstart", event => {

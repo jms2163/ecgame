@@ -43,8 +43,12 @@ CalvinPractice.start();
 const s=CalvinPractice.session;dockFixationInput(s,'RuBisCO');
 for(let i=0;i<3;i++){dockFixationInput(s,'RuBP');dockFixationInput(s,'CO2');beginFixation(s);dockFixationInput(s,'H2O');finishFixation(s);storeFixationProducts(s);advanceFixation(s);}
 assert.equal(answerFixation(s,'CO2'),true);assert.equal(CalvinPractice.complete().success,true);CalvinPractice.reset();
-assert.equal(JSON.stringify(gameState),beforePractice,'practice never modifies any player state');
-assert.equal(writes,beforeWrites,'practice never saves');
+const afterPractice=structuredClone(gameState);
+assert.equal(afterPractice.zones.metabolism.state.practiceMastery.RuBisCO.scorePercent,100);
+delete afterPractice.zones.metabolism.state.practiceMastery;
+afterPractice.saveMetadata=JSON.parse(beforePractice).saveMetadata;
+assert.equal(JSON.stringify(afterPractice),beforePractice,'only the educational P marker changes');
+assert.ok(writes>beforeWrites,'perfect Calvin practice saves its marker');
 assert.equal(completions,0);
 assert.equal(Manager.getProductEligibility('RuBisCO').canStart,false,'whole complex levels are unmet');
 assert.equal(Components.getStatus('RuBisCO',1).canStart,true,'component has smaller requirements');
