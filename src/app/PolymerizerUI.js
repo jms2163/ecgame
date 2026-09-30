@@ -9,6 +9,7 @@ import PolymerizerProductView
     from "./PolymerizerProductView.js";
 import PolymerizerComponentManager from "./PolymerizerComponentManager.js";
 import PolymerizerPracticeView from "./PolymerizerPracticeView.js";
+import PolymerizerVisualCatalog from "../data/PolymerizerVisualCatalog.js";
 
 const PolymerizerUI = {
 
@@ -19,6 +20,10 @@ const PolymerizerUI = {
     // Product browsing is presentation-only and intentionally does not add
     // a speculative selection field to persistent Polymerizer save state.
     selectedProductId: "Aquaporin",
+    // Temporary viewing preference; it never changes game/save state.
+    imageZoomPercent: 100,
+    zoomProductId: null,
+    imageZoomByProduct: {},
 
     initialize() {
 
@@ -135,6 +140,11 @@ const PolymerizerUI = {
                             <div class="poly-orbit poly-orbit--outer" aria-hidden="true"></div>
                             <div class="poly-orbit poly-orbit--inner" aria-hidden="true"></div>
                             <img id="polymerizer-product-image" alt="">
+                            <div class="poly-image-zoom" role="group" aria-label="Protein image zoom">
+                                <button id="polymerizer-image-zoom-out" type="button" aria-label="Zoom protein image out by 10 percent">−</button>
+                                <output id="polymerizer-image-zoom-level" aria-live="polite">100%</output>
+                                <button id="polymerizer-image-zoom-in" type="button" aria-label="Zoom protein image in by 10 percent">+</button>
+                            </div>
                         </div>
 
                         <div id="polymerizer-progress-panel" class="poly-progress-panel" hidden>
@@ -192,6 +202,9 @@ const PolymerizerUI = {
                 find("polymerizer-product-class"),
             productImage:
                 find("polymerizer-product-image"),
+            imageZoomOut: find("polymerizer-image-zoom-out"),
+            imageZoomIn: find("polymerizer-image-zoom-in"),
+            imageZoomLevel: find("polymerizer-image-zoom-level"),
             chamberMode:
                 find("polymerizer-chamber-mode"),
             progressPanel:
@@ -224,6 +237,11 @@ const PolymerizerUI = {
 
     bindEvents() {
 
+        this.elements.imageZoomOut?.addEventListener("click", () => this.changeImageZoom(-10));
+        this.elements.imageZoomIn?.addEventListener("click", () => this.changeImageZoom(10));
+        this.elements.productImage?.addEventListener("load", () => this.updateImageZoom());
+        this.elements.productImage?.addEventListener("error", () => this.updateImageZoom());
+
         this.elements.practiceButton?.addEventListener("click", () => {
             PolymerizerPracticeView.open(this.selectedProductId);
         });
@@ -240,6 +258,42 @@ const PolymerizerUI = {
                 }
             );
 
+    },
+
+    updateImageZoom() {
+        const image = this.elements.productImage;
+        if (!image) return;
+        image.style.setProperty("--poly-image-zoom", this.imageZoomPercent / 100);
+        // Apply the configured zoom even if an older stylesheet is cached.
+        image.style.transform = `scale(${this.imageZoomPercent / 100})`;
+        this.elements.imageZoomLevel.textContent = `${this.imageZoomPercent}%`;
+        this.elements.imageZoomOut.disabled = image.hidden || this.imageZoomPercent <= 10;
+        this.elements.imageZoomIn.disabled = image.hidden || this.imageZoomPercent >= 500;
+    },
+
+    changeImageZoom(deltaPercent) {
+        this.imageZoomPercent = Math.max(10, Math.min(500, this.imageZoomPercent + deltaPercent));
+        this.imageZoomByProduct[this.zoomProductId ?? this.selectedProductId] = this.imageZoomPercent;
+        this.updateImageZoom();
+        const image = this.elements.productImage;
+        if (!image) return;
+        const box = image.getBoundingClientRect();
+        const viewport = image.closest(".poly-chamber-viewport");
+        const round = value => Math.round(value * 10) / 10;
+        const inner = round(viewport.querySelector(".poly-orbit--inner").getBoundingClientRect().width);
+        const outer = round(viewport.querySelector(".poly-orbit--outer").getBoundingClientRect().width);
+        const fit = image.naturalWidth && image.naturalHeight
+            ? Math.min(box.width / image.naturalWidth, box.height / image.naturalHeight) : 0;
+        const width = round(fit ? image.naturalWidth * fit : box.width);
+        const height = round(fit ? image.naturalHeight * fit : box.height);
+        console.info(
+            `[Polymerizer PNG] ${this.elements.productName.textContent} | zoom ${this.imageZoomPercent}% | displayed ${width} × ${height} px | source ${image.naturalWidth} × ${image.naturalHeight} px | rings ${inner} / ${outer} px`,
+            { productId: this.selectedProductId, zoomPercent: this.imageZoomPercent,
+                displayedWidthPx: width, displayedHeightPx: height,
+                imageBoxWidthPx: round(box.width), imageBoxHeightPx: round(box.height),
+                sourceWidthPx: image.naturalWidth, sourceHeightPx: image.naturalHeight,
+                innerRingDiameterPx: inner, outerRingDiameterPx: outer }
+        );
     },
 
     activate() {
@@ -314,11 +368,17 @@ const PolymerizerUI = {
                 this.render();
             }
         );
+        if (product && this.zoomProductId !== product.id) {
+            this.zoomProductId = product.id;
+            this.imageZoomPercent = this.imageZoomByProduct[product.id] ??
+                PolymerizerVisualCatalog.get(product.id)?.displayZoomPercent ?? 100;
+        }
         PolymerizerProductView.renderChamber(
             this.elements,
             product,
             status.activeAssembly
         );
+        this.updateImageZoom();
         PolymerizerProductView.renderPreflight(
             this.elements.requirements,
             product,

@@ -14,6 +14,7 @@ const PROTEIN_IMAGE_DIRECTORY =
 
 const VISUAL_CONFIGS = Object.freeze({
     RuBisCO: Object.freeze({
+        displayZoomPercent: 190,
         directoryName: "9hvm_motifs", filePrefix: "9hvm",
         firstFrameNumber: 0, lastFrameNumber: 344,
         alt: "Cumulative motif reveal of the 16-subunit Chlamydomonas pyrenoid RuBisCO assembly (9HVM).",
@@ -21,42 +22,49 @@ const VISUAL_CONFIGS = Object.freeze({
         fallbackFileName: null
     }),
     FructoseBisphosphatase: Object.freeze({
+        displayZoomPercent: 260,
         directoryName: "1spi_motifs", filePrefix: "1spi",
         firstFrameNumber: 1, lastFrameNumber: 20,
         alt: "Representative partial motif sequence for spinach chloroplast fructose-1,6-bisphosphatase dimer (1SPI).",
         accent: "green", placeholderLabel: "FBPase motif sequence", fallbackFileName: null
     }),
     Transketolase: Object.freeze({
+        displayZoomPercent: 270,
         directoryName: "5nd5_motifs", filePrefix: "5nd5",
         firstFrameNumber: 1, lastFrameNumber: 40,
         alt: "Representative motif sequence for chloroplast transketolase dimer (5ND5).",
         accent: "green", placeholderLabel: "Transketolase motif sequence", fallbackFileName: null
     }),
     SedoheptuloseBisphosphatase: Object.freeze({
+        displayZoomPercent: 250,
         directoryName: "7zuv_motifs", filePrefix: "7zuv",
         firstFrameNumber: 1, lastFrameNumber: 22,
         alt: "Representative motif sequence for chloroplast sedoheptulose bisphosphatase dimer (7ZUV).",
         accent: "green", placeholderLabel: "SBPase motif sequence", fallbackFileName: null
     }),
     Ribose5PhosphateIsomerase: Object.freeze({
+        displayZoomPercent: 250,
         directoryName: "6zxt_motifs", filePrefix: "6zxt",
         firstFrameNumber: 1, lastFrameNumber: 18,
         alt: "Representative motif sequence for chloroplast ribose-5-phosphate isomerase dimer (6ZXT).",
         accent: "green", placeholderLabel: "RPI motif sequence", fallbackFileName: null
     }),
     Ribulose5PhosphateEpimerase: Object.freeze({
+        displayZoomPercent: 250,
         directoryName: "7b1w_motifs", filePrefix: "7b1w",
         firstFrameNumber: 1, lastFrameNumber: 17,
         alt: "Motif sequence for plastidial ribulose-5-phosphate epimerase monomer (7B1W).",
         accent: "green", placeholderLabel: "RPE motif sequence", fallbackFileName: null
     }),
     Phosphoribulokinase: Object.freeze({
+        displayZoomPercent: 250,
         directoryName: "6kew_motifs", filePrefix: "6kew",
         firstFrameNumber: 1, lastFrameNumber: 27,
         alt: "Representative motif sequence for Arabidopsis phosphoribulokinase monomer (6KEW).",
         accent: "green", placeholderLabel: "PRK motif sequence", fallbackFileName: null
     }),
     Aquaporin: Object.freeze({
+        displayZoomPercent: 210,
         directoryName: "1rc2_motifs",
         filePrefix: "1RC2",
         firstFrameNumber: 0,
@@ -69,6 +77,7 @@ const VISUAL_CONFIGS = Object.freeze({
         fallbackFileName: "aquaporin.png"
     }),
     GlucoseTransporter: Object.freeze({
+        displayZoomPercent: 160,
         directoryName: "4lds_motifs",
         filePrefix: "4LDS",
         firstFrameNumber: 0,
@@ -81,6 +90,7 @@ const VISUAL_CONFIGS = Object.freeze({
         fallbackFileName: null
     }),
     EnergyKinase: Object.freeze({
+        displayZoomPercent: 160,
         directoryName: "1ei0_motifs",
         filePrefix: "1ei0",
         firstFrameNumber: 0,
@@ -94,6 +104,7 @@ const VISUAL_CONFIGS = Object.freeze({
         fallbackFileName: null
     }),
     Glycogenin: Object.freeze({
+        displayZoomPercent: 250,
         directoryName: "3u2u_motifs",
         filePrefix: "3u2u",
         firstFrameNumber: 0,
@@ -104,6 +115,7 @@ const VISUAL_CONFIGS = Object.freeze({
         fallbackFileName: null
     }),
     Glycerol3PhosphateAcyltransferase: Object.freeze({
+        displayZoomPercent: 210,
         directoryName: "5xj6_motifs",
         filePrefix: "5xj6",
         firstFrameNumber: 0,
@@ -114,6 +126,7 @@ const VISUAL_CONFIGS = Object.freeze({
         fallbackFileName: null
     }),
     Hexokinase: Object.freeze({
+        displayZoomPercent: 230,
         directoryName: "1bg3_motifs",
         filePrefix: "1bg3",
         firstFrameNumber: 0,
@@ -126,6 +139,7 @@ const VISUAL_CONFIGS = Object.freeze({
         fallbackFileName: null
     }),
     PhosphoglucoseIsomerase: Object.freeze({
+        displayZoomPercent: 190,
         directoryName: "2pgi_motifs",
         filePrefix: "2pgi",
         firstFrameNumber: 0,
@@ -138,6 +152,7 @@ const VISUAL_CONFIGS = Object.freeze({
         fallbackFileName: null
     }),
     Phosphofructokinase: Object.freeze({
+        displayZoomPercent: 220,
     directoryName: "4y8v_motifs",
     filePrefix: "4y8v",
     firstFrameNumber: 0,
@@ -150,6 +165,7 @@ const VISUAL_CONFIGS = Object.freeze({
     fallbackFileName: null
 }),
 Aldolase: Object.freeze({
+    displayZoomPercent: 260,
     directoryName: "1ald_motifs",
     filePrefix: "1ald",
     firstFrameNumber: 0,
@@ -162,6 +178,7 @@ Aldolase: Object.freeze({
     fallbackFileName: null
 }),
 TriosePhosphateIsomerase: Object.freeze({
+    displayZoomPercent: 210,
     directoryName: "1tim_motifs",
     filePrefix: "1tim",
     firstFrameNumber: 0,
@@ -174,6 +191,7 @@ TriosePhosphateIsomerase: Object.freeze({
     fallbackFileName: null
 }),
 Glyceraldehyde3PhosphateDehydrogenase: Object.freeze({
+    displayZoomPercent: 210,
     directoryName: "1dc4_motifs",
     filePrefix: "1dc4",
     firstFrameNumber: 0,
@@ -186,6 +204,7 @@ Glyceraldehyde3PhosphateDehydrogenase: Object.freeze({
     fallbackFileName: null
 }),
 PhosphoglycerateKinase: Object.freeze({
+    displayZoomPercent: 210,
     directoryName: "3pgk_motifs",
     filePrefix: "3pgk",
     firstFrameNumber: 0,
@@ -200,6 +219,7 @@ PhosphoglycerateKinase: Object.freeze({
 // PolymerizerVisualCatalog.js — Formate Acetyltransferase 1 (1H16)
 
 FormateAcetyltransferase1: Object.freeze({
+    displayZoomPercent: 260,
     directoryName: "1h16_motifs",
     filePrefix: "1h16",
     firstFrameNumber: 0,
@@ -214,6 +234,7 @@ FormateAcetyltransferase1: Object.freeze({
 // PolymerizerVisualCatalog.js — Pyruvate Kinase (1PKL)
 
 PyruvateKinase: Object.freeze({
+    displayZoomPercent: 180,
     directoryName: "1pkl_motifs",
     filePrefix: "1pkl",
     firstFrameNumber: 0,
@@ -228,6 +249,7 @@ PyruvateKinase: Object.freeze({
 // PolymerizerVisualCatalog.js — Phosphoglycerate Mutase (1E58)
 
 PhosphoglycerateMutase: Object.freeze({
+    displayZoomPercent: 190,
     directoryName: "1e58_motifs",
     filePrefix: "1e58",
     firstFrameNumber: 0,
@@ -240,6 +262,7 @@ PhosphoglycerateMutase: Object.freeze({
     fallbackFileName: null
 }),
 Enolase: Object.freeze({
+    displayZoomPercent: 180,
     directoryName: "4a3r_motifs",
     filePrefix: "4a3r",
     firstFrameNumber: 0,
@@ -254,6 +277,7 @@ Enolase: Object.freeze({
 // PolymerizerVisualCatalog.js — Lactate Dehydrogenase (4LDA)
 
     LactateDehydrogenase: Object.freeze({
+        displayZoomPercent: 180,
     directoryName: "4lda_motifs",
     filePrefix: "4lda",
     firstFrameNumber: 0,
@@ -266,6 +290,7 @@ Enolase: Object.freeze({
         fallbackFileName: null
     }),
     TriosePhosphateTranslocator: Object.freeze({
+        displayZoomPercent: 230,
         directoryName: "5y78_motifs", filePrefix: "5y78",
         firstFrameNumber: 0, lastFrameNumber: 12,
         alt: "TPT motif assembly from PDB 5Y78.",
@@ -273,6 +298,7 @@ Enolase: Object.freeze({
         fallbackFileName: null
     }),
     SucroseSynthase1: Object.freeze({
+        displayZoomPercent: 250,
         directoryName: "3s27_motifs", filePrefix: "3s27",
         firstFrameNumber: 0, lastFrameNumber: 51,
         alt: "Sucrose synthase 1 motif assembly from PDB 3S27.",
@@ -280,6 +306,7 @@ Enolase: Object.freeze({
         fallbackFileName: null
     }),
     GranuleBoundStarchSynthase1: Object.freeze({
+        displayZoomPercent: 260,
         directoryName: "3vuf_motifs", filePrefix: "3vuf",
         firstFrameNumber: 0, lastFrameNumber: 32,
         alt: "Rice granule-bound starch synthase I motif assembly from PDB 3VUF.",
@@ -287,6 +314,7 @@ Enolase: Object.freeze({
         fallbackFileName: null
     }),
     Isoamylase: Object.freeze({
+        displayZoomPercent: 250,
         directoryName: "1bf2_motifs", filePrefix: "1bf2",
         firstFrameNumber: 0, lastFrameNumber: 44,
         alt: "Pseudomonas isoamylase motif assembly from PDB 1BF2.",
@@ -294,6 +322,7 @@ Enolase: Object.freeze({
         fallbackFileName: null
     }),
     Ferredoxin: Object.freeze({
+        displayZoomPercent: 200,
         directoryName: "1a70_motifs", filePrefix: "1a70",
         firstFrameNumber: 0, lastFrameNumber: 8,
         alt: "Ferredoxin motif assembly from PDB 1A70.",
@@ -301,6 +330,7 @@ Enolase: Object.freeze({
         fallbackFileName: null
     }),
     FerredoxinNADPReductase: Object.freeze({
+        displayZoomPercent: 280,
         directoryName: "1fnd_motifs", filePrefix: "1fnd",
         firstFrameNumber: 0, lastFrameNumber: 23,
         alt: "Ferredoxin-NADP+ reductase motif assembly from PDB 1FND.",
@@ -308,6 +338,7 @@ Enolase: Object.freeze({
         fallbackFileName: null
     }),
     Plastocyanin: Object.freeze({
+        displayZoomPercent: 230,
         directoryName: "1plc_motifs", filePrefix: "1plc",
         firstFrameNumber: 0, lastFrameNumber: 10,
         alt: "Plastocyanin motif assembly from PDB 1PLC.",
@@ -424,6 +455,8 @@ function createVisual(productId, config) {
                     config.fallbackFileName
                 )
                 : null,
+        // Per-protein chamber scale is independent of source PNG resolution.
+        displayZoomPercent: config.displayZoomPercent ?? 100,
         alt: config.alt,
         accent: config.accent,
         placeholderLabel:
