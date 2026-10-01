@@ -128,17 +128,17 @@ const hexokinaseRecipe =
 assert.equal(hexokinaseRecipe.valid, true);
 assert.equal(
     hexokinaseRecipe.structureOrderKnown,
-    false
+    true
 );
 assert.equal(
     hexokinaseRecipe.recipeMatchesPPC,
-    null
+    true
 );
-assert.equal(hexokinaseRecipe.motifCount, 95);
-assert.equal(hexokinaseRecipe.atpCost, 95);
+assert.equal(hexokinaseRecipe.motifCount, 250);
+assert.equal(hexokinaseRecipe.atpCost, 250);
 assert.equal(
     hexokinaseRecipe.assemblyDurationMs,
-    38_750
+    60_000
 );
 assert.equal(
     hexokinaseRecipe.discoveryId,
@@ -151,9 +151,9 @@ assert.deepEqual(
             quantity
         })),
     [
-        { productId: "H_helix", quantity: 22 },
-        { productId: "B_sheet", quantity: 25 },
-        { productId: "L_loop", quantity: 48 }
+        { productId: "H_helix", quantity: 74 },
+        { productId: "B_sheet", quantity: 50 },
+        { productId: "L_loop", quantity: 126 }
     ]
 );
 

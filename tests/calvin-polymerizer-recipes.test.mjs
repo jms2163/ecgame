@@ -4,7 +4,7 @@ import PolymerizerVisualCatalog from "../src/data/PolymerizerVisualCatalog.js";
 
 const expected = [
     ["FructoseBisphosphatase", { H: 20, B: 16, L: 40 }, 20],
-    ["Transketolase", { H: 54, B: 34, L: 88 }, 40],
+    ["Transketolase", { H: 63, B: 36, L: 89 }, 87],
     ["SedoheptuloseBisphosphatase", { H: 22, B: 34, L: 52 }, 22],
     ["Ribose5PhosphateIsomerase", { H: 14, B: 30, L: 44 }, 18],
     ["Ribulose5PhosphateEpimerase", { H: 10, B: 8, L: 17 }, 17],
@@ -15,12 +15,12 @@ for (const [id, counts, lastFrame] of expected) {
     const visual = PolymerizerVisualCatalog.get(id);
     assert.equal(recipe.valid, true, `${id} has a valid recipe`);
     assert.equal(recipe.implemented, true);
-    assert.equal(recipe.structureOrderKnown, false, "chain order is not fabricated");
+    assert.equal(recipe.structureOrderKnown, id === "Transketolase", "chain order is known only when the complete report is supplied");
     assert.deepEqual(Object.fromEntries(recipe.motifRequirements.map(
         item => [item.symbol, item.quantity]
     )), counts);
     assert.equal(recipe.atpCost, Object.values(counts).reduce((a, b) => a + b));
-    assert.deepEqual([visual.firstFrameNumber, visual.lastFrameNumber], [1, lastFrame]);
-    assert.equal(visual.frameCount, lastFrame);
+    assert.deepEqual([visual.firstFrameNumber, visual.lastFrameNumber], [0, lastFrame]);
+    assert.equal(visual.frameCount, lastFrame + 1);
     assert.match(visual.finalImageUrl, new RegExp(`-${lastFrame}\\.png$`));
 }

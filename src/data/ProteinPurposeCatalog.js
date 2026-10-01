@@ -11,6 +11,7 @@ const PURPOSES = Object.freeze({
     "Ribose5PhosphateIsomerase": "Calvin Cycle",
     "Ribulose5PhosphateEpimerase": "Calvin Cycle",
     "Phosphoribulokinase": "Calvin Cycle",
+    "FattyAcidSynthase": "Fatty Acid Synthesis",
     "Hexokinase": "Glycolysis",
     "PhosphoglucoseIsomerase": "Glycolysis",
     "Phosphofructokinase": "Glycolysis",

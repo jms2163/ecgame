@@ -404,7 +404,7 @@ const PolymerizerProductView = {
             elements.chamberMode.textContent =
                 "Synthesized";
             elements.chamberStatus.textContent =
-                `${product.definition.name} is fully synthesized and available for use.`;
+                `${product.definition.name} is fully synthesized and available for use.${product.id === "FattyAcidSynthase" ? " Megasynthase achieved!" : ""}`;
             elements.assembleButton.disabled = true;
             elements.assembleButton.textContent =
                 `${product.definition.name} · Synthesized`;

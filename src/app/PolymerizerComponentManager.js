@@ -4,6 +4,7 @@ import ResourceManager from './ResourceManager.js';
 import SaveManager from './SaveManager.js';
 import GameStateManager from './GameStateManager.js';
 import GameStateObserver from './GameStateObserver.js';
+import gameState from './GameState.js';
 import {componentPlan, componentProgress} from './ProteinComponentPlan.js';
 
 const PolymerizerComponentManager = {
@@ -64,12 +65,18 @@ const PolymerizerComponentManager = {
         const discoveryId = complete ? definition.discoveryId : null;
         const alreadyKnown = discoveryId && GameStateManager.hasDiscovery(discoveryId);
         const granted = discoveryId && !alreadyKnown ? GameStateManager.addDiscovery(discoveryId) : false;
+        const achievementGranted = complete && job.productId === 'FattyAcidSynthase' &&
+            !gameState.registry.achievements.megasynthase;
+        if (achievementGranted) gameState.registry.achievements.megasynthase = {
+            title:'Megasynthase', sourceProductId:job.productId, unlockedAtMs:job.completesAtMs
+        };
         if ((discoveryId && !alreadyKnown && !granted) || !SaveManager.save({reason:complete?'polymerizer-assembly-completed':'polymerizer-component-completed'})) {
             if (oldComponents === undefined) delete state.componentAssemblies;
             else state.componentAssemblies=oldComponents;
             state.productInventory=oldInventory;
             state.activeAssembly=job;
             if (granted) GameStateManager.removeDiscovery(discoveryId);
+            if (achievementGranted) delete gameState.registry.achievements.megasynthase;
             return {success:false,reason:'save-failed'};
         }
         PolymerizerManager.lastCompletionAttempt = null;

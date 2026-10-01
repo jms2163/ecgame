@@ -46,8 +46,8 @@ releasedIds.forEach(id => {
     assert.ok(protein, `${id} requires protein data`);
     assert.equal(
         protein.PPC,
-        "",
-        `${id} must use counts-only structure data`
+        id === "Hexokinase" ? recipe.simplifiedStructure : "",
+        `${id} uses the supplied report when available`
     );
     assert.equal(
         protein.Location,
@@ -56,7 +56,7 @@ releasedIds.forEach(id => {
     assert.ok(recipe, `${id} requires a recipe card`);
     assert.equal(recipe.implemented, true);
     assert.equal(recipe.valid, true);
-    assert.equal(recipe.structureOrderKnown, false);
+    assert.equal(recipe.structureOrderKnown, id === "Hexokinase");
     assert.equal(recipe.consumesMotifs, false);
     assert.equal(
         recipe.atpCost,

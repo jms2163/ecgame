@@ -129,17 +129,17 @@ const hexokinaseVisual =
     );
 assert.equal(hexokinaseVisual.source, "1BG3");
 assert.equal(hexokinaseVisual.firstFrameNumber, 0);
-assert.equal(hexokinaseVisual.lastFrameNumber, 65);
-assert.equal(hexokinaseVisual.frameCount, 66);
+assert.equal(hexokinaseVisual.lastFrameNumber, 131);
+assert.equal(hexokinaseVisual.frameCount, 132);
 assert.equal(
     hexokinaseVisual.assemblyFrameCount,
-    65
+    131
 );
 assert(hexokinaseVisual.idleImageUrl.endsWith(
     "/public/assets/polymerizer/proteins/1bg3_motifs/1bg3-0.png"
 ));
 assert(hexokinaseVisual.finalImageUrl.endsWith(
-    "/public/assets/polymerizer/proteins/1bg3_motifs/1bg3-65.png"
+    "/public/assets/polymerizer/proteins/1bg3_motifs/1bg3-131.png"
 ));
 
 const energyVisual =
@@ -198,7 +198,7 @@ const status =
     PolymerizerManager.getStatus(
         "GlucoseTransporter"
     );
-assert.equal(status.products.length, 31);
+assert.equal(status.products.length, 32);
 assert.equal(status.products.find(product => product.id === "RuBisCO").canStart, false);
 assert.deepEqual(
     status.products

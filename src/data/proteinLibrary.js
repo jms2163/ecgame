@@ -291,11 +291,25 @@ export const proteinLibrary =  Object.freeze({
     "Models": {},
     "Info": "High-affinity cell surface receptor that binds peptide growth factors and triggers intracellular kinase cascades for cell division."
   },
+  "FattyAcidSynthase": {
+    "PPC": "LBLHLBLHLBLHLHBLHLHLBLHLBLHLBLHLBLBLBLHLBLHLHLBLHBLHLBLHLBLHLBHLHLBLHLBLHLHLBHLBLBLBLHLHBHLHBLBLBLBLBLHLBLHLHLBLHLBLBLBLHLHLBLHLBLHLBLHLHLBLHLBLHLHHLHLBLBLBLBLBLBHBLHLBLBHBHBLHLBLBLBLBLBHLHBLBHLBLHLHLHLBLHLBLHBLHBLHLBLBLHLHLBLHBLBLHLBLHLHLBLHLHLHLHLHLBLBLBLHLHLBLBLBLBLHLHLHBLHLBLHLHLBLBLHLBLHLBLHLHLHLBLHLHLHLBLHLBLHLBLLBLHLBLHLBLHLHBLHLHLBLHLBLHLBLHLBLBLBLHLBLHLHLBLHBLHLBLHLBLHLBHLHLBLHLBLHLHLBHLBLBLBLHLHBHLHBLBLBLBLBLHLBLHLHLBLHLBLBLBLHLHLHLBLHLBLHLBLHLHLBLHLBLHLHHLHLBLBLBLBLBLBHBLHLBLBHBHBLHLBLBLBLBLBHLHBLBHLBLHLHLHLBLHLBLHBLHBLHLBLBLHLHLBLHBLBLHLBLHLHLBLHLHLHLHLHLBLBLBLHLHLBLBLBLBLHLHLHBLHLBLHLHLBLBLHLBLHLBLHLHLHLBLHLHLHLBLHLBLHLBL",
+    "Recipe": {
+        "H": 171,
+        "B": 170,
+        "L": 301
+    },
+    "Class": "Metabolism",
+    "Function": "Multienzyme complex for fatty acid synthesis",
+    "Tier": 3,
+    "Location": "Cytosol",
+    "Source": "2VZ9",
+    "Models": {},
+    "Info": "Mammalian type I fatty acid synthase dimer, represented by the two-chain 2VZ9 model. Component 1: H85/B85/L150; component 2: H86/B85/L151. Full dimer H171/B170/L301, frames 0-322. Completing both components earns Megasynthase."
+},
   "Hexokinase": {
-    // Motif totals were measured from PDB 1BG3. Their exact linear order is
-    // intentionally left unspecified rather than inventing an H/B/L string.
-    "PPC": "",
-    "Recipe": {"H": 22, "B": 25, "L": 48},
+    // Complete two-chain 1BG3 report, including short motifs.
+    "PPC": "LHLBLHLHLBLHLHLHLHLHLHLHLHLBLHBLBLHLBLHLBLBLBLHLHLBLLBLBLBLHLHLHLBLHLHLBLHLHLHLHLHLHLHLHLBLHBLBLHLBLHLBLBLBLHLBLBLBLHLHLHLHLLHLBLHLHLBLHLHLHLHLHLHLHLHLBLBLBLHLBLHLBLBLBLHLHLBLBLBLBLHLHLHLBLHLHLBLHLHLHLHLHLHLHLHLBLHBLBLHLBLHLBLBLBLLHLHLBLLBLBLHLHLHLHL",
+    "Recipe": {"H": 74, "B": 50, "L": 126},
     "Class": "Metabolism",
     "Function": "First step of glycolysis; glucose → G6P",
     "FunctionDisplay": "glycolysisATPInvestment",
@@ -304,7 +318,7 @@ export const proteinLibrary =  Object.freeze({
     "Requires": ["AminoAcids", "GlycolysisUnlocked"],
     "Source": "1BG3",
     "Models": {},
-    "Info": "Cytosolic enzyme that phosphorylates glucose to trap it inside the cell and initiate cellular respiration pathways."
+    "Info": "Cytosolic glucose-phosphorylating enzyme. Complete two-chain 1BG3 model: H74/B50/L126; numbered components 1 and 2, frames 0-131."
   },
   "PhosphoglucoseIsomerase": {
     // Motif totals were measured from PDB 2PGI. Their exact linear order is
@@ -493,8 +507,8 @@ export const proteinLibrary =  Object.freeze({
     "Info": "Chlamydomonas reinhardtii pyrenoid RuBisCO, represented by the full 16-subunit (8 large + 8 small) 9HVM assembly. Catalyzes CO2 addition to RuBP to form two 3-PGA. User-generated full-assembly motif counts: H190/B136/L310, including short motifs; cumulative reveal frames 0-344."
   },
   // PDB motif counts below are based on the user's C-terminus to N-terminus
-  // chain annotations. For dimers, totals are doubled from one chain; PPC
-  // stays empty because no complete two-chain assembly order was supplied.
+  // chain annotations. Representative dimers use doubled single-chain counts;
+  // Transketolase now uses the complete supplied two-chain report.
   "FructoseBisphosphatase": {
     "PPC": "", "Recipe": {"H": 20, "B": 16, "L": 40}, "Class": "Photosynthesis", "Tier": 3,
     "Function": "Hydrolyzes fructose-1,6-bisphosphate to fructose-6-phosphate",
@@ -502,10 +516,10 @@ export const proteinLibrary =  Object.freeze({
     "Info": "Spinach chloroplast fructose-1,6-bisphosphatase. Dimer recipe: twice the chain motif counts; available frames 1-20 are a partial representative sequence."
   },
   "Transketolase": {
-    "PPC": "", "Recipe": {"H": 54, "B": 34, "L": 88}, "Class": "Photosynthesis", "Tier": 3,
+    "PPC": "LHLHLBLHLBLHLHLBLHLBLBLHLBLBLHLBLHLHLBLHHLBLHLHLBLHBLHLHHHLHLHLBLHLBLHLHLBLBLBLHHBLHLHLHHLBLHLHLLHLHLBLHLBLHLHLBLHLBLBLHLBLHLBLHLHLBLHLBLHLHLBLHLHLHHHLHLHLBLHLBLHLHLBLBLBLHHBLHLHLHHLBLHLHL", "Recipe": {"H": 63, "B": 36, "L": 89}, "Class": "Photosynthesis", "Tier": 3,
     "Function": "Transfers two-carbon units during RuBP regeneration",
     "Location": "Symbiont chloroplast stroma", "Source": "5ND5", "Models": {},
-    "Info": "Chlamydomonas chloroplast transketolase; acts twice in the Calvin cycle. Dimer recipe doubles the annotated monomer; frames 1-40 are representative."
+    "Info": "Chlamydomonas chloroplast transketolase; acts twice in the Calvin cycle. Full two-chain 5ND5 report: H63/B36/L89, including short motifs. Numbered component 1 (chain A): H32/B19/L45; component 2 (chain B): H31/B17/L44. Cumulative frames 0-87; final frame 87 shows the completed dimer."
   },
   "SedoheptuloseBisphosphatase": {
     "PPC": "", "Recipe": {"H": 22, "B": 34, "L": 52}, "Class": "Photosynthesis", "Tier": 3,

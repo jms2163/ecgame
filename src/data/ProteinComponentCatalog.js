@@ -1,4 +1,4 @@
-// Exact chain boundaries and motif counts from the supplied 9HVM motifs.csv.
+// Exact chain boundaries and motif counts from the supplied 9HVM and 5ND5 reports.
 // Display numbers are stable recipe components, independent of PDB chain names.
 const RUBISCO = [
     {
@@ -194,6 +194,67 @@ const RUBISCO = [
         "lastFrame": 344
     }
 ];
-for (const component of RUBISCO) { Object.freeze(component.recipe); Object.freeze(component); }
-Object.freeze(RUBISCO);
-export default Object.freeze({ get(id) { return id === "RuBisCO" ? RUBISCO : []; } });
+// The 5ND5 CSV records 86 reveal frames; frame 87 is the supplied final image.
+const TRANSKETOLASE = [
+    {number:1,sourceModel:"1",sourceChain:"A",recipe:{H:32,B:19,L:45},firstFrame:1,lastFrame:43},
+    {number:2,sourceModel:"1",sourceChain:"B",recipe:{H:31,B:17,L:44},firstFrame:44,lastFrame:86}
+];
+const HEXOKINASE = [
+    {
+        "number": 1,
+        "sourceModel": "1",
+        "sourceChain": "A",
+        "recipe": {
+            "H": 37,
+            "B": 25,
+            "L": 62
+        },
+        "firstFrame": 1,
+        "lastFrame": 65
+    },
+    {
+        "number": 2,
+        "sourceModel": "1",
+        "sourceChain": "B",
+        "recipe": {
+            "H": 37,
+            "B": 25,
+            "L": 64
+        },
+        "firstFrame": 66,
+        "lastFrame": 130
+    }
+];
+const FATTY_ACID_SYNTHASE = [
+    {
+        "number": 1,
+        "sourceModel": "1",
+        "sourceChain": "A",
+        "recipe": {
+            "H": 85,
+            "B": 85,
+            "L": 150
+        },
+        "firstFrame": 1,
+        "lastFrame": 161
+    },
+    {
+        "number": 2,
+        "sourceModel": "1",
+        "sourceChain": "B",
+        "recipe": {
+            "H": 86,
+            "B": 85,
+            "L": 151
+        },
+        "firstFrame": 162,
+        "lastFrame": 321
+    }
+];
+const COMPONENTS = {RuBisCO:RUBISCO,Transketolase:TRANSKETOLASE,Hexokinase:HEXOKINASE,FattyAcidSynthase:FATTY_ACID_SYNTHASE};
+for (const components of Object.values(COMPONENTS)) {
+    for (const component of components) { Object.freeze(component.recipe); Object.freeze(component); }
+    Object.freeze(components);
+}
+Object.freeze(COMPONENTS);
+export default Object.freeze({ get(id) { return COMPONENTS[id] ?? []; } });

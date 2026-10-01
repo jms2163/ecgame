@@ -153,8 +153,24 @@ function normalizeActiveAssembly(job) {
             job.productId
         );
 
-    const expectedDurationMs =
-        definition?.assemblyDurationMs;
+    // Preserve already-paid whole-protein jobs from earlier 5ND5/1BG3 recipes.
+    // New starts use the exact two-chain component recipe; old jobs keep their
+    // original price and finish time instead of being discarded on reload.
+    const legacyTransketolase = job.productId === "Transketolase" &&
+        job.atpCost === 176 && JSON.stringify(job.motifRequirements) === JSON.stringify([
+            {productId:"H_helix",quantity:54},
+            {productId:"B_sheet",quantity:34},
+            {productId:"L_loop",quantity:88}
+        ]);
+    const legacyHexokinase = job.productId === "Hexokinase" && job.atpCost === 95 &&
+        JSON.stringify(job.motifRequirements) === JSON.stringify([
+            {productId:"H_helix",quantity:22},
+            {productId:"B_sheet",quantity:25},
+            {productId:"L_loop",quantity:48}
+        ]);
+    const legacyRecipe = legacyTransketolase || legacyHexokinase;
+    const expectedDurationMs = legacyTransketolase ? 59_000 :
+        legacyHexokinase ? 38_750 : definition?.assemblyDurationMs;
     const savedDurationIsSupported =
         job.durationMs ===
             expectedDurationMs ||
@@ -172,7 +188,7 @@ function normalizeActiveAssembly(job) {
             job.startedAtMs +
                 job.durationMs ||
         job.atpCost !==
-            definition.atpCost ||
+            (legacyRecipe ? job.atpCost : definition.atpCost) ||
         !Array.isArray(
             job.motifRequirements
         )
@@ -180,7 +196,7 @@ function normalizeActiveAssembly(job) {
         return null;
     }
 
-    const requiredMotifs =
+    const requiredMotifs = legacyRecipe ? job.motifRequirements :
         definition.motifRequirements.map(
             requirement => ({
                 productId:
@@ -217,7 +233,7 @@ function normalizeActiveAssembly(job) {
             job.completesAtMs,
         durationMs:
             job.durationMs,
-        atpCost: definition.atpCost,
+        atpCost: legacyRecipe ? job.atpCost : definition.atpCost,
         motifRequirements:
             requiredMotifs
     };
