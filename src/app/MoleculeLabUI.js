@@ -159,6 +159,7 @@ const MoleculeLabUI = {
                     <button type="button" data-builder-action="rotate-right" title="Rotate right">↷</button>
                     <button type="button" data-builder-action="zoom-in" title="Zoom in">＋</button>
                     <button type="button" data-builder-action="zoom-out" title="Zoom out">−</button>
+                    <button type="button" data-builder-action="toggle-rotation" title="Pause rotation" aria-label="Pause rotation" aria-pressed="false">Pause</button>
                 </div>
             </div>
             <div id="molecule-lab-builder-viewport" class="molecule-lab-builder-viewport">
@@ -181,11 +182,11 @@ const MoleculeLabUI = {
                     <span><i class="element-p" aria-hidden="true"></i>Phosphorus</span>
                     <span><i class="element-s" aria-hidden="true"></i>Sulfur</span>
                 </div>
-                <div class="molecule-lab-builder-overlay">
-                    <p id="molecule-lab-feedback" role="status" aria-live="polite">
-                        Select an available molecule from the tech tree.
-                    </p>
-                </div>
+            </div>
+            <div class="molecule-lab-builder-overlay">
+                <p id="molecule-lab-feedback" role="status" aria-live="polite">
+                    Select an available molecule from the tech tree.
+                </p>
             </div>`;
 
         this.elements.builderViewport = this.rootElement.querySelector(
@@ -235,6 +236,14 @@ const MoleculeLabUI = {
             if (action === "rotate-right") MoleculeBuilderView.rotate(Math.PI / 8);
             if (action === "zoom-in") MoleculeBuilderView.zoom(-1);
             if (action === "zoom-out") MoleculeBuilderView.zoom(1);
+            if (action === "toggle-rotation") {
+                const paused = MoleculeBuilderView.toggleRotation();
+                const control = event.target.closest("[data-builder-action]");
+                control.textContent = paused ? "Resume" : "Pause";
+                control.title = paused ? "Resume rotation" : "Pause rotation";
+                control.setAttribute("aria-label", control.title);
+                control.setAttribute("aria-pressed", String(paused));
+            }
         });
 
         this.elements.elementKeyToggle.addEventListener("click", () => {

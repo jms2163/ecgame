@@ -333,6 +333,12 @@
     cursor: pointer;
 }
 
+.molecule-builder-toolbar button[data-builder-action="toggle-rotation"] {
+    width: auto;
+    min-width: 64px;
+    padding: 0 10px;
+}
+
 .molecule-builder-toolbar button:hover,
 .molecule-builder-toolbar button:focus-visible {
     color: white;
@@ -362,11 +368,9 @@
 }
 
 .molecule-lab-builder-overlay {
-    position: absolute;
-    right: 18px;
-    bottom: 18px;
-    left: 18px;
-    z-index: 3;
+    position: static;
+    margin: 12px 18px 18px;
+    text-align: center;
     display: block;
     padding: 10px 12px;
     border: 1px solid rgba(0, 216, 255, 0.24);

@@ -24,7 +24,8 @@ const IMPLEMENTED_NUCLEOTIDE_IDS =
         "NADPlus",
         "NADPPlus",
         "FAD",
-        "CoA"
+        "CoA",
+        "AcetylCoA"
     ]);
 
 const NUCLEOTIDE_METADATA =
@@ -409,6 +410,30 @@ const NUCLEOTIDE_METADATA =
                 "phosphate-bridge",
             description:
                 "AMP joined with riboflavin and phosphate to form the oxidized electron carrier FAD."
+        }),
+
+        AcetylCoA: Object.freeze({
+            name: "Acetyl-CoA",
+            abbreviation: "Acetyl-CoA",
+            nucleicAcidType: "COF",
+            productType: "acyl-coenzyme",
+            components: Object.freeze([
+                Object.freeze({
+                    id: "CoA", quantity: 1,
+                    role: "coenzyme-carrier",
+                    sourceZoneId: "macromolecularizer"
+                }),
+                Object.freeze({
+                    id: "AceticAcid", quantity: 1,
+                    role: "two-carbon-acetyl-precursor",
+                    sourceZoneId: "moleculeLab"
+                })
+            ]),
+            assemblyBondCount: 1,
+            nucleotideCount: 1,
+            bondType: "thioester",
+            description:
+                "CoA carries a two-carbon acetyl group through a thioester bond. This recipe uses CoA and acetic acid (acetate in cells). Acetyl-CoA synthetase uses ATP to activate acetate, producing AMP and pyrophosphate; the card models the carrier and acetyl-group assembly."
         }),
 
         CoA: Object.freeze({

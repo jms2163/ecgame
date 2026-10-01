@@ -24,7 +24,7 @@ assert.equal(Manager.complete().reason,'activity-incomplete');
 function runReactions(s){
  assert.equal(moveToReduction(s),false);assert.equal(reduceBPG(s),false);
  assert.equal(storeReductionProducts(s),false);assert.equal(answerReduction(s,'phosphate'),false);
- assert.equal(dockReductionInput(s,'NADPH'),false,'NADPH cannot replace ATP');
+ assert.equal(dockReductionInput(s,'NADPH'),false,'NADPH cannot replace ATP');assert.equal(dockReductionInput(s,'HPLUS'),false,'solution H+ belongs to GAPDH, not PGK');
  for(let i=0;i<6;i++){
   if(i===0){assert.equal(phosphorylatePGA(s),false);assert.equal(dockReductionInput(s,'PGK'),true);}
   assert.equal(dockReductionInput(s,'PGA'),true);assert.equal(phosphorylatePGA(s),false,'ATP is required');
@@ -39,7 +39,7 @@ function runReactions(s){
   if(i===0)assert.equal(dockReductionInput(s,'GAPDH'),true);
   assert.equal(reduceBPG(s),false,'NADPH is required');
   assert.equal(dockReductionInput(s,'ATP'),false,'ATP cannot replace NADPH');
-  assert.equal(dockReductionInput(s,'NADPH'),true);assert.equal(reduceBPG(s),true);assert.equal(reduceBPG(s),false);
+  assert.equal(dockReductionInput(s,'NADPH'),true);assert.equal(reduceBPG(s),false,'solution H+ is also required');assert.equal(dockReductionInput(s,'HPLUS'),true);assert.equal(dockReductionInput(s,'HPLUS'),false);assert.equal(reduceBPG(s),true);assert.equal(reduceBPG(s),false);
   l=reductionLedger(s);assert.equal(l.carbonIn,l.carbonInProducts);assert.equal(l.phosphorusIn,l.phosphorusOut);
   assert.equal(advanceReduction(s),false,'collection is required');
   assert.equal(storeReductionProducts(s),true);assert.equal(storeReductionProducts(s),false);
@@ -54,7 +54,7 @@ function runReactions(s){
  assert.equal(allocateReductionG3P(s,'net',5),true);
  assert.equal(finishReductionAllocation(s),true);
  assert.equal(s.phase,'quiz');
- assert.deepEqual(reductionLedger(s),{pgaUsed:6,atpUsed:6,adpFormed:6,nadphUsed:6,nadpFormed:6,piFormed:6,g3pFormed:6,stored:6,
+ assert.deepEqual(reductionLedger(s),{pgaUsed:6,atpUsed:6,adpFormed:6,nadphUsed:6,nadpFormed:6,protonsUsed:6,piFormed:6,g3pFormed:6,stored:6,
   carbonIn:18,carbonInProducts:18,carbonInIntermediate:0,phosphorusIn:24,phosphorusOut:24});
 }
 function answerQuiz(s,wrong=false){
@@ -111,3 +111,5 @@ assert.equal(gameState.zones.metabolism.state.practiceMastery[REDUCTION_ENZYMES[
 Manager.reset();
 const early=createReductionSession();assert.equal(advanceReduction(early),false);
 console.log('PASS: C2 conserves carbon/phosphorus; requires PGK/ATP then GAPDH/NADPH; collects six products; four questions gate completion; perfect markers save atomically; normal mastery gates and save isolation hold.');
+
+const protonFirst=createReductionSession();for(const input of ['PGK','PGA','ATP'])dockReductionInput(protonFirst,input);phosphorylatePGA(protonFirst);moveToReduction(protonFirst);dockReductionInput(protonFirst,'GAPDH');dockReductionInput(protonFirst,'HPLUS');assert.equal(reduceBPG(protonFirst),false,'H+ cannot replace NADPH');dockReductionInput(protonFirst,'NADPH');assert.equal(reduceBPG(protonFirst),true);assert.equal(protonFirst.hplus,false,'the supplied proton is consumed');assert.equal(reductionLedger(protonFirst).protonsUsed,1);

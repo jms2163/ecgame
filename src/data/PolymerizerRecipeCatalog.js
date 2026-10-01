@@ -66,6 +66,10 @@ const PRODUCT_CONFIGS = Object.freeze({
         discoveryId: null,
         lockedMessage: null
     }),
+    AcetylCoASynthetase: Object.freeze({
+        name: "Acetyl-CoA Synthetase", implemented: true,
+        discoveryId: null, lockedMessage: null
+    }),
     FattyAcidSynthase: Object.freeze({
         name: "Fatty Acid Synthase (2VZ9)", implemented: true,
         discoveryId: null, lockedMessage: null

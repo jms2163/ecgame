@@ -14,7 +14,7 @@ assert.equal(fixationLedger(c1).pgaProduced,6);assert.equal(repeatRemainingFixat
 assert.equal(advanceFixation(c1),true);assert.equal(c1.phase,'quiz');
 dockReductionInput(c2,'PGK');dockReductionInput(c2,'PGA');dockReductionInput(c2,'ATP');phosphorylatePGA(c2);
 assert.equal(repeatRemainingReduction(c2),false,'repeat cannot bypass reduction');
-moveToReduction(c2);dockReductionInput(c2,'GAPDH');dockReductionInput(c2,'NADPH');reduceBPG(c2);storeReductionProducts(c2);
+moveToReduction(c2);dockReductionInput(c2,'GAPDH');dockReductionInput(c2,'NADPH');dockReductionInput(c2,'HPLUS');reduceBPG(c2);storeReductionProducts(c2);
 assert.equal(repeatRemainingReduction(c2),true);assert.equal(c2.stored,6);assert.equal(c2.phase,'stored');
 const l=reductionLedger(c2);assert.equal(l.atpUsed,6);assert.equal(l.nadphUsed,6);
 assert.equal(l.carbonIn,l.carbonInProducts);assert.equal(l.phosphorusIn,l.phosphorusOut);

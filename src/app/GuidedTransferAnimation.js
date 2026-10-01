@@ -24,9 +24,9 @@ export class GuidedTransferAnimation {
         const x=to.left+to.width/2-from.left-from.width/2,y=to.top+to.height/2-from.top-from.height/2;
         return this.play(token,[{transform:'translate(0,0)',opacity:1},{transform:`translate(${x}px,${y}px)`,opacity:1}],duration);
     }
-    async phosphorylate(container) {
+    async phosphorylate(container, {targetSelector='.guided-reaction-dock[data-input="PGA"] .guided-reaction-carbon',productLabel="1,3-bisphosphoglycerate"} = {}) {
         const carrier=container.querySelector('.guided-reaction-dock[data-input="ATP"] .guided-reduction-carrier');
-        const target=container.querySelector('.guided-reaction-dock[data-input="PGA"] .guided-reaction-carbon');
+        const target=container.querySelector(targetSelector);
         if(!carrier || !target)return false;
         if(!await this.play(carrier,[{transform:'translateX(-18px)'},{transform:'translateX(12px)'}],550))return false;
         const phosphate=carrier.querySelector('.is-atp-phosphate'),moving=this.token(phosphate);
@@ -34,7 +34,7 @@ export class GuidedTransferAnimation {
         if(!await this.travel(moving,target,1100))return false;
         const attached=phosphate.cloneNode(true);attached.style.visibility='visible';
         attached.classList.add('guided-attached-phosphate');target.parentElement.prepend(attached);this.tokens.push(attached);
-        target.closest('.guided-reaction-molecule').querySelector('.guided-reaction-molecule-label').textContent='1,3-bisphosphoglycerate';
+        target.closest('.guided-reaction-molecule').querySelector('.guided-reaction-molecule-label').textContent=productLabel;
         moving.remove();carrier.querySelector('strong').textContent='ADP';
         await this.play(target,[{boxShadow:'0 0 0 0 #ffdc77'},{boxShadow:'0 0 12px 5px #ffdc77'},{boxShadow:'0 0 0 0 #ffdc77'}],350);
         return this.play(carrier,[{transform:'translateX(12px)',opacity:1},{transform:'translate(-75px,18px)',opacity:0}],650);

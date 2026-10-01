@@ -38,6 +38,7 @@ const WATER_PROBE_GLIDE_MS = 720;
 const MoleculeBuilderView = {
     initialized: false,
     active: false,
+    rotationPaused: false,
     container: null,
     canvas: null,
     scene: null,
@@ -227,11 +228,11 @@ const MoleculeBuilderView = {
             if (
                 this.moleculeGroup &&
                 this.analysisMode === "dipole" &&
-                this.dipoleRotationActive
+                this.dipoleRotationActive && !this.rotationPaused
             ) {
                 this.moleculeGroup.rotation.z -=
                     DIPOLE_ROTATION_RADIANS_PER_SECOND * deltaSeconds;
-            } else if (this.moleculeGroup && !this.analysisMode) {
+            } else if (this.moleculeGroup && !this.analysisMode && !this.rotationPaused) {
                 this.moleculeGroup.rotation.y +=
                     ROTATION_RADIANS_PER_SECOND * deltaSeconds;
             }
@@ -314,6 +315,8 @@ const MoleculeBuilderView = {
     loadAssembly(definition, restoredSlots = []) {
         if (!this.initialized || !definition?.atoms?.length) return false;
 
+        const preserveZoom = this.currentDefinition?.id === definition.id;
+
         const preservedRotationY =
             this.moleculeGroup &&
             this.currentDefinition?.id === definition.id &&
@@ -386,7 +389,7 @@ const MoleculeBuilderView = {
             this.draggables.push(sphere);
         });
 
-        this.fitCamera(atoms);
+        if (!preserveZoom) this.fitCamera(atoms);
         this.onFeedback?.(
             remaining.length
                 ? "Drag each atom onto its matching ghost frame."
@@ -397,6 +400,8 @@ const MoleculeBuilderView = {
 
     showCompleted(definition) {
         if (!this.initialized || !definition?.atoms?.length) return false;
+
+        const preserveZoom = this.currentDefinition?.id === definition.id;
 
         const preservedRotationY =
             this.moleculeGroup &&
@@ -429,7 +434,7 @@ const MoleculeBuilderView = {
                 );
             }
         });
-        this.fitCamera(atoms);
+        if (!preserveZoom) this.fitCamera(atoms);
         return true;
     },
 
@@ -1206,6 +1211,11 @@ const MoleculeBuilderView = {
         const safeDelta = Number.isFinite(deltaRadians) ? deltaRadians : 0;
         this.moleculeGroup.rotation.y = currentRotationY + safeDelta;
         return true;
+    },
+
+    toggleRotation() {
+        this.rotationPaused = !this.rotationPaused;
+        return this.rotationPaused;
     },
 
     zoom(delta) {

@@ -42,6 +42,10 @@ const expectedRecipes = {
             ["PO4", 1, "moleculeLab"]
         ]
     },
+    AcetylCoA: {
+        abbreviation: "Acetyl-CoA", atpCost: 1, baseDurationSeconds: 30,
+        components: [["CoA", 1, "macromolecularizer"], ["AceticAcid", 1, "moleculeLab"]]
+    },
     CoA: {
         abbreviation: "CoA",
         atpCost: 4,
@@ -101,7 +105,8 @@ gameState.zones.moleculeLab.state = {
         PO4: { count: 1 },
         Riboflavin: { count: 1 },
         PantothenicAcid: { count: 1 },
-        C: { count: 1 }
+        C: { count: 1 },
+        AceticAcid: { count: 1 }
     }
 };
 gameState.zones.macromolecularizer.state = {};
@@ -114,6 +119,7 @@ const macromolecularInventory =
 
 macromolecularInventory.AMP = 1;
 macromolecularInventory.NADPlus = 1;
+macromolecularInventory.CoA = 1;
 
 Object.keys(expectedRecipes)
     .forEach(id => {

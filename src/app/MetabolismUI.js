@@ -17,7 +17,7 @@ import MetabolismSystemsView
     from "./MetabolismSystemsView.js";
 import PolymerizerVisualCatalog
     from "../data/PolymerizerVisualCatalog.js";
-import CalvinFixationView from "./CalvinFixationView.js";
+import CalvinActivitiesView from "./CalvinActivitiesView.js";
 
 export function pathwayCardState(pathway) {
     if (pathway.releaseState === "coming-soon") return "coming-soon";
@@ -159,7 +159,7 @@ const MetabolismUI = {
             }
         );
         GameStateObserver.on("game-state-loaded", () => {
-            CalvinFixationView.close();
+            CalvinActivitiesView.close();
             if (this.active) this.render();
         });
 
@@ -272,7 +272,7 @@ const MetabolismUI = {
                             Select an enzyme card to view its structure and activate it, or drag a synthesized enzyme to its pathway slot. Proteins are not consumed.
                         </p>
 
-                        <section id="metabolism-calvin-activity" class="guided-reaction-panel" aria-label="Calvin carbon fixation activity" hidden></section>
+                        <section id="metabolism-calvin-activity" class="guided-reaction-panel" aria-label="Calvin cycle guided activities" hidden></section>
 
                         <section class="metabolism-enzyme-tray-panel" aria-labelledby="metabolism-enzyme-tray-heading">
                             <p class="metabolism-panel-kicker">Polymerizer Inventory</p>
@@ -319,7 +319,7 @@ const MetabolismUI = {
 
     deactivate() {
 
-        CalvinFixationView.close();
+        CalvinActivitiesView.close();
         this.active = false;
         this.rootElement?.classList.add(
             "hidden"
@@ -477,8 +477,8 @@ const MetabolismUI = {
         const activityPanel = this.rootElement.querySelector("#metabolism-calvin-activity");
         if (activityPanel) {
             activityPanel.hidden = !isCalvin;
-            if (isCalvin && this.viewMode === "detail") CalvinFixationView.render(activityPanel);
-            else CalvinFixationView.close();
+            if (isCalvin && this.viewMode === "detail") CalvinActivitiesView.render(activityPanel);
+            else CalvinActivitiesView.close();
         }
         this.productionSummaryElement
             .textContent =
@@ -512,7 +512,7 @@ const MetabolismUI = {
             productionHeading.textContent =
                 isNetwork
                     ? "ATP Balance Deferred"
-                    : isCalvin ? "Carbon Fixation Activities" : "Partial ATP Benefit";
+                    : isCalvin ? "Calvin Cycle Activities" : "Partial ATP Benefit";
         }
 
         MetabolismEnzymeTrayView.render(
@@ -670,7 +670,7 @@ const MetabolismUI = {
                 </span>
             </div>
             <p>${pathway.description}</p>
-            ${pathway.id === "calvinCycle" ? "<p>Guided activity: Carbon Fixation · activate RuBisCO to begin.</p>" : ""}
+            ${pathway.id === "calvinCycle" ? "<p>Guided activities: Fixation → Reduction → Regeneration. Activate RuBisCO to begin, or use permanent practice access.</p>" : ""}
             ${requirements.length > 0
                 ? requirements.map(requirement => `
                     <div class="metabolism-requirement">

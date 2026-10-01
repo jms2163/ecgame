@@ -125,6 +125,13 @@ const VISUAL_CONFIGS = Object.freeze({
         placeholderLabel: "Glycerol-3-phosphate acyltransferase motif assembly preview",
         fallbackFileName: null
     }),
+    AcetylCoASynthetase: Object.freeze({
+        displayZoomPercent: 120,
+        directoryName: "1pg4_motifs", filePrefix: "1pg4",
+        firstFrameNumber: 0, lastFrameNumber: 47,
+        alt: "Acetyl-CoA synthetase single-chain motif assembly from PDB 1PG4.",
+        accent: "gold", placeholderLabel: "Acetyl-CoA synthetase assembly", fallbackFileName: null
+    }),
     FattyAcidSynthase: Object.freeze({
         displayZoomPercent: 230,
         directoryName: "2vz9_motifs", filePrefix: "2vz9",
