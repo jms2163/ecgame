@@ -30,7 +30,7 @@ for (const [id, pdb, lastFrame, chains] of [
     const rows = fs.readFileSync(new URL(`../docs/data/${pdb}-motifs.csv`, import.meta.url), 'utf8')
         .trim().split(/\r?\n/).slice(1).map(line => line.split(','));
     const d = Recipes.get(id), v = Visuals.get(id);
-    const extension = id === 'CitrateSynthase' ? 'webp' : 'png';
+    const extension = 'webp';
     assert.equal(d.valid, true);
     assert.equal(d.implemented, true);
     assert.equal(d.purpose, 'Krebs Cycle');

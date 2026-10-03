@@ -44,17 +44,17 @@ assert.equal(
 );
 assert.equal(aquaporin.frameUrls.length, 9);
 assert(aquaporin.idleImageUrl.endsWith(
-    "/public/assets/polymerizer/proteins/1rc2_motifs/1RC2-0.png"
+    "/public/assets/polymerizer/proteins/1rc2_motifs/1RC2-0.webp"
 ));
 assert(aquaporin.finalImageUrl.endsWith(
-    "/public/assets/polymerizer/proteins/1rc2_motifs/1RC2-8.png"
+    "/public/assets/polymerizer/proteins/1rc2_motifs/1RC2-8.webp"
 ));
 assert(
     PolymerizerVisualCatalog
         .resolveImageUrl(
             "Aquaporin"
         )
-        .endsWith("/1RC2-0.png")
+        .endsWith("/1RC2-0.webp")
 );
 assert(
     PolymerizerVisualCatalog
@@ -62,7 +62,7 @@ assert(
             "Aquaporin",
             { progress: 0 }
         )
-        .endsWith("/1RC2-1.png")
+        .endsWith("/1RC2-1.webp")
 );
 assert(
     PolymerizerVisualCatalog
@@ -70,7 +70,7 @@ assert(
             "Aquaporin",
             { progress: 0.5 }
         )
-        .endsWith("/1RC2-5.png")
+        .endsWith("/1RC2-5.webp")
 );
 assert(
     PolymerizerVisualCatalog
@@ -78,7 +78,7 @@ assert(
             "Aquaporin",
             { progress: 1 }
         )
-        .endsWith("/1RC2-8.png")
+        .endsWith("/1RC2-8.webp")
 );
 assert(
     PolymerizerVisualCatalog
@@ -86,7 +86,7 @@ assert(
             "Aquaporin",
             { completed: true }
         )
-        .endsWith("/1RC2-8.png")
+        .endsWith("/1RC2-8.webp")
 );
 
 const glucoseVisual =
@@ -103,10 +103,10 @@ assert.equal(
     16
 );
 assert(glucoseVisual.idleImageUrl.endsWith(
-    "/public/assets/polymerizer/proteins/4lds_motifs/4LDS-0.png"
+    "/public/assets/polymerizer/proteins/4lds_motifs/4LDS-0.webp"
 ));
 assert(glucoseVisual.finalImageUrl.endsWith(
-    "/public/assets/polymerizer/proteins/4lds_motifs/4LDS-15.png"
+    "/public/assets/polymerizer/proteins/4lds_motifs/4LDS-15.webp"
 ));
 
 const glucoseRecipe =
@@ -136,10 +136,10 @@ assert.equal(
     131
 );
 assert(hexokinaseVisual.idleImageUrl.endsWith(
-    "/public/assets/polymerizer/proteins/1bg3_motifs/1bg3-0.png"
+    "/public/assets/polymerizer/proteins/1bg3_motifs/1bg3-0.webp"
 ));
 assert(hexokinaseVisual.finalImageUrl.endsWith(
-    "/public/assets/polymerizer/proteins/1bg3_motifs/1bg3-131.png"
+    "/public/assets/polymerizer/proteins/1bg3_motifs/1bg3-131.webp"
 ));
 
 const energyVisual =
@@ -163,10 +163,10 @@ assert.equal(pgiVisual.lastFrameNumber, 29);
 assert.equal(pgiVisual.frameCount, 30);
 assert.equal(pgiVisual.assemblyFrameCount, 29);
 assert(pgiVisual.idleImageUrl.endsWith(
-    "/public/assets/polymerizer/proteins/2pgi_motifs/2pgi-0.png"
+    "/public/assets/polymerizer/proteins/2pgi_motifs/2pgi-0.webp"
 ));
 assert(pgiVisual.finalImageUrl.endsWith(
-    "/public/assets/polymerizer/proteins/2pgi_motifs/2pgi-29.png"
+    "/public/assets/polymerizer/proteins/2pgi_motifs/2pgi-29.webp"
 ));
 assert(
     PolymerizerVisualCatalog
@@ -175,7 +175,7 @@ assert(
             { progress: 0 }
         )
         .endsWith(
-            "/2pgi_motifs/2pgi-1.png"
+            "/2pgi_motifs/2pgi-1.webp"
         )
 );
 

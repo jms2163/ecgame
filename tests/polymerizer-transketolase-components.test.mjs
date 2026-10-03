@@ -14,13 +14,13 @@ const definition=Recipes.get('Transketolase'),visual=Visuals.get('Transketolase'
 const rows=fs.readFileSync(new URL('../docs/data/5nd5-motifs.csv',import.meta.url),'utf8').trim().split(/\r?\n/).slice(1).map(line=>line.split(','));
 assert.equal(definition.simplifiedStructure,rows.map(r=>r[5]).join(''));assert.equal(definition.valid,true);assert.equal(definition.motifCount,188);assert.equal(definition.atpCost,188);
 assert.equal(definition.components.length,2);assert.equal(visual.frameCount,88);assert.equal(visual.displayZoomPercent,270);
-assert.match(visual.idleImageUrl,/5nd5-0\.png$/);assert.match(visual.finalImageUrl,/5nd5-87\.png$/);
+assert.match(visual.idleImageUrl,/5nd5-0\.webp$/);assert.match(visual.finalImageUrl,/5nd5-87\.webp$/);
 for(const c of definition.components){const own=rows.filter(r=>r[3]===c.sourceChain);for(const key of ['H','B','L'])assert.equal(c.recipe[key],own.filter(r=>r[5]===key).length);const frames=own.filter(r=>r[9]).map(r=>Number(r[9]));assert.equal(c.firstFrame,Math.min(...frames));assert.equal(c.lastFrame,Math.max(...frames));}
 assert.equal(componentPlan(definition,[1]).atpCost,96);assert.equal(componentPlan(definition,[2]).atpCost,92);
 assert.equal(componentProgress(definition,{completedIds:[1]}).frame,43);
 const before=structuredClone(gameState),practice=new ProteinAssemblyPractice('Transketolase');
-assert.equal(practice.start(2,100),false);assert.equal(practice.start(1,100),true);practice.tick(8100);assert.match(practice.imageUrl(),/5nd5-43\.png$/);
-assert.equal(practice.full,false);assert.equal(practice.start(null,8200),true);practice.tick(16200);assert.equal(practice.full,true);assert.match(practice.imageUrl(),/5nd5-87\.png$/);assert.deepEqual(gameState,before,'practice uses local components only');
+assert.equal(practice.start(2,100),false);assert.equal(practice.start(1,100),true);practice.tick(8100);assert.match(practice.imageUrl(),/5nd5-43\.webp$/);
+assert.equal(practice.full,false);assert.equal(practice.start(null,8200),true);practice.tick(16200);assert.equal(practice.full,true);assert.match(practice.imageUrl(),/5nd5-87\.webp$/);assert.deepEqual(gameState,before,'practice uses local components only');
 gameState.zones.polymerizer.state={productInventory:{},activeAssembly:null};
 gameState.zones.macromolecularizer.state.motifInventory={H_helix:32,B_sheet:19,L_loop:45};
 ResourceManager.setATPStatus({current:500,maximum:1000},'test');let completions=0;Observer.on('polymerizer-product-completed',p=>{if(p.productId==='Transketolase')completions++;});

@@ -201,7 +201,7 @@ const visual =
     );
 assert(
     visual.imageUrl.endsWith(
-        "/1RC2-0.png"
+        "/1RC2-0.webp"
     ),
     "Aquaporin should use its frame-zero preview regardless of the containing motif folder"
 );

@@ -71,7 +71,7 @@ releasedIds.forEach(id => {
     );
     assert.match(
         visual.idleImageUrl,
-        /-0\.png$/
+        /-0\.webp$/
     );
     assert.ok(
         recipe.functionDisplay?.badgeText,
@@ -110,11 +110,11 @@ assert.equal(pgkVisual.lastFrameNumber, 26);
 assert.equal(pgkVisual.frameCount, 27);
 assert.match(
     pgkVisual.frameUrls[0],
-    /3pgk_motifs\/3pgk-0\.png$/
+    /3pgk_motifs\/3pgk-0\.webp$/
 );
 assert.match(
     pgkVisual.finalImageUrl,
-    /3pgk_motifs\/3pgk-26\.png$/
+    /3pgk_motifs\/3pgk-26\.webp$/
 );
 
 const enolaseVisual =
@@ -124,11 +124,11 @@ assert.equal(enolaseVisual.lastFrameNumber, 22);
 assert.equal(enolaseVisual.frameCount, 23);
 assert.match(
     enolaseVisual.frameUrls[0],
-    /4a3r_motifs\/4a3r-0\.png$/
+    /4a3r_motifs\/4a3r-0\.webp$/
 );
 assert.match(
     enolaseVisual.finalImageUrl,
-    /4a3r_motifs\/4a3r-22\.png$/
+    /4a3r_motifs\/4a3r-22\.webp$/
 );
 
 const pyruvateKinaseVisual =
@@ -149,11 +149,11 @@ assert.equal(
 );
 assert.match(
     pyruvateKinaseVisual.finalImageUrl,
-    /1pkl_motifs\/1pkl-29\.png$/
+    /1pkl_motifs\/1pkl-29\.webp$/
 );
 assert.doesNotMatch(
     pyruvateKinaseVisual.finalImageUrl,
-    /1pkl-30\.png$/
+    /1pkl-30\.webp$/
 );
 
 console.log(

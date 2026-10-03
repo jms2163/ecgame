@@ -17,8 +17,8 @@ for(const [id,pdb,count,last] of [['Hexokinase','1bg3',250,131],['FattyAcidSynth
  assert.equal(d.motifCount,count);assert.equal(d.components.length,2);assert.equal(v.lastFrameNumber,last);
  for(const c of d.components){const own=rows.filter(r=>r[3]===c.sourceChain),frames=own.filter(r=>r[9]).map(r=>+r[9]);for(const k of ['H','B','L'])assert.equal(c.recipe[k],own.filter(r=>r[5]===k).length);assert.equal(c.firstFrame,Math.min(...frames));assert.equal(c.lastFrame,Math.max(...frames));}
  const before=structuredClone(gameState),practice=new ProteinAssemblyPractice(id);
- assert.match(practice.imageUrl(),new RegExp(`${pdb}-0\\.png$`));practice.start(1,100);practice.tick(8100);assert.equal(practice.full,false);
- assert.match(practice.imageUrl(),new RegExp(`${pdb}-${d.components[0].lastFrame}\\.png$`));practice.start(null,8200);practice.tick(16200);assert.equal(practice.full,true);assert.equal(practice.imageUrl(),v.finalImageUrl);assert.deepEqual(gameState,before);
+ assert.match(practice.imageUrl(),new RegExp(`${pdb}-0\\.webp$`));practice.start(1,100);practice.tick(8100);assert.equal(practice.full,false);
+ assert.match(practice.imageUrl(),new RegExp(`${pdb}-${d.components[0].lastFrame}\\.webp$`));practice.start(null,8200);practice.tick(16200);assert.equal(practice.full,true);assert.equal(practice.imageUrl(),v.finalImageUrl);assert.deepEqual(gameState,before);
  gameState.zones.polymerizer.state={productInventory:{},activeAssembly:null};
  gameState.zones.macromolecularizer.state.motifInventory={H_helix:1000,B_sheet:1000,L_loop:1000};
  Resources.setATPStatus({current:1000,maximum:2000},'test');delete gameState.registry.achievements.megasynthase;

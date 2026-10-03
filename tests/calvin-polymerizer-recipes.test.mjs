@@ -22,5 +22,5 @@ for (const [id, counts, lastFrame] of expected) {
     assert.equal(recipe.atpCost, Object.values(counts).reduce((a, b) => a + b));
     assert.deepEqual([visual.firstFrameNumber, visual.lastFrameNumber], [0, lastFrame]);
     assert.equal(visual.frameCount, lastFrame + 1);
-    assert.match(visual.finalImageUrl, new RegExp(`-${lastFrame}\\.png$`));
+    assert.match(visual.finalImageUrl, new RegExp(`-${lastFrame}\\.webp$`));
 }

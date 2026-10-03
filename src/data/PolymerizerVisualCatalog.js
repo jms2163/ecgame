@@ -382,6 +382,9 @@ Enolase: Object.freeze({
 
 function assetUrl(fileName) {
 
+    // Protein images use WebP; preserves each frame number and display zoom.
+    fileName = fileName.replace(/\.png$/i, ".webp");
+
     return new URL(
         `${PROTEIN_IMAGE_DIRECTORY}${fileName}`,
         import.meta.url

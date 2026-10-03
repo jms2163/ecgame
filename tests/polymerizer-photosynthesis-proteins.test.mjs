@@ -23,8 +23,8 @@ for (const entry of [
     assert.equal(recipe.atpCost, Object.values(motifs).reduce((sum, n) => sum + n, 0));
     assert.equal(visual.firstFrameNumber, 0);
     assert.equal(visual.lastFrameNumber, last);
-    assert.match(visual.idleImageUrl, new RegExp(`${pdb.toLowerCase()}-0\\.png$`));
-    assert.match(visual.finalImageUrl, new RegExp(`${pdb.toLowerCase()}-${last}\\.png$`));
+    assert.match(visual.idleImageUrl, new RegExp(`${pdb.toLowerCase()}-0\\.webp$`));
+    assert.match(visual.finalImageUrl, new RegExp(`${pdb.toLowerCase()}-${last}\\.webp$`));
 }
 assert.match(proteinLibrary.TriosePhosphateTranslocator.Info, /Galdieria sulphuraria/);
 console.log("PASS: seven photosynthesis and starch-related proteins have valid recipes and visual sequences.");

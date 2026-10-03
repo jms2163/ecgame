@@ -46,14 +46,14 @@ try {
     UI.rootElement = { querySelector: () => dialog };
     UI.inspectEnzyme(pathway, pathway.coreSlots[2], inspected.state);
     assert.match(dialog.children[2].textContent, /synthesized in the Polymerizer/);
-    assert.equal(dialog.children[1].children.at(-1).src.endsWith("/4y8v_motifs/4y8v-0.png"), true);
+    assert.equal(dialog.children[1].children.at(-1).src.endsWith("/4y8v_motifs/4y8v-0.webp"), true);
     assert.equal(dialog.children[3].children.length, 1);
     dialog.close();
 
     tray.children[1].events.click();
     UI.inspectEnzyme(pathway, inspected.slot, inspected.state);
     assert.match(dialog.children[2].textContent, /Drag .* to its pathway card/);
-    assert.equal(dialog.children[1].children.at(-1).src.endsWith("/2pgi_motifs/2pgi-29.png"), true);
+    assert.equal(dialog.children[1].children.at(-1).src.endsWith("/2pgi_motifs/2pgi-29.webp"), true);
     let called = null;
     Manager.placeEnzyme = (...args) => {
         called = args;

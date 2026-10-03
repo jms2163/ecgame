@@ -43,10 +43,10 @@ for (const entry of cases) {
     assert.equal(visual.frameCount, entry.lastFrame + 1);
     assert.equal(visual.assemblyFrameCount, entry.lastFrame);
     assert(visual.idleImageUrl.endsWith(
-        `/${entry.folder}/${entry.prefix}-0.png`
+        `/${entry.folder}/${entry.prefix}-0.webp`
     ));
     assert(visual.finalImageUrl.endsWith(
-        `/${entry.folder}/${entry.prefix}-${entry.lastFrame}.png`
+        `/${entry.folder}/${entry.prefix}-${entry.lastFrame}.webp`
     ));
     assert.equal(
         PolymerizerVisualCatalog.resolveImageUrl(
