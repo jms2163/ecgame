@@ -9,7 +9,7 @@ import Resources from '../src/app/ResourceManager.js';
 const store=new Map();globalThis.localStorage={getItem:k=>store.get(k)??null,setItem:(k,v)=>store.set(k,String(v)),removeItem:k=>store.delete(k)};
 const rows=fs.readFileSync(new URL('../docs/data/1pg4-motifs.csv',import.meta.url),'utf8').trim().split(/\r?\n/).slice(1).map(r=>r.split(','));
 const d=Recipes.get('AcetylCoASynthetase'),v=Visuals.get(d.id);assert.equal(d.valid,true);assert.equal(d.implemented,true);assert.equal(d.simplifiedStructure,rows.map(r=>r[5]).join(''));
-assert.equal(d.atpCost,99);assert.equal(d.assemblyDurationMs,39750);assert.equal(d.discoveryId,null);assert.equal(v.displayZoomPercent,120);assert.equal(v.frameCount,48);
+assert.equal(d.atpCost,99);assert.equal(d.assemblyDurationMs,39750);assert.equal(d.discoveryId,null);assert.equal(v.displayZoomPercent,230);assert.equal(v.frameCount,48);
 assert.match(v.idleImageUrl,/1pg4-0\.png$/);assert.match(v.finalImageUrl,/1pg4-47\.png$/);
 const before=structuredClone(gameState),practice=new ProteinAssemblyPractice(d.id);practice.start(null,100);practice.tick(8100);assert.equal(practice.full,true);assert.equal(practice.imageUrl(),v.finalImageUrl);assert.deepEqual(gameState,before);
 gameState.zones.polymerizer.state={productInventory:{},activeAssembly:null};gameState.zones.macromolecularizer.state.motifInventory={H_helix:25,B_sheet:30,L_loop:44};Resources.setATPStatus({current:200,maximum:1000},'test');

@@ -8,11 +8,19 @@
 // --------------------------------------------------
 
 import { proteinLibrary } from "./proteinLibrary.js";
+import KrebsProteins from "./KrebsProteinCatalog.js";
 
 const PROTEIN_IMAGE_DIRECTORY =
     "../../public/assets/polymerizer/proteins/";
 
 const VISUAL_CONFIGS = Object.freeze({
+    ...Object.fromEntries(Object.entries(KrebsProteins).map(([id, protein]) => [id, Object.freeze({
+        displayZoomPercent: protein.displayZoomPercent,
+        directoryName: `${protein.source.toLowerCase()}_motifs`, filePrefix: protein.source.toLowerCase(),
+        firstFrameNumber: 0, lastFrameNumber: protein.lastFrame,
+        alt: `${protein.name} cumulative motif assembly (${protein.source}).`,
+        accent: "gold", placeholderLabel: `${protein.name} assembly`, fallbackFileName: null
+    })])),
     RuBisCO: Object.freeze({
         displayZoomPercent: 190,
         directoryName: "9hvm_motifs", filePrefix: "9hvm",
@@ -126,7 +134,7 @@ const VISUAL_CONFIGS = Object.freeze({
         fallbackFileName: null
     }),
     AcetylCoASynthetase: Object.freeze({
-        displayZoomPercent: 120,
+        displayZoomPercent: 230,
         directoryName: "1pg4_motifs", filePrefix: "1pg4",
         firstFrameNumber: 0, lastFrameNumber: 47,
         alt: "Acetyl-CoA synthetase single-chain motif assembly from PDB 1PG4.",

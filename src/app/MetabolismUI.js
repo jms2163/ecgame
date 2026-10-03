@@ -18,6 +18,7 @@ import MetabolismSystemsView
 import PolymerizerVisualCatalog
     from "../data/PolymerizerVisualCatalog.js";
 import CalvinActivitiesView from "./CalvinActivitiesView.js";
+import KrebsActivitiesView from "./KrebsActivitiesView.js";
 
 export function pathwayCardState(pathway) {
     if (pathway.releaseState === "coming-soon") return "coming-soon";
@@ -160,6 +161,7 @@ const MetabolismUI = {
         );
         GameStateObserver.on("game-state-loaded", () => {
             CalvinActivitiesView.close();
+            KrebsActivitiesView.close();
             if (this.active) this.render();
         });
 
@@ -273,6 +275,7 @@ const MetabolismUI = {
                         </p>
 
                         <section id="metabolism-calvin-activity" class="guided-reaction-panel" aria-label="Calvin cycle guided activities" hidden></section>
+                        <section id="metabolism-krebs-activity" class="guided-reaction-panel" aria-label="Krebs cycle guided activities" hidden></section>
 
                         <section class="metabolism-enzyme-tray-panel" aria-labelledby="metabolism-enzyme-tray-heading">
                             <p class="metabolism-panel-kicker">Polymerizer Inventory</p>
@@ -320,6 +323,7 @@ const MetabolismUI = {
     deactivate() {
 
         CalvinActivitiesView.close();
+        KrebsActivitiesView.close();
         this.active = false;
         this.rootElement?.classList.add(
             "hidden"
@@ -474,11 +478,18 @@ const MetabolismUI = {
         const reconstruction =
             selectedPathway.reconstruction;
         const isCalvin = selectedPathway.id === "calvinCycle";
+        const isKrebs = selectedPathway.id === "tcaCycle";
+        const krebsPanel = this.rootElement.querySelector("#metabolism-krebs-activity");
+        if (!isKrebs || this.viewMode !== "detail") KrebsActivitiesView.close();
         const activityPanel = this.rootElement.querySelector("#metabolism-calvin-activity");
         if (activityPanel) {
             activityPanel.hidden = !isCalvin;
             if (isCalvin && this.viewMode === "detail") CalvinActivitiesView.render(activityPanel);
             else CalvinActivitiesView.close();
+        }
+        if (krebsPanel) {
+            krebsPanel.hidden = !isKrebs;
+            if (isKrebs && this.viewMode === "detail") KrebsActivitiesView.render(krebsPanel);
         }
         this.productionSummaryElement
             .textContent =
@@ -487,7 +498,9 @@ const MetabolismUI = {
                     ? `${reconstruction.placedCoreEnzymes} / ${reconstruction.requiredCoreEnzymes} · ${reconstruction.percent}% · +${reconstruction.atpPerMinute} ATP/min`
                     : isCalvin
                         ? `${reconstruction.placedCoreEnzymes} / ${reconstruction.requiredCoreEnzymes} · Explore carbon fixation above`
-                        : `${reconstruction.placedCoreEnzymes} / ${reconstruction.requiredCoreEnzymes} · ATP reward not configured`;
+                        : isKrebs
+                            ? `${reconstruction.placedCoreEnzymes} / ${reconstruction.requiredCoreEnzymes} · Explore the cycle above`
+                            : `${reconstruction.placedCoreEnzymes} / ${reconstruction.requiredCoreEnzymes} · ATP reward not configured`;
 
         const productionPanel =
             this.productionSummaryElement
@@ -512,7 +525,7 @@ const MetabolismUI = {
             productionHeading.textContent =
                 isNetwork
                     ? "ATP Balance Deferred"
-                    : isCalvin ? "Calvin Cycle Activities" : "Partial ATP Benefit";
+                    : isCalvin ? "Calvin Cycle Activities" : isKrebs ? "Krebs Cycle Activities" : "Partial ATP Benefit";
         }
 
         MetabolismEnzymeTrayView.render(
@@ -605,6 +618,16 @@ const MetabolismUI = {
         close.type = "button";
         close.textContent = "Close";
         close.addEventListener("click", () => dialog.close());
+        if (pathway.id === "tcaCycle") {
+            const practice = document.createElement("button");
+            practice.type = "button";
+            practice.textContent = "Practice enzyme";
+            practice.addEventListener("click", () => {
+                dialog.close();
+                KrebsActivitiesView.start(slot.slot - 1);
+            });
+            actions.appendChild(practice);
+        }
         if (synthesized && !active && pathway.available) {
             const activate = document.createElement("button");
             activate.type = "button";
@@ -671,6 +694,7 @@ const MetabolismUI = {
             </div>
             <p>${pathway.description}</p>
             ${pathway.id === "calvinCycle" ? "<p>Guided activities: Fixation → Reduction → Regeneration. Activate RuBisCO to begin, or use permanent practice access.</p>" : ""}
+            ${pathway.id === "tcaCycle" ? "<p>Cycle overview and eight enzyme practices. Earn all eight green P markers to automate a full turn.</p>" : ""}
             ${requirements.length > 0
                 ? requirements.map(requirement => `
                     <div class="metabolism-requirement">

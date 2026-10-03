@@ -1,7 +1,17 @@
 // Simplified structural stubs use only the three Macromolecularizer motifs:
 // H (alpha helix), B (beta sheet), and L (loop). These are gameplay-scale
 // placeholders until each protein receives a PDB-based recipe.
+import KrebsProteins from './KrebsProteinCatalog.js';
+
 export const proteinLibrary =  Object.freeze({
+  ...Object.fromEntries(Object.entries(KrebsProteins).map(([id, protein]) => [id, {
+    PPC: protein.ppc, Recipe: protein.recipe,
+    Class: 'Metabolism', Tier: 2, Requires: [],
+    Function: protein.reaction,
+    Location: protein.location ?? 'Krebs Cycle (bacterial structural representative)',
+    Source: protein.source, Models: {},
+    Info: `${protein.name} from ${protein.organism}. ${protein.reaction} ${protein.qualification ?? ''}`.trim()
+  }])),
   "Aquaporin": {
     "PPC": "HLHLHLHLHLHLHLH",
     "Recipe": {"H": 8, "L": 7},

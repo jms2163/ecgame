@@ -1,4 +1,5 @@
-// Exact chain boundaries and motif counts from the supplied 9HVM and 5ND5 reports.
+import KrebsProteins from './KrebsProteinCatalog.js';
+// Exact chain boundaries and motif counts from the supplied CSV reports.
 // Display numbers are stable recipe components, independent of PDB chain names.
 const RUBISCO = [
     {
@@ -251,7 +252,10 @@ const FATTY_ACID_SYNTHASE = [
         "lastFrame": 321
     }
 ];
-const COMPONENTS = {RuBisCO:RUBISCO,Transketolase:TRANSKETOLASE,Hexokinase:HEXOKINASE,FattyAcidSynthase:FATTY_ACID_SYNTHASE};
+const COMPONENTS = {
+    ...Object.fromEntries(Object.entries(KrebsProteins).map(([id, protein]) => [id, protein.components])),
+    RuBisCO:RUBISCO,Transketolase:TRANSKETOLASE,Hexokinase:HEXOKINASE,FattyAcidSynthase:FATTY_ACID_SYNTHASE
+};
 for (const components of Object.values(COMPONENTS)) {
     for (const component of components) { Object.freeze(component.recipe); Object.freeze(component); }
     Object.freeze(components);

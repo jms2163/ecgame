@@ -1,4 +1,6 @@
+import KrebsProteins from './KrebsProteinCatalog.js';
 const PURPOSES = Object.freeze({
+    ...Object.fromEntries(Object.keys(KrebsProteins).map(id => [id, "Krebs Cycle"])),
     "RuBisCO": "Calvin Cycle",
     "Aquaporin": "Water Balance",
     "GlucoseTransporter": "Glycolysis Access",

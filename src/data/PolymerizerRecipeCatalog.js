@@ -12,6 +12,7 @@ import ProteinFunctionCatalog
     from "./ProteinFunctionCatalog.js";
 import ProteinComponentCatalog from "./ProteinComponentCatalog.js";
 import ProteinPurposeCatalog from "./ProteinPurposeCatalog.js";
+import KrebsProteins from "./KrebsProteinCatalog.js";
 
 const MOTIF_ID_BY_SYMBOL = Object.freeze({
     H: "H_helix",
@@ -24,6 +25,9 @@ const MINIMUM_ASSEMBLY_SECONDS = 15;
 const MAXIMUM_ASSEMBLY_SECONDS = 60;
 const SECONDS_PER_MOTIF_UNIT = 0.25;
 const PRODUCT_CONFIGS = Object.freeze({
+    ...Object.fromEntries(Object.entries(KrebsProteins).map(([id, protein]) => [id,
+        Object.freeze({name: protein.name, implemented: true, discoveryId: null, lockedMessage: null})
+    ])),
     RuBisCO: Object.freeze({
         name: "RuBisCO (9HVM · full assembly)",
         implemented: true,

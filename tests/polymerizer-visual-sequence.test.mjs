@@ -198,7 +198,12 @@ const status =
     PolymerizerManager.getStatus(
         "GlucoseTransporter"
     );
-assert.equal(status.products.length, 33);
+assert.equal(status.products.length, 39);
+assert.deepEqual(status.products.filter(product => [
+    "CitrateSynthase", "Aconitase", "IsocitrateDehydrogenase"
+].includes(product.id)).map(product => product.id), [
+    "CitrateSynthase", "Aconitase", "IsocitrateDehydrogenase"
+]);
 assert.equal(status.products.find(product => product.id === "RuBisCO").canStart, false);
 assert.deepEqual(
     status.products
