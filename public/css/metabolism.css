@@ -81,7 +81,7 @@
 .metabolism-enzyme-card .metabolism-practice-marker { position: absolute; top: 8px; right: 8px; display: grid; place-items: center; width: 26px; height: 26px; border: 2px solid #81e49e; border-radius: 50%; color: #81e49e; font-size: 15px; font-weight: bold; line-height: 1; background: #163e25; }
 #metabolism-zone.metabolism-practice-open .metabolism-library,
 #metabolism-zone.metabolism-practice-open .metabolism-topbar-actions,
-#metabolism-zone.metabolism-practice-open .metabolism-map-panel > :not(#metabolism-calvin-activity) { display: none; }
+#metabolism-zone.metabolism-practice-open .metabolism-map-panel > :not(#metabolism-calvin-activity):not(#metabolism-krebs-activity) { display: none; }
 #metabolism-zone.metabolism-practice-open .metabolism-workspace { grid-template-columns: minmax(0, 1fr); }
 #metabolism-zone.metabolism-practice-open .metabolism-map-panel { padding: 12px; }
 #metabolism-zone.metabolism-practice-open .guided-reaction-panel { margin: 0; }
@@ -1548,3 +1548,101 @@
 }
 @keyframes calvin-dot-pulse { 50% { filter: drop-shadow(0 0 6px #ffdc77); } }
 @media (prefers-reduced-motion: reduce) { .calvin-overview-dot.is-current circle { animation: none; } }
+
+/* Krebs guided practice and persistent cycle overview. */
+.krebs-guided-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; align-items: start; }
+.krebs-persistent-overview { padding: 16px; border: 1px solid #638db0; border-radius: 14px; background: #10283e; width: 100%; max-width: 580px; box-sizing: border-box; margin: 0 auto; }
+.krebs-persistent-overview h3 { margin: 2px 0 8px; }
+.krebs-overview-board { position: relative; }
+.krebs-overview-board > svg { display: block; width: 100%; overflow: visible; }
+.krebs-ring { fill: none; stroke: #42647e; stroke-width: 6; }
+.krebs-ring-arc { fill: none; stroke: #a1d7ff; stroke-width: 2; }
+.krebs-reaction-dot { cursor: pointer; }
+.krebs-reaction-dot > circle { fill: #19456b; stroke: #88bee6; stroke-width: 2; }
+.krebs-reaction-dot.is-current > circle { stroke: #ffe28c; stroke-width: 4; animation: krebs-dot-pulse 1.6s ease-in-out infinite; }
+.krebs-reaction-dot:focus > circle { stroke: white; stroke-width: 5; }
+.krebs-dot-number { fill: white; font-size: 18px; font-weight: bold; }
+.krebs-dot-abbr { fill: #e3f4ff; font-size: 15px; font-weight: bold; }
+.krebs-dot-p { fill: #84f7a4; font-size: 18px; font-weight: bold; opacity: 0; }
+.krebs-reaction-dot.is-practiced .krebs-dot-p { opacity: 1; }
+.krebs-ring-note { fill: #c2dfef; font-size: 12px; }
+.krebs-ring-center { position: absolute; top: 42%; left: 50%; transform: translate(-50%, -50%); display: grid; justify-items: center; text-align: center; width: 48%; }
+.krebs-ring-center .guided-reaction-button { margin: 0 0 8px; }
+.krebs-current-step { display: block; margin: 10px 0; }
+.krebs-overview-caption { min-height: 4em; font-size: .88rem; line-height: 1.5; }
+.krebs-turn-summary { padding: 12px; border: 1px solid #779fc0; border-radius: 8px; line-height: 1.5; }
+.krebs-overview-output { padding: 12px; background: #0b1c2d; border: 1px solid #42647e; border-radius: 8px; line-height: 1.5; font-size: .85rem; }
+.krebs-loop-control { display: flex; align-items: center; gap: 8px; margin: 14px 0; }
+.krebs-practice-details { min-width: 0; }
+.krebs-practice-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.krebs-practice-card { position: relative; display: grid; gap: 9px; text-align: left; margin: 0; padding-right: 40px; }
+.krebs-practice-card small { line-height: 1.5; font-weight: normal; }
+.krebs-reaction-workspace { grid-template-columns: minmax(240px, 1.6fr) minmax(130px, .65fr); }
+.krebs-reaction-workspace > .guided-reaction-output-tray { grid-column: 1 / -1; }
+.krebs-reaction-workspace .guided-reaction-tray .guided-reaction-button { display: block; width: 100%; box-sizing: border-box; margin: 0 0 10px; }
+.krebs-reaction-workspace .guided-reaction-tray .guided-reaction-button > strong,
+.krebs-reaction-workspace .guided-reaction-tray .guided-reaction-button > small { display: block; margin: 3px 0; }
+.krebs-input-placed { color: #b1eac6; }
+.krebs-placed-figure { animation: krebs-place-in .45s ease-out; }
+@keyframes krebs-place-in { from { opacity: .25; translate: 22px 0; } to { opacity: 1; translate: 0 0; } }
+.krebs-enzyme-badge { display: block; font-size: 1.5rem; font-weight: bold; text-align: center; padding: 12px; color: #b8dcff; }
+.krebs-enzyme-structure { display: grid; place-items: center; width: 100%; max-width: 220px; height: 140px; overflow: hidden; margin: 8px auto; border-radius: 8px; }
+.krebs-enzyme-image { display: block; width: 100%; height: 100%; object-fit: contain; transform-origin: center; }
+.krebs-selected-enzyme { text-align: center; padding: 8px; border: 1px solid #52718d; border-radius: 12px; background: #16314c; }
+.krebs-input-docks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 12px 0; }
+.krebs-input-docks > .krebs-input-dock:first-child { grid-column: 1 / -1; }
+.krebs-input-dock { min-height: 60px; }
+.krebs-substrate-display { position: relative; }
+.krebs-molecule { display: grid; text-align: center; gap: 6px; width: 100%; min-width: 0; }
+.krebs-molecule > svg { display: block; width: 100%; max-width: 440px; margin: auto; overflow: visible; }
+.krebs-molecule.is-compact { max-width: 250px; }
+.krebs-molecule small { font-size: .75rem; font-weight: normal; }
+.krebs-morph-target { position: absolute; inset: 0; }
+.krebs-carbon-atom circle { fill: #add7f0; stroke: #e2f1fc; stroke-width: 2; }
+.krebs-carbon-atom text { fill: #0d283b; font-size: 18px; font-weight: bold; }
+.krebs-bond { stroke: #dcebf7; stroke-width: 3; }
+.krebs-oxygen { fill: #ff9999; font-size: 22px; font-weight: bold; }
+.krebs-oxygen-bond { stroke: #ff9999; stroke-width: 2.5; }
+.krebs-coa-label { fill: #ffe194; font-size: 18px; font-weight: bold; }
+.krebs-carrier { display: grid; place-items: center; padding: 8px; min-width: 65px; gap: 8px; border-radius: 8px; background: #16314c; }
+.krebs-carrier > svg { width: 145px; max-width: 100%; }
+.krebs-nad-shape { fill: #ffed55; stroke: #6b5000; stroke-width: 3; }
+.krebs-carrier-label { fill: #182324; font-size: 24px; font-weight: bold; }
+.krebs-hydride-h { fill: white; stroke: #b7dcf7; stroke-width: 3; }
+.krebs-hydride-h-label { fill: #183347; font-size: 18px; font-weight: bold; }
+.krebs-hydride-electron { fill: #86caff; }
+.krebs-hydride-electron-label { fill: #143546; font-size: 11px; font-weight: bold; }
+.krebs-phosphate-row, .krebs-hydrogen-bundle { display: flex; align-items: center; justify-content: center; gap: 5px; }
+.krebs-hydrogen { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: white; color: #16314c; border: 2px solid #aecfff; font-weight: bold; }
+.krebs-electron { display: grid; place-items: center; width: 23px; height: 23px; border-radius: 50%; background: #84cfff; color: #16314c; font-size: 12px; font-weight: bold; }
+.krebs-water, .krebs-co2 { font-size: 1.1rem; }
+.krebs-bound-fad { display: grid; gap: 8px; text-align: center; padding: 15px; margin: 10px 0; background: repeating-linear-gradient(0deg, #2a455d, #2a455d 8px, #355971 8px, #355971 16px); border: 2px solid #8cc2d8; border-radius: 14px; }
+.krebs-bound-fad strong { padding: 5px; background: #193650; border-radius: 5px; }
+.krebs-local-products { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; animation: krebs-products-in .65s ease-out; }
+.krebs-local-products > .krebs-molecule { flex: 1 1 100%; }
+.krebs-stored-products { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 16px; border: 1px solid #52718d; border-radius: 12px; }
+.krebs-stored-products h4 { flex-basis: 100%; margin: 0; }
+.krebs-quiz { padding: 18px; margin-top: 16px; border: 1px solid #7699b4; border-radius: 12px; }
+.krebs-quiz .guided-reaction-button { display: block; text-align: left; }
+.krebs-equation { padding: 12px; border-radius: 8px; background: #142d45; line-height: 1.6; }
+.krebs-carbon-ledger { padding: 10px; background: #0e2339; border-radius: 6px; }
+.krebs-auto-token circle { fill: #add7f0; stroke: #e2f1fc; }
+.krebs-auto-token text { fill: #0d283b; font-size: 10px; font-weight: bold; }
+.krebs-auto-token .krebs-auto-label { fill: #ffe194; font-size: 14px; stroke: #0e2339; stroke-width: 4px; paint-order: stroke; }
+.krebs-guided-layout.is-automating { grid-template-columns: minmax(0, 1fr); }
+.krebs-guided-layout.is-automating .krebs-persistent-overview { max-width: 760px; position: static; }
+.krebs-guided-layout.is-automating .krebs-practice-details { display: none; }
+@keyframes krebs-products-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes krebs-dot-pulse { 50% { stroke-opacity: .4; } }
+@media (min-width: 1050px) {
+    .krebs-guided-layout { grid-template-columns: minmax(300px, .85fr) minmax(0, 1.7fr); }
+    .krebs-persistent-overview { position: sticky; top: 12px; }
+}
+@media (max-width: 700px) {
+    .krebs-practice-cards, .krebs-reaction-workspace { grid-template-columns: minmax(0, 1fr); }
+    .krebs-ring-center .guided-reaction-button { font-size: .8rem; padding: 7px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .krebs-reaction-dot.is-current > circle, .krebs-local-products, .krebs-placed-figure { animation: none; }
+}
+.krebs-water-hydroxyl { color: #ff9999; font-weight: bold; font-size: 20px; }
