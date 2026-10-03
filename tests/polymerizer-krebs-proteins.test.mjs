@@ -30,6 +30,7 @@ for (const [id, pdb, lastFrame, chains] of [
     const rows = fs.readFileSync(new URL(`../docs/data/${pdb}-motifs.csv`, import.meta.url), 'utf8')
         .trim().split(/\r?\n/).slice(1).map(line => line.split(','));
     const d = Recipes.get(id), v = Visuals.get(id);
+    const extension = id === 'CitrateSynthase' ? 'webp' : 'png';
     assert.equal(d.valid, true);
     assert.equal(d.implemented, true);
     assert.equal(d.purpose, 'Krebs Cycle');
@@ -40,8 +41,8 @@ for (const [id, pdb, lastFrame, chains] of [
     assert.equal(d.components.length, chains === 1 ? 0 : chains);
     assert.equal(v.lastFrameNumber, lastFrame);
     assert.equal(v.frameCount, lastFrame + 1);
-    assert.match(v.idleImageUrl, new RegExp(`${pdb}-0\\.png$`));
-    assert.match(v.finalImageUrl, new RegExp(`${pdb}-${lastFrame}\\.png$`));
+    assert.match(v.idleImageUrl, new RegExp(`${pdb}-0\\.${extension}$`));
+    assert.match(v.finalImageUrl, new RegExp(`${pdb}-${lastFrame}\\.${extension}$`));
     for (const symbol of 'HBL') {
         assert.equal(proteinLibrary[id].Recipe[symbol], rows.filter(row => row[5] === symbol).length);
         if (d.components.length) assert.equal(d.components.reduce((sum, c) => sum + c.recipe[symbol], 0), proteinLibrary[id].Recipe[symbol]);

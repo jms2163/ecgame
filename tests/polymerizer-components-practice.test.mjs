@@ -35,10 +35,10 @@ const beforePractice=JSON.stringify(gameState),beforeWrites=writes;
 const practice=new ProteinAssemblyPractice('RuBisCO');
 assert.equal(practice.start(2,100),false,'cumulative assets preserve numbered order');
 assert.equal(practice.start(1,100),true);
-assert.match(practice.imageUrl(8100),/9hvm-33\.png$/);
+assert.match(practice.imageUrl(8100),/9hvm-33\.webp$/);
 practice.tick(8100);assert.deepEqual(practice.completedIds,[1]);
 assert.equal(practice.start(null,8200),true);practice.tick(16200);
-assert.equal(practice.full,true);assert.match(practice.imageUrl(),/9hvm-344\.png$/);
+assert.equal(practice.full,true);assert.match(practice.imageUrl(),/9hvm-344\.webp$/);
 CalvinPractice.start();
 const s=CalvinPractice.session;dockFixationInput(s,'RuBisCO');
 for(let i=0;i<3;i++){dockFixationInput(s,'RuBP');dockFixationInput(s,'CO2');beginFixation(s);dockFixationInput(s,'H2O');finishFixation(s);storeFixationProducts(s);advanceFixation(s);}

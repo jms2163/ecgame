@@ -16,12 +16,14 @@ const PROTEIN_IMAGE_DIRECTORY =
 const VISUAL_CONFIGS = Object.freeze({
     ...Object.fromEntries(Object.entries(KrebsProteins).map(([id, protein]) => [id, Object.freeze({
         displayZoomPercent: protein.displayZoomPercent,
+        fileExtension: id === "CitrateSynthase" ? "webp" : "png",
         directoryName: `${protein.source.toLowerCase()}_motifs`, filePrefix: protein.source.toLowerCase(),
         firstFrameNumber: 0, lastFrameNumber: protein.lastFrame,
         alt: `${protein.name} cumulative motif assembly (${protein.source}).`,
         accent: "gold", placeholderLabel: `${protein.name} assembly`, fallbackFileName: null
     })])),
     RuBisCO: Object.freeze({
+        fileExtension: "webp",
         displayZoomPercent: 190,
         directoryName: "9hvm_motifs", filePrefix: "9hvm",
         firstFrameNumber: 0, lastFrameNumber: 344,
@@ -436,7 +438,7 @@ function createVisual(productId, config) {
     const frameUrls = Object.freeze(
         frameNumbers.map(frameNumber =>
             assetUrl(
-                `${directoryPrefix}${filePrefix}-${frameNumber}.png`
+                `${directoryPrefix}${filePrefix}-${frameNumber}.${config.fileExtension ?? "png"}`
             )
         )
     );
